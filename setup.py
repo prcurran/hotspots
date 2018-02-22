@@ -16,6 +16,6 @@ setup(
         # If any package contains *.txt or *.rst files, include them:
         '': ['*.txt', '*.rst','*.pkl'],
         # And include any *.mol2 files found in the 'probes' package, too:
-        'fhm': ['probes/*.mol2'],
+        'fragment-hotspot-maps': ['probes/*.mol2'],
     }
 )
