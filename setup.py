@@ -21,7 +21,6 @@ setup(
 
     # metadata for upload to PyPI
     author="Chris Radoux","Peter Curran"
-    author_email="cradoux.cr@gmail.com", "pc564@cam.ac.uk"
     description="Hotspot class to aid with running and using the results of hotspot calculations",
     license="PSF",
     keywords="Hotspot, Fragments",
