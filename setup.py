@@ -17,15 +17,5 @@ setup(
         '': ['*.txt', '*.rst','*.pkl'],
         # And include any *.mol2 files found in the 'probes' package, too:
         'fhm': ['probes/*.mol2'],
-    },
-
-    # metadata for upload to PyPI
-    author="Chris Radoux","Peter Curran"
-    description="Hotspot class to aid with running and using the results of hotspot calculations",
-    license="PSF",
-    keywords="Hotspot, Fragments",
-    url="https://www.ccdc.cam.ac.uk/solutions/csd-discovery/applications/fragment-hotspots/",
-    # project home page, if any
-
-    # could also include long_description, download_url, classifiers, etc.
+    }
 )
