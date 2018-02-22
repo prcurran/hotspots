@@ -1,136 +1,82 @@
 def superstar_ins(settings):
-    ss_str = '''
-            JOBNAME {0}
-            PROBENAME {1}
-            GRID_SPACING 0.5
-            CALC_CONTOUR_SURFACE 0
-            SAVE_SUPER_SCATTERPLOT 0
-            RUN_TYPE SUPERSTAR
-            DATA_SOURCE CSD
-            SHELL_VALUES 0.5 0
-            SIGCHECK_METHOD POISSON SHELL
-            PROPENSITY_CORRECTION LOGP DEFAULT DEFAULT
-            MIN_CAVITY_VOLUME 10
-            CAVITY_RADIUS 10
-            PEAK_FITTING 0
-            PEAK_FITTING_NCYCLES 1
-            MIN_PEAK_HEIGHT 0
-            PEAK_FITTING_REFINE 0
-            MOLECULE_FILE {2}
-            CAVITY_DETECTION 1
-            MIN_PSP 5
-            SAVE_CAVITY MESH
-            SUBSTRUCTURE ALL
-            USE_TORSIONS 1
-            RMS_ACCEPT 0.1
-            NO_MAP_WHEN_INCOMPLETE 0
-            MAP_FORMAT SYBYL_ASCII_CONTOUR
-            FIELD_TYPE PROPENSITY
-            MAP_DISTRIBUTE_POINTS GAUSSIAN_SMEARING
-            MAX_PENETRATION 0.3
-            BOX_BORDER {3}
-            SUPERSTAR_MAP_BACKGROUND {4}
-            MULTIPLY_POLAR_ONLY 0
-            INVERSE_MAP 0
-            AVOID_CLOSE_GRIDPOINTS 0
-            MAX_NOISE_LEVEL 1
-            SIGNIFICANCE_LEVEL 0.001
-            MIN_PROPENSITY {5}
-            SAVE_SUPERSTAR_MAP 1
-            SAVE_CENTRAL_GROUPS 0
-            SAVE_EXCLUDED_VOLUME_MAP 0
-            SAVE_ACCESSIBLE_VOLUME_MAP 0
-            FLEXIBILITY_EXHAUSTIVE 0
-            FLEXIBILITY_FLAG FLAG_ENSEMBLE
-            SMEARING_SIGMA 0.5
-            SMEARING_NSIGMAS 2
-            POLAR_POLAR_CORRECTION 1
-            POLAR_APOLAR_CORRECTION 1
-            APOLAR_APOLAR_CORRECTION 9
-            REMOVE_BACKBONE_CONTACTS 1
-            REMOVE_SUSPICIOUS_CONTACTS 0
-            MAX_HBOND_DISTANCE 3.1
-            MIN_HBOND_ANGLE 100
-            PROPER_HBOND_DISTANCE 2.9
-            PROPER_HBOND_ANGLE 140
-            SAVE_LIGSITE_MAP 1
-            MIN_PEAK_DISTANCE 1
-            SAVE_PEAKS 1
-            SAVE_PEAK_MAP 0
-            CALC_METAL_BONDS 1
-            SAVE_GOLD_FITTING_POINTS 0
-            GOLD_MIN_PROPENSITY 5
-            MAX_SCATTER_ATOMS 5000
-            MIN_SCATTER_DENS 1.01
-            SURFACE_FORMAT SYBYL_MOL2
-            CALC_CONNOLLY_SURFACE 0
-            CONTOUR_LIST 2 CYAN 4 PURPLE 8 ORANGE
-            COVALENT_TOLERANCE 0.4
-            SCORE_PACKING_SHELL 0
-            ATOM_SCORING SINGLE_POINT'''.format(settings.jobname, settings.probename, settings.moleculefile,
-                                                settings.cavity_origin,
-                                                settings.occulsionthreshold, settings.mapbackgroundvalue,
-                                                settings.boxborder,
-                                                settings.minpropensity)
+    ss_str = '''JOBNAME {0}
+PROBENAME {1}
+GRID_SPACING 0.5
+CALC_CONTOUR_SURFACE 0
+SAVE_SUPER_SCATTERPLOT 0
+RUN_TYPE SUPERSTAR
+DATA_SOURCE CSD
+SHELL_VALUES 0.5 0
+SIGCHECK_METHOD POISSON SHELL
+PROPENSITY_CORRECTION LOGP DEFAULT DEFAULT
+MIN_CAVITY_VOLUME 10
+CAVITY_RADIUS 10
+PEAK_FITTING 0
+PEAK_FITTING_NCYCLES 1
+MIN_PEAK_HEIGHT 0
+PEAK_FITTING_REFINE 0
+MOLECULE_FILE {2}
+CAVITY_DETECTION 1
+MIN_PSP 5
+SAVE_CAVITY MESH
+USE_TORSIONS 1
+RMS_ACCEPT 0.1
+NO_MAP_WHEN_INCOMPLETE 0
+MAP_FORMAT SYBYL_ASCII_CONTOUR
+FIELD_TYPE PROPENSITY
+MAP_DISTRIBUTE_POINTS GAUSSIAN_SMEARING
+MAX_PENETRATION 0.3
+BOX_BORDER {3}
+SUPERSTAR_MAP_BACKGROUND {4}
+MULTIPLY_POLAR_ONLY 0
+INVERSE_MAP 0
+AVOID_CLOSE_GRIDPOINTS 0
+MAX_NOISE_LEVEL 1
+SIGNIFICANCE_LEVEL 0.001
+MIN_PROPENSITY {5}
+SAVE_SUPERSTAR_MAP 1
+SAVE_CENTRAL_GROUPS 0
+SAVE_EXCLUDED_VOLUME_MAP 0
+SAVE_ACCESSIBLE_VOLUME_MAP 0
+FLEXIBILITY_EXHAUSTIVE 0
+FLEXIBILITY_FLAG FLAG_ENSEMBLE
+SMEARING_SIGMA 0.5
+SMEARING_NSIGMAS 2
+POLAR_POLAR_CORRECTION 1
+POLAR_APOLAR_CORRECTION 1
+APOLAR_APOLAR_CORRECTION 9
+REMOVE_BACKBONE_CONTACTS 1
+REMOVE_SUSPICIOUS_CONTACTS 0
+MAX_HBOND_DISTANCE 3.1
+MIN_HBOND_ANGLE 100
+PROPER_HBOND_DISTANCE 2.9
+PROPER_HBOND_ANGLE 140
+SAVE_LIGSITE_MAP 1
+MIN_PEAK_DISTANCE 1
+SAVE_PEAKS 1
+SAVE_PEAK_MAP 0
+CALC_METAL_BONDS 1
+SAVE_GOLD_FITTING_POINTS 0
+GOLD_MIN_PROPENSITY 5
+MAX_SCATTER_ATOMS 5000
+MIN_SCATTER_DENS 1.01
+SURFACE_FORMAT SYBYL_MOL2
+CALC_CONNOLLY_SURFACE 0
+CONTOUR_LIST 2 CYAN 4 PURPLE 8 ORANGE
+COVALENT_TOLERANCE 0.4
+SCORE_PACKING_SHELL 0
+ATOM_SCORING SINGLE_POINT'''.format(settings.jobname, settings.probename, settings.moleculefile,
+                                    settings.cavity_origin,
+                                    settings.occulsionthreshold, settings.mapbackgroundvalue,
+                                    settings.boxborder,
+                                    settings.minpropensity)
+
+    return ss_str
 
 
-def pymol_template(prot_file, working_dir, probes, cutoff_dict):
+def pymol_template(prot_file, working_dir, probes):
     pymol_out = '''from pymol import cmd
 from pymol.cgo import *
-
-def cgo_arrow(atom1='pk1', atom2='pk2', radius=0.07, gap=0.0, hlength=-1, hradius=-1,
-              color='blue red', name=''):
-    from chempy import cpv
-
-    radius, gap = float(radius), float(gap)
-    hlength, hradius = float(hlength), float(hradius)
-
-    try:
-        color1, color2 = color.split()
-    except:
-        color1 = color2 = color
-    color1 = list(cmd.get_color_tuple(color1))
-    color2 = list(cmd.get_color_tuple(color2))
-
-    def get_coord(v):
-        if not isinstance(v, str):
-            return v
-        if v.startswith('['):
-            return cmd.safe_list_eval(v)
-        return cmd.get_atom_coords(v)
-
-    xyz1 = get_coord(atom1)
-    xyz2 = get_coord(atom2)
-    normal = cpv.normalize(cpv.sub(xyz1, xyz2))
-
-    if hlength < 0:
-        hlength = radius * 3.0
-    if hradius < 0:
-        hradius = hlength * 0.6
-
-    if gap:
-        diff = cpv.scale(normal, gap)
-        xyz1 = cpv.sub(xyz1, diff)
-        xyz2 = cpv.add(xyz2, diff)
-
-    xyz3 = cpv.add(cpv.scale(normal, hlength), xyz2)
-
-    obj = [cgo.CYLINDER] + xyz1 + xyz3 + [radius] + color1 + color2 + \
-          [cgo.CONE] + xyz3 + xyz2 + [hradius, 0.0] + color2 + color2 + \
-          [1.0, 0.0]
-
-    if not name:
-        name = cmd.get_unused_name('arrow')
-
-    cmd.load_cgo(obj, name)
-
-cluster_dict = {{"surface":[], "donor": [], "acceptor": [], "apolar": [], "0": [], "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], "7": [], "8": [], "unassigned": []}}
-colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':'br4', 'positive':'cyan'}}
-
-#cmd.load(r'{0}',"protein")
-# cmd.load(r'{1}/donor.grd')
-# cmd.load(r'{1}/acceptor.grd')
-# cmd.load(r'{1}/apolar.grd', 'apolar')
 
 cmd.load(r'protein.pdb',"protein")
 cmd.load(r'donor.grd')
@@ -139,30 +85,15 @@ cmd.load(r'apolar.grd', 'apolar')
 cmd.load(r'negative.grd', 'negative')
 cmd.load(r'positive.grd', 'positive')
 
-
 prot = "{0}"
 grid = "{1}"
 probes = {2}
-cuttoff_dict = {3}
 
 cmd.bg_color("white")
 
 cmd.show("cartoon", "protein")
 cmd.show("sticks", "organic")
 cmd.hide("lines", "protein")
-
-cmd.copy("protein_bfactor","protein")
-cmd.alter("protein_bfactor","b=0")
-
-
-cmd.extend('cgo_arrow', cgo_arrow)
-
-for probe in probes:
-    for cuttoff in cuttoff_dict[probe]:
-        cmd.isosurface('%s_%s'%(probe, cuttoff), probe, cuttoff)
-        cmd.set('transparency', 0.3,'%s_%s'%(probe, cuttoff))
-        cmd.color(colour_dict[probe], '%s_%s'%(probe, cuttoff))
-
 
 cmd.isosurface('acceptor_17', 'acceptor', 17)
 cmd.isosurface('acceptor_14', 'acceptor', 14)
@@ -213,7 +144,7 @@ cmd.disable('acceptor_10')
 #cmd.disable('positive_10')
 #cmd.disable('negative_10')
 #cmd.set('all_states','on')
-        '''.format(prot_file, working_dir, probes, cutoff_dict)
+        '''.format(prot_file, working_dir, probes)
     return pymol_out
 
 
