@@ -12,6 +12,12 @@
 
 `git clone git@github.com:prcurran/fragment_hotspot_maps.git`
 
+1.3 Create fragment-hotspot-maps zip
+
+`cd <repo_dir>/fragment_hotspot_maps`
+
+`python create_hotspot_zip.py`
+
 ***
 ### Install CSDS 2018
 
