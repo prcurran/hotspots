@@ -27,7 +27,7 @@ from ccdc.utilities import Grid, _test_output_dir, PushDir
 from scipy import optimize, ndimage
 from skimage import feature
 import pkg_resources
-from template_strings import pymol_template, colourmap, superstar_ins
+from template_strings import pymol_template, colourmap, superstar_ins, extracted_hotspot_template
 
 try:
     from rdkit import Chem
@@ -35,10 +35,8 @@ try:
     from rdkit.Chem import AllChem
     from matplotlib.colors import LinearSegmentedColormap
 except ImportError:
-    print """rdkit(optional): required for producing 2D schematic maps"""
-
+    print """ImportError: rdkit(optional)\nInfo: This module is required for producing 2D schematic maps"""
 if name == 'nt':
-    print name
     pass
 
 ######################################################################
@@ -151,7 +149,7 @@ class RunSuperstar(object):
             self.moleculefile = None
             self.cavity_origin = None
 
-            self.occulsionthreshold = 5
+            #self.occulsionthreshold = 5
             self.mapbackgroundvalue = 1
             self.boxborder = 10
             self.minpropensity = 1
@@ -189,6 +187,7 @@ class RunSuperstar(object):
                 SUPERSTAR_ROOT=str(join(dirname(csd_directory()), "Mercury"))
             )
         self.settings.working_directory = _test_output_dir()
+        print self.settings.working_directory
 
     def _append_cavity_info(self):
         """
@@ -257,6 +256,7 @@ class SuperstarResult(object):
         if exists(grid_path):
             self.grid = Grid.from_file(grid_path)
             print self.grid
+            self.grid.write("A:/fragment_linking/test/out/{}_ss.grd".format(self.identifier))
         else:
             raise AttributeError('{} superstar grid could not be found'.format(self.identifier))
 
@@ -265,6 +265,7 @@ class SuperstarResult(object):
             l = Grid.from_file(ligsite_path)
             self.ligsite = self.correct_ligsite(self.grid, l)
             print self.ligsite
+            self.ligsite.write("A:/fragment_linking/test/out/{}_ligsite.grd".format(self.identifier))
         else:
             raise AttributeError('{} ligsite grid could not be found'.format(self.identifier))
 
@@ -817,7 +818,7 @@ class Hotspots(HotspotsHelper):
         and using the results.
         """
 
-        def __init__(self, grid_dict, protein, fname, out_dir):
+        def __init__(self, grid_dict, protein, fname):
             try:
                 self.super_grids = grid_dict
                 for probe, g in grid_dict.items():
@@ -827,7 +828,7 @@ class Hotspots(HotspotsHelper):
 
             self.prot = protein
             self.fname = fname
-            self.out_dir = out_dir
+            self.out_dir = None
             self.features_by_score = {}
             self.donor_scores = None
             self.acceptor_scores = None
@@ -836,7 +837,7 @@ class Hotspots(HotspotsHelper):
         def _combine(self):
             """
             combines multiple grid objects in a single grid
-            :return:
+            :return: a :class: `ccdc.utilities.Grid` instance
             """
 
             sg = Grid.super_grid(0, *self.super_grids.values())
@@ -844,14 +845,27 @@ class Hotspots(HotspotsHelper):
             return {probe: Grid.super_grid(1, g, out_g) for probe, g in self.super_grids.items()}
 
         def _minimal_grid(self):
-            # takes a results object and produces minimal common grid
+            """
+            takes a results object and produces minimal common grid. (reduces memory required to store grids)
+
+            :return: a :class: `ccdc.utilities.Grid` instance
+            """
 
             for probe, g in self.super_grids.items():
                 self.super_grids[probe] = Grid.super_grid(1, *g.islands(threshold=1))
 
             self.super_grids = self._combine()
 
-        def _histogram_info(self, data, key, n, classification):
+        def _histogram_info(self, data, key, n):
+            """
+            data for the matplotlib figure
+
+            :param data:
+            :param key:
+            :param n:
+            :return:
+            """
+
             colour_dict = {"acceptor": "r", "donor": "b", "apolar": "y"}
             hist, bin_edges = np.histogram(data[key], bins=range(0, 40), normed=True)
             plt.bar(bin_edges[:-1], hist, width=1, color=colour_dict[key])
@@ -859,7 +873,7 @@ class Hotspots(HotspotsHelper):
             plt.ylim(0, 0.35)
             plt.yticks([])
             if n == 0:
-                plt.title("Fragment-hotspot Map classifcation: {}".format(classification))
+                plt.title("Fragment-hotspot Maps")
             if n < 2:
                 plt.xticks([])
             if n == 2:
@@ -868,6 +882,13 @@ class Hotspots(HotspotsHelper):
                 plt.ylabel("Frequency")
 
         def _generate_histogram(self, data):
+            """
+            initialise the matplotlib figure to output histograms
+
+            :param data:
+            :return:
+            """
+
             plt.figure(1)
             for n, key in enumerate(data.keys()):
                 plt.subplot(3, 1, (n + 1))
@@ -876,14 +897,14 @@ class Hotspots(HotspotsHelper):
             plt.close()
 
         def hotspot_histograms(self, ligand=None):
-            '''
+            """
             Outputs histograms of hotspot score.
-            :param ligand: a :class:`ccdc.Molecule` instance
 
-            '''
+            :param ligand:
+            :return: None
+            """
 
             self.data = {}
-
             if ligand:
                 self.bs_centroid = ligand.centre_of_geometry()
                 for g in self.super_grids.keys():
@@ -900,7 +921,6 @@ class Hotspots(HotspotsHelper):
             else:
                 for g in self.super_grids.keys():
                     grd = self.super_grids[g]
-                    self._get_grid_values(g, grd)
                     nx, ny, nz = grd.nsteps
                     self.data[g] = np.array(
                         [grd.value(i, j, k) for i in xrange(0, nx) for j in xrange(0, ny) for k in xrange(0, nz) if
@@ -1258,11 +1278,12 @@ class Hotspots(HotspotsHelper):
             return percentage_rank
 
         def get_ligand_percentage_rank(self, mol):
-            '''
+            """
             Calculate the percentage rank for each atom of a ligand
             :param mol: a :class:`ccdc.Molecule` instance
             :return:
-            '''
+            """
+
             percentage_ranks = []
             for atom in mol.heavy_atoms:
                 atom_type = self._get_atom_type(atom)
@@ -1270,6 +1291,28 @@ class Hotspots(HotspotsHelper):
                     atom_type = 'donor'
                 percentage_ranks.append(self._get_percentage_rank(atom, atom_type))
             return percentage_ranks
+
+        def _get_grid_percentiles(self, g, percentiles):
+            """
+            percentile of non-zero grid values
+
+            :param g:
+            :param percentiles:
+            :return:
+            """
+
+            nx, ny, nz = g.nsteps
+            percentiles_dict = {}
+            values = [g.value(i, j, k) for i in range(0, nx) for j in range(0, ny) for k in range(0, ny)
+                      if g.value(i, j, k) > 1]
+            if len(values) == 0:
+                return percentiles_dict
+            else:
+                for strength, percentile in percentiles.items():
+                    cutoff = np.percentile(values, percentile) - 0.01
+                    percentiles_dict[strength] = cutoff
+
+            return percentiles_dict
 
         def _single_grid(self):
             '''
@@ -1472,6 +1515,16 @@ class Hotspots(HotspotsHelper):
                 return False
 
         def surrounding_points(self, point, island, volume, m):
+            """
+            find polar points surrounding apolar local maxima
+
+            :param point:
+            :param island:
+            :param volume:
+            :param m:
+            :return:
+            """
+
             # setup
             num_gp = int(float(volume) / 0.125)
 
@@ -1505,7 +1558,7 @@ class Hotspots(HotspotsHelper):
             # get values
             new = island * mask
             new.max_value_of_neighbours()
-            g_new = self._run_gaussian(new, sigma=(0.8, 0.8, 0.8, 0))
+            g_new = self._run_gaussian(new, sigma=(0.6, 0.6, 0.6, 0))
 
             g_new.write("hotspot_{}.grd".format(m))
             return g_new
@@ -1532,6 +1585,12 @@ class Hotspots(HotspotsHelper):
             return new_grid
 
         def local_max(self, g):
+            """
+            in development
+            :param g:
+            :return:
+            """
+
             nx, ny, nz = g.nsteps
             peaks = np.zeros((nx, ny, nz))
             for i in range(nx):
@@ -1543,16 +1602,31 @@ class Hotspots(HotspotsHelper):
             peaks_dic = {}
             for p in peaks_indices:
                 coords = self._indices_to_point(p[0], p[1], p[2], g)
-                peaks_dic.update({g.value(p[0], p[1], p[2]): coords})
+                peaks_dic.update({g.value_at_point(coords): coords})
             return peaks_dic
 
         def _get_island_centroid(self, island):
+            """
+            in development
+
+            :param island:
+            :return:
+            """
+
             l_max = island.extrema
             i, j, k = island.indices_at_value(l_max[1])[0]
             centroid = self._indices_to_point(i, j, k, island)
             return centroid
 
         def _get_local_polar(self, centroid, polar_list):
+            """
+            in development
+
+            :param centroid:
+            :param polar_list:
+            :return:
+            """
+
             print centroid
             centroid_list = [[self._get_island_centroid(g), g] for g in polar_list]
             print centroid_list
@@ -1571,25 +1645,28 @@ class Hotspots(HotspotsHelper):
                 print "something"
                 return Grid.super_grid(1, *local)
 
-        # def output_peaks(self, peak_dic):
-        #     blank = self.super_grids["apolar"].copy()
-        #     blank *= 0
-        #
-        #     for v, p in peak_dic.items():
-        #         i, j, k = self._point_to_indices(p, blank)
-        #         blank.set_value(i, j, k, v)
-        #
-        #     blank.write("A:/fragment_linking/Thrombin/hotspot_boundaries/peak.grd")
+        def output_extracted_hotspots(self, n, out_dir, fragments, lead, charged = False):
+            """
+            in development
 
-        def extract_hotspots(self, sigma=(2, 2, 2, 0), cutoff=14, volume=65):
-            '''
+            :return: str, script to visualise hotspots
+            """
+            if out_dir == None:
+                out_dir = getcwd()
+
+            str = extracted_hotspot_template(n, charged, fragments, lead)
+            with open(join(out_dir, "extracted_hotspots.py"), 'w') as w:
+                w.write(str)
+
+        def extract_hotspots(self, out_dir = None, fragments=None, lead=None, sigma=(2, 2, 2, 0), cutoff=14, volume=65):
+            """
             For a given output volume, hotspots are identified by the peaks in apolar propensity.
 
             :param sigma: float, target volume to be selected in Angstroms^3
-            :param cutoff: interger, threshold value to contour islands
-            :param volume: interger, volume of the desired output hotspots.
+            :param cutoff: int, threshold value to contour islands
+            :param volume: int, volume of the desired output hotspots.
             :return:
-            '''
+            """
 
             self.cutoff = cutoff - 1
             hotspot_locations = []
@@ -1610,7 +1687,7 @@ class Hotspots(HotspotsHelper):
                 if p > cutoff:  # empirical cutoff lower quartile (may need to change)
                     point = peaks_dic[p]
                     for i in filtered_islands:
-                        if self.point_in_island(point, i) == True:
+                        if self.point_in_island(point, i):
                             hotspot_locations.append(self.surrounding_points(point, i, volume, m))
 
             polar_dict = {"donor": self.super_grids["donor"].islands(self.cutoff),
@@ -1625,8 +1702,7 @@ class Hotspots(HotspotsHelper):
                     print "non-specific binding site"
 
                 else:
-                    blank = hl.copy()
-                    blank *= 0
+                    blank = self._copy_and_clear(hl)
                     if local_acceptors == None:
                         grd_dic = {"apolar": hl, "donor": local_donors, "acceptor": blank}
                     elif local_donors == None:
@@ -1636,6 +1712,7 @@ class Hotspots(HotspotsHelper):
 
                     results_objects.append(Hotspots.HotspotResults(grd_dic, self.prot, self.fname))
 
+            self.output_extracted_hotspots(len(results_objects), out_dir, fragments, lead)
             return results_objects
 
         def best_continuous_volume(self, volume=500, pocket_mask=False):
@@ -1677,14 +1754,14 @@ class Hotspots(HotspotsHelper):
                 # out_g.write('processed_{}.grd'.format(probe))
                 processed_grids[probe] = out_g
 
-            bcv_hr = Hotspots.HotspotResults(processed_grids, self.prot, self.fname, ligsite_grid=None)
+            bcv_hr = Hotspots.HotspotResults(processed_grids, self.prot, self.fname)
 
             remaining = {}
             for probe, g in self.super_grids.items():
                 diff_g = g - bcv_hr.super_grids[probe]
                 remaining.update({probe: diff_g})
 
-            remaining_hr = Hotspots.HotspotResults(remaining, self.prot, self.fname, ligsite_grid=None)
+            remaining_hr = Hotspots.HotspotResults(remaining, self.prot, self.fname)
 
             return bcv_hr, remaining_hr
 
@@ -1719,15 +1796,16 @@ class Hotspots(HotspotsHelper):
 
             return pocket
 
-        def output_pymol_file(self, prot_file=None):
+        def output_pymol_file(self, out_dir, prot_file=None):
             """
             Output a python script to be run from within pymol to visualise output
 
             :param prot_file: str, path to directory where output files can be saved
             :return:
             """
-
-            if self.out_dir is None:
+            if out_dir:
+                self.out_dir = out_dir
+            else:
                 self.out_dir = getcwd()
 
             if prot_file is None:
@@ -1738,11 +1816,18 @@ class Hotspots(HotspotsHelper):
                 else:
                     prot_file = self.fname
 
+            percentiles = {'low': 30}
+            cutoff_by_probe = {}
+            for probe, g in self.super_grids.items():
+                cutoff_dict = self._get_grid_percentiles(g, percentiles)
+
+                cutoff_by_probe[probe] = cutoff_dict.values()
+
             for probe, g in self.super_grids.items():
                 g.write('{0}/{1}.grd'.format(self.out_dir, probe))
 
             with open('{}/pymol_results_file.py'.format(self.out_dir), 'w') as pymol_file:
-                pymol_out = pymol_template(prot_file, self.out_dir, self.super_grids.keys())
+                pymol_out = pymol_template(prot_file, self.out_dir, self.super_grids.keys(), cutoff_by_probe)
                 pymol_file.write(pymol_out)
 
     def __init__(self, settings=None):
@@ -1935,11 +2020,10 @@ class Hotspots(HotspotsHelper):
         self.fname = fname
         self.super_grids = super_grids
         self.prot = prot
-        self.out_dir = None
-        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.out_dir)
+        return self.HotspotResults(self.super_grids, self.prot, self.fname)
 
-    def from_protein(self, prot, charged_probes, fname=None, binding_site_origin=None, probe_size=7, ghecom_executable=None,
-                     ):
+    def from_protein(self, prot, charged_probes, fname=None, binding_site_origin=None, probe_size=7,
+                     ghecom_executable=None):
         """
         Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object
 
@@ -1975,7 +2059,7 @@ class Hotspots(HotspotsHelper):
             sg = self.out_grids[probe][0]
             self.super_grids[probe] = sg
 
-        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.out_dir)
+        return self.HotspotResults(self.super_grids, self.prot, self.fname)
 
 
 def main():
@@ -1997,7 +2081,7 @@ def main():
 
     h = Hotspots()
 
-    result = h.from_protein(prot=prot, charged_probes=False, fname=prot_file, ghecom_executable=ghecom_exe, )
+    result = h.from_protein(prot=prot, charged_probes=False, fname=prot_file, ghecom_executable=ghecom_exe)
     result.output_pymol_file()
 
 if __name__ == "__main__":

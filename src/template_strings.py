@@ -26,8 +26,8 @@ MAP_FORMAT SYBYL_ASCII_CONTOUR
 FIELD_TYPE PROPENSITY
 MAP_DISTRIBUTE_POINTS GAUSSIAN_SMEARING
 MAX_PENETRATION 0.3
-BOX_BORDER {3}
-SUPERSTAR_MAP_BACKGROUND {4}
+BOX_BORDER {4}
+SUPERSTAR_MAP_BACKGROUND {3}
 MULTIPLY_POLAR_ONLY 0
 INVERSE_MAP 0
 AVOID_CLOSE_GRIDPOINTS 0
@@ -66,15 +66,67 @@ CONTOUR_LIST 2 CYAN 4 PURPLE 8 ORANGE
 COVALENT_TOLERANCE 0.4
 SCORE_PACKING_SHELL 0
 ATOM_SCORING SINGLE_POINT'''.format(settings.jobname, settings.probename, settings.moleculefile,
-                                    settings.cavity_origin,
-                                    settings.occulsionthreshold, settings.mapbackgroundvalue,
+                                    settings.mapbackgroundvalue,
                                     settings.boxborder,
                                     settings.minpropensity)
 
     return ss_str
 
 
-def pymol_template(prot_file, working_dir, probes):
+def extracted_hotspot_template(num_hotspots, charged, fragments, lead):
+    out_str = '''from pymol import cmd
+from pymol.cgo import *
+
+cmd.load(r'protein.pdb',"protein")
+
+cmd.set("surface_cavity_mode", 1)
+cmd.show("surface", "protein")
+#cmd.set("surface", "wireframe", "protein")
+cmd.set('transparency', 0.3, "protein")
+
+frag = {2}
+lead = "{3}"
+
+if frag:
+    for f in {2}:
+        cmd.fetch(f)
+        cmd.hide("everything", f)
+        cmd.color("green", f)
+if lead:
+    cmd.fetch(lead)
+    cmd.hide("everything", lead)
+    cmd.color("orange", lead)
+
+charged = {1}
+
+cmd.bg_color("white")
+
+cmd.hide("cartoon", "protein")
+cmd.show("sticks", "organic")
+cmd.hide("lines", "protein")
+
+if charged:
+    cmd.load(r'negative.grd', 'negative')
+    cmd.load(r'positive.grd', 'positive')
+
+colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':'br4', 'positive':'cyan'}}
+
+nh = {0}
+ps = ['donor', 'acceptor', 'apolar']
+if charged:
+    ps += ['negative', 'positive']
+
+for n in range(nh):
+    for p in ps:
+        cmd.load(r'%s/%s.grd'%(n,p), '%s_%s'%(p,n))
+        cmd.isosurface('surface_%s_%s'%(p,n), '%s_%s'%(p,n), 3)
+        cmd.set('transparency', 0.5, 'surface_%s_%s'%(p,n))
+        cmd.color(colour_dict['%s'%(p)], 'surface_%s_%s'%(p,n))
+    '''.format(num_hotspots, charged, fragments, lead)
+    return out_str
+
+
+def pymol_template(prot_file, working_dir, probes, cutoff_dict):
     pymol_out = '''from pymol import cmd
 from pymol.cgo import *
 
@@ -85,15 +137,24 @@ cmd.load(r'apolar.grd', 'apolar')
 cmd.load(r'negative.grd', 'negative')
 cmd.load(r'positive.grd', 'positive')
 
+colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':'br4', 'positive':'cyan'}}
+
 prot = "{0}"
 grid = "{1}"
 probes = {2}
+cuttoff_dict = {3}
 
 cmd.bg_color("white")
 
 cmd.show("cartoon", "protein")
 cmd.show("sticks", "organic")
 cmd.hide("lines", "protein")
+
+for probe in probes:
+    for cuttoff in cuttoff_dict[probe]:
+        cmd.isosurface('%s_%s'%(probe, cuttoff), probe, cuttoff)
+        cmd.set('transparency', 0.3,'%s_%s'%(probe, cuttoff))
+        cmd.color(colour_dict[probe], '%s_%s'%(probe, cuttoff))
 
 cmd.isosurface('acceptor_17', 'acceptor', 17)
 cmd.isosurface('acceptor_14', 'acceptor', 14)
@@ -144,7 +205,7 @@ cmd.disable('acceptor_10')
 #cmd.disable('positive_10')
 #cmd.disable('negative_10')
 #cmd.set('all_states','on')
-        '''.format(prot_file, working_dir, probes)
+        '''.format(prot_file, working_dir, probes, cutoff_dict)
     return pymol_out
 
 
