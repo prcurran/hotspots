@@ -18,7 +18,6 @@ import sys
 import glob
 import random
 import subprocess
-import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -54,14 +53,12 @@ def _superstar_job(args):
 
     s = RunSuperstar()
     n, ss_probe, centroid, prot, out_dir, wrk_dir = args
-    print(n)
     s.settings.jobname = "{}.ins".format(n)
     s.settings.probename = ss_probe
     s.settings.moleculefile = "protein.pdb"
     s.settings.cavity_origin = centroid
     s.settings.working_directory = wrk_dir
     result = s.run_superstar(prot, out_dir)
-    print("{} finished".format(n))
     return result
 
 
@@ -265,10 +262,7 @@ class SuperstarResult(object):
         print(self.identifier)
 
         grid_path = join(self.settings.working_directory, self.identifier + ".ins.acnt")
-        time.sleep(20)
-        print(grid_path)
         if exists(grid_path):
-            print(grid_path)
             self.grid = Grid.from_file(grid_path)
             print(self.grid)
         else:
@@ -1940,7 +1934,6 @@ class Hotspots(HotspotsHelper):
 
         ex = futures.ThreadPoolExecutor(max_workers=5)
         results = ex.map(_superstar_job, args)
-        time.sleep(5)
         return list(results)
 
     def _get_weighted_maps(self):
