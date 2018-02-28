@@ -6,6 +6,7 @@ More information about the fragment hotspot maps method is available from:
     2016, 59 (9), 4314-4325
     dx.doi.org/10.1021/acs.jmedchem.5b01980
 """
+from __future__ import print_function, division
 
 import argparse
 import math
@@ -17,6 +18,7 @@ import sys
 import glob
 import random
 import subprocess
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,6 +30,8 @@ from scipy import optimize, ndimage
 from skimage import feature
 import pkg_resources
 from template_strings import pymol_template, colourmap, superstar_ins, extracted_hotspot_template
+
+from concurrent import futures
 from multiprocessing import Pool
 
 try:
@@ -36,10 +40,9 @@ try:
     from rdkit.Chem import AllChem
     from matplotlib.colors import LinearSegmentedColormap
 except ImportError:
-    print """ImportError: rdkit(optional)\nInfo: This module is required for producing 2D schematic maps"""
+    print("""ImportError: rdkit(optional)\nInfo: This module is required for producing 2D schematic maps""")
 if name == 'nt':
     pass
-
 
 
 def _superstar_job(args):
@@ -50,14 +53,17 @@ def _superstar_job(args):
     """
 
     s = RunSuperstar()
-    n, ss_probe, centroid, prot, out_dir = args
+    n, ss_probe, centroid, prot, out_dir, wrk_dir = args
+    print(n)
     s.settings.jobname = "{}.ins".format(n)
     s.settings.probename = ss_probe
     s.settings.moleculefile = "protein.pdb"
     s.settings.cavity_origin = centroid
-
+    s.settings.working_directory = wrk_dir
     result = s.run_superstar(prot, out_dir)
+    print("{} finished".format(n))
     return result
+
 
 class HotspotsHelper(object):
     """
@@ -192,8 +198,8 @@ class RunSuperstar(object):
                 SUPERSTAR_ISODIR=str(join(dirname(csd_directory()), 'isostar_files', 'istr')),
                 SUPERSTAR_ROOT=str(join(dirname(csd_directory()), "Mercury"))
             )
-        self.settings.working_directory = _test_output_dir()
-        print self.settings.working_directory
+        #self.settings.working_directory = _test_output_dir()
+        #print(self.settings.working_directory)
 
     def _append_cavity_info(self):
         """
@@ -238,7 +244,7 @@ class RunSuperstar(object):
 
         with PushDir(self.settings.working_directory):
             if prot is not None:
-                with MoleculeWriter('protein.pdb') as writer:
+                with MoleculeWriter(join('protein.pdb')) as writer:
                     writer.write(prot)
             self._get_inputs(out_dir)
             env = environ.copy()
@@ -256,13 +262,15 @@ class SuperstarResult(object):
     def __init__(self, settings):
         self.settings = settings
         self.identifier = settings.jobname.split(".")[0]
-        print self.identifier
+        print(self.identifier)
 
         grid_path = join(self.settings.working_directory, self.identifier + ".ins.acnt")
+        time.sleep(20)
+        print(grid_path)
         if exists(grid_path):
+            print(grid_path)
             self.grid = Grid.from_file(grid_path)
-            print self.grid
-            self.grid.write("A:/fragment_linking/test/out/{}_ss.grd".format(self.identifier))
+            print(self.grid)
         else:
             raise AttributeError('{} superstar grid could not be found'.format(self.identifier))
 
@@ -270,8 +278,7 @@ class SuperstarResult(object):
         if exists(grid_path):
             l = Grid.from_file(ligsite_path)
             self.ligsite = self.correct_ligsite(self.grid, l)
-            print self.ligsite
-            self.ligsite.write("A:/fragment_linking/test/out/{}_ligsite.grd".format(self.identifier))
+            print(self.ligsite)
         else:
             raise AttributeError('{} ligsite grid could not be found'.format(self.identifier))
 
@@ -678,7 +685,7 @@ class Hotspots(HotspotsHelper):
                           if g.value(i, j, k) >= translation_threshold]
 
                 translate_probe = translate_probe + maxima
-            print priority_atom_type, len(translate_probe)
+            print(priority_atom_type, len(translate_probe))
             return translate_probe
 
         def generate_rand_quaternions(self):
@@ -1176,7 +1183,7 @@ class Hotspots(HotspotsHelper):
                     score = max(d_score, a_score)
                 else:
                     score, coords = self._get_near_score(atom.coordinates, atom_type, tolerance=tolerance)
-                    # print score, atom_type, atom.atomic_symbol
+                    # print(score, atom_type, atom.atomic_symbol)
 
                 if schematic == True:
                     if score >= 17:
@@ -1210,7 +1217,7 @@ class Hotspots(HotspotsHelper):
                 from matplotlib.colors import LinearSegmentedColormap
 
             except ImportError:
-                print """rdkit is needed for this method"""
+                print("""rdkit is needed for this method""")
                 exit()
 
             mol = MoleculeReader(ligand)[0]
@@ -1226,7 +1233,7 @@ class Hotspots(HotspotsHelper):
                 mol_rdkit = suppl[0]
                 AllChem.Compute2DCoords(mol_rdkit)
             else:
-                print "Method supports .mol2 files only!"
+                print("Method supports .mol2 files only!")
                 raise ValueError
 
             scores = self.score_ligand_atoms(mol, schematic=True, tolerance=2)
@@ -1248,7 +1255,7 @@ class Hotspots(HotspotsHelper):
                                    extent=(0, 1, 0, 1))
                 fig.axes[0].contour(x, y, z, 5, colors='k', alpha=0.2)
             except ValueError:
-                print ""
+                print("")
 
             if title:
                 fig.text(1.25, 2.3, title, fontsize=20, horizontalalignment='center', verticalalignment='top',
@@ -1264,7 +1271,7 @@ class Hotspots(HotspotsHelper):
             :return: float, Geometric mean of atomic scores
             '''
             scores = self.score_ligand_atoms(mol, dict=False, schematic=False, tolerance=tolerance)
-            # print scores
+            # print(scores)
             geo_mean = self._score(scores)
             return geo_mean
 
@@ -1361,7 +1368,7 @@ class Hotspots(HotspotsHelper):
             return range_points, all_points, avg_score
 
         def _count_non_zero(self, cutoff):
-            # print cutoff
+            # print(cutoff)
             try:
                 tmp_g = self._island_by_volume(self.sg, cutoff)
 
@@ -1378,7 +1385,7 @@ class Hotspots(HotspotsHelper):
             return abs(self.num_gp - len(points))
 
         def _count_non_zero_alt(self, cutoff):
-            print cutoff
+            print(cutoff)
             try:
                 tmp_g = self._island_by_volume(self.sg, cutoff)
 
@@ -1441,7 +1448,7 @@ class Hotspots(HotspotsHelper):
                 score_cutoff -= 0.025
             if score_cutoff >= 29:
                 score_cutoff = 1
-            # print score_cutoff
+            # print(score_cutoff)
 
             tmp_g = self._island_by_volume(self.sg, score_cutoff)
 
@@ -1451,7 +1458,7 @@ class Hotspots(HotspotsHelper):
             c_sg, top_g = self._common_grid(sg, tmp_g, padding=0)
 
             nx, ny, nz = tmp_g.nsteps
-            print nx, ny, nz
+            print(nx, ny, nz)
             for i in range(nx):
                 for j in range(ny):
                     for k in range(nz):
@@ -1469,7 +1476,7 @@ class Hotspots(HotspotsHelper):
                 new_cutoff = score
                 if len(kept_points) >= num_gp:
                     break
-            print "Cutoff", new_cutoff
+            print("Cutoff", new_cutoff)
             mask = (top_g > new_cutoff)
             return mask
 
@@ -1496,12 +1503,12 @@ class Hotspots(HotspotsHelper):
             percent_by_type = {}
             percent_by_type['average'] = avg_score
             percent_by_type['volume'] = float(len(combined_all_points)) * 0.125
-            print percent_by_type['volume']
+            print(percent_by_type['volume'])
             for probe, g in grid_dict.items():
 
                 range_points, all_points, score = self._grid_values_in_range(g, 1, 10000, 1)
-                print probe, len(combined_all_points), len(all_points)
-                print probe, len(combined_range_points), len(range_points)
+                print(probe, len(combined_all_points), len(all_points))
+                print(probe, len(combined_range_points), len(range_points))
                 try:
                     p = (float(len(all_points)) / float(len(combined_all_points))) * 100
                 except ZeroDivisionError:
@@ -1550,7 +1557,7 @@ class Hotspots(HotspotsHelper):
                     dist_dic.update({float(d): [p]})
 
             short_dists = sorted(float(x) for x, y in dist_dic.iteritems())
-            # print short_dists
+            # print(short_dists)
 
             indices = []
             for q in short_dists:
@@ -1571,9 +1578,9 @@ class Hotspots(HotspotsHelper):
 
         def _run_gaussian(self, g, sigma):
             nx, ny, nz = g.nsteps
-            print "nx", nx, ny, nz
+            print("nx", nx, ny, nz)
             scores = np.zeros((nx, ny, nz, 1))
-            # print scores.shape
+            # print(scores.shape)
             for i in range(nx):
                 for j in range(ny):
                     for k in range(nz):
@@ -1633,22 +1640,22 @@ class Hotspots(HotspotsHelper):
             :return:
             """
 
-            print centroid
+            print(centroid)
             centroid_list = [[self._get_island_centroid(g), g] for g in polar_list]
-            print centroid_list
+            print(centroid_list)
             local = []
             for c in centroid_list:
-                # print centroid, c[0]
-                print self._get_distance(centroid, c[0]),
+                # print(centroid, c[0])
+                print(self._get_distance(centroid, c[0]),)
                 d = self._get_distance(centroid, c[0])
                 if d < 7.5:
                     local.append(c[1])
-            print len(local)
+            print(len(local))
             if len(local) == 0:
-                print "None"
+                print("None")
                 return None
             else:
-                print "something"
+                print("something")
                 return Grid.super_grid(1, *local)
 
         def output_extracted_hotspots(self, n, out_dir, fragments, lead, charged = False):
@@ -1679,7 +1686,7 @@ class Hotspots(HotspotsHelper):
             results_objects = []
 
             for n, g in self.super_grids.items():
-                print n
+                print(n)
                 self.super_grids[n] = self._run_gaussian(g, sigma)
 
             apolar = self.super_grids["apolar"]
@@ -1705,7 +1712,7 @@ class Hotspots(HotspotsHelper):
                 local_acceptors = self._get_local_polar(centroid, polar_dict["acceptor"])
 
                 if local_acceptors == None and local_donors == None:
-                    print "non-specific binding site"
+                    print("non-specific binding site")
 
                 else:
                     blank = self._copy_and_clear(hl)
@@ -1733,7 +1740,7 @@ class Hotspots(HotspotsHelper):
             '''
 
             processed_grids = {}
-            # print "start descriptors"
+            # print("start descriptors")
 
 
             masked_grids = self._single_grid()
@@ -1749,7 +1756,7 @@ class Hotspots(HotspotsHelper):
             second_mask = self._get_grid_by_volume(sum_g, volume)
 
             for probe, g in self.super_grids.items():
-                print probe,
+                print(probe,)
                 mg = masked_grids[probe]
                 c_mg, c_second_mask = self._common_grid(mg, second_mask, padding=0)
                 out_g = (c_mg * c_second_mask)
@@ -1892,6 +1899,7 @@ class Hotspots(HotspotsHelper):
     #
     #     s = RunSuperstar()
     #     n, ss_probe, centroid, prot, out_dir = args
+    #     print(n, " ")
     #     s.settings.jobname = "{}.ins".format(n)
     #     s.settings.probename = ss_probe
     #     s.settings.moleculefile = "protein.pdb"
@@ -1899,6 +1907,7 @@ class Hotspots(HotspotsHelper):
     #
     #     result = s.run_superstar(prot, out_dir)
     #     return result
+
 
     def _run_ss(self, centroid=None):
         """
@@ -1924,18 +1933,15 @@ class Hotspots(HotspotsHelper):
                 apolar='AROMATIC CH CARBON',
                 donor='UNCHARGED NH NITROGEN',
                 acceptor='CARBONYL OXYGEN')
-        import copy_reg
-        import types
 
+        wrk_dir = _test_output_dir()
+        args = [(k, self.probe_dict[k], centroid, self.prot, self.out_dir, wrk_dir) for k in self.probe_dict.keys()]
+        print(args)
 
-
-        args = [[k, self.probe_dict[k], centroid, self.prot, self.out_dir] for k in self.probe_dict.keys()]
-        processors = len(args)
-        pool = Pool(processes=processors)
-        results = pool.map(_superstar_job, args)
-        pool.close()
-
-        return results
+        ex = futures.ThreadPoolExecutor(max_workers=5)
+        results = ex.map(_superstar_job, args)
+        time.sleep(5)
+        return list(results)
 
     def _get_weighted_maps(self):
         """
@@ -2004,7 +2010,7 @@ class Hotspots(HotspotsHelper):
         :return:
         """
 
-        print "Start SS"
+        print("Start SS")
 
         probe_types = ['apolar', 'donor', 'acceptor']
         if self.charged_probes:
@@ -2012,7 +2018,7 @@ class Hotspots(HotspotsHelper):
 
         self.superstar_grids = self._run_ss(self.centroid)
 
-        print "SS complete"
+        print("SS complete")
 
         if self.ghecom_executable:
             out_grid = self._copy_and_clear(self.superstar_grids[0].ligsite)
