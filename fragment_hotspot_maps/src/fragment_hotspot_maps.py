@@ -29,9 +29,9 @@ from scipy import optimize, ndimage
 from skimage import feature
 import pkg_resources
 from template_strings import pymol_template, colourmap, superstar_ins, extracted_hotspot_template
+import pandas as pd
 
 from concurrent import futures
-from multiprocessing import Pool
 
 try:
     from rdkit import Chem
@@ -42,24 +42,6 @@ except ImportError:
     print("""ImportError: rdkit(optional)\nInfo: This module is required for producing 2D schematic maps""")
 if name == 'nt':
     pass
-
-
-def _superstar_job(args):
-    """
-    creates a RunSuperstar class and returns a SuperstarResult object
-    :param args: tuple, probe name and centroid
-    :return: a :class: `__main__().SuperstarResult` object
-    """
-
-    s = RunSuperstar()
-    n, ss_probe, centroid, prot, out_dir, wrk_dir = args
-    s.settings.jobname = "{}.ins".format(n)
-    s.settings.probename = ss_probe
-    s.settings.moleculefile = "protein.pdb"
-    s.settings.cavity_origin = centroid
-    s.settings.working_directory = wrk_dir
-    result = s.run_superstar(prot, out_dir)
-    return result
 
 
 class HotspotsHelper(object):
@@ -117,11 +99,11 @@ class HotspotsHelper(object):
     def _copy_and_clear(grid):
         """
         make a new empty grid
-        
-        :param grid: a :class: `ccdc.utilities.Grid` instance 
-        :return: an empty :class: `ccdc.utilities.Grid` instance 
+
+        :param grid: a :class: `ccdc.utilities.Grid` instance
+        :return: an empty :class: `ccdc.utilities.Grid` instance
         """
-        
+
         g = grid.copy()
         g *= 0
         return g
@@ -130,8 +112,8 @@ class HotspotsHelper(object):
         """
         finds a common frame of reference for two grids
 
-        :param g1: a :class: `ccdc.utilities.Grid` instance 
-        :param g2: a :class: `ccdc.utilities.Grid` instance 
+        :param g1: a :class: `ccdc.utilities.Grid` instance
+        :param g2: a :class: `ccdc.utilities.Grid` instance
         :param padding: int, additional grid point in x, y, z directions
         :return:
         """
@@ -141,6 +123,19 @@ class HotspotsHelper(object):
         out1 = Grid.super_grid(padding, g1, out_g)
         out2 = Grid.super_grid(padding, g2, out_g)
         return out1, out2
+
+    @staticmethod
+    def contains_point(point, island, tolerance=0, threshold=0):
+
+
+        mini = island.bounding_box[0]
+        maxi = island.bounding_box[1]
+        if island.value_at_point(point) > threshold:
+            return all([mini.x - tolerance < point[0] < maxi.x + tolerance,
+                        mini.y - tolerance < point[1] < maxi.y + tolerance,
+                        mini.z - tolerance < point[2] < maxi.z + tolerance])
+        else:
+            return False
 
 
 class RunSuperstar(object):
@@ -152,13 +147,14 @@ class RunSuperstar(object):
         """
         setting for Superstar run
         """
+
         def __init__(self):
             self.jobname = None
             self.probename = None
             self.moleculefile = None
             self.cavity_origin = None
 
-            #self.occulsionthreshold = 5
+            # self.occulsionthreshold = 5
             self.mapbackgroundvalue = 1
             self.boxborder = 10
             self.minpropensity = 1
@@ -186,17 +182,23 @@ class RunSuperstar(object):
                 if len(merc):
                     merc = merc[0]
                 self.settings.superstar_executable = join(merc, 'superstar_app.exe')
+                self.settings.superstar_env = dict(
+                    SUPERSTAR_ISODIR=str(join(dirname(csd_directory()), 'isostar_files', 'istr')),
+                    SUPERSTAR_ROOT=str(join(dirname(csd_directory()), "Mercury"))
+                )
+
             elif sys.platform == 'darwin':
-                self.settings.superstar_executable = join(dirname(csd_directory()),
-                                                          'mercury.app', 'Contents', 'MacOS', 'superstar')
+                print("OS X not supported")
+
             else:
                 self.settings.superstar_executable = join(dirname(csd_directory()), 'bin', 'superstar')
-            self.settings.superstar_env = dict(
-                SUPERSTAR_ISODIR=str(join(dirname(csd_directory()), 'isostar_files', 'istr')),
-                SUPERSTAR_ROOT=str(join(dirname(csd_directory()), "Mercury"))
-            )
-        #self.settings.working_directory = _test_output_dir()
-        #print(self.settings.working_directory)
+
+                self.settings.superstar_env = dict(
+                    SUPERSTAR_ISODIR=str(join(dirname(csd_directory()), 'isostar_files', 'istr')),
+                    SUPERSTAR_ROOT=str(dirname(csd_directory()))
+                )
+            # self.settings.working_directory = _test_output_dir()
+            # print(self.settings.working_directory)
 
     def _append_cavity_info(self):
         """
@@ -259,12 +261,10 @@ class SuperstarResult(object):
     def __init__(self, settings):
         self.settings = settings
         self.identifier = settings.jobname.split(".")[0]
-        print(self.identifier)
 
         grid_path = join(self.settings.working_directory, self.identifier + ".ins.acnt")
         if exists(grid_path):
             self.grid = Grid.from_file(grid_path)
-            print(self.grid)
         else:
             raise AttributeError('{} superstar grid could not be found'.format(self.identifier))
 
@@ -272,7 +272,6 @@ class SuperstarResult(object):
         if exists(grid_path):
             l = Grid.from_file(ligsite_path)
             self.ligsite = self.correct_ligsite(self.grid, l)
-            print(self.ligsite)
         else:
             raise AttributeError('{} ligsite grid could not be found'.format(self.identifier))
 
@@ -318,7 +317,7 @@ class RunGhecom(object):
             self.in_name = join(self.working_directory, "protein.pdb")
             self.out_name = join(self.working_directory, "ghecom_out.pdb")
 
-    def __init__(self, prot, out_grid, **kw):
+    def __init__(self, **kw):
         """
 
         :param kw: settings for ghecom run
@@ -329,8 +328,8 @@ class RunGhecom(object):
             settings = self.Settings()
 
         self.settings = settings
-        self.settings.prot = prot
-        self.settings.out_grid = out_grid
+        self.settings.prot = None
+        self.settings.out_grid = None
 
     def run_ghecom(self):
         """
@@ -340,9 +339,9 @@ class RunGhecom(object):
         """
 
         with PushDir(self.settings.working_directory):
-            if self.prot is not None:
+            if self.settings.prot is not None:
                 with MoleculeWriter('protein.pdb') as writer:
-                    writer.write(self.prot)
+                    writer.write(self.settings.prot)
 
             cmd = "./ghecom {} -M {} -gw {} -rli {} -rlx {} -opoc {}".format(self.settings.in_name,
                                                                              self.settings.mode,
@@ -398,7 +397,7 @@ class GhecomResult(HotspotsHelper):
         :return: str, lines from output file
         """
 
-        f = open(self.ghecom_out)
+        f = open(self.settings.out_name)
         lines = f.readlines()
         f.close()
         for i in range(0, len(lines)):
@@ -417,7 +416,7 @@ class GhecomResult(HotspotsHelper):
             if line.startswith("HETATM"):
                 coordinates = (float(line[31:38]), float(line[39:46]), float(line[47:54]))
                 rinacc = float(line[61:66])
-                i, j, k = self._point_to_indices(coordinates, self.ghecom_grid)
+                i, j, k = self._point_to_indices(coordinates, self.grid)
                 x, y, z = self.grid.nsteps
                 if 0 < i < x and 0 < j < y and 0 < k < z:
                     self.grid.set_value(i, j, k, 10 - rinacc)
@@ -427,9 +426,242 @@ class WeightedResult(object):
     """
     class to hold weighted grids
     """
+
     def __init__(self, identifier, grid):
         self.identifier = identifier
         self.grid = grid
+
+
+class HotspotBuilder(HotspotsHelper):
+    """
+    A class to handle the extraction of discrete, fragment size hotspots from the original maps
+    """
+
+    def __init__(self, kw):
+        self.super_grids = None
+        self.sampled_probes = None
+
+        self.apolar_islands = None
+        self.polar_islands = None
+
+        self.donor_id = {}
+        self.acceptor_id = {}
+        self.positive_id = {}
+        self.negative_id = {}
+
+        self.settings = self.Settings(kw)
+
+    class Settings():
+        """
+        Default settings for hotspot extraction
+        """
+
+        def __init__(self, kw):
+            """
+            default values
+            """
+
+            s = 0.2
+            self.sigma = kw.get("sigma", (s, s, s, 0))
+            self.cutoff = kw.get("cutoff", 14)
+            self.volume = kw.get("volume", 65)
+            self.grid_points = int(float(self.volume) / 0.125)
+            self.max_probes = 50
+
+    def get_apolar(self):
+        """
+        locate peaks in apolar maps and define fragment size volume
+
+
+        :param super_grids:
+        :return:
+        """
+
+        apolar_volume = {}
+
+        g = self.super_grids["apolar"]
+        print(self.settings.sigma)
+        self.super_grids["apolar"] = self._run_gaussian(g, (0.5, 0.5, 0.5, 0))
+        apolar = self.super_grids["apolar"]
+        peaks_dic = self.remove_close(self.local_max(apolar))
+
+        sorted_keys = sorted(peaks_dic, reverse=True)
+
+        islands = apolar.islands(self.settings.cutoff - 1)
+        filtered_islands = [i for i in islands if i.count_grid() > 100]
+
+        for m, p in enumerate(sorted_keys):
+            print(p)
+            if p > self.settings.cutoff - 1:  # empirical cutoff lower quartile (may need to change)
+                point = peaks_dic[p]
+                for i in filtered_islands:
+                    if self.contains_point(point, i, 1):
+                        apolar_volume.update({m: self._surrounding_points(point, i)})
+        return apolar_volume
+
+    def remove_close(self, peak_dic):
+        """
+        min distance
+
+        :return:
+        """
+        new_peak_dic = {}
+        sorted_keys = sorted(peak_dic, reverse=True)
+        for i, score in enumerate(sorted_keys):
+            if i == 0:
+                new_peak_dic.update({score: peak_dic[score]})
+            else:
+                if len([j for j in range(0, i)
+                        if self._get_distance(peak_dic[score], peak_dic[sorted_keys[j]]) < 10]) > 0:
+                    pass
+                else:
+                    new_peak_dic.update({score: peak_dic[sorted_keys[i]]})
+
+        return new_peak_dic
+
+    def construct_hotspot(self):
+        """
+        handles the assignment of polar features to apolar volumes
+
+        :return:
+        """
+
+        for i in range(len(self.apolar_islands)):
+            self.donor_id.update({i: []})
+            self.acceptor_id.update({i: []})
+            self.positive_id.update({i: []})
+            self.negative_id.update({i: []})
+
+        print(self.polar_islands)
+        for probe, islands in self.polar_islands.items():
+            print(probe)
+            for island in islands:
+                mols = self._get_island_probes(island, probe)
+                selection_dict = {i: len([mol for mol in mols
+                                          if self.contains_point(mol.atoms[3].coordinates, local, tolerance=2)])
+                                  for i, local in self.apolar_islands.items()}
+                ident = self._polar_identity(selection_dict)
+                if ident:
+                    if probe == "donor":
+                        self.donor_id[ident].append(island)
+                    elif probe == "acceptor":
+                        self.acceptor_id[ident].append(island)
+                    elif probe == "positive":
+                        self.positive_id[ident].append(island)
+                    elif probe == "negative":
+                        self.negative_id[ident].append(island)
+                else:
+                    continue
+
+    def _polar_identity(self, selection_dict):
+        """
+        given a dictionary {key: []} the method will return the key for the item with longest list value
+
+        :param selection_dict:
+        :return:
+        """
+
+        identity, num = sorted(selection_dict.items(), key=operator.itemgetter(1), reverse=True)[0]
+        if num == 0:
+            return None
+        else:
+            return identity
+
+    def _get_island_probes(self, island, p):
+        """
+        select polar probes which are located in high scoring islands
+
+        :return:
+        """
+        #print(self.sampled_probes[p])
+        ip = [m for m in self.sampled_probes[p] if self.contains_point(m.atoms[0].coordinates, island, tolerance=2)]
+
+        if len(ip) > self.settings.max_probes:
+            return ip[0:self.settings.max_probes]
+        else:
+            return ip
+
+    def _surrounding_points(self, point, island):
+        """
+        in development
+
+        :param point:
+        :param island:
+        :param m:
+        :return:
+        """
+
+        mask = self._copy_and_clear(island)
+        dist_dic = {}
+
+        nx, ny, nz = island.nsteps
+        all_points = [self._indices_to_point(i, j, k, island) for i in range(nx) for j in range(ny) for k in
+                      range(nz) if island.value(i, j, k) > (self.settings.cutoff - 5)]
+
+        for p in all_points:
+            rank = (1 / (0.1 + self._get_distance(p, point))) * island.value_at_point(p)
+
+            if rank in dist_dic:
+                dist_dic[rank].append(p)
+            else:
+                dist_dic.update({float(rank): [p]})
+
+        top_points = sorted((float(x) for x, y in dist_dic.iteritems()), reverse=True)
+        indices = [self._point_to_indices(pts, island) for r in top_points for pts in dist_dic[r]]
+
+        for i in indices[:self.settings.grid_points]:
+            mask.set_value(i[0], i[1], i[2], 1)
+        new = island * mask
+        new.max_value_of_neighbours()
+        minimal = Grid.super_grid(2, *new.islands(threshold=1))
+
+        return self._run_gaussian(minimal, sigma=(0.6, 0.6, 0.6, 0))
+
+    def local_max(self, g):
+        """
+        in development
+        :param g:
+        :return:
+        """
+
+        nx, ny, nz = g.nsteps
+        peaks = np.zeros((nx, ny, nz))
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    peaks[i, j, k] += g.value(i, j, k)
+
+        peaks_indices = feature.peak_local_max(peaks, min_distance=4)
+        peaks_dic = {}
+        for p in peaks_indices:
+            coords = self._indices_to_point(p[0], p[1], p[2], g)
+            peaks_dic.update({g.value_at_point(coords): coords})
+        return peaks_dic
+
+    def _run_gaussian(self, g, sigma):
+        """
+        gaussian smoothing function, method of reducing noise in output
+
+        :param g:
+        :param sigma:
+        :return:
+        """
+
+        nx, ny, nz = g.nsteps
+        scores = np.zeros((nx, ny, nz, 1))
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    scores[i, j, k, 0] += g.value(i, j, k)
+
+        mod = ndimage.filters.gaussian_filter(scores, sigma=sigma)
+        new_grid = self._copy_and_clear(g)
+
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    new_grid.set_value(i, j, k, mod[i, j, k, 0])
+        return new_grid
 
 
 class SampleGrid(HotspotsHelper):
@@ -679,7 +911,7 @@ class Hotspots(HotspotsHelper):
                           if g.value(i, j, k) >= translation_threshold]
 
                 translate_probe = translate_probe + maxima
-            print(priority_atom_type, len(translate_probe))
+            #print(priority_atom_type, len(translate_probe))
             return translate_probe
 
         def generate_rand_quaternions(self):
@@ -731,7 +963,7 @@ class Hotspots(HotspotsHelper):
             """
 
             if probe == "negative" or probe == "positive":
-                weight = len([g.molecule.atoms for g in self.grids if g.name == "positive"]) - 1
+                weight = len([g.mol.atoms for g in self.grids if g.name == "positive"]) - 1
                 apolar_values = [g.sample(active_atoms_dic[g.name], trans) for g in self.grids if
                                  len(active_atoms_dic[g.name]) > 0 and g.name == "apolar"] * weight
                 charged_values = [g.sample(active_atoms_dic[g.name], trans) for g in self.grids if
@@ -815,9 +1047,12 @@ class Hotspots(HotspotsHelper):
                     if score > 14:
                         m = molecule.copy()
                         m.translate(translation)
+                        m.identifier = "{}".format(score)
                         high_scoring_probes[score] = m
                     self.update_out_grids(score, active_coordinates_dic, translation)
-            return high_scoring_probes
+
+            sampled_probes = [high_scoring_probes[key] for key in sorted(high_scoring_probes.iterkeys())]
+            return sampled_probes
 
     class HotspotResults(HotspotsHelper):
         """
@@ -825,7 +1060,7 @@ class Hotspots(HotspotsHelper):
         and using the results.
         """
 
-        def __init__(self, grid_dict, protein, fname):
+        def __init__(self, grid_dict, protein, fname, sampled_probes, buriedness):
             try:
                 self.super_grids = grid_dict
                 for probe, g in grid_dict.items():
@@ -835,11 +1070,13 @@ class Hotspots(HotspotsHelper):
 
             self.prot = protein
             self.fname = fname
+            self.buriedness = buriedness
             self.out_dir = None
             self.features_by_score = {}
             self.donor_scores = None
             self.acceptor_scores = None
             self.apolar_scores = None
+            self.sampled_probes = sampled_probes
 
         def _combine(self):
             """
@@ -952,7 +1189,7 @@ class Hotspots(HotspotsHelper):
                 og1, og2 = self._common_grid(g1, g2)
                 sele = og1 - og2
                 selectivity_grids[probe] = sele
-            hr = Hotspots.HotspotResults(selectivity_grids, self.prot, self.fname)
+            hr = Hotspots.HotspotResults(selectivity_grids, self.prot, self.fname, None, None)
             return hr
 
         def _get_near_score(self, coordinates, atom_type, tolerance):
@@ -1021,7 +1258,7 @@ class Hotspots(HotspotsHelper):
                                 self._update_score_dic(atoms_by_score, n, residue, score, 'donor')
                     else:
                         score = self._get_near_score(atom.coordinates, interaction_partner_dic[atom_type],
-                                                             tolerance=5)
+                                                     tolerance=5)
                         self._update_score_dic(atoms_by_score, atom, residue, score, atom_type)
 
             return atoms_by_score
@@ -1420,7 +1657,6 @@ class Hotspots(HotspotsHelper):
                 return None
             return tmp_g
 
-
         def _get_grid_by_volume(self, sg, volume):
             '''
             Takes a single grid input (produced by _single_grid()) and produces a mask that will provide a grid with the
@@ -1511,148 +1747,7 @@ class Hotspots(HotspotsHelper):
 
             return percent_by_type
 
-        def point_in_island(self, point, island):
-            bottom_left = island.bounding_box[0]
-            top_right = island.bounding_box[1]
-
-            if bottom_left.x < point[0] < top_right.x and bottom_left.y < point[1] < top_right.y and bottom_left.z < \
-                    point[2] < top_right.z:
-                return True
-            else:
-                return False
-
-        def surrounding_points(self, point, island, volume, m):
-            """
-            find polar points surrounding apolar local maxima
-
-            :param point:
-            :param island:
-            :param volume:
-            :param m:
-            :return:
-            """
-
-            # setup
-            num_gp = int(float(volume) / 0.125)
-
-            mask = island.copy()
-            mask *= 0
-
-            # get points
-            nx, ny, nz = island.nsteps
-            all_points = [self._indices_to_point(i, j, k, island) for i in range(nx) for j in range(ny) for k in
-                          range(nz) if island.value(i, j, k) > (self.cutoff - 1)]
-            dist_dic = {}
-            for p in all_points:
-                d = self._get_distance(p, point)
-                if d in dist_dic:
-                    dist_dic[d].append(p)
-                else:
-                    dist_dic.update({float(d): [p]})
-
-            short_dists = sorted(float(x) for x, y in dist_dic.iteritems())
-            # print(short_dists)
-
-            indices = []
-            for q in short_dists:
-                temp = dist_dic[q]
-                for pts in temp:
-                    indices.append(self._point_to_indices(pts, island))
-
-            for i in indices[:num_gp]:
-                mask.set_value(i[0], i[1], i[2], 1)
-
-            # get values
-            new = island * mask
-            new.max_value_of_neighbours()
-            g_new = self._run_gaussian(new, sigma=(0.6, 0.6, 0.6, 0))
-
-            g_new.write("hotspot_{}.grd".format(m))
-            return g_new
-
-        def _run_gaussian(self, g, sigma):
-            nx, ny, nz = g.nsteps
-            print("nx", nx, ny, nz)
-            scores = np.zeros((nx, ny, nz, 1))
-            # print(scores.shape)
-            for i in range(nx):
-                for j in range(ny):
-                    for k in range(nz):
-                        scores[i, j, k, 0] += g.value(i, j, k)
-
-            mod = ndimage.filters.gaussian_filter(scores, sigma=sigma)
-
-            new_grid = g.copy()
-            new_grid *= 0
-
-            for i in range(nx):
-                for j in range(ny):
-                    for k in range(nz):
-                        new_grid.set_value(i, j, k, mod[i, j, k, 0])
-            return new_grid
-
-        def local_max(self, g):
-            """
-            in development
-            :param g:
-            :return:
-            """
-
-            nx, ny, nz = g.nsteps
-            peaks = np.zeros((nx, ny, nz))
-            for i in range(nx):
-                for j in range(ny):
-                    for k in range(nz):
-                        peaks[i, j, k] += g.value(i, j, k)
-
-            peaks_indices = feature.peak_local_max(peaks, min_distance=5)
-            peaks_dic = {}
-            for p in peaks_indices:
-                coords = self._indices_to_point(p[0], p[1], p[2], g)
-                peaks_dic.update({g.value_at_point(coords): coords})
-            return peaks_dic
-
-        def _get_island_centroid(self, island):
-            """
-            in development
-
-            :param island:
-            :return:
-            """
-
-            l_max = island.extrema
-            i, j, k = island.indices_at_value(l_max[1])[0]
-            centroid = self._indices_to_point(i, j, k, island)
-            return centroid
-
-        def _get_local_polar(self, centroid, polar_list):
-            """
-            in development
-
-            :param centroid:
-            :param polar_list:
-            :return:
-            """
-
-            print(centroid)
-            centroid_list = [[self._get_island_centroid(g), g] for g in polar_list]
-            print(centroid_list)
-            local = []
-            for c in centroid_list:
-                # print(centroid, c[0])
-                print(self._get_distance(centroid, c[0]),)
-                d = self._get_distance(centroid, c[0])
-                if d < 7.5:
-                    local.append(c[1])
-            print(len(local))
-            if len(local) == 0:
-                print("None")
-                return None
-            else:
-                print("something")
-                return Grid.super_grid(1, *local)
-
-        def output_extracted_hotspots(self, n, out_dir, fragments, lead, charged = False):
+        def output_extracted_hotspots(self, n, out_dir, fragments, lead, charged=True):
             """
             in development
 
@@ -1660,67 +1755,175 @@ class Hotspots(HotspotsHelper):
             """
             if out_dir == None:
                 out_dir = getcwd()
-
             str = extracted_hotspot_template(n, charged, fragments, lead)
+            if not exists(out_dir):
+                mkdir(out_dir)
             with open(join(out_dir, "extracted_hotspots.py"), 'w') as w:
                 w.write(str)
 
-        def extract_hotspots(self, out_dir = None, fragments=None, lead=None, sigma=(2, 2, 2, 0), cutoff=14, volume=65):
+            with MoleculeWriter(join(out_dir, "protein.pdb")) as w:
+                w.write(self.prot)
+
+        def _get_large_cavity(self, buriedness, drug_volume=350):
+            """
+            return cavities over a threshold size (volume approximately the volume of an average drug)
+
+            :return:
+            """
+
+            large = []
+            for island in buriedness.islands(threshold=5):
+                x, y, z = island.nsteps
+                size = len([island.value(nx, ny, nz) for nx in range(x) for ny in range(y) for nz in range(z)
+                            if island.value(nx, ny, nz) > 5])*0.125
+                if size > drug_volume:
+                    drug_cavity.append(j)
+            return large
+
+        def drug_sized(self, buriedness):
+            """
+            detemines whether a hotspot resides within a region that can accomodate a drug sized molecule
+
+            :return:
+            """
+
+            bottom_left, top_right = self.super_grids["apolar"].bounding_box
+            centroid = molecule.Coordinate(((bottom_left.x + top_right.x) / 2),
+                                           ((bottom_left.y + top_right.y) / 2),
+                                           ((bottom_left.z + top_right.z) / 2)
+                                           )
+            drug_cavity = self._get_large_cavity(buriedness=buriedness)
+
+            for d in drug_cavity:
+                if self.contains_point(centroid, d):
+                    return True
+                else:
+                    return False
+
+        def hotspot_score(self, all=True):
+            """
+            caution! only use for extracted hotspots!
+            :return:
+            """
+
+            if all:
+                all = []
+                for probe, g in h.super_grids.items:
+                    nx, ny, nz = g.nsteps
+                    score = np.mean([g.value(i, j, k) for i in range(nx) for j in range(ny) for k in range(nz)
+                                    if g.value(i, j, k) > 0])
+                    all.append(score)
+                np.mean(all)
+
+
+        def output_data(self, hr, buriedness):
+            """
+
+            :param hr:
+            :return:
+
+            DataFrame layout
+            [target_pdb]  [hotspot_id] [acceptor]  [donor]  [positive] [negative] [average_score_apolar]
+
+            [average_score_all] [
+
+
+            ghecom = 5
+            ligsite = 4
+            """
+
+            target = []
+            hotspot_id = []
+            feature_type = []
+            max_score = []
+            average_score = []
+            centroid_coords = []
+
+
+            for i, h in enumerate(hr):
+                composition = {probe: len(g.islands(threshold=5)) for probe, g in h.super_grids.items()}
+
+                drug_sized = h.drug_sized(buriedness)
+                #apolar_score = h.
+
+
+
+
+
+            return pd.DataFrame()
+
+        def extract_hotspots(self, out_dir=None, fragments=None, lead=None, **kwargs):
             """
             For a given output volume, hotspots are identified by the peaks in apolar propensity.
 
+            :param out_dir:
             :param sigma: float, target volume to be selected in Angstroms^3
             :param cutoff: int, threshold value to contour islands
             :param volume: int, volume of the desired output hotspots.
             :return:
             """
 
-            self.cutoff = cutoff - 1
-            hotspot_locations = []
-            results_objects = []
+            hr = []
+            build = HotspotBuilder(kwargs)
+            #build.settings.cutoff -= 1
 
-            for n, g in self.super_grids.items():
-                print(n)
-                self.super_grids[n] = self._run_gaussian(g, sigma)
+            build.prot = self.prot
+            build.fname = self.fname
+            build.sampled_probes = self.sampled_probes
+            build.super_grids = self.super_grids
 
-            apolar = self.super_grids["apolar"]
-            peaks_dic = self.local_max(apolar)
-            sorted_keys = sorted(peaks_dic, reverse=True)
+            build.apolar_islands = build.get_apolar()
 
-            islands = apolar.islands(self.cutoff)
-            filtered_islands = [i for i in islands if i.count_grid() > 100]
+            print("apolar", len(build.apolar_islands.values()))
 
-            for m, p in enumerate(sorted_keys):
-                if p > cutoff:  # empirical cutoff lower quartile (may need to change)
-                    point = peaks_dic[p]
-                    for i in filtered_islands:
-                        if self.point_in_island(point, i):
-                            hotspot_locations.append(self.surrounding_points(point, i, volume, m))
+            for v,g in build.apolar_islands.items():
+                g.write("Z:/original/out/grid_{}.grd".format(v))
 
-            polar_dict = {"donor": self.super_grids["donor"].islands(self.cutoff),
-                          "acceptor": self.super_grids["acceptor"].islands(self.cutoff)}
-
-            for hl in hotspot_locations:
-                centroid = self._get_island_centroid(hl)
-                local_donors = self._get_local_polar(centroid, polar_dict["donor"])
-                local_acceptors = self._get_local_polar(centroid, polar_dict["acceptor"])
-
-                if local_acceptors == None and local_donors == None:
-                    print("non-specific binding site")
-
+            for probe, g in build.super_grids.items():
+                if probe == "apolar":
+                    continue
                 else:
-                    blank = self._copy_and_clear(hl)
-                    if local_acceptors == None:
-                        grd_dic = {"apolar": hl, "donor": local_donors, "acceptor": blank}
-                    elif local_donors == None:
-                        grd_dic = {"apolar": hl, "donor": blank, "acceptor": local_acceptors}
-                    else:
-                        grd_dic = {"apolar": hl, "donor": local_donors, "acceptor": local_acceptors}
+                    build.super_grids[probe] = build._run_gaussian(g, (0.5, 0.5, 0.5, 0))
 
-                    results_objects.append(Hotspots.HotspotResults(grd_dic, self.prot, self.fname))
+            build.polar_islands = {probe: self.super_grids[probe].islands(build.settings.cutoff-1)
+                                   for probe in self.super_grids.keys() if probe != "apolar"}
 
-            self.output_extracted_hotspots(len(results_objects), out_dir, fragments, lead)
-            return results_objects
+            build.construct_hotspot()
+
+            print(build.donor_id)
+            print(build.acceptor_id)
+
+            for identity, grid in build.apolar_islands.items():
+                if len(build.donor_id[identity]) != 0:
+                    donor = Grid.super_grid(1, *build.donor_id[identity])
+                else:
+                    donor = self._copy_and_clear(grid)
+
+                if len(build.acceptor_id[identity]) != 0:
+                    acceptor = Grid.super_grid(1, *build.acceptor_id[identity])
+                else:
+                    acceptor = self._copy_and_clear(grid)
+
+                if len(build.positive_id[identity]) != 0:
+                    positive = Grid.super_grid(1, *build.positive_id[identity])
+                else:
+                    positive = self._copy_and_clear(grid)
+
+                if len(build.negative_id[identity]) != 0:
+                    negative = Grid.super_grid(1, *build.negative_id[identity])
+                else:
+                    negative = self._copy_and_clear(grid)
+
+                #function which removes charge/polar duplicates
+
+                grd_dic = {"apolar": grid, "donor": donor, "acceptor": acceptor,
+                           "negative": negative, "positive": positive}
+
+                hr.append(Hotspots.HotspotResults(grid_dict=grd_dic, protein=self.prot, fname=self.fname,
+                                                  sampled_probes=None, buriedness=None))
+            self.output_extracted_hotspots(len(hr), out_dir, fragments, lead, charged=False)
+            #self.output_data(hr, apo)
+            return hr
 
         def best_continuous_volume(self, volume=500, pocket_mask=False):
             '''
@@ -1736,7 +1939,6 @@ class Hotspots(HotspotsHelper):
             processed_grids = {}
             # print("start descriptors")
 
-
             masked_grids = self._single_grid()
             all_g = masked_grids.values()
             sum_g = all_g[0].copy()
@@ -1750,7 +1952,7 @@ class Hotspots(HotspotsHelper):
             second_mask = self._get_grid_by_volume(sum_g, volume)
 
             for probe, g in self.super_grids.items():
-                print(probe,)
+                print(probe, )
                 mg = masked_grids[probe]
                 c_mg, c_second_mask = self._common_grid(mg, second_mask, padding=0)
                 out_g = (c_mg * c_second_mask)
@@ -1761,14 +1963,14 @@ class Hotspots(HotspotsHelper):
                 # out_g.write('processed_{}.grd'.format(probe))
                 processed_grids[probe] = out_g
 
-            bcv_hr = Hotspots.HotspotResults(processed_grids, self.prot, self.fname)
+            bcv_hr = Hotspots.HotspotResults(processed_grids, self.prot, self.fname, None, None)
 
             remaining = {}
             for probe, g in self.super_grids.items():
                 diff_g = g - bcv_hr.super_grids[probe]
                 remaining.update({probe: diff_g})
 
-            remaining_hr = Hotspots.HotspotResults(remaining, self.prot, self.fname)
+            remaining_hr = Hotspots.HotspotResults(remaining, self.prot, self.fname, None, None)
 
             return bcv_hr, remaining_hr
 
@@ -1882,26 +2084,23 @@ class Hotspots(HotspotsHelper):
 
         return x_avg, y_avg, z_avg
 
-    #
-    # @staticmethod
-    # def _superstar_job(args):
-    #     """
-    #     creates a RunSuperstar class and returns a SuperstarResult object
-    #     :param args: tuple, probe name and centroid
-    #     :return: a :class: `__main__().SuperstarResult` object
-    #     """
-    #
-    #     s = RunSuperstar()
-    #     n, ss_probe, centroid, prot, out_dir = args
-    #     print(n, " ")
-    #     s.settings.jobname = "{}.ins".format(n)
-    #     s.settings.probename = ss_probe
-    #     s.settings.moleculefile = "protein.pdb"
-    #     s.settings.cavity_origin = centroid
-    #
-    #     result = s.run_superstar(prot, out_dir)
-    #     return result
+    @staticmethod
+    def _superstar_job(args):
+        """
+        creates a RunSuperstar class and returns a SuperstarResult object
+        :param args: tuple, probe name and centroid
+        :return: a :class: `__main__().SuperstarResult` object
+        """
 
+        s = RunSuperstar()
+        n, ss_probe, centroid, prot, out_dir, wrk_dir = args
+        s.settings.jobname = "{}.ins".format(n)
+        s.settings.probename = ss_probe
+        s.settings.moleculefile = "protein.pdb"
+        s.settings.cavity_origin = centroid
+        s.settings.working_directory = wrk_dir
+        result = s.run_superstar(prot, out_dir)
+        return result
 
     def _run_ss(self, centroid=None):
         """
@@ -1930,10 +2129,9 @@ class Hotspots(HotspotsHelper):
 
         wrk_dir = _test_output_dir()
         args = [(k, self.probe_dict[k], centroid, self.prot, self.out_dir, wrk_dir) for k in self.probe_dict.keys()]
-        print(args)
-
         ex = futures.ThreadPoolExecutor(max_workers=5)
-        results = ex.map(_superstar_job, args)
+        results = ex.map(self._superstar_job, args)
+
         return list(results)
 
     def _get_weighted_maps(self):
@@ -1946,11 +2144,11 @@ class Hotspots(HotspotsHelper):
         results = []
         for s in self.superstar_grids:
             if self.ghecom_executable:
-                burriedness = self.ghecom.grid
+                self.buriedness = self.ghecom.grid
             else:
-                burriedness = s.ligsite
+                self.buriedness = s.ligsite
 
-            weighted_grid = s.grid * burriedness
+            weighted_grid = s.grid * self.buriedness
             results.append(WeightedResult(s.identifier, weighted_grid))
         return results
 
@@ -2020,16 +2218,17 @@ class Hotspots(HotspotsHelper):
             r.settings.out_grid = out_grid
             r.settings.ghecom_executable = self.ghecom_executable
             self.ghecom = r.run_ghecom()
-            self.ghecom.grid.write(join(self.out_dir, "ghecom.grd"))
 
         self.weighted_grids = self._get_weighted_maps()
+        self.buriedness.write(join(self.out_dir, "buriedness"))
+
         grid_dict = {w.identifier: w.grid for w in self.weighted_grids}
 
         for probe in probe_types:
             top_probes = self._get_out_maps(probe, grid_dict)
             self.sampled_probes.update({probe: top_probes})
 
-    def from_grid_dic(self, super_grids, prot, fname=None):
+    def from_grid_dic(self, super_grids, prot, fname=None, sampled_probes=None, buriedness=None):
         """
         Create a Hotspots_reults object from a dictionary of previously calculated grid objects
 
@@ -2042,7 +2241,9 @@ class Hotspots(HotspotsHelper):
         self.fname = fname
         self.super_grids = super_grids
         self.prot = prot
-        return self.HotspotResults(self.super_grids, self.prot, self.fname)
+        self.sampled_probes = sampled_probes
+        self.buriedness = buriedness
+        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness)
 
     def from_protein(self, prot, charged_probes, fname=None, binding_site_origin=None, probe_size=7,
                      ghecom_executable=None):
@@ -2080,8 +2281,7 @@ class Hotspots(HotspotsHelper):
             probe = probe.lower()
             sg = self.out_grids[probe][0]
             self.super_grids[probe] = sg
-
-        return self.HotspotResults(self.super_grids, self.prot, self.fname)
+        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness)
 
 
 def main():
@@ -2104,7 +2304,8 @@ def main():
     h = Hotspots()
 
     result = h.from_protein(prot=prot, charged_probes=False, fname=prot_file, ghecom_executable=ghecom_exe)
-    result.output_pymol_file()
+    result.output_pymol_file(out_dir=None)
+
 
 if __name__ == "__main__":
     main()
