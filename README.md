@@ -1,67 +1,30 @@
-# fragment_hotspot_maps
+# Welcome to the fragment-hotspot-maps wiki!
 
-## Installation instructions for fragment-hotspot-maps 0.1 
----------------------------------------------------------
 
-### 1. Clone github repository _(currently only available to collaborators)_
-1.1 Make installation directory
-
-`mkdir <repo_dir>`
-
-1.2 Clone repository
-
-`git clone git@github.com:prcurran/fragment_hotspot_maps.git`
-
-1.3 Create fragment-hotspot-maps zip
-
-`cd <repo_dir>/fragment_hotspot_maps`
-
-`python create_hotspot_zip.py`
+![fragment hotspots](http://fragment-hotspot-maps.ccdc.cam.ac.uk/static/cover_small.jpg)
 
 ***
-### Install CSDS 2018
 
-2.1 Available from [CCDC downloads page](https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/) _(site number and confirmation code **required**_)
+## Current resources
 
-### 3. Create Python environment
+To help you get started we have created some resources covering the main features of the package. 
 
-3.1 Activate CSDS miniconda environment
+Have a question or feedback? Contact us! (**fragment-hotspot-support@ccdc.cam.ac.uk**)
 
-`<CSDS location>\Python_API_2018\miniconda\Scripts\activate.bat`
+[Background](https://github.com/prcurran/fragment_hotspot_maps/wiki/1.-Background)
 
-3.2 Make an exact copy of the CSDS Python environment
+[Installation](https://github.com/prcurran/fragment_hotspot_maps/wiki/2.-Installation)
 
-`conda create -n <env_name> python`
+[API framework](https://github.com/prcurran/fragment_hotspot_maps/wiki/3.-API-framework)
 
-3.3 Activate environment
+[Getting started](https://github.com/prcurran/fragment_hotspot_maps/wiki/4.-Getting-started)
 
-`activate <env_name>`
+[Visualisation](https://github.com/prcurran/fragment_hotspot_maps/wiki/5.-Visualisation)
 
-### 4. Install fragment-hotspot-maps 0.1
+[Scoring](https://github.com/prcurran/fragment_hotspot_maps/wiki/6.-Scoring)
 
-4.1 Navigate to cloned github repository
+[Analysis](https://github.com/prcurran/fragment_hotspot_maps/wiki/7.-Analysis)
 
-`cd <repo_dir>`
-
-4.2 Install fragment-hotspot-maps 0.1 using pip
-
-`pip install fragment_hotspot_maps.zip`
-***
-
-### 5. Linux users only
-
-5.1 Set CSD environment variables in bash
-
-`vi bash`
-
-add the following lines:
-
-    export CSDHOME=/<user_path>/CCDC/CSD_2018
-    export SUPERSTAR_ROOT=/<user_path>/CCDC/GoldSuite_2018/SuperStar/
-    export SUPERSTAR_ISODIR=/<user_path>/CCDC/CSD_2018/isostar_files/istr/
+[Current projects](https://github.com/prcurran/fragment_hotspot_maps/wiki/8.-Current-projects)
 
 ***
-## FAQs
-
-
- 
