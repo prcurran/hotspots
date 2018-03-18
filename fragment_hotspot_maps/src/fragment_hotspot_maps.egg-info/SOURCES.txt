@@ -1,0 +1,5 @@
+src/fragment_hotspot_maps.egg-info/PKG-INFO
+src/fragment_hotspot_maps.egg-info/SOURCES.txt
+src/fragment_hotspot_maps.egg-info/dependency_links.txt
+src/fragment_hotspot_maps.egg-info/requires.txt
+src/fragment_hotspot_maps.egg-info/top_level.txt
