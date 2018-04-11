@@ -33,6 +33,7 @@ from template_strings import pymol_template, colourmap, superstar_ins, extracted
 import pandas as pd
 
 from concurrent import futures
+from pprint import pprint
 
 try:
     from rdkit import Chem
@@ -128,7 +129,6 @@ class HotspotsHelper(object):
     @staticmethod
     def contains_point(point, island, tolerance=0, threshold=0):
 
-
         mini = island.bounding_box[0]
         maxi = island.bounding_box[1]
         if island.value_at_point(point) > threshold:
@@ -139,10 +139,13 @@ class HotspotsHelper(object):
             return False
 
     @staticmethod
-    def grid_score(g, threshold=0, percentile= 75):
+    def grid_score(g, threshold=0, percentile=75):
         """
         take a group and return average score of points above threshold
         :param g:
+        :param threshold
+        :param percentile
+
         :return:
         """
 
@@ -154,6 +157,21 @@ class HotspotsHelper(object):
             return 0
         else:
             return np.percentile(values, percentile)
+
+    @staticmethod
+    def _get_lines_from_file(fname):
+        """
+        fetch lines from ghecom output
+
+        :return: str, lines from output file
+        """
+
+        f = open(fname)
+        lines = f.readlines()
+        f.close()
+        for i in range(0, len(lines)):
+            lines[i] = lines[i].strip()
+        return lines
 
 
 class RunSuperstar(object):
@@ -215,8 +233,8 @@ class RunSuperstar(object):
                     SUPERSTAR_ISODIR=str(join(dirname(csd_directory()), 'isostar_files', 'istr')),
                     SUPERSTAR_ROOT=str(dirname(csd_directory()))
                 )
-            # self.settings.working_directory = _test_output_dir()
-            # print(self.settings.working_directory)
+                # self.settings.working_directory = _test_output_dir()
+                # print(self.settings.working_directory)
 
     def _append_cavity_info(self):
         """
@@ -408,20 +426,6 @@ class GhecomResult(HotspotsHelper):
 
         return Grid(origin=bl, far_corner=tr, spacing=0.5)
 
-    def _get_lines_from_file(self):
-        """
-        fetch lines from ghecom output
-
-        :return: str, lines from output file
-        """
-
-        f = open(self.settings.out_name)
-        lines = f.readlines()
-        f.close()
-        for i in range(0, len(lines)):
-            lines[i] = lines[i].strip()
-        return lines
-
     def update_grid(self):
         """
         update initialised grid with ghecom vales
@@ -429,7 +433,7 @@ class GhecomResult(HotspotsHelper):
         :return: None
         """
 
-        lines = self._get_lines_from_file()
+        lines = self._get_lines_from_file(self.settings.out_name)
         for line in lines:
             if line.startswith("HETATM"):
                 coordinates = (float(line[31:38]), float(line[39:46]), float(line[47:54]))
@@ -487,6 +491,34 @@ class HotspotBuilder(HotspotsHelper):
             self.grid_points = int(float(self.volume) / 0.125)
             self.max_probes = 50
 
+    def deduplicate(self, major, minor):
+        """
+
+        :param major:
+        :param minor:
+        :return:
+        """
+
+        filtered = []
+        for jsland in minor.islands(threshold=14):
+            remove_island = False
+            point = ((jsland.bounding_box[0].x + jsland.bounding_box[1].x) / 2,
+                     (jsland.bounding_box[0].y + jsland.bounding_box[1].y) / 2,
+                     (jsland.bounding_box[0].z + jsland.bounding_box[1].z) / 2,
+                     )
+            for island in major.islands(threshold=14):
+                if self.contains_point(point, island, tolerance=2):
+                    remove_island = True
+            if remove_island == True:
+                continue
+            else:
+                filtered.append(jsland)
+
+        if len(filtered) == 0:
+            return self._copy_and_clear(minor)
+        else:
+            return Grid.super_grid(1, *filtered)
+
     def get_apolar(self):
         """
         locate peaks in apolar maps and define fragment size volume
@@ -514,7 +546,10 @@ class HotspotBuilder(HotspotsHelper):
                 point = peaks_dic[p]
                 for i in filtered_islands:
                     if self.contains_point(point, i, 1):
-                        apolar_volume.update({m: self._surrounding_points(point, i)})
+                        agrid = self._surrounding_points(point, i)
+                        if self.grid_score(agrid, percentile=75) > 14:
+                            apolar_volume.update({m: agrid})
+
         return apolar_volume
 
     def remove_close(self, peak_dic):
@@ -538,6 +573,43 @@ class HotspotBuilder(HotspotsHelper):
 
         return new_peak_dic
 
+    def polar_selection(self, variables):
+        """
+        multiprocess
+        """
+        probe, island, apolar_items = variables
+
+        mols = self._get_island_probes(island, probe)
+        selection_dict = {i: len([mol for mol in mols
+                                  if self.contains_point(mol.atoms[3].coordinates, local, tolerance=4)])
+                          for i, local in apolar_items}
+
+        ident = self._polar_identity(selection_dict)
+
+        return ident, island
+
+    def sort_by_island(self, grids, max):
+        """
+
+        :return:
+        """
+
+        islands_dict = {self.grid_score(g, percentile=50): g for g in grids}
+        return [islands_dict[key] for key in sorted(islands_dict.iterkeys(), reverse=True)[0:max] if key > 14]
+
+    def filter(self, dict, max=2):
+        """
+
+        :param dict:
+        :return:
+        """
+        for key in dict.keys():
+            if len(dict[key]) > 2:
+                dict[key] = self.sort_by_island(dict[key], max)
+            else:
+                continue
+        return dict
+
     def construct_hotspot(self):
         """
         handles the assignment of polar features to apolar volumes
@@ -554,23 +626,32 @@ class HotspotBuilder(HotspotsHelper):
         print(self.polar_islands)
         for probe, islands in self.polar_islands.items():
             print(probe)
-            for island in islands:
-                mols = self._get_island_probes(island, probe)
-                selection_dict = {i: len([mol for mol in mols
-                                          if self.contains_point(mol.atoms[3].coordinates, local, tolerance=3)])
-                                  for i, local in self.apolar_islands.items()}
-                ident = self._polar_identity(selection_dict)
-                if ident:
+            apolar_items = self.apolar_islands.items()
+            args = [(probe, isl, apolar_items) for isl in islands]
+            pprint(args)
+            multipro = futures.ThreadPoolExecutor(max_workers=6)
+            results = multipro.map(self.polar_selection, args)
+            r = list(results)
+
+            for t in r:
+                if t[0] is not None:
                     if probe == "donor":
-                        self.donor_id[ident].append(island)
+                        self.donor_id[t[0]].append(t[1])
                     elif probe == "acceptor":
-                        self.acceptor_id[ident].append(island)
+                        self.acceptor_id[t[0]].append(t[1])
                     elif probe == "positive":
-                        self.positive_id[ident].append(island)
+                        self.positive_id[t[0]].append(t[1])
                     elif probe == "negative":
-                        self.negative_id[ident].append(island)
+                        self.negative_id[t[0]].append(t[1])
+                    else:
+                        continue
                 else:
                     continue
+
+                    # self.donor_id = self.filter(self.donor_id)
+                    # self.acceptor_id = self.filter(self.acceptor_id)
+                    # self.negative_id = self.filter(self.negative_id)
+                    # self.positive_id = self.filter(self.positive_id)
 
     def _polar_identity(self, selection_dict):
         """
@@ -592,7 +673,7 @@ class HotspotBuilder(HotspotsHelper):
 
         :return:
         """
-        #print(self.sampled_probes[p])
+        # print(self.sampled_probes[p])
         ip = [m for m in self.sampled_probes[p] if self.contains_point(m.atoms[0].coordinates, island, tolerance=2)]
 
         if len(ip) > self.settings.max_probes:
@@ -655,12 +736,6 @@ class HotspotBuilder(HotspotsHelper):
         for p in peaks_indices:
             coords = self._indices_to_point(p[0], p[1], p[2], g)
             peaks_dic.update({g.value_at_point(coords): coords})
-
-        out = self._copy_and_clear(g)
-        for thing in peaks_indices:
-            val = g.value(thing[0], thing[1], thing[2])
-            out.set_value(thing[0], thing[1], thing[2], val)
-        out.write("Z:/1w50/peaks.grd")
 
         return peaks_dic
 
@@ -937,7 +1012,7 @@ class Hotspots(HotspotsHelper):
                           if g.value(i, j, k) >= translation_threshold]
 
                 translate_probe = translate_probe + maxima
-            #print(priority_atom_type, len(translate_probe))
+            # print(priority_atom_type, len(translate_probe))
             return translate_probe
 
         def generate_rand_quaternions(self):
@@ -987,11 +1062,11 @@ class Hotspots(HotspotsHelper):
             :param probe: str, interaction_type
             :return:
             """
-            #print(probe)
-            #print(active_atoms_dic)
 
             if probe == "negative" or probe == "positive":
-                weight = len([g.mol.atoms for g in self.grids if g.name == "positive"]) - 1
+                atoms = [g.mol.atoms for g in self.grids if g.name == "positive"][0]
+                weight = int(6 / len([a for a in atoms if str(a.atomic_symbol) == "C"]))
+
                 apolar_values = [g.sample(active_atoms_dic[g.name], trans) for g in self.grids if
                                  len(active_atoms_dic[g.name]) > 0 and g.name == "apolar"] * weight
                 charged_values = [g.sample(active_atoms_dic[g.name], trans) for g in self.grids if
@@ -1078,11 +1153,21 @@ class Hotspots(HotspotsHelper):
                         m = molecule.copy()
                         m.translate(translation)
                         m.identifier = "{}".format(score)
-                        high_scoring_probes[score] = m
+
+                        try:
+                            high_scoring_probes[score].append(m)
+                        except KeyError:
+                            high_scoring_probes[score] = [m]
                     self.update_out_grids(score, active_coordinates_dic, translation)
 
-            sampled_probes = [high_scoring_probes[key] for key in sorted(high_scoring_probes.iterkeys())]
-            return sampled_probes
+            sampled_probes = []
+            for key in sorted(high_scoring_probes.iterkeys(), reverse=True):
+                sampled_probes.extend(high_scoring_probes[key])
+
+            if len(sampled_probes) > 10000:
+                return sampled_probes[:10000]
+            else:
+                return sampled_probes
 
     class HotspotResults(HotspotsHelper):
         """
@@ -1106,7 +1191,21 @@ class Hotspots(HotspotsHelper):
             self.donor_scores = None
             self.acceptor_scores = None
             self.apolar_scores = None
+            # self.sampled_probes = self.filter_by_score(sampled_probes)
             self.sampled_probes = sampled_probes
+
+        def filter_by_score(self, sampled_probes, score=16):
+            """
+            filter sampled probes by score (reduce searching)
+            :param sampled_probes: dict
+            :param score:
+            :return:
+            """
+            if sampled_probes is not None:
+                return {probe: [m for m in mols if float(m.identifier) > score] for probe, mols in
+                        sampled_probes.items()}
+            else:
+                return None
 
         def _combine(self):
             """
@@ -1794,7 +1893,7 @@ class Hotspots(HotspotsHelper):
             with MoleculeWriter(join(out_dir, "protein.pdb")) as w:
                 w.write(self.prot)
 
-        def _get_large_cavity(self, buriedness, drug_volume=350):
+        def _get_large_cavity(self, buriedness, drug_volume=300):
             """
             return cavities over a threshold size (volume approximately the volume of an average drug)
 
@@ -1805,7 +1904,7 @@ class Hotspots(HotspotsHelper):
             for island in buriedness.islands(threshold=5):
                 x, y, z = island.nsteps
                 size = len([island.value(nx, ny, nz) for nx in range(x) for ny in range(y) for nz in range(z)
-                            if island.value(nx, ny, nz) > 5])*0.125
+                            if island.value(nx, ny, nz) > 5]) * 0.125
                 if size > drug_volume:
                     large.append(island)
             return large
@@ -1819,9 +1918,9 @@ class Hotspots(HotspotsHelper):
 
             bottom_left, top_right = self.super_grids["apolar"].bounding_box
             centroid = molecule.Coordinates(((bottom_left.x + top_right.x) / 2),
-                                           ((bottom_left.y + top_right.y) / 2),
-                                           ((bottom_left.z + top_right.z) / 2)
-                                           )
+                                            ((bottom_left.y + top_right.y) / 2),
+                                            ((bottom_left.z + top_right.z) / 2)
+                                            )
             drug_cavity = self._get_large_cavity(buriedness=buriedness)
 
             for d in drug_cavity:
@@ -1844,7 +1943,42 @@ class Hotspots(HotspotsHelper):
             else:
                 return self.grid_score(self.super_grids["apolar"], threshold=0)
 
-        def output_data(self, hr, buriedness):
+        def get_bfactors(self, pdb_file):
+            """
+            Assign B factors
+            """
+
+            lines = self._get_lines_from_file(pdb_file)
+
+            return {str(l[21] + ":" + l[17:20] + l[23:26] + "_" + l[12:16]).replace(" ", ""): float(l[60:66])
+                    for i, l in enumerate(lines) if str(l[0:4]) == "ATOM"}
+
+        def hotspot_bfactor(self, pdb_file, bfactor):
+            """
+
+
+            :param prot:
+            :param bfactor:
+            :return:
+            """
+            prot = Protein.from_file(pdb_file)
+            mini, maxi = self.super_grids["apolar"].bounding_box
+            centroid = molecule.Coordinates((mini.x + maxi.x) / 2, (mini.y + maxi.y) / 2, (mini.z + maxi.z) / 2)
+            bs = prot.BindingSiteFromPoint(protein=prot, origin=centroid, distance=8)
+            residues = [str(r.identifier) for r in bs.residues]
+            protein = [str(p.identifier) for p in prot.residues]
+            deletes = list(set(protein) - set(residues))
+            for delete in deletes:
+                prot.remove_residue(delete)
+            b = [bfactor[str(r.identifier + "_" + a.label)] for r in prot.residues for a in r.atoms]
+            self.prot = prot
+            print("b", b)
+            if len(b) == 0:
+                return None, None
+            else:
+                return np.percentile(b, 50), np.mean(b)
+
+        def output_data(self, hr, buriedness, pdb_file):
             """
 
             :param hr:
@@ -1856,13 +1990,18 @@ class Hotspots(HotspotsHelper):
             donor = []
             acceptor = []
             negative = []
-            positive= []
+            positive = []
             drug_sized = []
             apolar_score = []
             hotspot_score = []
+            bfactor_mean = []
+            bfactor_median = []
+            hotspot_bfactor_mean = []
+            hotspot_bfactor_median = []
 
+            bfactor = self.get_bfactors(pdb_file)
             for i, h in enumerate(hr):
-                composition = {probe: len(g.islands(threshold=5)) for probe, g in h.super_grids.items()}
+                composition = {probe: len(g.islands(threshold=14)) for probe, g in h.super_grids.items()}
                 identifier.append(i)
                 donor.append(composition["donor"])
                 acceptor.append(composition["acceptor"])
@@ -1871,12 +2010,20 @@ class Hotspots(HotspotsHelper):
                 drug_sized.append(h.drug_sized(buriedness))
                 apolar_score.append(h.hotspot_score(total=False))
                 hotspot_score.append(h.hotspot_score(total=True))
+                bfactor_mean.append(np.mean(bfactor.values()))
+                bfactor_median.append(np.percentile(bfactor.values(), 50))
+                mean, median = h.hotspot_bfactor(inprot, bfactor)
+                if pdb_file is not None:
+                    hotspot_bfactor_mean.append(mean)
+                    hotspot_bfactor_median.append(median)
 
-            return pd.DataFrame({"identifier": identifier, "donor": donor, "acceptor": acceptor, "negative":negative,
-                                "positive": positive, "drug_sized_cavity": drug_sized, "apolar_av_score": apolar_score,
-                                "average_score": hotspot_score})
+            return pd.DataFrame({"identifier": identifier, "donor": donor, "acceptor": acceptor, "negative": negative,
+                                 "positive": positive, "drug_sized_cavity": drug_sized, "apolar_av_score": apolar_score,
+                                 "average_score": hotspot_score, "bf_mean": bfactor_mean, "bf_median": bfactor_median,
+                                 "hbf_mean": hotspot_bfactor_mean, "hbf_median": hotspot_bfactor_median
+                                 })
 
-        def extract_hotspots(self, out_dir=None, fragments=None, lead=None, **kwargs):
+        def extract_hotspots(self, out_dir=None, fragments=None, lead=None, bfactors=None, **kwargs):
             """
             For a given output volume, hotspots are identified by the peaks in apolar propensity.
 
@@ -1889,7 +2036,7 @@ class Hotspots(HotspotsHelper):
 
             hr = []
             build = HotspotBuilder(kwargs)
-            #build.settings.cutoff -= 1
+            # build.settings.cutoff -= 1
 
             build.prot = self.prot
             build.fname = self.fname
@@ -1900,7 +2047,7 @@ class Hotspots(HotspotsHelper):
 
             print("apolar", len(build.apolar_islands.values()))
 
-            for v,g in build.apolar_islands.items():
+            for v, g in build.apolar_islands.items():
                 g.write("Z:/original/out/grid_{}.grd".format(v))
 
             for probe, g in build.super_grids.items():
@@ -1935,7 +2082,8 @@ class Hotspots(HotspotsHelper):
                 else:
                     negative = self._copy_and_clear(grid)
 
-                #function which removes charge/polar duplicates
+                positive = build.deduplicate(donor, positive)
+                negative = build.deduplicate(acceptor, negative)
 
                 grd_dic = {"apolar": grid, "donor": donor, "acceptor": acceptor,
                            "negative": negative, "positive": positive}
@@ -1943,7 +2091,7 @@ class Hotspots(HotspotsHelper):
                 hr.append(Hotspots.HotspotResults(grid_dict=grd_dic, protein=self.prot, fname=self.fname,
                                                   sampled_probes=None, buriedness=None))
             self.output_extracted_hotspots(len(hr), out_dir, fragments, lead, charged=False)
-            df = self.output_data(hr, self.buriedness)
+            df = self.output_data(hr, self.buriedness, bfactors)
             df.to_csv(join(out_dir, "data.csv"))
 
             return hr
@@ -2047,7 +2195,6 @@ class Hotspots(HotspotsHelper):
                         prot_file = ('{}/protein.pdb'.format(self.out_dir))
                 else:
                     prot_file = self.fname
-
             percentiles = {'low': 30}
             cutoff_by_probe = {}
             for probe, g in self.super_grids.items():
@@ -2061,6 +2208,10 @@ class Hotspots(HotspotsHelper):
             with open('{}/pymol_results_file.py'.format(self.out_dir), 'w') as pymol_file:
                 pymol_out = pymol_template(prot_file, self.out_dir, self.super_grids.keys(), cutoff_by_probe)
                 pymol_file.write(pymol_out)
+
+            with MoleculeWriter(join(out_dir, "protein.pdb")) as writer:
+                writer.write(self.prot)
+
 
     def __init__(self, settings=None):
         self.out_grids = {}
@@ -2142,7 +2293,7 @@ class Hotspots(HotspotsHelper):
                 donor='UNCHARGED NH NITROGEN',
                 acceptor='CARBONYL OXYGEN',
                 positive='CHARGED NH NITROGEN',
-                negative='CHLORIDE ANION'
+                negative='CARBOXYLATE OXYGEN'
             )
         else:
             self.probe_dict = dict(
@@ -2245,7 +2396,7 @@ class Hotspots(HotspotsHelper):
             self.ghecom = r.run_ghecom()
 
         self.weighted_grids = self._get_weighted_maps()
-        self.buriedness.write(join(self.out_dir, "buriedness"))
+        self.buriedness.write(join(self.out_dir, "buriedness.grd"))
 
         grid_dict = {w.identifier: w.grid for w in self.weighted_grids}
 

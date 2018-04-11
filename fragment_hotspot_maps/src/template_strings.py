@@ -112,16 +112,27 @@ if charged:
 colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':'br4', 'positive':'cyan'}}
 
 nh = {0}
-ps = ['donor', 'acceptor', 'apolar']
-if charged:
-    ps += ['negative', 'positive']
+ps = ['donor', 'acceptor', 'apolar', 'negative', 'positive']
 
 for n in range(nh):
     for p in ps:
         cmd.load(r'%s/%s.grd'%(n,p), '%s_%s'%(p,n))
-        cmd.isosurface('surface_%s_%s'%(p,n), '%s_%s'%(p,n), 3)
+        cmd.isosurface('surface_%s_%s'%(p,n), '%s_%s'%(p,n), 12)
         cmd.set('transparency', 0.5, 'surface_%s_%s'%(p,n))
         cmd.color(colour_dict['%s'%(p)], 'surface_%s_%s'%(p,n))
+
+for n in range(nh):
+    cmd.group('hotspot_%s'%(n), members= 'surface_apolar_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'surface_donor_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'surface_acceptor_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'apolar_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'donor_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'acceptor_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'surface_positive_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'surface_negative_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'positive_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'negative_%s'%(n))
+
     '''.format(num_hotspots, charged, fragments, lead)
     return out_str
 
