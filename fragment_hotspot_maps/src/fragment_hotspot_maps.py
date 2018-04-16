@@ -441,7 +441,7 @@ class GhecomResult(HotspotsHelper):
                 i, j, k = self._point_to_indices(coordinates, self.grid)
                 x, y, z = self.grid.nsteps
                 if 0 < i < x and 0 < j < y and 0 < k < z:
-                    self.grid.set_value(i, j, k, 10 - rinacc)
+                    self.grid.set_value(i, j, k, 9.5 - rinacc)
 
 
 class WeightedResult(object):
@@ -542,12 +542,12 @@ class HotspotBuilder(HotspotsHelper):
 
         for m, p in enumerate(sorted_keys):
             print(p)
-            if p > self.settings.cutoff - 1:  # empirical cutoff lower quartile (may need to change)
+            if p > self.settings.cutoff - 1:  # empirical cutoff, lower quartile (may need to change)
                 point = peaks_dic[p]
                 for i in filtered_islands:
                     if self.contains_point(point, i, 1):
                         agrid = self._surrounding_points(point, i)
-                        if self.grid_score(agrid, percentile=75) > 14:
+                        if self.grid_score(agrid, percentile=75) > 12:
                             apolar_volume.update({m: agrid})
 
         return apolar_volume
@@ -581,7 +581,7 @@ class HotspotBuilder(HotspotsHelper):
 
         mols = self._get_island_probes(island, probe)
         selection_dict = {i: len([mol for mol in mols
-                                  if self.contains_point(mol.atoms[3].coordinates, local, tolerance=4)])
+                                  if self.contains_point(mol.atoms[3].coordinates, local, tolerance=3)])
                           for i, local in apolar_items}
 
         ident = self._polar_identity(selection_dict)
@@ -1962,9 +1962,14 @@ class Hotspots(HotspotsHelper):
             :return:
             """
             prot = Protein.from_file(pdb_file)
+            prot.remove_all_metals()
+            prot.remove_all_waters()
+            for lig in prot.ligands:
+                prot.remove_ligand(lig.identifier)
+
             mini, maxi = self.super_grids["apolar"].bounding_box
             centroid = molecule.Coordinates((mini.x + maxi.x) / 2, (mini.y + maxi.y) / 2, (mini.z + maxi.z) / 2)
-            bs = prot.BindingSiteFromPoint(protein=prot, origin=centroid, distance=8)
+            bs = prot.BindingSiteFromPoint(protein=prot, origin=centroid, distance=12)
             residues = [str(r.identifier) for r in bs.residues]
             protein = [str(p.identifier) for p in prot.residues]
             deletes = list(set(protein) - set(residues))
@@ -2012,7 +2017,7 @@ class Hotspots(HotspotsHelper):
                 hotspot_score.append(h.hotspot_score(total=True))
                 bfactor_mean.append(np.mean(bfactor.values()))
                 bfactor_median.append(np.percentile(bfactor.values(), 50))
-                mean, median = h.hotspot_bfactor(inprot, bfactor)
+                mean, median = h.hotspot_bfactor(pdb_file, bfactor)
                 if pdb_file is not None:
                     hotspot_bfactor_mean.append(mean)
                     hotspot_bfactor_median.append(median)
