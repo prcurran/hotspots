@@ -13,7 +13,8 @@ setup(
     long_description_content_type="text/markdown",
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
-    install_requires=['numpy>=1.9', 'csd-python-api>=1.5', 'matplotlib', 'scipy', 'sklearn'],
+    install_requires=['numpy>=1.9', 'csd-python-api>=1.5', 'matplotlib', 'scipy', 'sklearn', 'scikit-image', 'pandas',
+                      'futures'],
 
     package_data={
         # If any package contains *.txt or *.rst files, include them:

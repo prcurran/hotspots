@@ -13,7 +13,7 @@ import math
 import operator
 
 from os.path import join, dirname, exists
-from os import environ, name, getcwd, mkdir, chdir, system
+from os import environ, name, getcwd, mkdir, chdir, system, path
 import sys
 import glob
 import random
@@ -261,12 +261,16 @@ class RunSuperstar(object):
         self.ins = superstar_ins(self.settings)
         self._append_cavity_info()
         out = join(out_dir, "ins")
-        if not exists(out):
+        try:
             mkdir(out)
+        except OSError:
+            pass
+
+        print(getcwd())
         self.fname = join(out, "superstar_{}.ins".format(self.settings.jobname.split(".")[0]))
-        w = open(self.fname, "w")
-        w.write(self.ins)
-        w.close()
+        with open(self.fname, "w") as w:
+            w.write(self.ins)
+
 
     def run_superstar(self, prot, out_dir):
         """
@@ -1175,7 +1179,7 @@ class Hotspots(HotspotsHelper):
         and using the results.
         """
 
-        def __init__(self, grid_dict, protein, fname, sampled_probes, buriedness):
+        def __init__(self, grid_dict, protein, fname, sampled_probes, buriedness, out_dir):
             try:
                 self.super_grids = grid_dict
                 for probe, g in grid_dict.items():
@@ -1186,7 +1190,7 @@ class Hotspots(HotspotsHelper):
             self.prot = protein
             self.fname = fname
             self.buriedness = buriedness
-            self.out_dir = None
+            self.out_dir = out_dir
             self.features_by_score = {}
             self.donor_scores = None
             self.acceptor_scores = None
@@ -1318,7 +1322,7 @@ class Hotspots(HotspotsHelper):
                 og1, og2 = self._common_grid(g1, g2)
                 sele = og1 - og2
                 selectivity_grids[probe] = sele
-            hr = Hotspots.HotspotResults(selectivity_grids, self.prot, self.fname, None, None)
+            hr = Hotspots.HotspotResults(selectivity_grids, self.prot, self.fname, None, None, self.out_dir)
             return hr
 
         def _get_near_score(self, coordinates, atom_type, tolerance):
@@ -2094,7 +2098,7 @@ class Hotspots(HotspotsHelper):
                            "negative": negative, "positive": positive}
 
                 hr.append(Hotspots.HotspotResults(grid_dict=grd_dic, protein=self.prot, fname=self.fname,
-                                                  sampled_probes=None, buriedness=None))
+                                                  sampled_probes=None, buriedness=None, out_dir = self.out_dir))
             self.output_extracted_hotspots(len(hr), out_dir, fragments, lead, charged=False)
             df = self.output_data(hr, self.buriedness, bfactors)
             df.to_csv(join(out_dir, "data.csv"))
@@ -2139,14 +2143,14 @@ class Hotspots(HotspotsHelper):
                 # out_g.write('processed_{}.grd'.format(probe))
                 processed_grids[probe] = out_g
 
-            bcv_hr = Hotspots.HotspotResults(processed_grids, self.prot, self.fname, None, None)
+            bcv_hr = Hotspots.HotspotResults(processed_grids, self.prot, self.fname, None, None, out_dir = self.out_dir)
 
             remaining = {}
             for probe, g in self.super_grids.items():
                 diff_g = g - bcv_hr.super_grids[probe]
                 remaining.update({probe: diff_g})
 
-            remaining_hr = Hotspots.HotspotResults(remaining, self.prot, self.fname, None, None)
+            remaining_hr = Hotspots.HotspotResults(remaining, self.prot, self.fname, None, None, out_dir = self.out_dir)
 
             return bcv_hr, remaining_hr
 
@@ -2181,18 +2185,13 @@ class Hotspots(HotspotsHelper):
 
             return pocket
 
-        def output_pymol_file(self, out_dir, prot_file=None):
+        def output_pymol_file(self,  prot_file=None):
             """
             Output a python script to be run from within pymol to visualise output
 
             :param prot_file: str, path to directory where output files can be saved
             :return:
             """
-            if out_dir:
-                self.out_dir = out_dir
-            else:
-                self.out_dir = getcwd()
-
             if prot_file is None:
                 if self.fname is None:
                     with MoleculeWriter('{}/protein.pdb'.format(self.out_dir)) as w:
@@ -2214,7 +2213,7 @@ class Hotspots(HotspotsHelper):
                 pymol_out = pymol_template(prot_file, self.out_dir, self.super_grids.keys(), cutoff_by_probe)
                 pymol_file.write(pymol_out)
 
-            with MoleculeWriter(join(out_dir, "protein.pdb")) as writer:
+            with MoleculeWriter(join(self.out_dir, "protein.pdb")) as writer:
                 writer.write(self.prot)
 
 
@@ -2424,9 +2423,9 @@ class Hotspots(HotspotsHelper):
         self.prot = prot
         self.sampled_probes = sampled_probes
         self.buriedness = buriedness
-        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness)
+        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness, out_dir = self.out_dir)
 
-    def from_protein(self, prot, charged_probes, fname=None, binding_site_origin=None, probe_size=7,
+    def from_protein(self, prot, charged_probes= False, fname='protein.pdb', binding_site_origin=None, probe_size=7,
                      ghecom_executable=None):
         """
         Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object
@@ -2447,8 +2446,9 @@ class Hotspots(HotspotsHelper):
         od = join(dirname(self.fname), "out")
         if not exists(od):
             mkdir(od)
-        self.out_dir = join(dirname(self.fname), "out")
+        self.out_dir = path.abspath(join(dirname(self.fname), "out"))
         self.wrk_dir = getcwd()
+        print(self.out_dir)
 
         self.ghecom_executable = ghecom_executable
         self.centroid = binding_site_origin
@@ -2462,7 +2462,7 @@ class Hotspots(HotspotsHelper):
             probe = probe.lower()
             sg = self.out_grids[probe][0]
             self.super_grids[probe] = sg
-        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness)
+        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness, out_dir = self.out_dir)
 
 
 def main():

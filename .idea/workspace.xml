@@ -2,98 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fff6cdfe-3350-4e55-9a40-c20d787cf095" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/fragment_hotspot_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_3_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_3_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_3_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_3_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_4_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_4_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_4_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_4_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_5_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_5_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_5_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_5_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_6_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_6_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_6_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_6_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_7_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_7_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_7_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_7_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_8_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_8_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-acceptor_8_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_8_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_3_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_3_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_3_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_3_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_4_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_4_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_4_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_4_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_5_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_5_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_5_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_5_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_6_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_6_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_6_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_6_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_7_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_7_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_7_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_7_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_8_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_8_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-apolar_8_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_8_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_3_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_3_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_3_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_3_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_4_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_4_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_4_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_4_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_5_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_5_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_5_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_5_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_6_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_6_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_6_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_6_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_7_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_7_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_7_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_7_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_8_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_8_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-donor_8_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_8_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-negative_3_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-negative_3_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-negative_7_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-negative_7_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-negative_8_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-negative_8_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-negative_test_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-negative_test_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-positive_3_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-positive_3_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-positive_7_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-positive_7_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-positive_8_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-positive_8_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/probes/rotate-positive_test_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-positive_test_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/template_strings.py" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/template_strings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_3_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_3_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_4_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_4_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_5_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_5_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_6_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_6_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_7_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_7_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_8_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-acceptor_8_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_3_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_3_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_4_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_4_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_5_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_5_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_6_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_6_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_7_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_7_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_8_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-apolar_8_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_3_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_3_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_4_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_4_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_5_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_5_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_6_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_6_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_7_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_7_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_8_3d.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-donor_8_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-negative_3_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-negative_7_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-negative_8_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-negative_test_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-positive_3_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-positive_7_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-positive_8_flat.mol2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/probes/rotate-positive_test_flat.mol2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -122,16 +34,38 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="setup.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="setup.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/setup.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="12" column="50" selection-start-line="12" selection-start-column="50" selection-end-line="12" selection-end-column="50" />
+            <state relative-caret-position="225">
+              <caret line="15" column="118" selection-start-line="15" selection-start-column="118" selection-end-line="15" selection-end-column="118" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="fragment_hotspot_maps.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-18922">
+              <caret line="1192" column="34" selection-start-line="1192" selection-start-column="34" selection-end-line="1192" selection-end-column="34" />
+              <folding>
+                <element signature="e#299#346#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>temp</find>
+      <find>tmp</find>
+      <find>_test_output_dir()</find>
+      <find>probes</find>
+      <find>pymol</find>
+      <find>HotspotRes</find>
+    </findStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -141,6 +75,7 @@
       <list>
         <option value="$PROJECT_DIR$/MANIFEST.in" />
         <option value="$PROJECT_DIR$/setup.py" />
+        <option value="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" />
       </list>
     </option>
   </component>
@@ -225,7 +160,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="821" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" side_tool="true" />
@@ -256,6 +190,11 @@
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="1" />
+    </breakpoint-manager>
+  </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/MANIFEST.in">
       <provider selected="true" editor-type-id="text-editor">
@@ -273,8 +212,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/setup.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="12" column="50" selection-start-line="12" selection-start-column="50" selection-end-line="12" selection-end-column="50" />
+        <state relative-caret-position="225">
+          <caret line="15" column="118" selection-start-line="15" selection-start-column="118" selection-end-line="15" selection-end-column="118" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-18922">
+          <caret line="1192" column="34" selection-start-line="1192" selection-start-column="34" selection-end-line="1192" selection-end-column="34" />
+          <folding>
+            <element signature="e#299#346#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
