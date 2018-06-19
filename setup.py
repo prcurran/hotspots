@@ -1,13 +1,16 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
-    name="fragment-hotspot-maps",
+    name="fragment_hotspot_maps",
     version="0.1",
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
+    packages=find_packages(),
     include_package_data=True,
     #scripts=['src/run_hotspot.py'],
-
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
     install_requires=['numpy>=1.9', 'csd-python-api>=1.5', 'matplotlib', 'scipy', 'sklearn'],
