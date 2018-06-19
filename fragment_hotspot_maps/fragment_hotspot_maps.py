@@ -271,7 +271,6 @@ class RunSuperstar(object):
         with open(self.fname, "w") as w:
             w.write(self.ins)
 
-
     def run_superstar(self, prot, out_dir):
         """
         calls SuperStar as command-line subprocess
@@ -570,7 +569,7 @@ class HotspotBuilder(HotspotsHelper):
             else:
                 if len([j for j in range(0, i)
                         if self._get_distance(peak_dic[score], peak_dic[sorted_keys[j]]) <
-                                self.settings.min_distance]) > 0:
+                           self.settings.min_distance]) > 0:
                     pass
                 else:
                     new_peak_dic.update({score: peak_dic[sorted_keys[i]]})
@@ -1112,7 +1111,7 @@ class Hotspots(HotspotsHelper):
             active_coords_dic = {
                 g.name: [a.coordinates for a in g._active_atoms]
                 for g in self.grids
-                }
+            }
 
             return active_coords_dic
 
@@ -1704,7 +1703,7 @@ class Hotspots(HotspotsHelper):
                 for probe, g in self.super_grids.items():
                     other_grids = [self.super_grids[p] for p in self.super_grids.keys() if p != probe]
                     mg = g * (
-                        (g > other_grids[0]) & (g > other_grids[1]))  # & (g >other_grids[2]) & (g >other_grids[3]))
+                            (g > other_grids[0]) & (g > other_grids[1]))  # & (g >other_grids[2]) & (g >other_grids[3]))
                     masked_grids[probe] = mg
 
             return masked_grids
@@ -2098,7 +2097,7 @@ class Hotspots(HotspotsHelper):
                            "negative": negative, "positive": positive}
 
                 hr.append(Hotspots.HotspotResults(grid_dict=grd_dic, protein=self.prot, fname=self.fname,
-                                                  sampled_probes=None, buriedness=None, out_dir = self.out_dir))
+                                                  sampled_probes=None, buriedness=None, out_dir=self.out_dir))
             self.output_extracted_hotspots(len(hr), out_dir, fragments, lead, charged=False)
             df = self.output_data(hr, self.buriedness, bfactors)
             df.to_csv(join(out_dir, "data.csv"))
@@ -2143,14 +2142,14 @@ class Hotspots(HotspotsHelper):
                 # out_g.write('processed_{}.grd'.format(probe))
                 processed_grids[probe] = out_g
 
-            bcv_hr = Hotspots.HotspotResults(processed_grids, self.prot, self.fname, None, None, out_dir = self.out_dir)
+            bcv_hr = Hotspots.HotspotResults(processed_grids, self.prot, self.fname, None, None, out_dir=self.out_dir)
 
             remaining = {}
             for probe, g in self.super_grids.items():
                 diff_g = g - bcv_hr.super_grids[probe]
                 remaining.update({probe: diff_g})
 
-            remaining_hr = Hotspots.HotspotResults(remaining, self.prot, self.fname, None, None, out_dir = self.out_dir)
+            remaining_hr = Hotspots.HotspotResults(remaining, self.prot, self.fname, None, None, out_dir=self.out_dir)
 
             return bcv_hr, remaining_hr
 
@@ -2185,7 +2184,7 @@ class Hotspots(HotspotsHelper):
 
             return pocket
 
-        def output_pymol_file(self,  prot_file=None):
+        def output_pymol_file(self, prot_file=None):
             """
             Output a python script to be run from within pymol to visualise output
 
@@ -2215,7 +2214,6 @@ class Hotspots(HotspotsHelper):
 
             with MoleculeWriter(join(self.out_dir, "protein.pdb")) as writer:
                 writer.write(self.prot)
-
 
     def __init__(self, settings=None):
         self.out_grids = {}
@@ -2423,9 +2421,10 @@ class Hotspots(HotspotsHelper):
         self.prot = prot
         self.sampled_probes = sampled_probes
         self.buriedness = buriedness
-        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness, out_dir = self.out_dir)
+        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
+                                   out_dir=self.out_dir)
 
-    def from_protein(self, prot, charged_probes= False, fname='protein.pdb', binding_site_origin=None, probe_size=7,
+    def from_protein(self, prot, charged_probes=False, fname='protein.pdb', binding_site_origin=None, probe_size=7,
                      ghecom_executable=None):
         """
         Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object
@@ -2462,7 +2461,8 @@ class Hotspots(HotspotsHelper):
             probe = probe.lower()
             sg = self.out_grids[probe][0]
             self.super_grids[probe] = sg
-        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness, out_dir = self.out_dir)
+        return self.HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
+                                   out_dir=self.out_dir)
 
 
 def main():
