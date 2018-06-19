@@ -41,17 +41,13 @@
 dx.doi.org/10.1021/acs.jmedchem.5b01980</dd>
 </dl>
 <dl class="class">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots">
-<em class="property">class </em><code class="descclassname">fragment_hotspot_maps.fragment_hotspot_maps.</code><code class="descname">Hotspots</code><span class="sig-paren">(</span><em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots" title="Permalink to this definition">¶</a></dt>
-<dd><p>A class for running Fragment Hotspot Map calculations</p>
-<dl class="class">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults">
-<em class="property">class </em><code class="descname">HotspotResults</code><span class="sig-paren">(</span><em>grid_dict</em>, <em>protein</em>, <em>fname</em>, <em>sampled_probes</em>, <em>buriedness</em>, <em>out_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults">
+<em class="property">class </em><code class="descclassname">fragment_hotspot_maps.fragment_hotspot_maps.</code><code class="descname">HotspotResults</code><span class="sig-paren">(</span><em>grid_dict</em>, <em>protein</em>, <em>fname</em>, <em>sampled_probes</em>, <em>buriedness</em>, <em>out_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Hotspot_results object is returned at the end of a Hotspots calculation. It contains functions for accessing
 and using the results.</p>
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.best_continuous_volume">
-<code class="descname">best_continuous_volume</code><span class="sig-paren">(</span><em>volume=500</em>, <em>pocket_mask=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.best_continuous_volume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.best_continuous_volume" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.best_continuous_volume">
+<code class="descname">best_continuous_volume</code><span class="sig-paren">(</span><em>volume=500</em>, <em>pocket_mask=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.best_continuous_volume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.best_continuous_volume" title="Permalink to this definition">¶</a></dt>
 <dd><p>Selects the highest scoring continuous region of propensity across all map types, matching the input volume.
 Selecting a molecular volume corresponding to a typical drug-like molecule (350-550 Angstroms ^3) provides a
 prediction of the most tractable binding site on the protein.</p>
@@ -73,8 +69,8 @@ prediction of the most tractable binding site on the protein.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.drug_sized">
-<code class="descname">drug_sized</code><span class="sig-paren">(</span><em>buriedness</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.drug_sized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.drug_sized" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.drug_sized">
+<code class="descname">drug_sized</code><span class="sig-paren">(</span><em>buriedness</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.drug_sized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.drug_sized" title="Permalink to this definition">¶</a></dt>
 <dd><p>detemines whether a hotspot resides within a region that can accomodate a drug sized molecule</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -87,8 +83,8 @@ prediction of the most tractable binding site on the protein.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.extract_hotspots">
-<code class="descname">extract_hotspots</code><span class="sig-paren">(</span><em>out_dir=None</em>, <em>fragments=None</em>, <em>lead=None</em>, <em>bfactors=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.extract_hotspots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.extract_hotspots" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.extract_hotspots">
+<code class="descname">extract_hotspots</code><span class="sig-paren">(</span><em>out_dir=None</em>, <em>fragments=None</em>, <em>lead=None</em>, <em>bfactors=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.extract_hotspots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.extract_hotspots" title="Permalink to this definition">¶</a></dt>
 <dd><p>For a given output volume, hotspots are identified by the peaks in apolar propensity.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -110,8 +106,8 @@ prediction of the most tractable binding site on the protein.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.extract_pocket">
-<code class="descname">extract_pocket</code><span class="sig-paren">(</span><em>whole_residues=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.extract_pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.extract_pocket" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.extract_pocket">
+<code class="descname">extract_pocket</code><span class="sig-paren">(</span><em>whole_residues=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.extract_pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.extract_pocket" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.Protein</span></code> containing atoms or residues that have a score</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -126,8 +122,8 @@ prediction of the most tractable binding site on the protein.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.filter_by_score">
-<code class="descname">filter_by_score</code><span class="sig-paren">(</span><em>sampled_probes</em>, <em>score=16</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.filter_by_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.filter_by_score" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.filter_by_score">
+<code class="descname">filter_by_score</code><span class="sig-paren">(</span><em>sampled_probes</em>, <em>score=16</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.filter_by_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.filter_by_score" title="Permalink to this definition">¶</a></dt>
 <dd><p>filter sampled probes by score (reduce searching)
 :param sampled_probes: dict
 :param score:
@@ -135,22 +131,14 @@ prediction of the most tractable binding site on the protein.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.get_bfactors">
-<code class="descname">get_bfactors</code><span class="sig-paren">(</span><em>pdb_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.get_bfactors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.get_bfactors" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.get_bfactors">
+<code class="descname">get_bfactors</code><span class="sig-paren">(</span><em>pdb_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.get_bfactors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.get_bfactors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assign B factors</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.get_ligand_percentage_rank">
-<code class="descname">get_ligand_percentage_rank</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.get_ligand_percentage_rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.get_ligand_percentage_rank" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the percentage rank for each atom of a ligand
-:param mol: a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.Molecule</span></code> instance
-:return:</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.get_selectivity_map">
-<code class="descname">get_selectivity_map</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.get_selectivity_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.get_selectivity_map" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.get_selectivity_map">
+<code class="descname">get_selectivity_map</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.get_selectivity_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.get_selectivity_map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
 by the binding site of interest prior to calculation of Fragment Hotspot Maps. High scoring regions of a map
 represent areas of favourable interaction in the target binding site, not present in off target binding site</p>
@@ -167,8 +155,8 @@ represent areas of favourable interaction in the target binding site, not presen
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.hotspot_bfactor">
-<code class="descname">hotspot_bfactor</code><span class="sig-paren">(</span><em>pdb_file</em>, <em>bfactor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.hotspot_bfactor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.hotspot_bfactor" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.hotspot_bfactor">
+<code class="descname">hotspot_bfactor</code><span class="sig-paren">(</span><em>pdb_file</em>, <em>bfactor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.hotspot_bfactor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.hotspot_bfactor" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -187,8 +175,8 @@ represent areas of favourable interaction in the target binding site, not presen
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.hotspot_histograms">
-<code class="descname">hotspot_histograms</code><span class="sig-paren">(</span><em>ligand=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.hotspot_histograms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.hotspot_histograms" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.hotspot_histograms">
+<code class="descname">hotspot_histograms</code><span class="sig-paren">(</span><em>ligand=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.hotspot_histograms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.hotspot_histograms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Outputs histograms of hotspot score.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -203,15 +191,15 @@ represent areas of favourable interaction in the target binding site, not presen
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.hotspot_score">
-<code class="descname">hotspot_score</code><span class="sig-paren">(</span><em>total=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.hotspot_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.hotspot_score" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.hotspot_score">
+<code class="descname">hotspot_score</code><span class="sig-paren">(</span><em>total=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.hotspot_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.hotspot_score" title="Permalink to this definition">¶</a></dt>
 <dd><p>caution! only use for extracted hotspots!
 :return:</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.output_data">
-<code class="descname">output_data</code><span class="sig-paren">(</span><em>hr</em>, <em>buriedness</em>, <em>pdb_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.output_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.output_data" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.output_data">
+<code class="descname">output_data</code><span class="sig-paren">(</span><em>hr</em>, <em>buriedness</em>, <em>pdb_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.output_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.output_data" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -225,8 +213,8 @@ represent areas of favourable interaction in the target binding site, not presen
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.output_extracted_hotspots">
-<code class="descname">output_extracted_hotspots</code><span class="sig-paren">(</span><em>n</em>, <em>out_dir</em>, <em>fragments</em>, <em>lead</em>, <em>charged=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.output_extracted_hotspots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.output_extracted_hotspots" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.output_extracted_hotspots">
+<code class="descname">output_extracted_hotspots</code><span class="sig-paren">(</span><em>n</em>, <em>out_dir</em>, <em>fragments</em>, <em>lead</em>, <em>charged=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.output_extracted_hotspots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.output_extracted_hotspots" title="Permalink to this definition">¶</a></dt>
 <dd><p>in development</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -239,8 +227,8 @@ represent areas of favourable interaction in the target binding site, not presen
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.output_pymol_file">
-<code class="descname">output_pymol_file</code><span class="sig-paren">(</span><em>prot_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.output_pymol_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.output_pymol_file" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.output_pymol_file">
+<code class="descname">output_pymol_file</code><span class="sig-paren">(</span><em>prot_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.output_pymol_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.output_pymol_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output a python script to be run from within pymol to visualise output</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -255,8 +243,8 @@ represent areas of favourable interaction in the target binding site, not presen
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.schematic_map">
-<code class="descname">schematic_map</code><span class="sig-paren">(</span><em>ligand</em>, <em>title=False</em>, <em>output='diagram.png'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.schematic_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.schematic_map" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.schematic_map">
+<code class="descname">schematic_map</code><span class="sig-paren">(</span><em>ligand</em>, <em>title=False</em>, <em>output='diagram.png'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.schematic_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.schematic_map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display the distribution of scores as a heatmap on a 2D depiction of the molecule</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -277,24 +265,8 @@ represent areas of favourable interaction in the target binding site, not presen
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.score_cavity_features">
-<code class="descname">score_cavity_features</code><span class="sig-paren">(</span><em>cav</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.score_cavity_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.score_cavity_features" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assign a score to each cavity feature, based on the feature’s ideal interaction point</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cav</strong> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.Cavity.cavity</span></code> instance</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a dictionary {score:[list of features], where each item in list of features is a tuple of (atom, feature, atom_type)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.score_ligand">
-<code class="descname">score_ligand</code><span class="sig-paren">(</span><em>mol</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.score_ligand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.score_ligand" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.score_ligand">
+<code class="descname">score_ligand</code><span class="sig-paren">(</span><em>mol</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.score_ligand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.score_ligand" title="Permalink to this definition">¶</a></dt>
 <dd><p>Score ligand in hotspot maps, taking interaction type into account.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -309,8 +281,8 @@ represent areas of favourable interaction in the target binding site, not presen
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.score_ligand_atoms">
-<code class="descname">score_ligand_atoms</code><span class="sig-paren">(</span><em>mol</em>, <em>dict=False</em>, <em>schematic=False</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.score_ligand_atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.score_ligand_atoms" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.score_ligand_atoms">
+<code class="descname">score_ligand_atoms</code><span class="sig-paren">(</span><em>mol</em>, <em>dict=False</em>, <em>schematic=False</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.score_ligand_atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.score_ligand_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Score ligand atoms in hotspot maps, taking interaction type into account.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -331,8 +303,8 @@ represent areas of favourable interaction in the target binding site, not presen
 </dd></dl>
 
 <dl class="method">
-<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.score_protein">
-<code class="descname">score_protein</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.HotspotResults.score_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.HotspotResults.score_protein" title="Permalink to this definition">¶</a></dt>
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.score_protein">
+<code class="descname">score_protein</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#HotspotResults.score_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.HotspotResults.score_protein" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assigns a score to each protein atom. Donor scores are assigned to polar hydrogens, rather than the heavy
 atom.
 atom_id = “{0}/{1}/{2}”.format(residue.chain_identifier, residue.identifier.split(‘:’)[1][3:],atom.label)</p>
@@ -348,6 +320,10 @@ atom_id = “{0}/{1}/{2}”.format(residue.chain_identifier, residue.identifier.
 
 </dd></dl>
 
+<dl class="class">
+<dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots">
+<em class="property">class </em><code class="descclassname">fragment_hotspot_maps.fragment_hotspot_maps.</code><code class="descname">Hotspots</code><span class="sig-paren">(</span><em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for running Fragment Hotspot Map calculations</p>
 <dl class="method">
 <dt id="fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.from_grid_dic">
 <code class="descname">from_grid_dic</code><span class="sig-paren">(</span><em>super_grids</em>, <em>prot</em>, <em>fname=None</em>, <em>sampled_probes=None</em>, <em>buriedness=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fragment_hotspot_maps/fragment_hotspot_maps.html#Hotspots.from_grid_dic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fragment_hotspot_maps.fragment_hotspot_maps.Hotspots.from_grid_dic" title="Permalink to this definition">¶</a></dt>

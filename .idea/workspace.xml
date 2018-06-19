@@ -2,9 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fff6cdfe-3350-4e55-9a40-c20d787cf095" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/Docs/hotspot_api.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Docs/index.rst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/_build/doctrees/environment.pickle" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/doctrees/environment.pickle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/_build/doctrees/hotspot_api.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/doctrees/hotspot_api.doctree" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/_build/html/_modules/fragment_hotspot_maps/fragment_hotspot_maps.html" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/_modules/fragment_hotspot_maps/fragment_hotspot_maps.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/_build/html/_sources/hotspot_api.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/_sources/hotspot_api.rst.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/_build/html/genindex.html" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/genindex.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/_build/html/hotspot_api.html" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/hotspot_api.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/_build/html/objects.inv" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/objects.inv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/_build/html/searchindex.js" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/searchindex.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/hotspot_api.rst" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/hotspot_api.rst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -43,23 +50,33 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="fragment_hotspot_maps.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="fragment_hotspot_maps.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="11354">
-              <caret line="2488" selection-start-line="2488" selection-end-line="2488" />
+            <state relative-caret-position="1048">
+              <caret line="1949" lean-forward="true" selection-start-line="1949" selection-end-line="1949" />
               <folding>
                 <element signature="e#299#346#0" expanded="true" />
+                <element signature="e#1396#5163#0" />
+                <element signature="e#5198#9143#0" />
+                <element signature="e#9196#10540#0" />
+                <element signature="e#10572#12623#0" />
+                <element signature="e#12666#14231#0" />
+                <element signature="e#14268#14417#0" />
+                <element signature="e#14462#24283#0" />
+                <element signature="e#24324#28451#0" />
+                <element signature="e#28540#68475#0" />
+                <element signature="e#28605#39054#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="hotspot_api.rst" pinned="false" current-in-tab="true">
+      <file leaf-file-name="hotspot_api.rst" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="2" column="37" selection-start-line="2" selection-start-column="37" selection-end-line="2" selection-end-column="37" />
+            <state relative-caret-position="75">
+              <caret line="5" selection-start-line="5" selection-end-line="5" />
             </state>
           </provider>
         </entry>
@@ -74,6 +91,7 @@
       <find>probes</find>
       <find>pymol</find>
       <find>HotspotRes</find>
+      <find>self.HotspotRes</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -84,8 +102,8 @@
       <list>
         <option value="$PROJECT_DIR$/MANIFEST.in" />
         <option value="$PROJECT_DIR$/setup.py" />
-        <option value="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" />
         <option value="$PROJECT_DIR$/Docs/hotspot_api.rst" />
+        <option value="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" />
       </list>
     </option>
   </component>
@@ -188,11 +206,11 @@
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
       <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
       <window_info anchor="right" id="Database" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32931727" />
       <window_info anchor="right" id="SciView" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -234,20 +252,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py">
+    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="11354">
-          <caret line="2488" selection-start-line="2488" selection-end-line="2488" />
-          <folding>
-            <element signature="e#299#346#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="75">
+          <caret line="5" selection-start-line="5" selection-end-line="5" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst">
+    <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="37" selection-start-line="2" selection-start-column="37" selection-end-line="2" selection-end-column="37" />
+        <state relative-caret-position="1048">
+          <caret line="1949" lean-forward="true" selection-start-line="1949" selection-end-line="1949" />
+          <folding>
+            <element signature="e#299#346#0" expanded="true" />
+            <element signature="e#1396#5163#0" />
+            <element signature="e#5198#9143#0" />
+            <element signature="e#9196#10540#0" />
+            <element signature="e#10572#12623#0" />
+            <element signature="e#12666#14231#0" />
+            <element signature="e#14268#14417#0" />
+            <element signature="e#14462#24283#0" />
+            <element signature="e#24324#28451#0" />
+            <element signature="e#28540#68475#0" />
+            <element signature="e#28605#39054#0" />
+          </folding>
         </state>
       </provider>
     </entry>
