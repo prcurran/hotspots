@@ -18,9 +18,6 @@ import sys
 import glob
 import random
 import subprocess
-import zipfile
-import shutil
-import tempfile
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -1536,7 +1533,7 @@ class HotspotResults(_HotspotsHelper):
         num_gp = int(float(volume) / 0.125)
         all_points = {}
 
-        self.sg = sg
+        self.sg = self._remove_crystal_contacts(sg)
         self.num_gp = num_gp
 
         # Find the largest island at score_cutoff
@@ -1878,14 +1875,14 @@ class HotspotResults(_HotspotsHelper):
             # out_g.write('processed_{}.grd'.format(probe))
             processed_grids[probe] = out_g
 
-        bcv_hr = HotspotResults(processed_grids, self.prot, self.fname, None, None, out_dir=self.out_dir)
+        bcv_hr = Hotspots.HotspotResults(processed_grids, self.prot, self.fname, None, None, out_dir=self.out_dir)
 
         remaining = {}
         for probe, g in self.super_grids.items():
             diff_g = g - bcv_hr.super_grids[probe]
             remaining.update({probe: diff_g})
 
-        remaining_hr = HotspotResults(remaining, self.prot, self.fname, None, None, out_dir=self.out_dir)
+        remaining_hr = Hotspots.HotspotResults(remaining, self.prot, self.fname, None, None, out_dir=self.out_dir)
 
         return bcv_hr, remaining_hr
 
@@ -1919,31 +1916,6 @@ class HotspotResults(_HotspotsHelper):
                 pocket.remove_atoms(residue.atoms)
 
         return pocket
-    
-    def _smooth_crude(self):
-        for probe, g in self.super_grids.items():
-            self.super_grids[probe] = g.max_value_of_neighbours()
-
-    def zip_results(self, archive_name='out', delete_directory = True):
-        """
-        Zips the output directory created for this :class:`fragment_hotspot_maps.HotspotResults` instance, and
-        removes the directory by default. The zipped file can be loaded directly into a new
-        :class:`fragment_hotspot_maps.HotspotResults` instance using the 
-        :func:`~fragment_hotspot_maps.Hotspots.from_zip_dir` function
-
-        :param archive_name: str, file path
-        :param delete_directory: bool, remove the out directory once it has been zipped
-
-        :return: None
-        """
-
-        chdir(path.join(self.out_dir,'..'))
-        
-        # ... do stuff with dirpath
-        shutil.make_archive(archive_name, 'zip', self.out_dir)
-        if delete_directory:
-            shutil.rmtree(self.out_dir)
-        
 
     def output_pymol_file(self, prot_file=None):
         """
@@ -2435,36 +2407,6 @@ class Hotspots(_HotspotsHelper):
             top_probes = self._get_out_maps(probe, grid_dict)
             self.sampled_probes.update({probe: top_probes})
 
-    def from_zip_dir(self, zip_dir, probes = ('apolar','donor','acceptor')):
-        """
-        Create a Hotspots_reults object from zipped output directory with default file names. Extracts files to a
-        temp dir, and removes files once a :class:`fragment_hotspot_maps.HotspotResults` instance has been created
-
-        :param super_grids: dict, {'probe_name':grid} where the probe names are 'apolar', 'donor' and 'acceptor'
-        :param prot: a :class:`ccdc.protein.Protein` instance
-        :param fname: str, file path
-        :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
-        """
-
-        dirpath = tempfile.mkdtemp()
-        # ... do stuff with dirpath
-
-        with zipfile.ZipFile(zip_dir) as hs_zip:
-            hs_zip.extractall(dirpath)
-        self.fname = 'protein.pdb'
-        self.super_grids = {p:Grid.from_file(path.join(dirpath,'{}.grd'.format(p))) for p in probes}
-        self.prot = Protein.from_file(path.join(dirpath,'protein.pdb'))
-        self.sampled_probes = {}
-        self.buriedness = Grid.from_file(path.join(dirpath,'buriedness.grd'))
-        od = join(dirname(self.fname), "out")
-        if not exists(od):
-            mkdir(od)
-        self.out_dir = od
-
-        shutil.rmtree(dirpath)
-        return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
-                              out_dir=self.out_dir)
-
     def from_grid_dic(self, super_grids, prot, fname=None, sampled_probes=None, buriedness=None):
         """
         Create a Hotspots_reults object from a dictionary of previously calculated grid objects
@@ -2472,7 +2414,7 @@ class Hotspots(_HotspotsHelper):
         :param super_grids: dict, {'probe_name':grid} where the probe names are 'apolar', 'donor' and 'acceptor'
         :param prot: a :class:`ccdc.protein.Protein` instance
         :param fname: str, file path
-        :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
+        :return: a :class:`fragment_hotspots.Hotspot.HotspotResults` instance
         """
 
         self.fname = fname
@@ -2494,7 +2436,7 @@ class Hotspots(_HotspotsHelper):
         :param probe_size: int, size of probe in number of heavy atoms (3-8 atoms)
         :param ghecom_executable: str, path to ghecom executeable, if None ligsite used
         :param charged_probes: bool, if True include positive and negative probes
-        :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
+        :return: a :class:`fragment_hotspots.Hotspot.HotspotResults` instance
         """
 
         self.prot = prot

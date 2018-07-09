@@ -2,17 +2,59 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fff6cdfe-3350-4e55-9a40-c20d787cf095" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/fragment_hotspot_maps.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_3_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_3_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_4_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_4_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_5_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_5_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_6_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_6_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_7_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_7_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_8_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-acceptor_8_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_3_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_3_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_4_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_4_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_5_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_5_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_6_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_6_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_7_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_7_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_8_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-apolar_8_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_3_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_3_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_4_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_4_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_5_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_5_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_6_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_6_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_7_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_7_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_8_3d.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-donor_8_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-negative_3_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-negative_7_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-negative_8_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-negative_test_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-positive_3_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-positive_7_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-positive_8_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/probes/rotate-positive_test_flat.mol2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/template_strings.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dist/fragment_hotspot_maps-0.1.linux-x86_64.tar.gz" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dist/fragment_hotspot_maps-0.1.tar.gz" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/_build/doctrees/environment.pickle" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/doctrees/environment.pickle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/_build/doctrees/hotspot_api.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/doctrees/hotspot_api.doctree" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/_build/html/_modules/fragment_hotspot_maps/fragment_hotspot_maps.html" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/_modules/fragment_hotspot_maps/fragment_hotspot_maps.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/_build/html/_sources/hotspot_api.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/_sources/hotspot_api.rst.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/_build/html/genindex.html" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/genindex.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/_build/html/hotspot_api.html" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/hotspot_api.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/_build/html/objects.inv" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/objects.inv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/_build/html/searchindex.js" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/_build/html/searchindex.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/hotspot_api.rst" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/hotspot_api.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/create_hotspots_zip.py" beforeDir="false" afterPath="$PROJECT_DIR$/create_hotspots_zip.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fragment-hotspot-maps0.1.zip" beforeDir="false" afterPath="$PROJECT_DIR$/fragment-hotspot-maps0.1.zip" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps.egg-info/SOURCES.txt" beforeDir="false" afterPath="$PROJECT_DIR$/fragment_hotspot_maps.egg-info/SOURCES.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -50,23 +92,33 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="fragment_hotspot_maps.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="fragment_hotspot_maps.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1048">
-              <caret line="1949" lean-forward="true" selection-start-line="1949" selection-end-line="1949" />
+            <state relative-caret-position="166">
+              <caret line="368" column="13" selection-start-line="368" selection-start-column="13" selection-end-line="368" selection-end-column="13" />
               <folding>
                 <element signature="e#299#346#0" expanded="true" />
                 <element signature="e#1396#5163#0" />
                 <element signature="e#5198#9143#0" />
                 <element signature="e#9196#10540#0" />
-                <element signature="e#10572#12623#0" />
                 <element signature="e#12666#14231#0" />
                 <element signature="e#14268#14417#0" />
                 <element signature="e#14462#24283#0" />
                 <element signature="e#24324#28451#0" />
-                <element signature="e#28540#68475#0" />
                 <element signature="e#28605#39054#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="run_nrdld.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../astex_diverse_set/run_nrdld.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="465">
+              <caret line="31" column="73" selection-start-line="31" selection-start-column="73" selection-end-line="31" selection-end-column="73" />
+              <folding>
+                <element signature="e#0#64#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -92,6 +144,7 @@
       <find>pymol</find>
       <find>HotspotRes</find>
       <find>self.HotspotRes</find>
+      <find>ghec</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -104,6 +157,7 @@
         <option value="$PROJECT_DIR$/setup.py" />
         <option value="$PROJECT_DIR$/Docs/hotspot_api.rst" />
         <option value="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" />
+        <option value="$PROJECT_DIR$/../astex_diverse_set/run_nrdld.py" />
       </list>
     </option>
   </component>
@@ -116,9 +170,10 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="23" />
-    <option name="width" value="1300" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="-1468" />
+    <option name="y" value="55" />
+    <option name="width" value="1440" />
     <option name="height" value="821" />
   </component>
   <component name="ProjectView">
@@ -155,7 +210,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.project.vagrant" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -193,8 +248,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="821" extended-state="6" />
-    <editor active="true" />
+    <frame x="-1468" y="55" width="1440" height="821" extended-state="0" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" side_tool="true" />
@@ -227,7 +281,14 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="1" />
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py</url>
+          <line>907</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+      <option name="time" value="2" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
@@ -261,20 +322,28 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1048">
-          <caret line="1949" lean-forward="true" selection-start-line="1949" selection-end-line="1949" />
+        <state relative-caret-position="166">
+          <caret line="368" column="13" selection-start-line="368" selection-start-column="13" selection-end-line="368" selection-end-column="13" />
           <folding>
             <element signature="e#299#346#0" expanded="true" />
             <element signature="e#1396#5163#0" />
             <element signature="e#5198#9143#0" />
             <element signature="e#9196#10540#0" />
-            <element signature="e#10572#12623#0" />
             <element signature="e#12666#14231#0" />
             <element signature="e#14268#14417#0" />
             <element signature="e#14462#24283#0" />
             <element signature="e#24324#28451#0" />
-            <element signature="e#28540#68475#0" />
             <element signature="e#28605#39054#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../astex_diverse_set/run_nrdld.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="465">
+          <caret line="31" column="73" selection-start-line="31" selection-start-column="73" selection-end-line="31" selection-end-column="73" />
+          <folding>
+            <element signature="e#0#64#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -1,5 +1,6 @@
 MANIFEST.in
 README.md
+setup.py
 fragment_hotspot_maps/__init__.py
 fragment_hotspot_maps/fragment_hotspot_maps.py
 fragment_hotspot_maps/template_strings.py
