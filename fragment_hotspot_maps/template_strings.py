@@ -136,6 +136,107 @@ for n in range(nh):
     '''.format(num_hotspots, charged, fragments, lead)
     return out_str
 
+def pymol_zip_template(zip_file, probes, cutoff_dict):
+    pymol_out = '''from pymol import cmd
+import tempfile
+import zipfile
+import shutil
+import os
+from pymol.cgo import *
+
+dirpath = tempfile.mkdtemp()
+
+zip_dir = '{0}.zip'
+
+with zipfile.ZipFile(zip_dir) as hs_zip:
+    hs_zip.extractall(dirpath)
+
+cmd.load(os.path.join(dirpath,'protein.pdb'),"protein")
+cmd.load(os.path.join(dirpath,'donor.grd'))
+cmd.load(os.path.join(dirpath,'acceptor.grd'))
+cmd.load(os.path.join(dirpath,'apolar.grd'))
+
+try:
+    cmd.load(os.path.join(dirpath,'negative.grd', 'negative'))
+    cmd.load(os.path.join(dirpath,'positive.grd', 'positive'))
+except:
+    pass
+
+
+colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':'br4', 'positive':'cyan'}}
+
+
+probes = {1}
+cuttoff_dict = {2}
+
+cmd.bg_color("white")
+
+cmd.show("cartoon", "protein")
+cmd.show("sticks", "organic")
+cmd.hide("lines", "protein")
+
+for probe in probes:
+    for cuttoff in cuttoff_dict[probe]:
+        cmd.isosurface('%s_%s'%(probe, cuttoff), probe, cuttoff)
+        cmd.set('transparency', 0.3,'%s_%s'%(probe, cuttoff))
+        cmd.color(colour_dict[probe], '%s_%s'%(probe, cuttoff))
+
+cmd.isosurface('acceptor_17', 'acceptor', 17)
+cmd.isosurface('acceptor_14', 'acceptor', 14)
+cmd.set('transparency', 0.3,'acceptor_14')
+cmd.isosurface('acceptor_10', 'acceptor', 10)
+cmd.set('transparency', 0.2,'acceptor_10')
+cmd.color('red', 'acceptor_17')
+cmd.color('red', 'acceptor_14')
+cmd.color('red', 'acceptor_10')
+
+cmd.isosurface('donor_17', 'donor', 17)
+cmd.isosurface('donor_14', 'donor', 14)
+cmd.isosurface('donor_10', 'donor', 10)
+cmd.set('transparency', 0.2,'donor_10')
+cmd.set('transparency', 0.3,'donor_14')
+cmd.color('blue', 'donor_17')
+cmd.color('blue', 'donor_14')
+cmd.color('blue', 'donor_10')
+
+cmd.isosurface('apolar_17', 'apolar', 17)
+cmd.isosurface('apolar_14', 'apolar', 14)
+cmd.isosurface('apolar_10', 'apolar', 10)
+cmd.set('transparency', 0.2,'apolar_10')
+cmd.set('transparency', 0.3,'apolar_14')
+cmd.color('yellow', 'apolar_17')
+cmd.color('yellow', 'apolar_14')
+cmd.color('yellow', 'apolar_10')
+
+cmd.disable('apolar_10')
+#cmd.disable('apolar_14')
+#cmd.disable('apolar_17')
+cmd.disable('donor_10')
+cmd.disable('acceptor_10')
+#cmd.disable('positive_10')
+#cmd.disable('negative_10')
+#cmd.set('all_states','on')
+
+shutil.rmtree(dirpath)
+
+# Uncomment lines below if using the incentive version of PyMol to generate apolar volumes
+
+cmd.volume_ramp_new('ramp111', [\
+     12.31, 0.03, 0.02, 0.00, 0.00, \
+     14.01, 0.06, 0.04, 0.00, 0.04, \
+     15.05, 0.06, 0.04, 0.00, 0.00, \
+     15.98, 1.00, 0.60, 0.05, 0.00, \
+     17.08, 1.00, 0.90, 0.05, 0.05, \
+     19.55, 1.00, 0.69, 0.03, 0.13, \
+     23.42, 1.00, 0.00, 0.00, 0.17, \
+     25.00, 1.00, 0.10, 0.04, 0.16, \
+    ])
+cmd.volume("apolar_volume", "apolar","ramp111")
+
+
+        '''.format(zip_file, probes, cutoff_dict)
+    return pymol_out
+
 
 def pymol_template(prot_file, working_dir, probes, cutoff_dict):
     pymol_out = '''from pymol import cmd

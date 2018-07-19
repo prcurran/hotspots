@@ -13,7 +13,7 @@ import math
 import operator
 
 from os.path import join, dirname, exists
-from os import environ, name, getcwd, mkdir, chdir, system, path
+from os import environ, name, getcwd, mkdir, chdir, system, path, listdir
 import sys
 import glob
 import random
@@ -32,7 +32,7 @@ from ccdc import molecule
 from scipy import optimize, ndimage
 from skimage import feature
 import pkg_resources
-from template_strings import pymol_template, colourmap, superstar_ins, extracted_hotspot_template
+from template_strings import pymol_template, colourmap, superstar_ins, extracted_hotspot_template, pymol_zip_template
 import pandas as pd
 
 from concurrent import futures
@@ -269,7 +269,6 @@ class _RunSuperstar(object):
         except OSError:
             pass
 
-        print(getcwd())
         self.fname = join(out, "superstar_{}.ins".format(self.settings.jobname.split(".")[0]))
         with open(self.fname, "w") as w:
             w.write(self.ins)
@@ -385,13 +384,14 @@ class _RunGhecom(object):
                 with MoleculeWriter('protein.pdb') as writer:
                     writer.write(self.settings.prot)
 
-            cmd = "./ghecom {} -M {} -gw {} -rli {} -rlx {} -opoc {}".format(self.settings.in_name,
-                                                                             self.settings.mode,
-                                                                             self.settings.grid_spacing,
-                                                                             self.settings.radius_min_large_sphere,
-                                                                             self.settings.radius_max_large_sphere,
-                                                                             self.settings.out_name)
-            chdir(self.settings.ghecom_executable)
+            cmd = "{}/ghecom {} -M {} -gw {} -rli {} -rlx {} -opoc {}".format(self.settings.ghecom_executable,
+                                                                              self.settings.in_name,
+                                                                              self.settings.mode,
+                                                                              self.settings.grid_spacing,
+                                                                              self.settings.radius_min_large_sphere,
+                                                                              self.settings.radius_max_large_sphere,
+                                                                              self.settings.out_name)
+            #
             system(cmd)
 
         return _GhecomResult(self.settings)
@@ -930,6 +930,8 @@ class HotspotResults(_HotspotsHelper):
         self.donor_scores = None
         self.acceptor_scores = None
         self.apolar_scores = None
+        self.archive_name = None
+        self.archive_loc = None
         # self.sampled_probes = self.filter_by_score(sampled_probes)
         self.sampled_probes = sampled_probes
 
@@ -1878,14 +1880,16 @@ class HotspotResults(_HotspotsHelper):
             # out_g.write('processed_{}.grd'.format(probe))
             processed_grids[probe] = out_g
 
-        bcv_hr = HotspotResults(processed_grids, self.prot, self.fname, None, None, out_dir=self.out_dir)
+        bcv_hr = HotspotResults(processed_grids, self.prot, self.fname, None, None,
+                                out_dir='{}_bcv'.format(self.out_dir))
 
         remaining = {}
         for probe, g in self.super_grids.items():
             diff_g = g - bcv_hr.super_grids[probe]
             remaining.update({probe: diff_g})
 
-        remaining_hr = HotspotResults(remaining, self.prot, self.fname, None, None, out_dir=self.out_dir)
+        remaining_hr = HotspotResults(remaining, self.prot, self.fname, None, None,
+                                      out_dir='{}_remaining'.format(self.out_dir))
 
         return bcv_hr, remaining_hr
 
@@ -1936,45 +1940,62 @@ class HotspotResults(_HotspotsHelper):
 
         :return: None
         """
+        print(getcwd())
+        if not exists(self.out_dir):
+            mkdir(self.out_dir)
 
-        chdir(path.join(self.out_dir,'..'))
-        
-        # ... do stuff with dirpath
-        shutil.make_archive(archive_name, 'zip', self.out_dir)
+        for probe, g in self.super_grids.items():
+            g.write('{0}/{1}.grd'.format(self.out_dir, probe))
+
+        with MoleculeWriter(join(self.out_dir, "protein.pdb")) as writer:
+            writer.write(self.prot)
+
+        self.archive_name = archive_name
+        shutil.make_archive(self.archive_name, 'zip', self.out_dir)
+        self.archive_loc = dirname("{}.zip".format(self.archive_name))
         if delete_directory:
             shutil.rmtree(self.out_dir)
+
         
 
-    def output_pymol_file(self, prot_file=None):
+    def output_pymol_file(self):
         """
         Output a python script to be run from within pymol to visualise output
-
-        :param prot_file: str, path to directory where output files can be saved
         :return:
         """
-        if prot_file is None:
+
+        percentiles = {'low': 30}
+        cutoff_by_probe = {}
+        for probe, g in self.super_grids.items():
+            cutoff_dict = self._get_grid_percentiles(g, percentiles)
+            cutoff_by_probe[probe] = cutoff_dict.values()
+
+        if self.archive_name is not None:
+
+            with open(path.join(self.archive_loc,'pymol_results_file_{}.py'.format(self.archive_name)), 'w') as pymol_file:
+                pymol_out = pymol_zip_template(self.archive_name, self.super_grids.keys(), cutoff_by_probe)
+                pymol_file.write(pymol_out)
+
+        else:
+
+          
             if self.fname is None:
                 with MoleculeWriter('{}/protein.pdb'.format(self.out_dir)) as w:
                     w.write(self.prot)
                     prot_file = ('{}/protein.pdb'.format(self.out_dir))
             else:
                 prot_file = self.fname
-        percentiles = {'low': 30}
-        cutoff_by_probe = {}
-        for probe, g in self.super_grids.items():
-            cutoff_dict = self._get_grid_percentiles(g, percentiles)
-
-            cutoff_by_probe[probe] = cutoff_dict.values()
-
-        for probe, g in self.super_grids.items():
-            g.write('{0}/{1}.grd'.format(self.out_dir, probe))
-
-        with open('{}/pymol_results_file.py'.format(self.out_dir), 'w') as pymol_file:
-            pymol_out = pymol_template(prot_file, self.out_dir, self.super_grids.keys(), cutoff_by_probe)
-            pymol_file.write(pymol_out)
-
-        with MoleculeWriter(join(self.out_dir, "protein.pdb")) as writer:
-            writer.write(self.prot)
+    
+    
+            for probe, g in self.super_grids.items():
+                g.write('{0}/{1}.grd'.format(self.out_dir, probe))
+    
+            with open('{}/pymol_results_file.py'.format(self.out_dir), 'w') as pymol_file:
+                pymol_out = pymol_template(prot_file, self.out_dir, self.super_grids.keys(), cutoff_by_probe)
+                pymol_file.write(pymol_out)
+    
+            with MoleculeWriter(join(self.out_dir, "protein.pdb")) as writer:
+                writer.write(self.prot)
 
 
 class Hotspots(_HotspotsHelper):
@@ -2425,6 +2446,8 @@ class Hotspots(_HotspotsHelper):
             r.settings.out_grid = out_grid
             r.settings.ghecom_executable = self.ghecom_executable
             self.ghecom = r.run_ghecom()
+            chdir(self.working_dir)
+
 
         self.weighted_grids = self._get_weighted_maps()
         self.buriedness.write(join(self.out_dir, "buriedness.grd"))
@@ -2435,37 +2458,9 @@ class Hotspots(_HotspotsHelper):
             top_probes = self._get_out_maps(probe, grid_dict)
             self.sampled_probes.update({probe: top_probes})
 
-    def from_zip_dir(self, zip_dir, probes = ('apolar','donor','acceptor')):
-        """
-        Create a Hotspots_reults object from zipped output directory with default file names. Extracts files to a
-        temp dir, and removes files once a :class:`fragment_hotspot_maps.HotspotResults` instance has been created
 
-        :param super_grids: dict, {'probe_name':grid} where the probe names are 'apolar', 'donor' and 'acceptor'
-        :param prot: a :class:`ccdc.protein.Protein` instance
-        :param fname: str, file path
-        :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
-        """
 
-        dirpath = tempfile.mkdtemp()
-        # ... do stuff with dirpath
-
-        with zipfile.ZipFile(zip_dir) as hs_zip:
-            hs_zip.extractall(dirpath)
-        self.fname = 'protein.pdb'
-        self.super_grids = {p:Grid.from_file(path.join(dirpath,'{}.grd'.format(p))) for p in probes}
-        self.prot = Protein.from_file(path.join(dirpath,'protein.pdb'))
-        self.sampled_probes = {}
-        self.buriedness = Grid.from_file(path.join(dirpath,'buriedness.grd'))
-        od = join(dirname(self.fname), "out")
-        if not exists(od):
-            mkdir(od)
-        self.out_dir = od
-
-        shutil.rmtree(dirpath)
-        return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
-                              out_dir=self.out_dir)
-
-    def from_grid_dic(self, super_grids, prot, fname=None, sampled_probes=None, buriedness=None):
+    def _from_grid_dic(self, super_grids, prot, fname=None, sampled_probes=None, buriedness=None):
         """
         Create a Hotspots_reults object from a dictionary of previously calculated grid objects
 
@@ -2483,13 +2478,53 @@ class Hotspots(_HotspotsHelper):
         return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
                               out_dir=self.out_dir)
 
-    def from_protein(self, prot, charged_probes=False, fname='protein.pdb', binding_site_origin=None, probe_size=7,
-                     ghecom_executable=None):
+    def from_zip_dir(self, zip_dir, probes = ('apolar','donor','acceptor'), output_directory= 'out', temporary = True):
+        """
+        Create a Hotspots_reults object from zipped output directory with default file names. Extracts files to a
+        temp dir, and removes files once a :class:`fragment_hotspot_maps.HotspotResults` instance has been created
+
+        :param super_grids: dict, {'probe_name':grid} where the probe names are 'apolar', 'donor' and 'acceptor'
+        :param prot: a :class:`ccdc.protein.Protein` instance
+        :param fname: str, file path
+        :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
+        """
+
+        self.fname = 'protein.pdb'
+        self.out_dir = output_directory
+
+        if temporary:
+            dirpath = tempfile.mkdtemp()
+        else:
+            dirpath = self.out_dir
+            if not exists(self.out_dir):
+                mkdir(self.out_dir)
+
+
+        with zipfile.ZipFile(zip_dir) as hs_zip:
+            hs_zip.extractall(dirpath)
+
+        for p in probes:
+            print(path.join(dirpath,'{}.grd'.format(p)))
+
+        self.super_grids = {p: Grid.from_file(path.join(dirpath,'{}.grd'.format(p))) for p in probes}
+        self.prot = Protein.from_file(path.join(dirpath,'protein.pdb'))
+        self.sampled_probes = {}
+        try:
+            self.buriedness = Grid.from_file(path.join(dirpath,'buriedness.grd'))
+        except:
+            self.buriedness=None
+
+        if temporary:
+            shutil.rmtree(dirpath)
+        return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
+                              out_dir=self.out_dir)
+
+    def from_protein(self, prot, charged_probes=False, binding_site_origin=None, probe_size=7,
+                     ghecom_executable=None, output_directory = 'out'):
         """
         Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object
 
         :param prot: a :class:`ccdc.protein.Protein` instance
-        :param fname: str, path of input protein
         :param binding_site_origin: a tuple of three floats, giving a coordinate within the binding site
         :param probe_size: int, size of probe in number of heavy atoms (3-8 atoms)
         :param ghecom_executable: str, path to ghecom executeable, if None ligsite used
@@ -2498,15 +2533,14 @@ class Hotspots(_HotspotsHelper):
         """
 
         self.prot = prot
-        self.fname = fname
+        self.fname = 'protein.pdb'
         self.probe_size = probe_size
         self.charged_probes = charged_probes
-        od = join(dirname(self.fname), "out")
-        if not exists(od):
-            mkdir(od)
-        self.out_dir = path.abspath(join(dirname(self.fname), "out"))
-        self.wrk_dir = getcwd()
-        print(self.out_dir)
+        self.out_dir = output_directory
+        if not exists(self.out_dir):
+            mkdir(self.out_dir)
+        self.out_dir = path.abspath(self.out_dir)
+        self.working_dir = getcwd()
 
         self.ghecom_executable = ghecom_executable
         self.centroid = binding_site_origin
@@ -2525,18 +2559,6 @@ class Hotspots(_HotspotsHelper):
 
 
 def main():
-    # parser = argparse.ArgumentParser(description='''Calculate Fragment Hotspot Maps from a protonated protein structure.
-    #     Any waters or ligands included in the protein file will be included as part of the calculation. Run the file "
-    #     pymol_results_file.py" in pymol in order to visualise the results''')
-    #
-    # parser.add_argument('-protein', help='Path to input protein PDB or Mol2 file', required=True)
-    # parser.add_argument('-ghecom_exe', help='Path to Ghecom executable (recommended)')
-    #
-    # args = parser.parse_args()
-    # prot_file = args.protein
-    # out_dir = args.out_dir
-    # ghecom_exe = args.ghecom_exe
-
     prot_file = "Z:/fragment_hotspot_maps/protein.pdb"
     ghecom_exe = None
     prot = Protein.from_file(prot_file)
