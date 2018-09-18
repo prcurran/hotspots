@@ -12,7 +12,7 @@ import argparse
 import math
 import operator
 
-from os.path import join, dirname, exists
+from os.path import join, dirname, exists, splitext
 from os import environ, name, getcwd, mkdir, chdir, system, path, listdir
 import sys
 import glob
@@ -32,7 +32,8 @@ from ccdc import molecule
 from scipy import optimize, ndimage
 from skimage import feature
 import pkg_resources
-from template_strings import pymol_template, colourmap, superstar_ins, extracted_hotspot_template, pymol_zip_template
+from template_strings import pymol_template, colourmap, superstar_ins, extracted_hotspot_template, pymol_zip_template, \
+    crossminer_header
 import pandas as pd
 
 from concurrent import futures
@@ -908,6 +909,291 @@ class _SampleGrid(_HotspotsHelper):
         return a.atomic_symbol == 'C' and a.is_cyclic and any(b.atom_type == 'aromatic' for b in a.bonds)
 
 
+#############################################################
+class PharmacophoreModel(object):
+    """
+    A class to wrap pharmacophore features and output in various formats
+    """
+
+    def __init__(self, identifier, features):
+        """
+        identifier is useful for displaying multiple models at once
+        :param features:
+        """
+        self.identifier = identifier
+        self.features = features
+
+    def write(self, fname):
+        """
+        given a fname, will output Pharmacophore in detected format
+        :param fname: str, extensions support: ".cm", ".py", ".json", ".csv"
+        :return:
+        """
+
+        extension = splitext(fname)[1]
+        partner_dict = {"True": ["donor", "acceptor"], "False": ["negative", "positive", "apolar"]}
+        if extension == ".cm":
+            with open(fname, "w") as crossminer_file:
+                crossminer_file.write(crossminer_header())
+
+                interaction_dic = {"acceptor": "acceptor_projected",
+                                   "donor": "donor_projected",
+                                   "apolar": "hydrophobic",
+                                   "negative": "",
+                                   "positive": ""
+                                   }
+
+                for feature in self.features:
+                    feat = """\nPHARMACOPHORE_FEATURE {0}\nPHARMACOPHORE_SPHERE {1} {2} {3} {4}"""\
+                        .format(interaction_dic[feature.pharmacophore_type],
+                                feature.coordinates.x,
+                                feature.coordinates.y,
+                                feature.coordinates.z,
+                                )
+
+                    if feature.pharmacophore_type in partner_dict["True"]:
+                        feat += """\nPHARMACOPHORE_SPHERE {0} {1} {2} {3}""".format(feature.hbond_partner.x,
+                                                                                    feature.hbond_partner.y,
+                                                                                    feature.hbond_partner.z,
+                                                                                    feature.settings.radius
+                                                                                    )
+
+                    feat += """\nPHARMACOPHORE_FEATURE_SMALL_MOLECULE\nPHARMACOPHORE_FEATURE_DESCRIPTION {0}\n"""\
+                        .format(interaction_dic[feature.pharmacophore_type])
+
+                    crossminer_file.write(feat)
+
+        elif extension == ".csv":
+            with open(fname, "wb") as csv_file:
+                csv_writer = csv.writer(csv_file, delimiter=",")
+                for feature in self.features:
+                    line = "{0},{1},{2},{3},{4},{5}".format(self.identifier,
+                                                            feature.pharmacophore_type,
+                                                            feature.coordinates.x,
+                                                            feature.coordinates.y,
+                                                            feature.coordinates.z,
+                                                            feature.score
+                                                            )
+                    if feature.pharmacophore_type in partner_dict["True"]:
+                        line += ",{0},{1},{2},{3},{4},{5}".format(feature.hbond_partner.x,
+                                                                  feature.hbond_partner.y,
+                                                                  feature.hbond_partner.z,
+                                                                  feature.vector.x,
+                                                                  feature.vector.y,
+                                                                  feature.vector.z
+                                                                  )
+                    else:
+                        line += ",0,0,0,0,0,0"
+                    l = line.split(",")
+                    csv_writer.writerow(l)
+
+        elif extension == ".py":
+            with open(fname, "wb") as pymol_file:
+                pymol_out = pymol_template(0, 0, 0, 0).split("""cmd.load(r'protein.pdb', "protein")""")[0]
+                pymol_out += """cluster_dict = {{{0}:[]}}""".format(self.identifier)
+                sphere_dict = {'acceptor': '[COLOR, 1.00, 0.00, 0.00]',
+                               'donor': '[COLOR, 0.00, 0.00, 1.00]',
+                               'apolar': '[COLOR, 1.00, 1.000, 0.000]',
+                               'surface': '[COLOR, 0.5, 0.5, 0.5]',
+                               'positive': '[COLOR, 0.0, 1.0, 1.0]',
+                               'negative': '[COLOR, 0.6, 0.1, 0.6]'
+                               }
+                colour_dict = {'acceptor': 'red blue',
+                               'donor': 'blue red',
+                               'apolar': 'yellow'}
+
+                for feature in self.features:
+                    if feature.pharmacophore_type in partner_dict["True"] and feature.hbond_partner is not None:
+                        arrow = 'cgo_arrow([{0},{1},{2}], [{3},{4},{5}], color="{6}", name="Arrows_{7}")\n'\
+                            .format(feature.coordinates.x,
+                                    feature.coordinates.y,
+                                    feature.coordinates.z,
+                                    feature.hbond_partner.x,
+                                    feature.hbond_partner.y,
+                                    feature.hbond_partner.z,
+                                    colour_dict[feature.pharmacophore_type],
+                                    feature.pharmacophore_type)
+                    else:
+                        arrow = ''
+
+                    sphere = '{0} + [SPHERE, float({1}), float({2}), float({3}), float({4})]\n'\
+                        .format(sphere_dict[feature.pharmacophore_type],
+                                feature.coordinates.x,
+                                feature.coordinates.y,
+                                feature.coordinates.z,
+                                feature.settings.radius)
+
+                    pymol_out += '\ncluster_dict["{}"] += {}'.format(self.identifier, sphere)
+                    pymol_out += '\n{}'.format(arrow)
+                    pymol_out += '\ncmd.load_cgo(cluster_dict["{0}"], "Pharmacophore_{0}", 1)\n'.format(self.identifier)
+                    pymol_out += '\ncmd.set("transparency", 0.2,"Pharmacophore_{0}")\n'.format(self.identifier)
+
+                pymol_file.write(pymol_out)
+
+        elif extension == ".json":
+            with open(fname, "w") as pharmit_file:
+                pts = []
+                interaction_dic = {'apolar': 'Hydrophobic',
+                                   'donor': 'HydrogenDonor',
+                                   'acceptor': 'HydrogenAcceptor',
+                                   'negative': 'NegativeIon',
+                                   'positive': 'PositiveIon'
+                                   }
+
+                for feature in self.features:
+                    point = {"name": interaction_dic[self.pharmacophore_type],
+                             "hasvec": True,
+                             "x": feature.coordinates.x,
+                             "y": feature.coordinates.y,
+                             "z": feature.coordinates.z,
+                             "radius": feature.settings.radius,
+                             "enabled": True,
+                             "vector_on": feature.settings.vector_on,
+                             "svector": {
+                                 "x": feature.vector.x,
+                                 "y": feature.vector.y,
+                                 "z": feature.vector.z
+                             },
+                             "minsize": "",
+                             "maxsize": "",
+                             "selected": False
+                             }
+                    pts.append(point)
+                pharmit_file.write(json.dumps({"points": pts}))
+
+        else:
+            raise TypeError("""""{}" output file type is not currently supported.""".format(extension))
+
+
+class PharmacophoreFeature(_HotspotsHelper):
+    """
+    A class to construct pharmacophoric models based upon fragment hotspot maps.
+    This feature is designed to be used after fragment sized hotspots have been extracted.
+    (Hotspot.extract_hotspots method)
+    """
+    class Settings():
+        """
+        settings for the PharmacophoreFeature class
+        """
+        def __init__(self):
+            """
+            feature_boundary_cutoff is the value of the island cutoff used. (boundaries addressed in extract hotspot)
+            max_hbond_dist is the furtherest acceptable distance for a hydrogen bonding partner (from polar feature)
+            """
+            self.feature_boundary_cutoff = 5
+            self.max_hbond_dist = 4
+            self.radius = 1.5
+            self.vector_on = 1
+
+    def __init__(self, grid, probe, protein):
+        """
+
+        :param grid:
+        :param probe:
+        :param protein:
+        """
+        self.settings = self.Settings()
+        self.pharmacophore_type = probe
+        if probe == "apolar":
+            self.settings.vector_on = 0
+            self.scores, self.coordinates = self.get_centroid(grid)
+        else:
+            self.scores, self.coordinates = self.get_maxima(grid)
+            if probe == "donor" or probe == "acceptor":
+                if protein:
+                    self.hbond_partner = self.get_hbond_partner(protein)
+                    if self.hbond_partner is not None:
+                        self.vector = self.get_vector()
+
+    def get_vector(self):
+        """
+        generates vector to hydrogen bonding partner on a protein.
+        :return: molecule.Coordinates (named tuple)
+        """
+        return molecule.Coordinates(self.hbond_partner.x - self.coordinates.x,
+                                    self.hbond_partner.y - self.coordinates.y,
+                                    self.hbond_partner.z - self.coordinates.z)
+
+    def get_hbond_partner(self, protein):
+        """
+        for a given polar feature, the nearest h-bonding partner on the protein is located.
+        :param protein: a :class:`ccdc.protein.Protein` instance
+        :return: coordinates for hydrogen-bonding partner
+        """
+        if self.pharmacophore_type == 'donor':
+            atms = [a for a in protein.atoms if a.is_acceptor]
+        else:
+            atms = [a for a in protein.atoms if a.is_donor]
+
+        near_atoms = {}
+        for atm in atms:
+            dist = self._get_distance(atm.coordinates, self.coordinates)
+            if dist < self.settings.max_hbond_dist:
+                if dist in near_atoms.keys():
+                    near_atoms[dist].append(atm)
+                else:
+                    near_atoms.update({dist:[atm]})
+            else:
+                continue
+
+        if len(near_atoms.keys()) == 0:
+            return None
+
+        else:
+            closest = sorted(near_atoms.keys())[0]
+            select = near_atoms[closest][0]
+            return select.coordinates
+
+    def get_maxima(self, grid):
+        """
+        given a grid will return the max point
+        :param grid:
+        :return:
+        """
+        max_value = grid.extrema[1]
+        indices = grid.indices_at_value(max_value)
+
+        if len(indices) == 1:
+            coords = self._indices_to_point(indices[0][0], indices[0][1], indices[0][2],grid)
+            return max_value, molecule.Coordinates(coords[0], coords[1], coords[2])
+        else:
+            coords = self.indices_to_point(sum(i[0] for i in indices),
+                                           sum(j[1] for j in indices),
+                                           sum(k[2] for k in indices)
+                                           )
+            return max_value, molecule.Coordinates(coords[0], coords[1], coords[2])
+
+    def get_centroid(self, grid):
+        """
+        given a grid will return the centre of mass and the score at that point
+        :return: score, float, and coords, ccdc.molecule.Coordinate
+        """
+
+        weighted_x = 0
+        weighted_y = 0
+        weighted_z = 0
+        total_mass = 0
+        nx, ny, nz = grid.nsteps
+
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    grid_value = grid.value(i, j, k)
+                    x, y, z = self._indices_to_point(i, j, k, grid)
+                    weighted_x += grid_value * x
+                    weighted_y += grid_value * y
+                    weighted_z += grid_value * z
+                    total_mass += grid_value
+
+        coords = molecule.Coordinates(np.divide(weighted_x, total_mass),
+                                      np.divide(weighted_y, total_mass),
+                                      np.divide(weighted_z, total_mass)
+                                      )
+        score = self._point_to_indices(coords, grid)
+
+        return score, coords
+
+
 class HotspotResults(_HotspotsHelper):
     """
     A Hotspot_results object is returned at the end of a Hotspots calculation. It contains functions for accessing
@@ -934,6 +1220,16 @@ class HotspotResults(_HotspotsHelper):
         self.archive_loc = None
         # self.sampled_probes = self.filter_by_score(sampled_probes)
         self.sampled_probes = sampled_probes
+
+    def get_pharmacophore_model(self, identifier="id_01", cutoff=5):
+        """
+        method of hotspot results object(intended to be run after extracted HS) returns PharmacophoreModel
+        :return:
+        """
+
+        feature_list = [PharmacophoreFeature(island, probe, self.prot) for probe, g in self.super_grids.items()
+                        for island in g.islands(cutoff)]
+        return PharmacophoreModel(identifier, feature_list)
 
     def filter_by_score(self, sampled_probes, score=16):
         """
@@ -2457,8 +2753,6 @@ class Hotspots(_HotspotsHelper):
         for probe in probe_types:
             top_probes = self._get_out_maps(probe, grid_dict)
             self.sampled_probes.update({probe: top_probes})
-
-
 
     def _from_grid_dic(self, super_grids, prot, fname=None, sampled_probes=None, buriedness=None):
         """

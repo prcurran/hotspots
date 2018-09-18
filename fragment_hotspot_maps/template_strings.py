@@ -242,6 +242,52 @@ def pymol_template(prot_file, working_dir, probes, cutoff_dict):
     pymol_out = '''from pymol import cmd
 from pymol.cgo import *
 
+def cgo_arrow(atom1='pk1', atom2='pk2', radius=0.07, gap=0.0, hlength=-1, hradius=-1,
+              color='blue red', name=''):
+    from chempy import cpv
+
+    radius, gap = float(radius), float(gap)
+    hlength, hradius = float(hlength), float(hradius)
+
+    try:
+        color1, color2 = color.split()
+    except:
+        color1 = color2 = color
+    color1 = list(cmd.get_color_tuple(color1))
+    color2 = list(cmd.get_color_tuple(color2))
+
+    def get_coord(v):
+        if not isinstance(v, str):
+            return v
+        if v.startswith('['):
+            return cmd.safe_list_eval(v)
+        return cmd.get_atom_coords(v)
+
+    xyz1 = get_coord(atom1)
+    xyz2 = get_coord(atom2)
+    normal = cpv.normalize(cpv.sub(xyz1, xyz2))
+
+    if hlength < 0:
+        hlength = radius * 3.0
+    if hradius < 0:
+        hradius = hlength * 0.6
+
+    if gap:
+        diff = cpv.scale(normal, gap)
+        xyz1 = cpv.sub(xyz1, diff)
+        xyz2 = cpv.add(xyz2, diff)
+
+    xyz3 = cpv.add(cpv.scale(normal, hlength), xyz2)
+
+    obj = [cgo.CYLINDER] + xyz1 + xyz3 + [radius] + color1 + color2 + \
+          [cgo.CONE] + xyz3 + xyz2 + [hradius, 0.0] + color2 + color2 + \
+          [1.0, 0.0]
+
+    if not name:
+        name = cmd.get_unused_name('arrow')
+
+    cmd.load_cgo(obj, name)
+
 cmd.load(r'protein.pdb',"protein")
 cmd.load(r'donor.grd')
 cmd.load(r'acceptor.grd')
@@ -857,3 +903,268 @@ def colourmap(scheme="inferno"):
               [9.87052509e-01, 9.91437853e-01, 7.49504188e-01]]
 
     return cm
+
+def crossminer_header():
+    start_str = '''FEATURE_LIBRARY_START
+
+        FEATURE_SUBSTRUCTURE_START
+
+            FEATURE_NAME acceptor_projected
+
+            DEFINE_FEATURE ACCEPTOR_SP2 TRIGONAL 2.8
+            DEFINE_FEATURE ACCEPTOR_SP3 TETRAHEDRAL 2.8
+            DEFINE_FEATURE DUMMY DUMMY
+            DEFINE_FEATURE ACCEPTOR_SP LINEAR 2.8
+
+            SMARTS_DEF [C]1[NX2]=[C][NX2][C]=1
+            FEATURE ACCEPTOR_SP2 3
+            FEATURE ACCEPTOR_SP2 1
+
+            SMARTS_DEF [C][NX2;R]=[C][NX2][C](=[O])
+            FEATURE ACCEPTOR_SP2 1
+
+            SMARTS_DEF [C]([NX2][C])=[NX2][C]=[O]
+            FEATURE ACCEPTOR_SP2 3
+
+            SMARTS_DEF [N][C]1[N]=[*][*]=[*][N]=1
+            FEATURE ACCEPTOR_SP2 2
+            FEATURE ACCEPTOR_SP2 6
+
+            SMARTS_DEF [C]([NX1;X2])=[NX1]
+            FEATURE DUMMY 1
+            FEATURE DUMMY 2
+
+            SMARTS_DEF [C]([NX2][C])=[NX2][C]
+            FEATURE DUMMY 1
+            FEATURE DUMMY 3
+
+            SMARTS_DEF [C]1[NX2][NX2]=[C][C]=1
+            FEATURE ACCEPTOR_SP2 1
+            FEATURE ACCEPTOR_SP2 2
+
+            SMARTS_DEF [C]1[NX2]=[C][NX2][NX2]=1
+            FEATURE ACCEPTOR_SP2 1
+            FEATURE ACCEPTOR_SP2 3
+            FEATURE ACCEPTOR_SP2 4
+
+            SMARTS_DEF [C]1~[#7X2]~[#7X2]~[#7X2]~[#7X2]~1
+            FEATURE ACCEPTOR_SP2 1
+            FEATURE ACCEPTOR_SP2 2
+            FEATURE ACCEPTOR_SP2 3
+            FEATURE ACCEPTOR_SP2 4
+
+            SMARTS_DEF [*][C]1=[N]-[N]-[C]([*])=[C]1
+            FEATURE ACCEPTOR_SP2 2
+            FEATURE ACCEPTOR_SP2 3
+
+            SMARTS_DEF [C]#[N]
+            FEATURE ACCEPTOR_SP 1
+
+            SMARTS_DEF [*]=[#7X2]-[*]
+            FEATURE ACCEPTOR_SP2 1
+
+            SMARTS_DEF [*]:[#7X2]:[*]
+            FEATURE ACCEPTOR_SP2 1
+
+            SMARTS_DEF [C][O]-[CR](-[*X3;R])=[*X3;R]
+            FEATURE ACCEPTOR_SP3 1
+
+            SMARTS_DEF [F][C][O]-[CR](-[*R])=[*R]
+            FEATURE ACCEPTOR_SP3 2
+
+            SMARTS_DEF [O]-[c]:[*]
+            FEATURE DUMMY 0
+
+            SMARTS_DEF [O]-[CR](-[*R])=[*R]
+            FEATURE DUMMY 0
+
+            SMARTS_DEF [#8X1]~[#6X3]~[#8X1]
+            FEATURE ACCEPTOR_SP2 0
+            FEATURE ACCEPTOR_SP2 2
+
+            SMARTS_DEF [C]=[O]
+            FEATURE ACCEPTOR_SP2 1
+
+            SMARTS_DEF [#6]-[C]-[O]
+            FEATURE ACCEPTOR_SP3 2
+
+            SMARTS_DEF [OX1][N]([#6])[C]=[O]
+            FEATURE ACCEPTOR_SP3 0
+
+            SMARTS_DEF [S]~[O]
+            FEATURE ACCEPTOR_SP3 1
+
+            SMARTS_DEF [P]~[O]
+            FEATURE ACCEPTOR_SP3 1
+
+            SMARTS_DEF [#6][SX1]
+            FEATURE ACCEPTOR_SP3 1
+
+        FEATURE_SUBSTRUCTURE_END
+
+        FEATURE_SUBSTRUCTURE_START
+
+            FEATURE_NAME donor_projected
+
+            DEFINE_FEATURE DONOR_LIN_H LINEAR_NB 2.8
+            DEFINE_FEATURE DONOR_SP2 TRIGONAL 2.8
+            DEFINE_FEATURE DONOR_SP3 TETRAHEDRAL 2.8
+            DEFINE_FEATURE DONOR_SP LINEAR 2.8
+            DEFINE_FEATURE DUMMY DUMMY
+
+            SMARTS_DEF [#7][H] IF_H_PRESENT
+            FEATURE DONOR_LIN_H 1
+
+            SMARTS_DEF [OX2][H] IF_H_PRESENT
+            FEATURE DONOR_LIN_H 1
+
+            SMARTS_DEF [SX2][H] IF_H_PRESENT
+            FEATURE DONOR_LIN_H 1
+
+            SMARTS_DEF [C]1~[#7X2]~[#7X2]~[#7X2]~[#7X2]~1 IF_NO_H_PRESENT
+            FEATURE DUMMY 1
+            FEATURE DUMMY 2
+            FEATURE DUMMY 3
+            FEATURE DUMMY 4
+
+            SMARTS_DEF [Nr6]=[C][N]=[*] IF_NO_H_PRESENT
+            FEATURE DUMMY 0
+
+            SMARTS_DEF [N]=[C][NX3] IF_NO_H_PRESENT
+            FEATURE DUMMY 0
+
+            SMARTS_DEF [Nr]=[C][Nr0] IF_NO_H_PRESENT
+            FEATURE DUMMY 0
+
+            SMARTS_DEF [N]([C]=[O])=[C][N] IF_NO_H_PRESENT
+            FEATURE DUMMY 0
+
+            SMARTS_DEF [#6;#16](=O)-[NX2][*] IF_NO_H_PRESENT
+            FEATURE DONOR_SP2 2
+
+            SMARTS_DEF [#6](=O)-[NX1] IF_NO_H_PRESENT
+            FEATURE DONOR_SP2 2
+
+            SMARTS_DEF [#16](=O)-[NX1] IF_NO_H_PRESENT
+            FEATURE DONOR_SP3 2
+
+            SMARTS_DEF [*]-[#7X2]-[*]=[*] IF_NO_H_PRESENT
+            FEATURE DONOR_SP2 1
+
+            SMARTS_DEF [*]-[#7X2]-[*]:[*] IF_NO_H_PRESENT
+            FEATURE DONOR_SP2 1
+
+            SMARTS_DEF [*](!-[*])-[#7X1] IF_NO_H_PRESENT
+            FEATURE DONOR_SP2 2
+
+            SMARTS_DEF [N]=[C][N] IF_NO_H_PRESENT
+            FEATURE DONOR_SP2 0
+
+            SMARTS_DEF [*]-[#7X3](-[*])-[*]=[*] IF_NO_H_PRESENT
+            FEATURE DUMMY 1
+
+            SMARTS_DEF [*]-[#7X3](-[*])-[*] IF_NO_H_PRESENT
+            FEATURE DONOR_SP3 1
+
+            SMARTS_DEF [*]-[#7X2]-[*] IF_NO_H_PRESENT
+            FEATURE DONOR_SP3 1
+
+            SMARTS_DEF [*]-[#7X1] IF_NO_H_PRESENT
+            FEATURE DONOR_SP3 1
+
+            SMARTS_DEF [OX1]~[*]-[OX1] IF_NO_H_PRESENT
+            FEATURE DUMMY 2
+
+            SMARTS_DEF [*]-[*](-[OX1])=[*] IF_NO_H_PRESENT
+            FEATURE DONOR_SP2 2
+
+            SMARTS_DEF [c]-[OX1] IF_NO_H_PRESENT
+            FEATURE DONOR_SP2 1
+
+            SMARTS_DEF [C;N]-[OX1] IF_NO_H_PRESENT
+            FEATURE DONOR_SP3 1
+
+            SMARTS_DEF [C]-[SX1] IF_NO_H_PRESENT
+            FEATURE DONOR_SP3 1
+
+        FEATURE_SUBSTRUCTURE_END
+
+        FEATURE_SUBSTRUCTURE_START
+
+            FEATURE_NAME hydrophobic
+
+            DEFINE_FEATURE HYDROPHOBIC POINT
+            DEFINE_FEATURE DUMMY DUMMY
+
+            SMARTS_DEF [#6]([!H])([!H])=[!H;!O;!N]
+            FEATURE HYDROPHOBIC 0
+
+            SMARTS_DEF [#6](:[!H])(:[!H])~[!H]
+            FEATURE HYDROPHOBIC 0
+
+            SMARTS_DEF [#7;#8]~[#6]([!H])([!H])[!H]
+            FEATURE HYDROPHOBIC 1
+
+            SMARTS_DEF [#9]~[#6]([!H])([!H])[!H]
+            FEATURE HYDROPHOBIC 1
+
+            SMARTS_DEF [#6;#16](=O)~[#6]([!H])([!H])[!H]
+            FEATURE HYDROPHOBIC 2
+
+            SMARTS_DEF [#7;#8]~[#6]
+            FEATURE DUMMY 1
+
+            SMARTS_DEF [#9]~[#6]
+            FEATURE DUMMY 1
+
+            SMARTS_DEF [#6;#16](=O)~[#6]
+            FEATURE DUMMY 2
+
+            SMARTS_DEF [*]~[#6X3](~[*])~[*]
+            FEATURE HYDROPHOBIC 1
+
+            SMARTS_DEF [*]~[#6X2]~[*]
+            FEATURE HYDROPHOBIC 1
+
+            SMARTS_DEF [#6X4]
+            FEATURE HYDROPHOBIC 0
+
+            SMARTS_DEF [CX1][#6;#16]
+            FEATURE HYDROPHOBIC 0
+
+            SMARTS_DEF [N]([!H])([!H])[!H]=[O]
+            FEATURE HYDROPHOBIC 0
+
+            SMARTS_DEF [N]([!H]=[!H])([!H]=[!H])[!H]
+            FEATURE HYDROPHOBIC 0
+
+            SMARTS_DEF [F]
+            FEATURE HYDROPHOBIC 0
+
+            SMARTS_DEF [#16X2]
+            FEATURE HYDROPHOBIC 0
+
+            SMARTS_DEF [Cl]
+            FEATURE HYDROPHOBIC 0
+
+            SMARTS_DEF [Br]
+            FEATURE HYDROPHOBIC 0
+
+            SMARTS_DEF [I]
+            FEATURE HYDROPHOBIC 0
+
+        FEATURE_SUBSTRUCTURE_END
+
+        FEATURE_SUBSTRUCTURE_START
+
+            FEATURE_NAME heavy_atom
+
+            DEFINE_FEATURE OCCUPIED POINT
+
+            SMARTS_DEF [!H]
+            FEATURE OCCUPIED 0
+
+        FEATURE_SUBSTRUCTURE_END
+
+    FEATURE_LIBRARY_END'''
+    return start_str
