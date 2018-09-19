@@ -21,6 +21,7 @@ import subprocess
 import zipfile
 import shutil
 import tempfile
+import json
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -921,6 +922,59 @@ class PharmacophoreModel(object):
         """
         self.identifier = identifier
         self.features = features
+        self.fname = None
+        self.partner_dict = {"True": ["donor", "acceptor"], "False": ["negative", "positive", "apolar"]}
+
+    def get_pymol_pharmacophore(self):
+        """
+
+        :return:
+        """
+        pymol_out = """cluster_dict = {{"{0}":[], "{0}_arrows":[]}}""".format(self.identifier)
+        sphere_dict = {'acceptor': '[COLOR, 1.00, 0.00, 0.00]',
+                       'donor': '[COLOR, 0.00, 0.00, 1.00]',
+                       'apolar': '[COLOR, 1.00, 1.000, 0.000]',
+                       'surface': '[COLOR, 0.5, 0.5, 0.5]',
+                       'positive': '[COLOR, 0.0, 1.0, 1.0]',
+                       'negative': '[COLOR, 0.6, 0.1, 0.6]'
+                       }
+        colour_dict = {'acceptor': 'red blue',
+                       'donor': 'blue red',
+                       'apolar': 'yellow'}
+        i = 0
+        for feature in self.features:
+            if feature.pharmacophore_type in self.partner_dict["True"] and feature.hbond_partner is not None:
+                i += 1
+                arrow = 'cluster_dict["{7}_arrows"] += cgo_arrow([{0},{1},{2}], [{3},{4},{5}], color="{6}", name="Arrows_{7}_{8}")\n' \
+                    .format(feature.coordinates.x,
+                            feature.coordinates.y,
+                            feature.coordinates.z,
+                            feature.hbond_partner.x,
+                            feature.hbond_partner.y,
+                            feature.hbond_partner.z,
+                            colour_dict[feature.pharmacophore_type],
+                            self.identifier,
+                            str(i))
+            else:
+                arrow = ''
+
+            sphere = '{0} + [ALPHA, {1}] + [SPHERE, float({2}), float({3}), float({4}), float({5})]\n' \
+                .format(sphere_dict[feature.pharmacophore_type],
+                        feature.settings.transparency,
+                        feature.coordinates.x,
+                        feature.coordinates.y,
+                        feature.coordinates.z,
+                        feature.settings.radius)
+
+            pymol_out += '\ncluster_dict["{0}"] += {1}'.format(self.identifier, sphere)
+            pymol_out += '\n{}'.format(arrow)
+
+        pymol_out += '\ncmd.load_cgo(cluster_dict["{0}"], "Features_{0}", 1)' \
+                     '\ncmd.load_cgo(cluster_dict["{0}_arrows"], "Arrows_{0}")'.format(self.identifier)
+        pymol_out += '\ncmd.set("transparency", 0.2,"Features_{0}")' \
+                     '\ncmd.group("Pharmacophore_{0}", members="Features_{0}")' \
+                     '\ncmd.group("Pharmacophore_{0}", members="Arrows_{0}")\n'.format(self.identifier)
+        return pymol_out
 
     def write(self, fname):
         """
@@ -930,7 +984,6 @@ class PharmacophoreModel(object):
         """
 
         extension = splitext(fname)[1]
-        partner_dict = {"True": ["donor", "acceptor"], "False": ["negative", "positive", "apolar"]}
         if extension == ".cm":
             with open(fname, "w") as crossminer_file:
                 crossminer_file.write(crossminer_header())
@@ -989,50 +1042,8 @@ class PharmacophoreModel(object):
         elif extension == ".py":
             with open(fname, "wb") as pymol_file:
                 pymol_out = pymol_template(0, 0, 0, 0).split("""cmd.load(r'protein.pdb',"protein")""")[0]
-                pymol_out += """cluster_dict = {{"{0}":[], "{0}_arrows":[]}}""".format(self.identifier)
-                sphere_dict = {'acceptor': '[COLOR, 1.00, 0.00, 0.00]',
-                               'donor': '[COLOR, 0.00, 0.00, 1.00]',
-                               'apolar': '[COLOR, 1.00, 1.000, 0.000]',
-                               'surface': '[COLOR, 0.5, 0.5, 0.5]',
-                               'positive': '[COLOR, 0.0, 1.0, 1.0]',
-                               'negative': '[COLOR, 0.6, 0.1, 0.6]'
-                               }
-                colour_dict = {'acceptor': 'red blue',
-                               'donor': 'blue red',
-                               'apolar': 'yellow'}
-                i = 0
-                for feature in self.features:
-                    if feature.pharmacophore_type in partner_dict["True"] and feature.hbond_partner is not None:
-                        i += 1
-                        arrow = 'cluster_dict["{7}_arrows"] += cgo_arrow([{0},{1},{2}], [{3},{4},{5}], color="{6}", name="Arrows_{7}_{8}")\n'\
-                            .format(feature.coordinates.x,
-                                    feature.coordinates.y,
-                                    feature.coordinates.z,
-                                    feature.hbond_partner.x,
-                                    feature.hbond_partner.y,
-                                    feature.hbond_partner.z,
-                                    colour_dict[feature.pharmacophore_type],
-                                    self.identifier,
-                                    str(i))
-                    else:
-                        arrow = ''
-
-                    sphere = '{0} + [ALPHA, {1}] + [SPHERE, float({2}), float({3}), float({4}), float({5})]\n'\
-                        .format(sphere_dict[feature.pharmacophore_type],
-                                feature.settings.transparency,
-                                feature.coordinates.x,
-                                feature.coordinates.y,
-                                feature.coordinates.z,
-                                feature.settings.radius)
-
-                    pymol_out += '\ncluster_dict["{0}"] += {1}'.format(self.identifier, sphere)
-                    pymol_out += '\n{}'.format(arrow)
-
-                pymol_out += '\ncmd.load_cgo(cluster_dict["{0}"], "Features_{0}", 1)' \
-                             '\ncmd.load_cgo(cluster_dict["{0}_arrows"], "Arrows_{0}")'.format(self.identifier)
-                pymol_out += '\ncmd.set("transparency", 0.2,"Features_{0}")' \
-                             '\ncmd.group("Pharmacophore_{0}", members="Features_{0}")' \
-                             '\ncmd.group("Pharmacophore_{0}", members="Arrows_{0}")\n'.format(self.identifier)
+                lines = self.get_pymol_pharmacophore()
+                pymol_out += lines
                 pymol_file.write(pymol_out)
 
         elif extension == ".json":
@@ -1046,23 +1057,32 @@ class PharmacophoreModel(object):
                                    }
 
                 for feature in self.features:
-                    point = {"name": interaction_dic[self.pharmacophore_type],
+                    point = {"name": interaction_dic[feature.pharmacophore_type],
                              "hasvec": True,
                              "x": feature.coordinates.x,
                              "y": feature.coordinates.y,
                              "z": feature.coordinates.z,
                              "radius": feature.settings.radius,
                              "enabled": True,
-                             "vector_on": feature.settings.vector_on,
-                             "svector": {
-                                 "x": feature.vector.x,
-                                 "y": feature.vector.y,
-                                 "z": feature.vector.z
-                             },
-                             "minsize": "",
-                             "maxsize": "",
-                             "selected": False
+                             "vector_on": feature.settings.vector_on
                              }
+                    if feature.pharmacophore_type in self.partner_dict["True"]:
+                        point.update({"svector": {"x": feature.vector.x,
+                                                 "y": feature.vector.y,
+                                                 "z": feature.vector.z
+                                                 },
+                                     })
+                    else:
+                        point.update({"svector": {"x": "",
+                                                  "y": "",
+                                                  "z": ""
+                                                  },
+                                      })
+                    point.update({"minsize": "",
+                                  "maxsize": "",
+                                  "selected": False
+                                  })
+
                     pts.append(point)
                 pharmit_file.write(json.dumps({"points": pts}))
 
@@ -1226,6 +1246,7 @@ class HotspotResults(_HotspotsHelper):
         self.archive_loc = None
         # self.sampled_probes = self.filter_by_score(sampled_probes)
         self.sampled_probes = sampled_probes
+        self.pharmacophore = None
 
     def get_pharmacophore_model(self, identifier="id_01", cutoff=5):
         """
@@ -1919,19 +1940,27 @@ class HotspotResults(_HotspotsHelper):
 
         return percent_by_type
 
-    def output_extracted_hotspots(self, n, out_dir, fragments, lead, charged=True):
+    def output_extracted_hotspots(self, hrs, out_dir, fragments, lead, charged=True):
         """
         in development
 
         :return: str, script to visualise hotspots
         """
+
+        n = len(hrs)
         if out_dir == None:
             out_dir = getcwd()
-        str = extracted_hotspot_template(n, charged, fragments, lead)
+        pymol_out = extracted_hotspot_template(n, charged, fragments, lead)
         if not exists(out_dir):
             mkdir(out_dir)
+
+        for hr in hrs:
+            if hr.pharmacophore is not None:
+                lines = hr.pharmacophore.get_pymol_pharmacophore()
+                pymol_out += lines
+
         with open(join(out_dir, "extracted_hotspots.py"), 'w') as w:
-            w.write(str)
+            w.write(pymol_out)
 
         with MoleculeWriter(join(out_dir, "protein.pdb")) as w:
             w.write(self.prot)
@@ -2071,7 +2100,8 @@ class HotspotResults(_HotspotsHelper):
                              "hbf_mean": hotspot_bfactor_mean, "hbf_median": hotspot_bfactor_median
                              })
 
-    def extract_hotspots(self, out_dir=None, fragments=None, lead=None, bfactors=None, **kwargs):
+    def extract_hotspots(self, out_dir=None, fragments=None, lead=None, bfactors=None,
+                         pharmacophore=True, **kwargs):
         """
         For a given output volume, hotspots are identified by the peaks in apolar propensity.
 
@@ -2082,7 +2112,7 @@ class HotspotResults(_HotspotsHelper):
         :return:
         """
 
-        hr = []
+        hrs = []
         build = _HotspotBuilder(kwargs)
         # build.settings.cutoff -= 1
 
@@ -2135,14 +2165,22 @@ class HotspotResults(_HotspotsHelper):
 
             grd_dic = {"apolar": grid, "donor": donor, "acceptor": acceptor,
                        "negative": negative, "positive": positive}
+            hr = HotspotResults(grid_dict=grd_dic, protein=self.prot, fname=self.fname,sampled_probes=None,
+                                buriedness=None, out_dir=self.out_dir)
 
-            hr.append(Hotspots.HotspotResults(grid_dict=grd_dic, protein=self.prot, fname=self.fname,
-                                              sampled_probes=None, buriedness=None, out_dir=self.out_dir))
-        self.output_extracted_hotspots(len(hr), out_dir, fragments, lead, charged=False)
-        df = self.output_data(hr, self.buriedness, bfactors)
-        df.to_csv(join(out_dir, "data.csv"))
+            if pharmacophore:
+                hr.pharmacophore = hr.get_pharmacophore_model(identifier=identity)
+                hr.pharmacophore.identifier = identity
+                hr.pharmacophore.fname = pharmacophore
+                hrs.append(hr)
 
-        return hr
+        self.output_extracted_hotspots(hrs, out_dir, fragments, lead, charged=False)
+
+        if bfactors is not None:
+            df = self.output_data(hrs, self.buriedness, bfactors)
+            df.to_csv(join(out_dir, "data.csv"))
+
+        return hrs
 
     def best_continuous_volume(self, volume=500, pocket_mask=False):
         '''

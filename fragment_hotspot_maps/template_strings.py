@@ -77,6 +77,48 @@ def extracted_hotspot_template(num_hotspots, charged, fragments, lead):
     out_str = '''from pymol import cmd
 from pymol.cgo import *
 
+def cgo_arrow(atom1='pk1', atom2='pk2', radius=0.07, gap=0.0, hlength=-1, hradius=-1,
+              color='blue red', name=''):
+    from chempy import cpv
+
+    radius, gap = float(radius), float(gap)
+    hlength, hradius = float(hlength), float(hradius)
+
+    try:
+        color1, color2 = color.split()
+    except:
+        color1 = color2 = color
+    color1 = list(cmd.get_color_tuple(color1))
+    color2 = list(cmd.get_color_tuple(color2))
+
+    def get_coord(v):
+        if not isinstance(v, str):
+            return v
+        if v.startswith('['):
+            return cmd.safe_list_eval(v)
+        return cmd.get_atom_coords(v)
+
+    xyz1 = get_coord(atom1)
+    xyz2 = get_coord(atom2)
+    normal = cpv.normalize(cpv.sub(xyz1, xyz2))
+
+    if hlength < 0:
+        hlength = radius * 3.0
+    if hradius < 0:
+        hradius = hlength * 0.6
+
+    if gap:
+        diff = cpv.scale(normal, gap)
+        xyz1 = cpv.sub(xyz1, diff)
+        xyz2 = cpv.add(xyz2, diff)
+
+    xyz3 = cpv.add(cpv.scale(normal, hlength), xyz2)
+
+    obj = [cgo.CYLINDER] + xyz1 + xyz3 + [radius] + color1 + color2 + \
+          [cgo.CONE] + xyz3 + xyz2 + [hradius, 0.0] + color2 + color2 + \
+          [1.0, 0.0]
+    return obj
+
 cmd.load(r'protein.pdb',"protein")
 
 cmd.set("surface_cavity_mode", 1)
