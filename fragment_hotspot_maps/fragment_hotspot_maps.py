@@ -909,7 +909,6 @@ class _SampleGrid(_HotspotsHelper):
         return a.atomic_symbol == 'C' and a.is_cyclic and any(b.atom_type == 'aromatic' for b in a.bonds)
 
 
-#############################################################
 class PharmacophoreModel(object):
     """
     A class to wrap pharmacophore features and output in various formats
@@ -989,8 +988,8 @@ class PharmacophoreModel(object):
 
         elif extension == ".py":
             with open(fname, "wb") as pymol_file:
-                pymol_out = pymol_template(0, 0, 0, 0).split("""cmd.load(r'protein.pdb', "protein")""")[0]
-                pymol_out += """cluster_dict = {{{0}:[]}}""".format(self.identifier)
+                pymol_out = pymol_template(0, 0, 0, 0).split("""cmd.load(r'protein.pdb',"protein")""")[0]
+                pymol_out += """cluster_dict = {{"{0}":[]}}""".format(self.identifier)
                 sphere_dict = {'acceptor': '[COLOR, 1.00, 0.00, 0.00]',
                                'donor': '[COLOR, 0.00, 0.00, 1.00]',
                                'apolar': '[COLOR, 1.00, 1.000, 0.000]',
@@ -1016,18 +1015,19 @@ class PharmacophoreModel(object):
                     else:
                         arrow = ''
 
-                    sphere = '{0} + [SPHERE, float({1}), float({2}), float({3}), float({4})]\n'\
+                    sphere = '{0} + [ALPHA, {1}] + [SPHERE, float({2}), float({3}), float({4}), float({5})]\n'\
                         .format(sphere_dict[feature.pharmacophore_type],
+                                feature.settings.transparency,
                                 feature.coordinates.x,
                                 feature.coordinates.y,
                                 feature.coordinates.z,
                                 feature.settings.radius)
 
-                    pymol_out += '\ncluster_dict["{}"] += {}'.format(self.identifier, sphere)
+                    pymol_out += '\ncluster_dict["{0}"] += {1}'.format(self.identifier, sphere)
                     pymol_out += '\n{}'.format(arrow)
-                    pymol_out += '\ncmd.load_cgo(cluster_dict["{0}"], "Pharmacophore_{0}", 1)\n'.format(self.identifier)
-                    pymol_out += '\ncmd.set("transparency", 0.2,"Pharmacophore_{0}")\n'.format(self.identifier)
 
+                pymol_out += '\ncmd.load_cgo(cluster_dict["{0}"], "Pharmacophore_{0}", 1)\n'.format(self.identifier)
+                pymol_out += '\ncmd.set("transparency", 0.2,"Pharmacophore_{0}")\n'.format(self.identifier)
                 pymol_file.write(pymol_out)
 
         elif extension == ".json":
@@ -1082,8 +1082,9 @@ class PharmacophoreFeature(_HotspotsHelper):
             """
             self.feature_boundary_cutoff = 5
             self.max_hbond_dist = 4
-            self.radius = 1.5
+            self.radius = 1.0
             self.vector_on = 1
+            self.transparency = 0.6
 
     def __init__(self, grid, probe, protein):
         """
