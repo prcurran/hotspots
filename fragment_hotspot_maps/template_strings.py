@@ -282,11 +282,7 @@ def cgo_arrow(atom1='pk1', atom2='pk2', radius=0.07, gap=0.0, hlength=-1, hradiu
     obj = [cgo.CYLINDER] + xyz1 + xyz3 + [radius] + color1 + color2 + \
           [cgo.CONE] + xyz3 + xyz2 + [hradius, 0.0] + color2 + color2 + \
           [1.0, 0.0]
-
-    if not name:
-        name = cmd.get_unused_name('arrow')
-
-    cmd.load_cgo(obj, name)
+    return obj
 
 cmd.load(r'protein.pdb',"protein")
 cmd.load(r'donor.grd')

@@ -989,7 +989,7 @@ class PharmacophoreModel(object):
         elif extension == ".py":
             with open(fname, "wb") as pymol_file:
                 pymol_out = pymol_template(0, 0, 0, 0).split("""cmd.load(r'protein.pdb',"protein")""")[0]
-                pymol_out += """cluster_dict = {{"{0}":[]}}""".format(self.identifier)
+                pymol_out += """cluster_dict = {{"{0}":[], "{0}_arrows":[]}}""".format(self.identifier)
                 sphere_dict = {'acceptor': '[COLOR, 1.00, 0.00, 0.00]',
                                'donor': '[COLOR, 0.00, 0.00, 1.00]',
                                'apolar': '[COLOR, 1.00, 1.000, 0.000]',
@@ -1000,10 +1000,11 @@ class PharmacophoreModel(object):
                 colour_dict = {'acceptor': 'red blue',
                                'donor': 'blue red',
                                'apolar': 'yellow'}
-
+                i = 0
                 for feature in self.features:
                     if feature.pharmacophore_type in partner_dict["True"] and feature.hbond_partner is not None:
-                        arrow = 'cgo_arrow([{0},{1},{2}], [{3},{4},{5}], color="{6}", name="Arrows_{7}")\n'\
+                        i += 1
+                        arrow = 'cluster_dict["{7}_arrows"] += cgo_arrow([{0},{1},{2}], [{3},{4},{5}], color="{6}", name="Arrows_{7}_{8}")\n'\
                             .format(feature.coordinates.x,
                                     feature.coordinates.y,
                                     feature.coordinates.z,
@@ -1011,7 +1012,8 @@ class PharmacophoreModel(object):
                                     feature.hbond_partner.y,
                                     feature.hbond_partner.z,
                                     colour_dict[feature.pharmacophore_type],
-                                    feature.pharmacophore_type)
+                                    self.identifier,
+                                    str(i))
                     else:
                         arrow = ''
 
@@ -1026,8 +1028,11 @@ class PharmacophoreModel(object):
                     pymol_out += '\ncluster_dict["{0}"] += {1}'.format(self.identifier, sphere)
                     pymol_out += '\n{}'.format(arrow)
 
-                pymol_out += '\ncmd.load_cgo(cluster_dict["{0}"], "Pharmacophore_{0}", 1)\n'.format(self.identifier)
-                pymol_out += '\ncmd.set("transparency", 0.2,"Pharmacophore_{0}")\n'.format(self.identifier)
+                pymol_out += '\ncmd.load_cgo(cluster_dict["{0}"], "Features_{0}", 1)' \
+                             '\ncmd.load_cgo(cluster_dict["{0}_arrows"], "Arrows_{0}")'.format(self.identifier)
+                pymol_out += '\ncmd.set("transparency", 0.2,"Features_{0}")' \
+                             '\ncmd.group("Pharmacophore_{0}", members="Features_{0}")' \
+                             '\ncmd.group("Pharmacophore_{0}", members="Arrows_{0}")\n'.format(self.identifier)
                 pymol_file.write(pymol_out)
 
         elif extension == ".json":
@@ -1081,7 +1086,7 @@ class PharmacophoreFeature(_HotspotsHelper):
             max_hbond_dist is the furtherest acceptable distance for a hydrogen bonding partner (from polar feature)
             """
             self.feature_boundary_cutoff = 5
-            self.max_hbond_dist = 4
+            self.max_hbond_dist = 5
             self.radius = 1.0
             self.vector_on = 1
             self.transparency = 0.6
@@ -1136,7 +1141,7 @@ class PharmacophoreFeature(_HotspotsHelper):
                     near_atoms.update({dist:[atm]})
             else:
                 continue
-
+        print(near_atoms)
         if len(near_atoms.keys()) == 0:
             return None
 
