@@ -1,6 +1,6 @@
 from .enhanced_grid import *
 from.extraction import *
-#from .fragment_hotspot_maps import *
+from .fragment_hotspot_maps import *
 from .pharmacophore import *
 from .template_strings import *
 from .utilities import *

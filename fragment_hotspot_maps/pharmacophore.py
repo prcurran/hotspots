@@ -29,6 +29,7 @@ from utilities import Utilities
 import collections
 from os.path import basename, splitext
 from template_strings import pymol_template
+import numpy as np
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -76,28 +77,21 @@ class PharmacophoreModel(object):
         """list of `fragment_hotspot_maps.pharmacophore.PharmacophoreFeature` class instances"""
         return self._features
 
-    @staticmethod
-    def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5):
-        """creates a pharmacophore model from hotspot results object"""
-        settings = Settings()
-        feature_list = [PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
-                        for probe, g in super_grids.items()
-                        for island in g.islands(cutoff)]
+    def rank_polar_features(self, threshold=0, max_num_features=None):
+        """
+        rank polar features, sort feature list
+        :return:
+        """
+        apolar = [feat for feat in self.features if feat.feature_type == "apolar"][0]
+        print apolar
+        score_dic = {feat.score: feat for feat in self.features if feat.feature_type != "apolar"}
+        sorted_scores = sorted(score_dic.items(), key=lambda x: x[0], reverse=True)
 
-        return PharmacophoreModel(identifier=identifier, features=feature_list)
-
-    @staticmethod
-    def from_file(fname, identifier=None):
-        """creates a pharmacophore model from file (only .cm supported) """
-        if identifier == None:
-            identifier = basename(fname).split(".")[0]
-
-        with open(fname) as f:
-            file = f.read().split("FEATURE_LIBRARY_END")[1]
-            lines = [l for l in file.split("""\n\n""") if l != ""]
-            feature_list = [PharmacophoreFeature.from_crossminer(feature) for feature in lines]
-
-        return PharmacophoreModel(identifier=identifier, features=feature_list)
+        if max_num_features is None:
+            ordered_features = [feat for score, feat in sorted_scores if score > threshold]
+        else:
+            ordered_features = [feat for score, feat in sorted_scores if score > threshold][:max_num_features]
+        return ordered_features
 
     def get_pymol_pharmacophore(self):
         """
@@ -269,6 +263,29 @@ class PharmacophoreModel(object):
         else:
             raise TypeError("""""{}" output file type is not currently supported.""".format(extension))
 
+    @staticmethod
+    def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5):
+        """creates a pharmacophore model from hotspot results object"""
+        settings = Settings()
+        feature_list = [PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
+                        for probe, g in super_grids.items()
+                        for island in g.islands(cutoff)]
+
+        return PharmacophoreModel(identifier=identifier, features=feature_list)
+
+    @staticmethod
+    def from_file(fname, identifier=None):
+        """creates a pharmacophore model from file (only .cm supported) """
+        if identifier == None:
+            identifier = basename(fname).split(".")[0]
+
+        with open(fname) as f:
+            file = f.read().split("FEATURE_LIBRARY_END")[1]
+            lines = [l for l in file.split("""\n\n""") if l != ""]
+            feature_list = [PharmacophoreFeature.from_crossminer(feature) for feature in lines]
+
+        return PharmacophoreModel(identifier=identifier, features=feature_list)
+
 
 class PharmacophoreFeature(Utilities):
     """
@@ -342,12 +359,14 @@ class PharmacophoreFeature(Utilities):
                                                                                            feature_coordinates,
                                                                                            protein,
                                                                                            settings)
+                else:
+                    projected_coordinates = None
                     if projected_coordinates is not None:
                         vector = PharmacophoreFeature.get_vector(projected_coordinates, feature_coordinates, settings)
                     else:
                         vector = None
             else:
-                self.projected = False
+                projected = False
 
         return PharmacophoreFeature(projected, feature_type, feature_coordinates, projected_coordinates, score, vector,
                                     settings)
@@ -474,17 +493,19 @@ class PharmacophoreFeature(Utilities):
         for i in range(nx):
             for j in range(ny):
                 for k in range(nz):
-                    grid_value = grid.value(i, j, k)
+                    grid_val = grid.value(i, j, k)
                     x, y, z = grid.indices_to_point(i, j, k)
-                    weighted_x += grid_value * x
-                    weighted_y += grid_value * y
-                    weighted_z += grid_value * z
-                    total_mass += grid_value
+                    weighted_x += grid_val * x
+                    weighted_y += grid_val * y
+                    weighted_z += grid_val * z
+                    total_mass += grid_val
 
         coords = Coordinates(np.divide(weighted_x, total_mass),
                                       np.divide(weighted_y, total_mass),
                                       np.divide(weighted_z, total_mass)
                                       )
-        score = grid.value(grid.point_to_indices(coords))
+        score = grid.value(grid.point_to_indices(coords)[0],
+                           grid.point_to_indices(coords)[1],
+                           grid.point_to_indices(coords)[2])
 
         return float(score), coords
