@@ -73,7 +73,7 @@ ATOM_SCORING SINGLE_POINT'''.format(settings.jobname, settings.probename, settin
     return ss_str
 
 
-def extracted_hotspot_template(num_hotspots, charged, fragments, lead):
+def extracted_hotspot_template(num_hotspots, fragments, lead):
     out_str = '''from pymol import cmd
 from pymol.cgo import *
 
@@ -123,14 +123,16 @@ cmd.load(r'protein.pdb',"protein")
 
 cmd.set("surface_cavity_mode", 1)
 cmd.show("surface", "protein")
+cmd.set("surface_trim_factor", 13)
+cmd.show("cartoon", "protein")
 #cmd.set("surface", "wireframe", "protein")
-cmd.set('transparency', 0.3, "protein")
+#cmd.set('transparency', 0.3, "protein")
 
-frag = {2}
-lead = "{3}"
+frag = {1}
+lead = "{2}"
 
 if frag:
-    for f in {2}:
+    for f in {1}:
         cmd.fetch(f)
         cmd.hide("everything", f)
         cmd.color("green", f)
@@ -139,17 +141,12 @@ if lead:
     cmd.hide("everything", lead)
     cmd.color("orange", lead)
 
-charged = {1}
 
 cmd.bg_color("white")
 
 cmd.hide("cartoon", "protein")
 cmd.show("sticks", "organic")
 cmd.hide("lines", "protein")
-
-if charged:
-    cmd.load(r'negative.grd', 'negative')
-    cmd.load(r'positive.grd', 'positive')
 
 colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':'br4', 'positive':'cyan'}}
 
@@ -159,8 +156,8 @@ ps = ['donor', 'acceptor', 'apolar', 'negative', 'positive']
 for n in range(nh):
     for p in ps:
         cmd.load(r'%s/%s.grd'%(n,p), '%s_%s'%(p,n))
-        cmd.isosurface('surface_%s_%s'%(p,n), '%s_%s'%(p,n), 12)
-        cmd.set('transparency', 0.5, 'surface_%s_%s'%(p,n))
+        cmd.isosurface('surface_%s_%s'%(p,n), '%s_%s'%(p,n), 5)
+        cmd.set('transparency', 0.7, 'surface_%s_%s'%(p,n))
         cmd.color(colour_dict['%s'%(p)], 'surface_%s_%s'%(p,n))
 
 for n in range(nh):
@@ -175,7 +172,7 @@ for n in range(nh):
     cmd.group('hotspot_%s'%(n), members= 'positive_%s'%(n))
     cmd.group('hotspot_%s'%(n), members= 'negative_%s'%(n))
 
-    '''.format(num_hotspots, charged, fragments, lead)
+    '''.format(num_hotspots, fragments, lead)
     return out_str
 
 def pymol_zip_template(zip_file, probes, cutoff_dict):
