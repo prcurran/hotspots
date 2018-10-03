@@ -212,7 +212,7 @@ class _RunSuperstar(object):
         if settings is None:
             settings = self.Settings()
         self.settings = settings
-
+        base = csd_directory()
         main_dir = environ.get('MAINDIR')
         if main_dir:
             if sys.platform == 'win32':
@@ -222,29 +222,30 @@ class _RunSuperstar(object):
             self.settings.superstar_env = dict()
         else:
             if sys.platform == 'win32':
-                base = dirname(csd_directory())
                 merc = glob.glob(join(base, 'mercury*'))
                 if len(merc):
                     merc = merc[0]
-                #self.settings.superstar_executable = join(merc, 'superstar_app.exe')
-                self.settings.superstar_executable = join(merc, 'superstar*')
+                self.settings.superstar_executable = join(merc, 'superstar_app.exe')
+                # TO DO: try except?
+                # self.settings.superstar_executable = join(merc, 'superstar.exe')
                 self.settings.superstar_env = dict(
-                    SUPERSTAR_ISODIR=str(join(dirname(csd_directory()), 'isostar_files', 'istr')),
-                    SUPERSTAR_ROOT=str(join(dirname(csd_directory()), "Mercury"))
+                    SUPERSTAR_ISODIR=str(join(base, 'isostar_files', 'istr')),
+                    SUPERSTAR_ROOT=str(join(base, "Mercury"))
                 )
 
             elif sys.platform == 'darwin':
                 print("OS X not supported")
 
             else:
-                self.settings.superstar_executable = join(dirname(csd_directory()), 'bin', 'superstar')
+                base = dirname(base)
+                self.settings.superstar_executable = join(base, 'bin', 'superstar')
 
                 self.settings.superstar_env = dict(
-                    SUPERSTAR_ISODIR=str(join(dirname(csd_directory()), 'isostar_files', 'istr')),
-                    SUPERSTAR_ROOT=str(dirname(csd_directory()))
+                    SUPERSTAR_ISODIR=str(join(base, 'isostar_files', 'istr')),
+                    SUPERSTAR_ROOT=str(base)
                 )
-                # self.settings.working_directory = _test_output_dir()
-                # print(self.settings.working_directory)
+        # self.settings.working_directory = _test_output_dir()
+        # print(self.settings.working_directory)
 
     def _append_cavity_info(self):
         """
@@ -272,9 +273,10 @@ class _RunSuperstar(object):
         self._append_cavity_info()
         out = join(out_dir, "ins")
         try:
-            mkdir(out)
+            if not exists(out):
+                mkdir(out)
         except OSError:
-            pass
+            raise OSError("""Could not create '{}' directory""".format(out))
 
         self.fname = join(out, "superstar_{}.ins".format(self.settings.jobname.split(".")[0]))
         with open(self.fname, "w") as w:
@@ -290,13 +292,16 @@ class _RunSuperstar(object):
         """
 
         with PushDir(self.settings.working_directory):
-            if prot is not None:
-                with MoleculeWriter(join('protein.pdb')) as writer:
-                    writer.write(prot)
             self._get_inputs(out_dir)
             env = environ.copy()
             env.update(self.settings.superstar_env)
-            cmd = self.settings.superstar_executable + ' ' + self.fname
+            cmd = '{}'.format(self.settings.superstar_executable) + ' ' + '{}'.format(self.fname)
+            if prot:
+                with MoleculeWriter(join(self.settings.working_directory, 'protein.pdb')) as writer:
+                    writer.write(prot)
+            else:
+                raise IOError("No protein supplied for SuperStar")
+
             subprocess.call(cmd, shell=sys.platform != 'win32', env=env)
         return _SuperstarResult(self.settings)
 
@@ -1500,10 +1505,13 @@ class HotspotResults(_HotspotsHelper):
             if hr.pharmacophore is not None:
                 build.pymol_out += hr.pharmacophore.get_pymol_pharmacophore()
 
-        with open(join(out_dir, "hotspot_boundaries","extracted_hotspots.py"), 'w') as w:
+        hsb_dir = join(out_dir, "hotspot_boundaries")
+        if not exists(hsb_dir):
+            mkdir(join(out_dir, "hotspot_boundaries"))
+        with open(join(hsb_dir, "extracted_hotspots.py"), 'w') as w:
             w.write(build.pymol_out)
 
-        with MoleculeWriter(join(out_dir, "hotspot_boundaries", "protein.pdb")) as w:
+        with MoleculeWriter(join(hsb_dir, "protein.pdb")) as w:
             w.write(self.prot)
 
         #self.output_extracted_hotspots(hrs, out_dir, fragments, lead, charged=False)

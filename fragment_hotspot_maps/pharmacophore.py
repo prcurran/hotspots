@@ -28,8 +28,9 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:
 from utilities import Utilities
 import collections
 from os.path import basename, splitext
-from template_strings import pymol_template
+from template_strings import pymol_template, crossminer_header
 import numpy as np
+import csv
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -61,16 +62,12 @@ class PharmacophoreModel(object):
         identifier is useful for displaying multiple models at once
         :param features:
         """
-        self._identifier = identifier
+        self.identifier = identifier
         self._features = features
 
         self.fname = None
         self.projected_dict = {"True": ["donor", "acceptor"], "False": ["negative", "positive", "apolar"]}
-
-    @property
-    def identifier(self):
-        """str to identify pharmacophore model"""
-        return self._identifier
+        self.settings = Settings()
 
     @property
     def features(self):
@@ -163,47 +160,57 @@ class PharmacophoreModel(object):
                                    "positive": ""
                                    }
 
-                for feature in self.features:
-                    feat = """\nPHARMACOPHORE_FEATURE {0}\nPHARMACOPHORE_SPHERE {1} {2} {3} {4}"""\
-                        .format(interaction_dic[feature.feature_type],
-                                feature.feature_coordinates.x,
-                                feature.feature_coordinates.y,
-                                feature.feature_coordinates.z,
+                for feat in self.features:
+                    print feat.feature_coordinates
+                    feat_str = """\nPHARMACOPHORE_FEATURE {0}\nPHARMACOPHORE_SPHERE {1} {2} {3} {4}"""\
+                        .format(interaction_dic[feat.feature_type],
+                                feat.feature_coordinates.x,
+                                feat.feature_coordinates.y,
+                                feat.feature_coordinates.z,
+                                self.settings.radius
                                 )
 
-                    if feature.feature_type in projected_dict["True"]:
-                        feat += """\nPHARMACOPHORE_SPHERE {0} {1} {2} {3}""".format(feature.projected_coordinates.x,
-                                                                                    feature.projected_coordinates.y,
-                                                                                    feature.projected_coordinates.z,
-                                                                                    feature.settings.radius
+                    if feat.projected_coordinates:
+                        feat_str += """\nPHARMACOPHORE_SPHERE {0} {1} {2} {3}""".format(feat.projected_coordinates.x,
+                                                                                    feat.projected_coordinates.y,
+                                                                                    feat.projected_coordinates.z,
+                                                                                    feat.settings.radius
                                                                                     )
 
-                    feat += """\nPHARMACOPHORE_FEATURE_SMALL_MOLECULE\nPHARMACOPHORE_FEATURE_DESCRIPTION {0}\n"""\
-                        .format(interaction_dic[feature.feature_type])
+                    feat_str += """\nPHARMACOPHORE_FEATURE_SMALL_MOLECULE\nPHARMACOPHORE_FEATURE_DESCRIPTION {0}\n"""\
+                        .format(interaction_dic[feat.feature_type])
 
-                    crossminer_file.write(feat)
+                    crossminer_file.write(feat_str)
 
         elif extension == ".csv":
             with open(fname, "wb") as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=",")
+                line = 'Identifier, Feature_type, x, y, z, score, ' \
+                       'projected_x, projected_y, projected_z, ' \
+                       'vector_x, vector_y, vector_z'
+
                 for feature in self.features:
-                    line = "{0},{1},{2},{3},{4},{5}".format(self.identifier,
+                    line += "{0},{1},{2},{3},{4},{5}".format(self.identifier,
                                                             feature.feature_type,
                                                             feature.feature_coordinates.x,
                                                             feature.feature_coordinates.y,
                                                             feature.feature_coordinates.z,
                                                             feature.score
                                                             )
-                    if feature.feature_type in projected_dict["True"]:
-                        line += ",{0},{1},{2},{3},{4},{5}".format(feature.projected_coordinates.x,
-                                                                  feature.projected_coordinates.y,
-                                                                  feature.projected_coordinates.z,
-                                                                  feature.vector.x,
-                                                                  feature.vector.y,
-                                                                  feature.vector.z
-                                                                  )
+                    if feature.projected_coordinates:
+                        line += ",{0},{1},{2}".format(feature.projected_coordinates.x,
+                                                      feature.projected_coordinates.y,
+                                                      feature.projected_coordinates.z)
                     else:
-                        line += ",0,0,0,0,0,0"
+                        line += ",0,0,0"
+
+                    if feature.vector:
+                        line += ",{0},{1},{2}".format(feature.vector.x,
+                                                      feature.vector.y,
+                                                      feature.vector.z)
+                    else:
+                        line += ",0,0,0"
+
                     l = line.split(",")
                     csv_writer.writerow(l)
 
@@ -349,7 +356,13 @@ class PharmacophoreFeature(Utilities):
         feature_type = probe
         if probe == "apolar":
             score, feature_coordinates = PharmacophoreFeature.get_centroid(grid)
+            projected = False
+            projected_coordinates = None
+            vector = None
+
         else:
+            vector = None
+            projected_coordinates = None
             score, feature_coordinates = PharmacophoreFeature.get_maxima(grid)
             if probe == "donor" or probe == "acceptor":
 
@@ -361,10 +374,8 @@ class PharmacophoreFeature(Utilities):
                                                                                            settings)
                 else:
                     projected_coordinates = None
-                    if projected_coordinates is not None:
-                        vector = PharmacophoreFeature.get_vector(projected_coordinates, feature_coordinates, settings)
-                    else:
-                        vector = None
+                    if projected_coordinates:
+                        vector = PharmacophoreFeature.get_vector(projected_coordinates, feature_coordinates)
             else:
                 projected = False
 

@@ -134,7 +134,7 @@ class BuildLocation(Utilities):
                         adjusted_parent.set_value(i, j, k, 0)
                     else:
                         coords = self.parent_island.indices_to_point(i, j, k)
-                        dist = self._get_distance(coords, self.coordinates)
+                        dist = self.get_distance(coords, self.coordinates)
                         new_value = (1 / (0.1 + dist)) * self.parent_island.value(i, j, k)
                         adjusted_parent.set_value(i, j, k, new_value)
         return adjusted_parent
@@ -363,9 +363,9 @@ class HotspotBuilder(Utilities):
         """
         for feat in self.features:
             # 1) distance filter
-            distances = {self._get_distance(location.coordinates, feat.coordinates): location
+            distances = {self.get_distance(location.coordinates, feat.coordinates): location
                          for location in self.locations
-                         if self._get_distance(location.coordinates, feat.coordinates) <
+                         if self.get_distance(location.coordinates, feat.coordinates) <
                          self.settings.distance_cutoff}
 
             # 2) probe location filter

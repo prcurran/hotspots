@@ -29,7 +29,7 @@ class Utilities(object):
     """
 
     @staticmethod
-    def _get_distance(coords1, coords2):
+    def get_distance(coords1, coords2):
         """
         given two coordinates, calculates the distance
 
@@ -44,7 +44,7 @@ class Utilities(object):
         return d
 
     @staticmethod
-    def _get_lines_from_file(fname):
+    def get_lines_from_file(fname):
         """
         fetch lines from ghecom output
 
