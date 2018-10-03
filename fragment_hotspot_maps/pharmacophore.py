@@ -31,6 +31,7 @@ from os.path import basename, splitext
 from template_strings import pymol_template, crossminer_header
 import numpy as np
 import csv
+import json
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -80,7 +81,6 @@ class PharmacophoreModel(object):
         :return:
         """
         apolar = [feat for feat in self.features if feat.feature_type == "apolar"][0]
-        print apolar
         score_dic = {feat.score: feat for feat in self.features if feat.feature_type != "apolar"}
         sorted_scores = sorted(score_dic.items(), key=lambda x: x[0], reverse=True)
 
@@ -231,32 +231,32 @@ class PharmacophoreModel(object):
                                    'positive': 'PositiveIon'
                                    }
 
-                for feature in self.features:
-                    if feature.feature_type in self.projected_dict["True"]:
-                        point = {"name": interaction_dic[feature.feature_type],
+                for feat in self.features:
+                    if feat.vector:
+                        point = {"name": interaction_dic[feat.feature_type],
                                  "hasvec": True,
-                                 "x": feature.feature_coordinates.x,
-                                 "y": feature.feature_coordinates.y,
-                                 "z": feature.feature_coordinates.z,
-                                 "radius": feature.settings.radius,
+                                 "x": feat.feature_coordinates.x,
+                                 "y": feat.feature_coordinates.y,
+                                 "z": feat.feature_coordinates.z,
+                                 "radius": feat.settings.radius,
                                  "enabled": True,
-                                 "vector_on": feature.settings.vector_on,
-                                 "svector": {"x": feature.vector.x,
-                                             "y": feature.vector.y,
-                                             "z": feature.vector.z},
+                                 "vector_on": feat.settings.vector_on,
+                                 "svector": {"x": feat.vector.x,
+                                             "y": feat.vector.y,
+                                             "z": feat.vector.z},
                                  "minsize": "",
                                  "maxsize": "",
                                  "selected": False
                                  }
                     else:
-                        point = {"name": interaction_dic[feature.feature_type],
+                        point = {"name": interaction_dic[feat.feature_type],
                                  "hasvec": False,
-                                 "x": feature.feature_coordinates.x,
-                                 "y": feature.feature_coordinates.y,
-                                 "z": feature.feature_coordinates.z,
-                                 "radius": feature.settings.radius,
+                                 "x": feat.feature_coordinates.x,
+                                 "y": feat.feature_coordinates.y,
+                                 "z": feat.feature_coordinates.z,
+                                 "radius": feat.settings.radius,
                                  "enabled": True,
-                                 "vector_on": feature.settings.vector_on,
+                                 "vector_on": feat.settings.vector_on,
                                  "svector": {"x": 0,
                                              "y": 0,
                                              "z": 0},
@@ -387,6 +387,7 @@ class PharmacophoreFeature(Utilities):
         """generates a pharmacophore model from a crossminer file"""
         cm_feature_dict = {"ring": "apolar",
                            "ring_planar_projected": "apolar",
+                           "ring_non_planar": "apolar",
                            "donor_ch_projected": "donor",
                            "donor_projected": "donor",
                            "donor": "donor",
@@ -459,7 +460,6 @@ class PharmacophoreFeature(Utilities):
                     near_atoms.update({dist:[atm]})
             else:
                 continue
-        print(near_atoms)
         if len(near_atoms.keys()) == 0:
             return None
 

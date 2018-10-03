@@ -155,7 +155,7 @@ def restricted_volume(self, volume=75):
     for i in indices[:max_points]:
         grid.set_value(i[0], i[1], i[2], self.value(i[0], i[1], i[2]))
 
-    return Grid.super_grid(2, *grid.islands(threshold=1))
+    return Grid.super_grid(1, *grid.islands(threshold=1))
 
 
 def centroid(self):

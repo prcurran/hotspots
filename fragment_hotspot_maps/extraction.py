@@ -254,7 +254,7 @@ class HotspotBuilder(Utilities):
             if probe == "apolar":
                 self.super_grids.update({probe: g.gaussian(0.2)})
             else:
-                self.super_grids.update({probe: g.gaussian(0.5)})
+                self.super_grids.update({probe: g.gaussian(0.4)})
 
         self.super_grids["negative"] = self.super_grids["negative"].deduplicate(self.super_grids["acceptor"],
                                                                                 threshold=14,
@@ -267,9 +267,10 @@ class HotspotBuilder(Utilities):
         self.protein = protein
         self.settings = self.Settings(kw)
 
-        self._locations = self.get_locations()
-        self._features = self.get_features()
-        self.format_data()
+        self._locations = self._get_locations()
+        self._features = self._get_features()
+        self._construct()
+        self._format_data()
 
     class Settings(object):
         """
@@ -284,23 +285,7 @@ class HotspotBuilder(Utilities):
             self.max_probes = 50
             self.mode = None
             self.distance_cutoff = 8
-            self.match_threshold = 0.2
-
-    @property
-    def extracted_super_grids(self):
-        """
-        grid dictionary formatted to create a:
-        `fragment_hotspot_maps.fragment_hotspot_maps.HotspotResult` class instance
-        """
-        return self._extracted_super_grids
-
-    @property
-    def extracted_probes(self):
-        """
-        probe dictionary formatted to create a:
-        `fragment_hotspot_maps.fragment_hotspot_maps.HotspotResult` class instance
-        """
-        return self._extracted_probes
+            self.match_threshold = 0.1
 
     @property
     def locations(self):
@@ -312,7 +297,7 @@ class HotspotBuilder(Utilities):
         """list of unassigned `fragment_hotspot_maps.extraction.BuildFeature` class instances"""
         return self._features
 
-    def get_locations(self):
+    def _get_locations(self):
         """
         locate peaks in apolar maps and define fragment size volume
         :return: self._locations
@@ -333,17 +318,17 @@ class HotspotBuilder(Utilities):
         self._locations = locations
         return self._locations
 
-    def get_features(self):
+    def _get_features(self):
         """
         generate InteractionFeatures which contains all the information required for hotspot feature assignment
         :return:
         """
         features = []
         for probe, grid in self.super_grids.items():
-            for i, island in enumerate(grid.islands(threshold=12)):
+            for i, island in enumerate(grid.islands(threshold=10)):
                 # filter noise
                 points = len(ma.masked_less_equal(island.get_array(), self.settings.cutoff).compressed())
-                if points > 10 and probe != "apolar":
+                if points > 6 and probe != "apolar":
                     features.append(BuildFeature(identifier="{}_{}".format(probe, i),
                                                  feature_type=probe,
                                                  island=island,
@@ -356,7 +341,7 @@ class HotspotBuilder(Utilities):
         self._features = features
         return self._features
 
-    def construct(self):
+    def _construct(self):
         """
         assigns hotspot features to locations. attached to `fragment_hotspot_maps.extraction.BuildLocation`
         class instance.
@@ -375,7 +360,7 @@ class HotspotBuilder(Utilities):
                 for i, location in enumerate(distances.values()):
                     all_probes = len(feat.island_probes)
                     assigned_probes = [mol for mol in feat.island_probes
-                                       if location.island.contains_point(mol.atoms[3].coordinates)]
+                                       if location.island.contains_point(mol.atoms[3].coordinates, tolerance=2)]
                     match_score.update({(len(assigned_probes) / all_probes): location})
                 location_key = sorted(match_score.items(), key=lambda x: x[0], reverse=True)[0][0]
                 location = match_score[location_key]
@@ -383,7 +368,7 @@ class HotspotBuilder(Utilities):
             else:
                 print("Unable to assign feature")
 
-    def format_data(self):
+    def _format_data(self):
         """
         create grid_dic and probe_dic to create hotspot results object
         """

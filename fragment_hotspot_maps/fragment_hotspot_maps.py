@@ -275,8 +275,8 @@ class _RunSuperstar(object):
         try:
             if not exists(out):
                 mkdir(out)
-        except OSError:
-            raise OSError("""Could not create '{}' directory""".format(out))
+        except OSError():
+            pass
 
         self.fname = join(out, "superstar_{}.ins".format(self.settings.jobname.split(".")[0]))
         with open(self.fname, "w") as w:
@@ -1474,16 +1474,18 @@ class HotspotResults(_HotspotsHelper):
         lead = kwargs.get("lead")
         bfactors = kwargs.get("bfactors")
 
-        build = HotspotBuilder(self.super_grids, self.sampled_probes, out_dir, self.prot, kwargs)
+        hsb_dir = join(out_dir, "hotspot_boundaries")
+        if not exists(hsb_dir):
+            mkdir(join(out_dir, "hotspot_boundaries"))
+
+        build = HotspotBuilder(self.super_grids, self.sampled_probes, hsb_dir, self.prot, kwargs)
         build.write(mode="locations")          # for testing
         build.write(mode="features")           # for testing
-        build.construct()
-        build.format_data()
 
         # create hotspot result
         hrs = []
+        build.pymol_out = extracted_hotspot_template(len(hrs), fragments, lead)
         for i, hotspot in enumerate(build.locations):
-            print(hotspot.extracted_super_grids)
             hotspot.identifier = str(i)
             hr = HotspotResults(grid_dict=hotspot.extracted_super_grids,
                                 protein=self.prot,
@@ -1491,28 +1493,20 @@ class HotspotResults(_HotspotsHelper):
                                 sampled_probes=hotspot.extracted_probes,
                                 buriedness=self.buriedness,
                                 out_dir=self.out_dir)
-            hrs.append(hr)
 
             # create pharmacophore
             if pharmacophore:
                 hr.pharmacophore = hr.get_pharmacophore_model(identifier=hotspot.identifier)
                 hr.pharmacophore.identifier = hotspot.identifier
-                #hr.pharmacophore.fname = pharmacophore
-                hrs.append(hr)
-
-        build.pymol_out = extracted_hotspot_template(len(hrs), fragments, lead)
-        for hr in hrs:
-            if hr.pharmacophore is not None:
                 build.pymol_out += hr.pharmacophore.get_pymol_pharmacophore()
+            hrs.append(hr)
 
-        hsb_dir = join(out_dir, "hotspot_boundaries")
-        if not exists(hsb_dir):
-            mkdir(join(out_dir, "hotspot_boundaries"))
         with open(join(hsb_dir, "extracted_hotspots.py"), 'w') as w:
             w.write(build.pymol_out)
 
         with MoleculeWriter(join(hsb_dir, "protein.pdb")) as w:
             w.write(self.prot)
+
 
         #self.output_extracted_hotspots(hrs, out_dir, fragments, lead, charged=False)
         #

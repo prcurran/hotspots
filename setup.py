@@ -17,7 +17,7 @@ setup(
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
     install_requires=['numpy>=1.9', 'csd-python-api>=1.5', 'matplotlib', 'scipy', 'sklearn', 'scikit-image', 'pandas',
-                      'futures'],
+                      'futures', 'cython'],
     package_data={
         # If any package contains *.txt or *.rst files, include them:
         '': ['*.txt', '*.rst','*.pkl'],
