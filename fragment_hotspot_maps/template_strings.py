@@ -73,7 +73,7 @@ ATOM_SCORING SINGLE_POINT'''.format(settings.jobname, settings.probename, settin
     return ss_str
 
 
-def extracted_hotspot_template(num_hotspots, fragments, lead):
+def extracted_hotspot_template(num_hotspots, fragments, lead, threshold):
     out_str = '''from pymol import cmd
 from pymol.cgo import *
 
@@ -128,15 +128,15 @@ cmd.show("cartoon", "protein")
 #cmd.set("surface", "wireframe", "protein")
 #cmd.set('transparency', 0.3, "protein")
 
-frag = {1}
+frag = "{1}"
 lead = "{2}"
 
-if frag:
+if frag is not "None":
     for f in {1}:
         cmd.fetch(f)
         cmd.hide("everything", f)
         cmd.color("green", f)
-if lead:
+if lead is not "None":
     cmd.fetch(lead)
     cmd.hide("everything", lead)
     cmd.color("orange", lead)
@@ -152,11 +152,14 @@ colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':
 
 nh = {0}
 ps = ['donor', 'acceptor', 'apolar', 'negative', 'positive']
+threshold = {3}
+if len(threshold) == 0:
+    threshold = [5]*nh
 
 for n in range(nh):
     for p in ps:
         cmd.load(r'%s/%s.grd'%(n,p), '%s_%s'%(p,n))
-        cmd.isosurface('surface_%s_%s'%(p,n), '%s_%s'%(p,n), 5)
+        cmd.isosurface('surface_%s_%s'%(p,n), '%s_%s'%(p,n), threshold[n])
         cmd.set('transparency', 0.7, 'surface_%s_%s'%(p,n))
         cmd.color(colour_dict['%s'%(p)], 'surface_%s_%s'%(p,n))
 
@@ -164,15 +167,15 @@ for n in range(nh):
     cmd.group('hotspot_%s'%(n), members= 'surface_apolar_%s'%(n))
     cmd.group('hotspot_%s'%(n), members= 'surface_donor_%s'%(n))
     cmd.group('hotspot_%s'%(n), members= 'surface_acceptor_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'surface_positive_%s'%(n))
+    cmd.group('hotspot_%s'%(n), members= 'surface_negative_%s'%(n))
     cmd.group('hotspot_%s'%(n), members= 'apolar_%s'%(n))
     cmd.group('hotspot_%s'%(n), members= 'donor_%s'%(n))
     cmd.group('hotspot_%s'%(n), members= 'acceptor_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'surface_positive_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'surface_negative_%s'%(n))
     cmd.group('hotspot_%s'%(n), members= 'positive_%s'%(n))
     cmd.group('hotspot_%s'%(n), members= 'negative_%s'%(n))
 
-    '''.format(num_hotspots, fragments, lead)
+'''.format(num_hotspots, fragments, lead, threshold)
     return out_str
 
 def pymol_zip_template(zip_file, probes, cutoff_dict):

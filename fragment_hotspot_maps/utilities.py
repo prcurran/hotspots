@@ -43,6 +43,17 @@ class Utilities(object):
         d = math.sqrt(xd ** 2 + yd ** 2 + zd ** 2)
         return d
 
+    # @staticmethod
+    # def rmsd(a, b):
+    #     """
+    #     given two structures, calulates the rmsd
+    #     :param coords1:
+    #     :param coords2:
+    #     :return:
+    #     """
+
+
+
     @staticmethod
     def get_lines_from_file(fname):
         """

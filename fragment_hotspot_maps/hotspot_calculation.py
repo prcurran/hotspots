@@ -21,28 +21,18 @@ import subprocess
 import zipfile
 import shutil
 import tempfile
-import json
+from concurrent import futures
 
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.ma as ma
 from ccdc.io import csd_directory, MoleculeWriter, MoleculeReader
 from ccdc.protein import Protein
 from ccdc.utilities import _test_output_dir, PushDir
-from enhanced_grid import Grid
-from ccdc import molecule
 
-from scipy import optimize, ndimage
-from skimage import feature
+from grid_extension import Grid
 import pkg_resources
-from template_strings import pymol_template, colourmap, superstar_ins, extracted_hotspot_template, pymol_zip_template, \
-    crossminer_header
-from extraction import BuildLocation, BuildFeature, HotspotBuilder
+from template_strings import pymol_template, colourmap, superstar_ins, pymol_zip_template
 from pharmacophore import PharmacophoreModel
-import pandas as pd
-
-from concurrent import futures
-from pprint import pprint
 
 try:
     from rdkit import Chem
@@ -135,53 +125,6 @@ class _HotspotsHelper(object):
         out2 = Grid.super_grid(padding, g2, out_g)
         return out1, out2
 
-    @staticmethod
-    def contains_point(point, island, tolerance=0, threshold=0):
-
-        mini = island.bounding_box[0]
-        maxi = island.bounding_box[1]
-        if island.value_at_point(point) > threshold:
-            return all([mini.x - tolerance < point[0] < maxi.x + tolerance,
-                        mini.y - tolerance < point[1] < maxi.y + tolerance,
-                        mini.z - tolerance < point[2] < maxi.z + tolerance])
-        else:
-            return False
-
-    @staticmethod
-    def grid_score(g, threshold=0, percentile=75):
-        """
-        take a group and return average score of points above threshold
-        :param g:
-        :param threshold
-        :param percentile
-
-        :return:
-        """
-
-        nx, ny, nz = g.nsteps
-        values = [g.value(i, j, k) for i in range(nx) for j in range(ny) for k in range(nz)
-                  if g.value(i, j, k) > threshold]
-
-        if len(values) == 0:
-            return 0
-        else:
-            return np.percentile(values, percentile)
-
-    @staticmethod
-    def _get_lines_from_file(fname):
-        """
-        fetch lines from ghecom output
-
-        :return: str, lines from output file
-        """
-
-        f = open(fname)
-        lines = f.readlines()
-        f.close()
-        for i in range(0, len(lines)):
-            lines[i] = lines[i].strip()
-        return lines
-
 
 class _RunSuperstar(object):
     """
@@ -244,8 +187,6 @@ class _RunSuperstar(object):
                     SUPERSTAR_ISODIR=str(join(base, 'isostar_files', 'istr')),
                     SUPERSTAR_ROOT=str(base)
                 )
-        # self.settings.working_directory = _test_output_dir()
-        # print(self.settings.working_directory)
 
     def _append_cavity_info(self):
         """
@@ -275,7 +216,7 @@ class _RunSuperstar(object):
         try:
             if not exists(out):
                 mkdir(out)
-        except OSError():
+        except OSError:
             pass
 
         self.fname = join(out, "superstar_{}.ins".format(self.settings.jobname.split(".")[0]))
@@ -471,6 +412,7 @@ class _WeightedResult(object):
         self.identifier = identifier
         self.grid = grid
 
+
 class _SampleGrid(_HotspotsHelper):
     """
     class to handle sampled grids
@@ -641,20 +583,20 @@ class HotspotResults(_HotspotsHelper):
         method of hotspot results object(intended to be run after extracted HS) returns PharmacophoreModel
         :return:
         """
-        return PharmacophoreModel.from_hotspot(self.prot, self.super_grids, identifier=identifier, cutoff=5)
+        return PharmacophoreModel.from_hotspot(self.prot, self.super_grids, identifier=identifier, cutoff=cutoff)
 
-    def filter_by_score(self, sampled_probes, score=16):
-        """
-        filter sampled probes by score (reduce searching)
-        :param sampled_probes: dict
-        :param score:
-        :return:
-        """
-        if sampled_probes is not None:
-            return {probe: [m for m in mols if float(m.identifier) > score] for probe, mols in
-                    sampled_probes.items()}
-        else:
-            return None
+    # def filter_by_score(self, sampled_probes, score=16):
+    #     """
+    #     filter sampled probes by score (reduce searching)
+    #     :param sampled_probes: dict
+    #     :param score:
+    #     :return:
+    #     """
+    #     if sampled_probes is not None:
+    #         return {probe: [m for m in mols if float(m.identifier) > score] for probe, mols in
+    #                 sampled_probes.items()}
+    #     else:
+    #         return None
 
     def _combine(self):
         """
@@ -666,17 +608,17 @@ class HotspotResults(_HotspotsHelper):
         out_g = self._copy_and_clear(sg)
         return {probe: Grid.super_grid(1, g, out_g) for probe, g in self.super_grids.items()}
 
-    def _minimal_grid(self):
-        """
-        takes a results object and produces minimal common grid. (reduces memory required to store grids)
-
-        :return: a :class: `ccdc.utilities.Grid` instance
-        """
-
-        for probe, g in self.super_grids.items():
-            self.super_grids[probe] = Grid.super_grid(1, *g.islands(threshold=1))
-
-        self.super_grids = self._combine()
+    # def _minimal_grid(self):
+    #     """
+    #     takes a results object and produces minimal common grid. (reduces memory required to store grids)
+    #
+    #     :return: a :class: `ccdc.utilities.Grid` instance
+    #     """
+    #
+    #     for probe, g in self.super_grids.items():
+    #         self.super_grids[probe] = Grid.super_grid(1, *g.islands(threshold=1))
+    #
+    #     self.super_grids = self._combine()
 
     def _histogram_info(self, data, key, n):
         """
@@ -750,25 +692,25 @@ class HotspotResults(_HotspotsHelper):
 
         self._generate_histogram(self.data)
 
-    def get_selectivity_map(self, other):
-        '''
-        Generate maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
-        by the binding site of interest prior to calculation of Fragment Hotspot Maps. High scoring regions of a map
-        represent areas of favourable interaction in the target binding site, not present in off target binding site
-
-        :param other: a :class:`fragment_hotspots.Hotspots.HotspotResults` instance
-        :return: a :class:`fragment_hotspots.Hotspots.HotspotResults` instance
-        '''
-
-        selectivity_grids = {}
-        for probe in self.super_grids.keys():
-            g1 = self.super_grids[probe]
-            g2 = other.super_grids[probe]
-            og1, og2 = self._common_grid(g1, g2)
-            sele = og1 - og2
-            selectivity_grids[probe] = sele
-        hr = Hotspots.HotspotResults(selectivity_grids, self.prot, self.fname, None, None, self.out_dir)
-        return hr
+    # def get_selectivity_map(self, other):
+    #     '''
+    #     Generate maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
+    #     by the binding site of interest prior to calculation of Fragment Hotspot Maps. High scoring regions of a map
+    #     represent areas of favourable interaction in the target binding site, not present in off target binding site
+    #
+    #     :param other: a :class:`fragment_hotspots.Hotspots.HotspotResults` instance
+    #     :return: a :class:`fragment_hotspots.Hotspots.HotspotResults` instance
+    #     '''
+    #
+    #     selectivity_grids = {}
+    #     for probe in self.super_grids.keys():
+    #         g1 = self.super_grids[probe]
+    #         g2 = other.super_grids[probe]
+    #         og1, og2 = self._common_grid(g1, g2)
+    #         sele = og1 - og2
+    #         selectivity_grids[probe] = sele
+    #     hr = Hotspots.HotspotResults(selectivity_grids, self.prot, self.fname, None, None, self.out_dir)
+    #     return hr
 
     def _get_near_score(self, coordinates, atom_type, tolerance):
         '''Searches nearby grid points and returns the maximum score'''
@@ -1136,23 +1078,6 @@ class HotspotResults(_HotspotsHelper):
 
         return percentiles_dict
 
-    def _single_grid(self):
-        '''
-        Takes all grids in the hotspot result object and applies a mask, such that for each grid point is only described
-        by the highest scoring map. The grids are kept as separate object in order to track interaction type, however
-        they could be summed to give a single grid
-        :return:
-
-        '''
-        for probe, g in self.super_grids.items():
-            masked_grids = {}
-            for probe, g in self.super_grids.items():
-                other_grids = [self.super_grids[p] for p in self.super_grids.keys() if p != probe]
-                mg = g * (
-                        (g > other_grids[0]) & (g > other_grids[1]))  # & (g >other_grids[2]) & (g >other_grids[3]))
-                masked_grids[probe] = mg
-
-        return masked_grids
 
     def _grid_values_in_range(self, grid, r_start, r_finish, score_cutoff):
 
@@ -1176,128 +1101,7 @@ class HotspotResults(_HotspotsHelper):
         avg_score = np.mean(all_points)
         return range_points, all_points, avg_score
 
-    def _count_non_zero(self, cutoff):
-        # print(cutoff)
-        try:
-            tmp_g = self._island_by_volume(self.sg, cutoff)
 
-        except IndexError:
-            return 9999
-        try:
-            nx, ny, nz = tmp_g.nsteps
-        except AttributeError:
-            return 9999
-        points = [(i, j, k)
-                  for i in range(nx) for j in range(ny) for k in range(nz)
-                  if tmp_g.value(i, j, k) >= cutoff]
-
-        return abs(self.num_gp - len(points))
-
-    def _count_non_zero_alt(self, cutoff):
-        print(cutoff)
-        try:
-            tmp_g = self._island_by_volume(self.sg, cutoff)
-
-        except IndexError:
-            return 999999
-        try:
-            nx, ny, nz = tmp_g.nsteps
-        except AttributeError:
-            return 0
-
-        points = [(i, j, k)
-                  for i in range(nx) for j in range(ny) for k in range(nz)
-                  if tmp_g.value(i, j, k) >= cutoff]
-
-        return self.num_gp - len(points)
-
-    def _island_by_volume(self, sg, score_cutoff):
-        '''
-
-        :param sg:
-        :param volume:
-        :return:
-        '''
-        island = sg.islands(score_cutoff)
-        island_by_total = {}
-        for g in island:
-            nx, ny, nz = g.nsteps
-            island_points = [g.value(i, j, k)
-                             for i in range(nx) for j in range(ny) for k in range(nz)
-                             if g.value(i, j, k) >= score_cutoff]
-            total = sum(island_points)
-            island_by_total[total] = g
-
-        try:
-            top_score = sorted(island_by_total.keys(), reverse=True)[0]
-            tmp_g = island_by_total[top_score]
-        except IndexError:
-            return None
-        return tmp_g
-
-    def _get_grid_by_volume(self, sg, volume):
-        '''
-        Takes a single grid input (produced by _single_grid()) and produces a mask that will provide a grid with the
-        desired volume
-        :param sg:
-        :return:
-        '''
-        # Calculate number of grid points that corresponds to selected volume
-        num_gp = int(float(volume) / 0.125)
-        all_points = {}
-
-        self.sg = sg
-        self.num_gp = num_gp
-
-        # Find the largest island at score_cutoff
-        score_cutoff = optimize.fminbound(self._count_non_zero, 0, 30, xtol=0.025)
-
-        if self._count_non_zero_alt(score_cutoff) < 0:
-            score_cutoff -= 0.025
-        if score_cutoff >= 29:
-            score_cutoff = 1
-        # print(score_cutoff)
-
-        tmp_g = self._island_by_volume(self.sg, score_cutoff)
-
-        if tmp_g is None:
-            tmp_g = sg * 0
-            return tmp_g
-        c_sg, top_g = self._common_grid(sg, tmp_g, padding=0)
-
-        nx, ny, nz = tmp_g.nsteps
-        print(nx, ny, nz)
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    coords = self._indices_to_point(i, j, k, tmp_g)
-                    try:
-                        all_points[c_sg.value_at_point(coords)].append(coords)
-                    except KeyError:
-                        all_points[c_sg.value_at_point(coords)] = [coords]
-
-        scores = sorted(all_points.keys(), reverse=True)
-        kept_points = []
-
-        for score in scores:
-            kept_points += all_points[score]
-            new_cutoff = score
-            if len(kept_points) >= num_gp:
-                break
-        print("Cutoff", new_cutoff)
-        mask = (top_g > new_cutoff)
-        return mask
-
-    def _percent_in_range(self, grid, r_start, r_finish, score_cutoff):
-
-        range_points, all_points, score = self._grid_values_in_range(grid, r_start, r_finish, score_cutoff)
-
-        num_all = float(len(all_points))
-        num_range = float(len(range_points))
-        if num_all == 0:
-            return 0
-
-        return (num_range / num_all) * 100
 
     def _percent_by_type(self, grid_dict):
 
@@ -1325,247 +1129,91 @@ class HotspotResults(_HotspotsHelper):
 
         return percent_by_type
 
-    def _get_large_cavity(self, buriedness, drug_volume=300):
-        """
-        return cavities over a threshold size (volume approximately the volume of an average drug)
+    # def get_bfactors(self, pdb_file):
+    #     """
+    #     Assign B factors
+    #     """
+    #
+    #     lines = self._get_lines_from_file(pdb_file)
+    #
+    #     return {str(l[21] + ":" + l[17:20] + l[23:26] + "_" + l[12:16]).replace(" ", ""): float(l[60:66])
+    #             for i, l in enumerate(lines) if str(l[0:4]) == "ATOM"}
+    #
+    # def hotspot_bfactor(self, pdb_file, bfactor):
+    #     """
+    #
+    #
+    #     :param prot:
+    #     :param bfactor:
+    #     :return:
+    #     """
+    #     prot = Protein.from_file(pdb_file)
+    #     prot.remove_all_metals()
+    #     prot.remove_all_waters()
+    #     for lig in prot.ligands:
+    #         prot.remove_ligand(lig.identifier)
+    #
+    #     mini, maxi = self.super_grids["apolar"].bounding_box
+    #     centroid = molecule.Coordinates((mini.x + maxi.x) / 2, (mini.y + maxi.y) / 2, (mini.z + maxi.z) / 2)
+    #     bs = prot.BindingSiteFromPoint(protein=prot, origin=centroid, distance=12)
+    #     residues = [str(r.identifier) for r in bs.residues]
+    #     protein = [str(p.identifier) for p in prot.residues]
+    #     deletes = list(set(protein) - set(residues))
+    #     for delete in deletes:
+    #         prot.remove_residue(delete)
+    #     b = [bfactor[str(r.identifier + "_" + a.label)] for r in prot.residues for a in r.atoms]
+    #     self.prot = prot
+    #     print("b", b)
+    #     if len(b) == 0:
+    #         return None, None
+    #     else:
+    #         return np.percentile(b, 50), np.mean(b)
+    #
+    # def output_data(self, hr, buriedness, pdb_file):
+    #     """
+    #
+    #     :param hr:
+    #     :return:
+    #
+    #     """
+    #
+    #     identifier = []
+    #     donor = []
+    #     acceptor = []
+    #     negative = []
+    #     positive = []
+    #     drug_sized = []
+    #     apolar_score = []
+    #     hotspot_score = []
+    #     bfactor_mean = []
+    #     bfactor_median = []
+    #     hotspot_bfactor_mean = []
+    #     hotspot_bfactor_median = []
+    #
+    #     bfactor = self.get_bfactors(pdb_file)
+    #     for i, h in enumerate(hr):
+    #         composition = {probe: len(g.islands(threshold=14)) for probe, g in h.super_grids.items()}
+    #         identifier.append(i)
+    #         donor.append(composition["donor"])
+    #         acceptor.append(composition["acceptor"])
+    #         negative.append(composition["negative"])
+    #         positive.append(composition["positive"])
+    #         drug_sized.append(h.drug_sized(buriedness))
+    #         apolar_score.append(h.hotspot_score(total=False))
+    #         hotspot_score.append(h.hotspot_score(total=True))
+    #         bfactor_mean.append(np.mean(bfactor.values()))
+    #         bfactor_median.append(np.percentile(bfactor.values(), 50))
+    #         mean, median = h.hotspot_bfactor(pdb_file, bfactor)
+    #         if pdb_file is not None:
+    #             hotspot_bfactor_mean.append(mean)
+    #             hotspot_bfactor_median.append(median)
+    #
+    #     return pd.DataFrame({"identifier": identifier, "donor": donor, "acceptor": acceptor, "negative": negative,
+    #                          "positive": positive, "drug_sized_cavity": drug_sized, "apolar_av_score": apolar_score,
+    #                          "average_score": hotspot_score, "bf_mean": bfactor_mean, "bf_median": bfactor_median,
+    #                          "hbf_mean": hotspot_bfactor_mean, "hbf_median": hotspot_bfactor_median
+    #                          })
 
-        :return:
-        """
-
-        large = []
-        for island in buriedness.islands(threshold=5):
-            x, y, z = island.nsteps
-            size = len([island.value(nx, ny, nz) for nx in range(x) for ny in range(y) for nz in range(z)
-                        if island.value(nx, ny, nz) > 5]) * 0.125
-            if size > drug_volume:
-                large.append(island)
-        return large
-
-    def drug_sized(self, buriedness):
-        """
-        detemines whether a hotspot resides within a region that can accomodate a drug sized molecule
-
-        :return:
-        """
-
-        bottom_left, top_right = self.super_grids["apolar"].bounding_box
-        centroid = molecule.Coordinates(((bottom_left.x + top_right.x) / 2),
-                                        ((bottom_left.y + top_right.y) / 2),
-                                        ((bottom_left.z + top_right.z) / 2)
-                                        )
-        drug_cavity = self._get_large_cavity(buriedness=buriedness)
-
-        for d in drug_cavity:
-            if self.contains_point(centroid, d):
-                return True
-            else:
-                return False
-
-    def hotspot_score(self, total=True):
-        """
-        caution! only use for extracted hotspots!
-        :return:
-        """
-
-        if total:
-            t = [self.grid_score(g, threshold=0) for probe, g in self.super_grids.items()
-                 if self.grid_score(g, threshold=0) > 0]
-            return np.mean(t)
-
-        else:
-            return self.grid_score(self.super_grids["apolar"], threshold=0)
-
-    def get_bfactors(self, pdb_file):
-        """
-        Assign B factors
-        """
-
-        lines = self._get_lines_from_file(pdb_file)
-
-        return {str(l[21] + ":" + l[17:20] + l[23:26] + "_" + l[12:16]).replace(" ", ""): float(l[60:66])
-                for i, l in enumerate(lines) if str(l[0:4]) == "ATOM"}
-
-    def hotspot_bfactor(self, pdb_file, bfactor):
-        """
-
-
-        :param prot:
-        :param bfactor:
-        :return:
-        """
-        prot = Protein.from_file(pdb_file)
-        prot.remove_all_metals()
-        prot.remove_all_waters()
-        for lig in prot.ligands:
-            prot.remove_ligand(lig.identifier)
-
-        mini, maxi = self.super_grids["apolar"].bounding_box
-        centroid = molecule.Coordinates((mini.x + maxi.x) / 2, (mini.y + maxi.y) / 2, (mini.z + maxi.z) / 2)
-        bs = prot.BindingSiteFromPoint(protein=prot, origin=centroid, distance=12)
-        residues = [str(r.identifier) for r in bs.residues]
-        protein = [str(p.identifier) for p in prot.residues]
-        deletes = list(set(protein) - set(residues))
-        for delete in deletes:
-            prot.remove_residue(delete)
-        b = [bfactor[str(r.identifier + "_" + a.label)] for r in prot.residues for a in r.atoms]
-        self.prot = prot
-        print("b", b)
-        if len(b) == 0:
-            return None, None
-        else:
-            return np.percentile(b, 50), np.mean(b)
-
-    def output_data(self, hr, buriedness, pdb_file):
-        """
-
-        :param hr:
-        :return:
-
-        """
-
-        identifier = []
-        donor = []
-        acceptor = []
-        negative = []
-        positive = []
-        drug_sized = []
-        apolar_score = []
-        hotspot_score = []
-        bfactor_mean = []
-        bfactor_median = []
-        hotspot_bfactor_mean = []
-        hotspot_bfactor_median = []
-
-        bfactor = self.get_bfactors(pdb_file)
-        for i, h in enumerate(hr):
-            composition = {probe: len(g.islands(threshold=14)) for probe, g in h.super_grids.items()}
-            identifier.append(i)
-            donor.append(composition["donor"])
-            acceptor.append(composition["acceptor"])
-            negative.append(composition["negative"])
-            positive.append(composition["positive"])
-            drug_sized.append(h.drug_sized(buriedness))
-            apolar_score.append(h.hotspot_score(total=False))
-            hotspot_score.append(h.hotspot_score(total=True))
-            bfactor_mean.append(np.mean(bfactor.values()))
-            bfactor_median.append(np.percentile(bfactor.values(), 50))
-            mean, median = h.hotspot_bfactor(pdb_file, bfactor)
-            if pdb_file is not None:
-                hotspot_bfactor_mean.append(mean)
-                hotspot_bfactor_median.append(median)
-
-        return pd.DataFrame({"identifier": identifier, "donor": donor, "acceptor": acceptor, "negative": negative,
-                             "positive": positive, "drug_sized_cavity": drug_sized, "apolar_av_score": apolar_score,
-                             "average_score": hotspot_score, "bf_mean": bfactor_mean, "bf_median": bfactor_median,
-                             "hbf_mean": hotspot_bfactor_mean, "hbf_median": hotspot_bfactor_median
-                             })
-
-    def extract_hotspots(self, out_dir=None, pharmacophore=True, **kwargs):
-        """
-        For a given output volume, hotspots are identified by the peaks in apolar propensity.
-
-        :param out_dir:
-        :param sigma: float, target volume to be selected in Angstroms^3
-        :param cutoff: int, threshold value to contour islands
-        :param volume: int, volume of the desired output hotspots.
-        :return:
-        """
-        fragments = kwargs.get("fragment")
-        lead = kwargs.get("lead")
-        bfactors = kwargs.get("bfactors")
-
-        hsb_dir = join(out_dir, "hotspot_boundaries")
-        if not exists(hsb_dir):
-            mkdir(join(out_dir, "hotspot_boundaries"))
-
-        build = HotspotBuilder(self.super_grids, self.sampled_probes, hsb_dir, self.prot, kwargs)
-        build.write(mode="locations")          # for testing
-        build.write(mode="features")           # for testing
-
-        # create hotspot result
-        hrs = []
-        build.pymol_out = extracted_hotspot_template(len(hrs), fragments, lead)
-        for i, hotspot in enumerate(build.locations):
-            hotspot.identifier = str(i)
-            hr = HotspotResults(grid_dict=hotspot.extracted_super_grids,
-                                protein=self.prot,
-                                fname=self.fname,
-                                sampled_probes=hotspot.extracted_probes,
-                                buriedness=self.buriedness,
-                                out_dir=self.out_dir)
-
-            # create pharmacophore
-            if pharmacophore:
-                hr.pharmacophore = hr.get_pharmacophore_model(identifier=hotspot.identifier)
-                hr.pharmacophore.identifier = hotspot.identifier
-                build.pymol_out += hr.pharmacophore.get_pymol_pharmacophore()
-            hrs.append(hr)
-
-        with open(join(hsb_dir, "extracted_hotspots.py"), 'w') as w:
-            w.write(build.pymol_out)
-
-        with MoleculeWriter(join(hsb_dir, "protein.pdb")) as w:
-            w.write(self.prot)
-
-
-        #self.output_extracted_hotspots(hrs, out_dir, fragments, lead, charged=False)
-        #
-        # if bfactors is not None:
-        #     df = self.output_data(hrs, self.buriedness, bfactors)
-        #     df.to_csv(join(out_dir, "data.csv"))
-
-        return hrs
-
-    def best_continuous_volume(self, volume=500, pocket_mask=False):
-        '''
-        Selects the highest scoring continuous region of propensity across all map types, matching the input volume.
-        Selecting a molecular volume corresponding to a typical drug-like molecule (350-550 Angstroms ^3) provides a
-        prediction of the most tractable binding site on the protein.
-
-        :param volume: float, target volume to be selected in Angstroms^3
-        :param pocket_mask: a :class:`ccdc.interaction.Grid` instance with a value of 1 at any grid points to be ignored, otherwise 0.
-        :return:
-        '''
-
-        processed_grids = {}
-        # print("start descriptors")
-
-        masked_grids = self._single_grid()
-        all_g = masked_grids.values()
-        sum_g = all_g[0].copy()
-        for g in all_g[1:]:
-            sum_g += g
-
-        if pocket_mask:
-            com_sum_grid, com_pocket_mask = self._common_grid(sum_g, pocket_mask, padding=0)
-            sum_g = com_sum_grid * (com_pocket_mask < 1)
-
-        second_mask = self._get_grid_by_volume(sum_g, volume)
-
-        for probe, g in self.super_grids.items():
-            print(probe, )
-            mg = masked_grids[probe]
-            c_mg, c_second_mask = self._common_grid(mg, second_mask, padding=0)
-            out_g = (c_mg * c_second_mask)
-
-            del (c_mg)
-            del (c_second_mask)
-
-            # out_g.write('processed_{}.grd'.format(probe))
-            processed_grids[probe] = out_g
-
-        bcv_hr = HotspotResults(processed_grids, self.prot, self.fname, None, None,
-                                out_dir='{}_bcv'.format(self.out_dir))
-
-        remaining = {}
-        for probe, g in self.super_grids.items():
-            diff_g = g - bcv_hr.super_grids[probe]
-            remaining.update({probe: diff_g})
-
-        remaining_hr = HotspotResults(remaining, self.prot, self.fname, None, None,
-                                      out_dir='{}_remaining'.format(self.out_dir))
-
-        return bcv_hr, remaining_hr
 
     def extract_pocket(self, whole_residues=False):
         '''
@@ -1597,16 +1245,16 @@ class HotspotResults(_HotspotsHelper):
                 pocket.remove_atoms(residue.atoms)
 
         return pocket
-    
+
     def _smooth_crude(self):
         for probe, g in self.super_grids.items():
             self.super_grids[probe] = g.max_value_of_neighbours()
 
-    def zip_results(self, archive_name='out', delete_directory = True):
+    def zip_results(self, archive_name='out', delete_directory=True):
         """
         Zips the output directory created for this :class:`fragment_hotspot_maps.HotspotResults` instance, and
         removes the directory by default. The zipped file can be loaded directly into a new
-        :class:`fragment_hotspot_maps.HotspotResults` instance using the 
+        :class:`fragment_hotspot_maps.HotspotResults` instance using the
         :func:`~fragment_hotspot_maps.Hotspots.from_zip_dir` function
 
         :param archive_name: str, file path
@@ -1630,8 +1278,6 @@ class HotspotResults(_HotspotsHelper):
         if delete_directory:
             shutil.rmtree(self.out_dir)
 
-        
-
     def output_pymol_file(self):
         """
         Output a python script to be run from within pymol to visualise output
@@ -1646,28 +1292,30 @@ class HotspotResults(_HotspotsHelper):
 
         if self.archive_name is not None:
 
-            with open(path.join(self.archive_loc,'pymol_results_file_{}.py'.format(self.archive_name)), 'w') as pymol_file:
+            with open(path.join(self.archive_loc, 'pymol_results_file_{}.py'.format(self.archive_name)),
+                      'w') as pymol_file:
                 pymol_out = pymol_zip_template(self.archive_name, self.super_grids.keys(), cutoff_by_probe)
                 pymol_file.write(pymol_out)
 
         else:
 
-          
             if self.fname is None:
                 with MoleculeWriter('{}/protein.pdb'.format(self.out_dir)) as w:
                     w.write(self.prot)
                     prot_file = ('{}/protein.pdb'.format(self.out_dir))
             else:
                 prot_file = self.fname
-    
-    
+
             for probe, g in self.super_grids.items():
                 g.write('{0}/{1}.grd'.format(self.out_dir, probe))
-    
+
+            if self.buriedness is not None:
+                self.buriedness.write(join(self.out_dir, "buriedness.grd"))
+
             with open('{}/pymol_results_file.py'.format(self.out_dir), 'w') as pymol_file:
                 pymol_out = pymol_template(prot_file, self.out_dir, self.super_grids.keys(), cutoff_by_probe)
                 pymol_file.write(pymol_out)
-    
+
             with MoleculeWriter(join(self.out_dir, "protein.pdb")) as writer:
                 writer.write(self.prot)
 
@@ -1878,7 +1526,7 @@ class Hotspots(_HotspotsHelper):
             active_coords_dic = {
                 g.name: [a.coordinates for a in g._active_atoms]
                 for g in self.grids
-            }
+                }
 
             return active_coords_dic
 
@@ -2122,7 +1770,6 @@ class Hotspots(_HotspotsHelper):
             self.ghecom = r.run_ghecom()
             chdir(self.working_dir)
 
-
         self.weighted_grids = self._get_weighted_maps()
         self.buriedness.write(join(self.out_dir, "buriedness.grd"))
 
@@ -2132,67 +1779,66 @@ class Hotspots(_HotspotsHelper):
             top_probes = self._get_out_maps(probe, grid_dict)
             self.sampled_probes.update({probe: top_probes})
 
-    def _from_grid_dic(self, super_grids, prot, fname=None, sampled_probes=None, buriedness=None):
-        """
-        Create a Hotspots_reults object from a dictionary of previously calculated grid objects
+    # def _from_grid_dic(self, super_grids, prot, fname=None, sampled_probes=None, buriedness=None):
+    #     """
+    #     Create a Hotspots_reults object from a dictionary of previously calculated grid objects
+    #
+    #     :param super_grids: dict, {'probe_name':grid} where the probe names are 'apolar', 'donor' and 'acceptor'
+    #     :param prot: a :class:`ccdc.protein.Protein` instance
+    #     :param fname: str, file path
+    #     :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
+    #     """
+    #
+    #     self.fname = fname
+    #     self.super_grids = super_grids
+    #     self.prot = prot
+    #     self.sampled_probes = sampled_probes
+    #     self.buriedness = buriedness
+    #     return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
+    #                           out_dir=self.out_dir)
 
-        :param super_grids: dict, {'probe_name':grid} where the probe names are 'apolar', 'donor' and 'acceptor'
-        :param prot: a :class:`ccdc.protein.Protein` instance
-        :param fname: str, file path
-        :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
-        """
-
-        self.fname = fname
-        self.super_grids = super_grids
-        self.prot = prot
-        self.sampled_probes = sampled_probes
-        self.buriedness = buriedness
-        return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
-                              out_dir=self.out_dir)
-
-    def from_zip_dir(self, zip_dir, probes = ('apolar','donor','acceptor'), output_directory= 'out', temporary = True):
-        """
-        Create a Hotspots_reults object from zipped output directory with default file names. Extracts files to a
-        temp dir, and removes files once a :class:`fragment_hotspot_maps.HotspotResults` instance has been created
-
-        :param super_grids: dict, {'probe_name':grid} where the probe names are 'apolar', 'donor' and 'acceptor'
-        :param prot: a :class:`ccdc.protein.Protein` instance
-        :param fname: str, file path
-        :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
-        """
-
-        self.fname = 'protein.pdb'
-        self.out_dir = output_directory
-
-        if temporary:
-            dirpath = tempfile.mkdtemp()
-        else:
-            dirpath = self.out_dir
-            if not exists(self.out_dir):
-                mkdir(self.out_dir)
-
-
-        with zipfile.ZipFile(zip_dir) as hs_zip:
-            hs_zip.extractall(dirpath)
-
-        for p in probes:
-            print(path.join(dirpath,'{}.grd'.format(p)))
-
-        self.super_grids = {p: Grid.from_file(path.join(dirpath,'{}.grd'.format(p))) for p in probes}
-        self.prot = Protein.from_file(path.join(dirpath,'protein.pdb'))
-        self.sampled_probes = {}
-        try:
-            self.buriedness = Grid.from_file(path.join(dirpath,'buriedness.grd'))
-        except:
-            self.buriedness=None
-
-        if temporary:
-            shutil.rmtree(dirpath)
-        return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
-                              out_dir=self.out_dir)
+    # def from_zip_dir(self, zip_dir, probes=('apolar', 'donor', 'acceptor'), output_directory='out', temporary=True):
+    #     """
+    #     Create a Hotspots_reults object from zipped output directory with default file names. Extracts files to a
+    #     temp dir, and removes files once a :class:`fragment_hotspot_maps.HotspotResults` instance has been created
+    #
+    #     :param super_grids: dict, {'probe_name':grid} where the probe names are 'apolar', 'donor' and 'acceptor'
+    #     :param prot: a :class:`ccdc.protein.Protein` instance
+    #     :param fname: str, file path
+    #     :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
+    #     """
+    #
+    #     self.fname = 'protein.pdb'
+    #     self.out_dir = output_directory
+    #
+    #     if temporary:
+    #         dirpath = tempfile.mkdtemp()
+    #     else:
+    #         dirpath = self.out_dir
+    #         if not exists(self.out_dir):
+    #             mkdir(self.out_dir)
+    #
+    #     with zipfile.ZipFile(zip_dir) as hs_zip:
+    #         hs_zip.extractall(dirpath)
+    #
+    #     for p in probes:
+    #         print(path.join(dirpath, '{}.grd'.format(p)))
+    #
+    #     self.super_grids = {p: Grid.from_file(path.join(dirpath, '{}.grd'.format(p))) for p in probes}
+    #     self.prot = Protein.from_file(path.join(dirpath, 'protein.pdb'))
+    #     self.sampled_probes = {}
+    #     try:
+    #         self.buriedness = Grid.from_file(path.join(dirpath, 'buriedness.grd'))
+    #     except:
+    #         self.buriedness = None
+    #
+    #     if temporary:
+    #         shutil.rmtree(dirpath)
+    #     return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
+    #                           out_dir=self.out_dir)
 
     def from_protein(self, prot, charged_probes=False, binding_site_origin=None, probe_size=7,
-                     ghecom_executable=None, output_directory = 'out'):
+                     ghecom_executable=None, output_directory='out'):
         """
         Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object
 
@@ -2228,18 +1874,3 @@ class Hotspots(_HotspotsHelper):
             self.super_grids[probe] = sg
         return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
                               out_dir=self.out_dir)
-
-
-def main():
-    prot_file = "Z:/fragment_hotspot_maps/protein.pdb"
-    ghecom_exe = None
-    prot = Protein.from_file(prot_file)
-
-    h = Hotspots()
-
-    result = h.from_protein(prot=prot, charged_probes=False, fname=prot_file, ghecom_executable=ghecom_exe)
-    result.output_pymol_file(out_dir=None)
-
-
-if __name__ == "__main__":
-    main()

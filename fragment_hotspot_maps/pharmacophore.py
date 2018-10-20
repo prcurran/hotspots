@@ -32,6 +32,10 @@ from template_strings import pymol_template, crossminer_header
 import numpy as np
 import csv
 import json
+import re
+
+from ccdc import io
+from ccdc.molecule import Atom, Molecule
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -144,7 +148,7 @@ class PharmacophoreModel(object):
     def write(self, fname):
         """
         given a fname, will output Pharmacophore in detected format
-        :param fname: str, extensions support: ".cm", ".py", ".json", ".csv"
+        :param fname: str, extensions support: ".cm", ".py", ".json", ".csv", ".mol2"
         :return:
         """
 
@@ -161,7 +165,6 @@ class PharmacophoreModel(object):
                                    }
 
                 for feat in self.features:
-                    print feat.feature_coordinates
                     feat_str = """\nPHARMACOPHORE_FEATURE {0}\nPHARMACOPHORE_SPHERE {1} {2} {3} {4}"""\
                         .format(interaction_dic[feat.feature_type],
                                 feat.feature_coordinates.x,
@@ -267,8 +270,53 @@ class PharmacophoreModel(object):
                     pts.append(point)
                 pharmit_file.write(json.dumps({"points": pts}))
 
+        elif extension == ".mol2":
+            mol = Molecule(identifier = "pharmacophore_model")
+            atom_dic = {"apolar": 'C',
+                        "donor": 'N',
+                        "acceptor": 'O',
+                        "negative": 'S',
+                        "positve": 'H'}
+
+            pseudo_atms = [Atom(atomic_symbol=atom_dic[feat.feature_type],
+                                atomic_number=14,
+                                coordinates=feat.feature_coordinates,
+                                label = str(feat.score))
+                           for feat in self.features]
+
+            for a in  pseudo_atms:
+                mol.add_atom(a)
+
+            with io.MoleculeWriter(fname) as w:
+                w.write(mol)
+
         else:
             raise TypeError("""""{}" output file type is not currently supported.""".format(extension))
+
+    # @staticmethod
+    # def get_feature_labels(**kwargs):
+    #     #supergrids
+    #     #islands
+    #     #PharmacophoreModel
+    #     elif extension == ".mol2":
+    #         mol = Molecule(identifier = "pharmacophore_model")
+    #         atom_dic = {"apolar": 'C',
+    #                     "donor": 'N',
+    #                     "acceptor": 'O',
+    #                     "negative": 'S',
+    #                     "positve": 'H'}
+    #
+    #         pseudo_atms = [Atom(atomic_symbol=atom_dic[feat.feature_type],
+    #                             atomic_number=14,
+    #                             coordinates=feat.feature_coordinates,
+    #                             label = str(feat.score))
+    #                        for feat in self.features]
+    #
+    #         for a in  pseudo_atms:
+    #             mol.add_atom(a)
+    #
+    #         with io.MoleculeWriter(fname) as w:
+    #             w.write(mol)
 
     @staticmethod
     def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5):
@@ -276,7 +324,7 @@ class PharmacophoreModel(object):
         settings = Settings()
         feature_list = [PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
                         for probe, g in super_grids.items()
-                        for island in g.islands(cutoff)]
+                        for island in g.islands(cutoff) if island.count_grid() >= 5]
 
         return PharmacophoreModel(identifier=identifier, features=feature_list)
 
@@ -388,6 +436,7 @@ class PharmacophoreFeature(Utilities):
         cm_feature_dict = {"ring": "apolar",
                            "ring_planar_projected": "apolar",
                            "ring_non_planar": "apolar",
+                           "hydrophobic": "apolar",
                            "donor_ch_projected": "donor",
                            "donor_projected": "donor",
                            "donor": "donor",
@@ -396,31 +445,29 @@ class PharmacophoreFeature(Utilities):
                            "negative": "",
                            "positive": "",
                            }
+
         vector = None
         settings = Settings()
-        attributes = feature_str.splitlines()
-        if len(attributes) == 3:
+
+        feat = re.search(r"PHARMACOPHORE_FEATURE (.+?)\n", feature_str)
+        feature_type =  cm_feature_dict[feat.group(1)]
+
+        spher = re.findall("PHARMACOPHORE_SPHERE (.+?)\n", feature_str)
+
+        if len(spher) == 1:
+            coords = spher[0].split(" ")
+            feature_coordinates = Coordinates(float(coords[0]), float(coords[1]), float(coords[2]))
             projected = False
             projected_coordinates = None
-            score = None
+            score = coords[3]
 
-            coords = attributes[1].split(" ")
-            feattype = attributes[2].split(" ")
-
-            feature_coordinates = Coordinates(coords[1], coords[2], coords[3])
-            feature_type = cm_feature_dict[feattype[1]]
-
-        elif len(attributes) ==4:
+        elif len(spher) == 2:
+            coords = spher[0].split(" ")
+            proj =  spher[1].split(" ")
+            feature_coordinates = Coordinates(float(coords[0]), float(coords[1]), float(coords[2]))
             projected = True
-            score = None
-
-            coords = attributes[1].split(" ")
-            projcoords = attributes[2].split(" ")
-            feattype = attributes[3].split(" ")
-
-            feature_coordinates = Coordinates(coords[1], coords[2], coords[3])
-            projected_coordinates = Coordinates(projcoords[1], projcoords[2], projcoords[3])
-            feature_type = cm_feature_dict[feattype[1]]
+            projected_coordinates = Coordinates(float(proj[0]), float(proj[1]), float(proj[2]))
+            score = coords[3]
 
         else:
             raise IOError("feature format not recognised")
@@ -482,9 +529,9 @@ class PharmacophoreFeature(Utilities):
             coords = grid.indices_to_point(indices[0][0], indices[0][1], indices[0][2])
             return max_value, Coordinates(coords[0], coords[1], coords[2])
         else:
-            coords = grid.indices_to_point(sum(i[0] for i in indices),
-                                           sum(j[1] for j in indices),
-                                           sum(k[2] for k in indices)
+            coords = grid.indices_to_point(round(sum(i[0] for i in indices)/len(indices)),
+                                           round(sum(j[1] for j in indices)/len(indices)),
+                                           round(sum(k[2] for k in indices)/len(indices))
                                            )
             return max_value, Coordinates(coords[0], coords[1], coords[2])
 
@@ -515,8 +562,6 @@ class PharmacophoreFeature(Utilities):
                                       np.divide(weighted_y, total_mass),
                                       np.divide(weighted_z, total_mass)
                                       )
-        score = grid.value(grid.point_to_indices(coords)[0],
-                           grid.point_to_indices(coords)[1],
-                           grid.point_to_indices(coords)[2])
+        score = grid.value_at_point(coords)
 
         return float(score), coords
