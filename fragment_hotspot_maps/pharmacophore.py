@@ -28,7 +28,7 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:
 from utilities import Utilities
 import collections
 from os.path import basename, splitext
-from template_strings import pymol_template, crossminer_header
+from template_strings import pymol_arrow, pymol_imports
 import numpy as np
 import csv
 import json
@@ -36,6 +36,8 @@ import re
 
 from ccdc import io
 from ccdc.molecule import Atom, Molecule
+from ccdc.descriptors import GeometricDescriptors
+from ccdc.pharmacophore import Pharmacophore
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -52,9 +54,11 @@ class Settings():
         """
         self.feature_boundary_cutoff = 5
         self.max_hbond_dist = 5
-        self.radius = 1.0
+        self.radius = 1.0    # set more intelligently
         self.vector_on = 0
         self.transparency = 0.9
+        self.excluded_volume = False
+        self.binding_site_radius = 12
 
 
 class PharmacophoreModel(object):
@@ -62,7 +66,7 @@ class PharmacophoreModel(object):
     A class to wrap pharmacophore features and output in various formats
     """
 
-    def __init__(self, identifier=None, features=None):
+    def __init__(self, settings, identifier=None, features=None, protein=None):
         """
         identifier is useful for displaying multiple models at once
         :param features:
@@ -72,7 +76,12 @@ class PharmacophoreModel(object):
 
         self.fname = None
         self.projected_dict = {"True": ["donor", "acceptor"], "False": ["negative", "positive", "apolar"]}
-        self.settings = Settings()
+
+        self.protein = protein
+        if settings == None:
+            self.settings = Settings()
+        else:
+            self.settings = settings
 
     @property
     def features(self):
@@ -145,45 +154,91 @@ class PharmacophoreModel(object):
                      '\ncmd.group("Pharmacophore_{0}", members="Arrows_{0}")\n'.format(self.identifier)
         return pymol_out
 
+    def _get_binding_site_residues(self):
+        """
+
+        :return:
+        """
+        centroid = [feat.feature_coordinates for feat in self.features if feat.feature_type == "apolar"][0]
+        prot = self.protein
+
+        bs = prot.BindingSiteFromPoint(protein=self.protein,
+                                       origin=centroid,
+                                       distance=self.settings.binding_site_radius)
+
+        print "bs", len(bs.residues)
+
+        bs_residues = [str(r.identifier) for r in bs.residues]
+        protein_residues = [str(p.identifier) for p in prot.residues]
+        deletes = list(set(protein_residues) - set(bs_residues))
+        for delete in deletes:
+            prot.remove_residue(delete)
+
+        return prot
+
+    def get_crossminer_pharmacophore(self):
+        """
+
+        :return:
+        """
+        supported_features = {"acceptor_projected": "acceptor",
+                              "donor_projected": "donor",
+                              "ring": "apolar",
+                              "": "negative",
+                              "": "positive"}
+
+        Pharmacophore.read_feature_definitions()
+
+        feature_definitions = {supported_features[fd.identifier]: fd for fd in Pharmacophore.feature_definitions.values()
+                               if fd.identifier in supported_features.keys()}
+
+        model_features = []
+        for feat in self.features:
+            sphere = GeometricDescriptors.Sphere(feat.feature_coordinates, self.settings.radius)
+
+            if feat.projected_coordinates:
+                projected = GeometricDescriptors.Sphere(feat.projected_coordinates, self.settings.radius)
+                p = Pharmacophore.Feature(feature_definitions[feat.feature_type], *[sphere, projected])
+
+            else:
+                p = Pharmacophore.Feature(feature_definitions[feat.feature_type], sphere)
+
+            model_features.append(p)
+
+        if self.settings.excluded_volume:
+            if self.protein == None:
+                print "Pharmacophore Model must have protein to calculate excluded volume"
+            else:
+                bs = self._get_binding_site_residues()
+
+                for residue in bs.residues:
+                    mol = None
+                    mol = Molecule(identifier = "temp_residue")
+
+                    # for a in residue.backbone_atoms:
+                    #     ev = Pharmacophore.ExcludedVolume(GeometricDescriptors.Sphere(a.coordinates, 2))
+                    #     model_features.append(ev)
+                    for a in residue.backbone_atoms:
+                        mol.add_atom(a)
+
+                    centre = mol.centre_of_geometry()
+                    ev = Pharmacophore.ExcludedVolume(GeometricDescriptors.Sphere(centre, 2))
+                    model_features.append(ev)
+        print len(model_features)
+        return Pharmacophore.Query(model_features)
+
     def write(self, fname):
         """
         given a fname, will output Pharmacophore in detected format
         :param fname: str, extensions support: ".cm", ".py", ".json", ".csv", ".mol2"
         :return:
         """
-
         extension = splitext(fname)[1]
+
         if extension == ".cm":
-            with open(fname, "w") as crossminer_file:
-                crossminer_file.write(crossminer_header())
-
-                interaction_dic = {"acceptor": "acceptor_projected",
-                                   "donor": "donor_projected",
-                                   "apolar": "hydrophobic",
-                                   "negative": "",
-                                   "positive": ""
-                                   }
-
-                for feat in self.features:
-                    feat_str = """\nPHARMACOPHORE_FEATURE {0}\nPHARMACOPHORE_SPHERE {1} {2} {3} {4}"""\
-                        .format(interaction_dic[feat.feature_type],
-                                feat.feature_coordinates.x,
-                                feat.feature_coordinates.y,
-                                feat.feature_coordinates.z,
-                                self.settings.radius
-                                )
-
-                    if feat.projected_coordinates:
-                        feat_str += """\nPHARMACOPHORE_SPHERE {0} {1} {2} {3}""".format(feat.projected_coordinates.x,
-                                                                                    feat.projected_coordinates.y,
-                                                                                    feat.projected_coordinates.z,
-                                                                                    feat.settings.radius
-                                                                                    )
-
-                    feat_str += """\nPHARMACOPHORE_FEATURE_SMALL_MOLECULE\nPHARMACOPHORE_FEATURE_DESCRIPTION {0}\n"""\
-                        .format(interaction_dic[feat.feature_type])
-
-                    crossminer_file.write(feat_str)
+            print "!warning! charged features not supported!"
+            pharmacophore = self.get_crossminer_pharmacophore()
+            pharmacophore.write(fname)
 
         elif extension == ".csv":
             with open(fname, "wb") as csv_file:
@@ -219,7 +274,8 @@ class PharmacophoreModel(object):
 
         elif extension == ".py":
             with open(fname, "wb") as pymol_file:
-                pymol_out = pymol_template(0, 0, 0, 0).split("""cmd.load(r'protein.pdb',"protein")""")[0]
+                pymol_out = pymol_imports()
+                pymol_out += pymol_arrow()
                 lines = self.get_pymol_pharmacophore()
                 pymol_out += lines
                 pymol_file.write(pymol_out)
@@ -319,17 +375,17 @@ class PharmacophoreModel(object):
     #             w.write(mol)
 
     @staticmethod
-    def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5):
+    def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5, settings=None):
         """creates a pharmacophore model from hotspot results object"""
         settings = Settings()
         feature_list = [PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
                         for probe, g in super_grids.items()
                         for island in g.islands(cutoff) if island.count_grid() >= 5]
 
-        return PharmacophoreModel(identifier=identifier, features=feature_list)
+        return PharmacophoreModel(settings, identifier=identifier, features=feature_list, protein=protein)
 
     @staticmethod
-    def from_file(fname, identifier=None):
+    def from_file(fname, protein=None, identifier=None, settings=None):
         """creates a pharmacophore model from file (only .cm supported) """
         if identifier == None:
             identifier = basename(fname).split(".")[0]
@@ -339,11 +395,12 @@ class PharmacophoreModel(object):
             lines = [l for l in file.split("""\n\n""") if l != ""]
             feature_list = [PharmacophoreFeature.from_crossminer(feature) for feature in lines]
 
-        return PharmacophoreModel(identifier=identifier, features=feature_list)
+        return PharmacophoreModel(settings, identifier=identifier, features=feature_list, protein=protein)
 
 
 class PharmacophoreFeature(Utilities):
     """
+
     A class to construct pharmacophoric models based upon fragment hotspot maps.
     This feature is designed to be used after fragment sized hotspots have been extracted.
     (Hotspot.extract_hotspots method)

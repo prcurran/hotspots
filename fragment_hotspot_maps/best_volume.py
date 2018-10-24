@@ -38,7 +38,7 @@ import numpy as np
 
 from hotspot_calculation import HotspotResults
 from grid_extension import Grid
-from template_strings import extracted_hotspot_template
+# from template_strings import extracted_hotspot_template
 
 
 class HotspotFeatures(object):
@@ -401,6 +401,9 @@ class Extractor(object):
         self.extracted_hotspots = self._get_extracted_hotspots()
         self._rank_extracted_hotspots()
 
+        if self.settings.pharmacophore:
+            self.get_pharmacophores()
+
     class Settings(object):
         """
         Default settings for hotspot extraction
@@ -420,6 +423,7 @@ class Extractor(object):
 
             self.fragments = None
             self.lead = None
+            self.pharmacophore = True
 
         @property
         def num_gp(self):
@@ -483,7 +487,7 @@ class Extractor(object):
                                  )
         return average_peaks
 
-    def get_large_cavities(self):
+    def _get_large_cavities(self):
         """
         returns cavity island if it is "drug-sized"
         :return:
@@ -557,8 +561,19 @@ class Extractor(object):
         extracted_hotspots_by_rank = {h.rank: h for h in self.extracted_hotspots}
         self.extracted_hotspots = [value for (key, value) in sorted(extracted_hotspots_by_rank.items())]
 
-        for hs in self.extracted_hotspots:
+        for i, hs in enumerate(self.extracted_hotspots):
+            hs.identifier = "rank_{}".format(hs.rank)
             print "rank", hs.rank, "score", hs.score
+
+
+    def get_pharmacophores(self):
+        """
+        generates a pharmacophore model, stores as attribute of hotspot result
+        :return:
+        """
+        for i, hotspot in enumerate(self.extracted_hotspots):
+            hotspot.hotspot_result.pharmacophore = hotspot.hotspot_result.get_pharmacophore_model(identifier=
+                                                                                                  hotspot.identifier)
 
     def write(self, out_dir, pharmacophore=True, peaks=False, best_islands=False):
         """
@@ -567,34 +582,36 @@ class Extractor(object):
             -locations: spheres and islands at apolar peak locations
             -features: islands and probes at feature point locations
         """
-        self.out_dir = self.get_out_dir(out_dir)
-
-        contours = [h.threshold for h in self.extracted_hotspots]
-        num_hotspots = len(self.extracted_hotspots)
-        self.pymol_out = extracted_hotspot_template(num_hotspots,
-                                                    self.settings.fragments,
-                                                    self.settings.lead,
-                                                    contours)
-
-        for i, hotspot in enumerate(self.extracted_hotspots):
-            hotspot.identifier = "rank_{}".format(hotspot.rank)
-            hotspot.hotspot_result.out_dir = self.get_out_dir(join(self.out_dir, str(i)))
-            out = hotspot.hotspot_result.out_dir
-
-            if pharmacophore:
-                hotspot.hotspot_result.pharmacophore = hotspot.hotspot_result.get_pharmacophore_model(identifier=hotspot.identifier)
-                hotspot.hotspot_result.pharmacophore.identifier = hotspot.identifier
-                self.pymol_out += hotspot.hotspot_result.pharmacophore.get_pymol_pharmacophore()
-
-            hotspot.hotspot_result.pharmacophore.write(join(out, "pharmacophore.cm"))
-            hotspot.hotspot_result.pharmacophore.write(join(out, "pharmacophore.mol2"))
-            hotspot.hotspot_result.output_pymol_file()
-
-        with open(join(self.out_dir, "extracted_hotspots.py"), 'w') as w:
-            w.write(self.pymol_out)
-
-        with MoleculeWriter(join(self.out_dir, "protein.pdb")) as w:
-            w.write(self.hotspot_result.prot)
+        #!!!!!! MOVED TO IO MODULE !!!!!!!
+        #
+        # self.out_dir = self.get_out_dir(out_dir)
+        #
+        # contours = [h.threshold for h in self.extracted_hotspots]
+        # num_hotspots = len(self.extracted_hotspots)
+        # self.pymol_out = extracted_hotspot_template(num_hotspots,
+        #                                             self.settings.fragments,
+        #                                             self.settings.lead,
+        #                                             contours)
+        #
+        # for i, hotspot in enumerate(self.extracted_hotspots):
+        #     hotspot.identifier = "rank_{}".format(hotspot.rank)
+        #     hotspot.hotspot_result.out_dir = self.get_out_dir(join(self.out_dir, str(i)))
+        #     out = hotspot.hotspot_result.out_dir
+        #
+        #     if pharmacophore:
+        #         hotspot.hotspot_result.pharmacophore = hotspot.hotspot_result.get_pharmacophore_model(identifier=hotspot.identifier)
+        #         hotspot.hotspot_result.pharmacophore.identifier = hotspot.identifier
+        #         self.pymol_out += hotspot.hotspot_result.pharmacophore.get_pymol_pharmacophore()
+        #
+        #     hotspot.hotspot_result.pharmacophore.write(join(out, "pharmacophore.cm"))
+        #     hotspot.hotspot_result.pharmacophore.write(join(out, "pharmacophore.mol2"))
+        #     hotspot.hotspot_result.output_pymol_file()
+        #
+        # with open(join(self.out_dir, "extracted_hotspots.py"), 'w') as w:
+        #     w.write(self.pymol_out)
+        #
+        # with MoleculeWriter(join(self.out_dir, "protein.pdb")) as w:
+        #     w.write(self.hotspot_result.prot)
 
         if peaks:
             pymol_out = 'from pymol import cmd\nfrom pymol.cgo import *\n'

@@ -73,221 +73,24 @@ ATOM_SCORING SINGLE_POINT'''.format(settings.jobname, settings.probename, settin
     return ss_str
 
 
-def extracted_hotspot_template(num_hotspots, fragments, lead, threshold):
-    out_str = '''from pymol import cmd
-from pymol.cgo import *
-
-def cgo_arrow(atom1='pk1', atom2='pk2', radius=0.07, gap=0.0, hlength=-1, hradius=-1,
-              color='blue red', name=''):
-    from chempy import cpv
-
-    radius, gap = float(radius), float(gap)
-    hlength, hradius = float(hlength), float(hradius)
-
-    try:
-        color1, color2 = color.split()
-    except:
-        color1 = color2 = color
-    color1 = list(cmd.get_color_tuple(color1))
-    color2 = list(cmd.get_color_tuple(color2))
-
-    def get_coord(v):
-        if not isinstance(v, str):
-            return v
-        if v.startswith('['):
-            return cmd.safe_list_eval(v)
-        return cmd.get_atom_coords(v)
-
-    xyz1 = get_coord(atom1)
-    xyz2 = get_coord(atom2)
-    normal = cpv.normalize(cpv.sub(xyz1, xyz2))
-
-    if hlength < 0:
-        hlength = radius * 3.0
-    if hradius < 0:
-        hradius = hlength * 0.6
-
-    if gap:
-        diff = cpv.scale(normal, gap)
-        xyz1 = cpv.sub(xyz1, diff)
-        xyz2 = cpv.add(xyz2, diff)
-
-    xyz3 = cpv.add(cpv.scale(normal, hlength), xyz2)
-
-    obj = [cgo.CYLINDER] + xyz1 + xyz3 + [radius] + color1 + color2 + \
-          [cgo.CONE] + xyz3 + xyz2 + [hradius, 0.0] + color2 + color2 + \
-          [1.0, 0.0]
-    return obj
-
-cmd.load(r'protein.pdb',"protein")
-
-cmd.set("surface_cavity_mode", 1)
-cmd.show("surface", "protein")
-cmd.set("surface_trim_factor", 13)
-cmd.show("cartoon", "protein")
-#cmd.set("surface", "wireframe", "protein")
-#cmd.set('transparency', 0.3, "protein")
-
-frag = "{1}"
-lead = "{2}"
-
-if frag is not "None":
-    for f in {1}:
-        cmd.fetch(f)
-        cmd.hide("everything", f)
-        cmd.color("green", f)
-if lead is not "None":
-    cmd.fetch(lead)
-    cmd.hide("everything", lead)
-    cmd.color("orange", lead)
-
-
-cmd.bg_color("white")
-
-cmd.hide("cartoon", "protein")
-cmd.show("sticks", "organic")
-cmd.hide("lines", "protein")
-
-colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':'br4', 'positive':'cyan'}}
-
-nh = {0}
-ps = ['donor', 'acceptor', 'apolar', 'negative', 'positive']
-threshold = {3}
-if len(threshold) == 0:
-    threshold = [5]*nh
-
-for n in range(nh):
-    for p in ps:
-        cmd.load(r'%s/%s.grd'%(n,p), '%s_%s'%(p,n))
-        cmd.isosurface('surface_%s_%s'%(p,n), '%s_%s'%(p,n), threshold[n])
-        cmd.set('transparency', 0.7, 'surface_%s_%s'%(p,n))
-        cmd.color(colour_dict['%s'%(p)], 'surface_%s_%s'%(p,n))
-
-for n in range(nh):
-    cmd.group('hotspot_%s'%(n), members= 'surface_apolar_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'surface_donor_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'surface_acceptor_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'surface_positive_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'surface_negative_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'apolar_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'donor_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'acceptor_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'positive_%s'%(n))
-    cmd.group('hotspot_%s'%(n), members= 'negative_%s'%(n))
-
-'''.format(num_hotspots, fragments, lead, threshold)
-    return out_str
-
-def pymol_zip_template(zip_file, probes, cutoff_dict):
-    pymol_out = '''from pymol import cmd
+def pymol_imports():
+    out_str = """
+from os.path import join
 import tempfile
 import zipfile
-import shutil
-import os
+from pymol import cmd
 from pymol.cgo import *
 
-dirpath = tempfile.mkdtemp()
+dirpath = None
+    """
 
-zip_dir = '{0}.zip'
-
-with zipfile.ZipFile(zip_dir) as hs_zip:
-    hs_zip.extractall(dirpath)
-
-cmd.load(os.path.join(dirpath,'protein.pdb'),"protein")
-cmd.load(os.path.join(dirpath,'donor.grd'))
-cmd.load(os.path.join(dirpath,'acceptor.grd'))
-cmd.load(os.path.join(dirpath,'apolar.grd'))
-
-try:
-    cmd.load(os.path.join(dirpath,'negative.grd', 'negative'))
-    cmd.load(os.path.join(dirpath,'positive.grd', 'positive'))
-except:
-    pass
+    return out_str
 
 
-colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':'br4', 'positive':'cyan'}}
-
-
-probes = {1}
-cuttoff_dict = {2}
-
-cmd.bg_color("white")
-
-cmd.show("cartoon", "protein")
-cmd.show("sticks", "organic")
-cmd.hide("lines", "protein")
-
-for probe in probes:
-    for cuttoff in cuttoff_dict[probe]:
-        cmd.isosurface('%s_%s'%(probe, cuttoff), probe, cuttoff)
-        cmd.set('transparency', 0.3,'%s_%s'%(probe, cuttoff))
-        cmd.color(colour_dict[probe], '%s_%s'%(probe, cuttoff))
-
-cmd.isosurface('acceptor_17', 'acceptor', 17)
-cmd.isosurface('acceptor_14', 'acceptor', 14)
-cmd.set('transparency', 0.3,'acceptor_14')
-cmd.isosurface('acceptor_10', 'acceptor', 10)
-cmd.set('transparency', 0.2,'acceptor_10')
-cmd.color('red', 'acceptor_17')
-cmd.color('red', 'acceptor_14')
-cmd.color('red', 'acceptor_10')
-
-cmd.isosurface('donor_17', 'donor', 17)
-cmd.isosurface('donor_14', 'donor', 14)
-cmd.isosurface('donor_10', 'donor', 10)
-cmd.set('transparency', 0.2,'donor_10')
-cmd.set('transparency', 0.3,'donor_14')
-cmd.color('blue', 'donor_17')
-cmd.color('blue', 'donor_14')
-cmd.color('blue', 'donor_10')
-
-cmd.isosurface('apolar_17', 'apolar', 17)
-cmd.isosurface('apolar_14', 'apolar', 14)
-cmd.isosurface('apolar_10', 'apolar', 10)
-cmd.set('transparency', 0.2,'apolar_10')
-cmd.set('transparency', 0.3,'apolar_14')
-cmd.color('yellow', 'apolar_17')
-cmd.color('yellow', 'apolar_14')
-cmd.color('yellow', 'apolar_10')
-
-cmd.disable('apolar_10')
-#cmd.disable('apolar_14')
-#cmd.disable('apolar_17')
-cmd.disable('donor_10')
-cmd.disable('acceptor_10')
-#cmd.disable('positive_10')
-#cmd.disable('negative_10')
-#cmd.set('all_states','on')
-
-shutil.rmtree(dirpath)
-
-# Uncomment lines below if using the incentive version of PyMol to generate apolar volumes
-
-cmd.volume_ramp_new('ramp111', [\
-     12.31, 0.03, 0.02, 0.00, 0.00, \
-     14.01, 0.06, 0.04, 0.00, 0.04, \
-     15.05, 0.06, 0.04, 0.00, 0.00, \
-     15.98, 1.00, 0.60, 0.05, 0.00, \
-     17.08, 1.00, 0.90, 0.05, 0.05, \
-     19.55, 1.00, 0.69, 0.03, 0.13, \
-     23.42, 1.00, 0.00, 0.00, 0.17, \
-     25.00, 1.00, 0.10, 0.04, 0.16, \
-    ])
-cmd.volume("apolar_volume", "apolar","ramp111")
-
-
-        '''.format(zip_file, probes, cutoff_dict)
-    return pymol_out
-
-
-def pymol_template(prot_file, working_dir, probes, cutoff_dict):
-    pymol_out = '''from pymol import cmd
-from pymol.cgo import *
-
-def cgo_arrow(atom1='pk1', atom2='pk2', radius=0.07, gap=0.0, hlength=-1, hradius=-1,
-              color='blue red', name=''):
+def pymol_arrow():
+    out_str = """
+def cgo_arrow(atom1='pk1', atom2='pk2', radius=0.07, gap=0.0, hlength=-1, hradius=-1, color='blue red', name=''):
     from chempy import cpv
-
     radius, gap = float(radius), float(gap)
     hlength, hradius = float(hlength), float(hradius)
 
@@ -326,83 +129,125 @@ def cgo_arrow(atom1='pk1', atom2='pk2', radius=0.07, gap=0.0, hlength=-1, hradiu
           [1.0, 0.0]
     return obj
 
-cmd.load(r'protein.pdb',"protein")
-cmd.load(r'donor.grd')
-cmd.load(r'acceptor.grd')
-cmd.load(r'apolar.grd', 'apolar')
-cmd.load(r'negative.grd', 'negative')
-cmd.load(r'positive.grd', 'positive')
+    """
+    return out_str
 
-colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':'br4', 'positive':'cyan'}}
 
-prot = "{0}"
-grid = "{1}"
-probes = {2}
-cuttoff_dict = {3}
+def pymol_load_zip(zip_dir):
+    out_str = """
+dirpath = tempfile.mkdtemp()
+zip_dir = '{0}.zip'
+with zipfile.ZipFile(zip_dir) as hs_zip:
+    hs_zip.extractall(dirpath)
+""".format(zip_dir)
 
-cmd.bg_color("white")
+    return out_str
 
+def pymol_protein(settings, zip_results):
+    if zip_results:
+        out_str = """
+cmd.load(join(dirpath,"protein.pdb"), "protein")
 cmd.show("cartoon", "protein")
+"""
+    else:
+        out_str = """
+cmd.load("protein.pdb", "protein")
+cmd.show("cartoon", "protein")
+"""
+    if settings.surface:
+        out_str += """
+cmd.set("surface_cavity_mode", 1)
+cmd.show("surface", "protein")
+cmd.set("surface_trim_factor", {})
+    """.format(settings.surface_trim_factor)
+
+    return out_str
+
+
+def pymol_labels(fname, objname):
+    out_str = """
+    cmd.load('{0}', '{1}')
+    cmd.hide('lines', '{1}')
+    cmd.hide('sticks', '{1}')
+    cmd.label("{1}", "name")
+
+""".format(fname, objname)
+    return out_str
+
+
+def pymol_grids(i, settings):
+    grids = ["apolar", "donor", "acceptor"]
+    if settings.charged:
+        grids.extend(["negative", "positive"])
+
+    threshold = settings.isosurface_threshold
+
+    if i is not None:
+        gfiles = ["{}/{}.grd".format(i,p) for p in grids]
+    else:
+        gfiles = ["{}.grd".format(p) for p in grids]
+        i = 0
+
+    out_str = """
+colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':'purple', 'positive':'cyan'}}
+
+threshold_list = {0}
+gfiles = {1}
+grids = {2}
+num = {3}
+surf_transparency = {4}
+
+if dirpath:
+    gfiles = [join(dirpath, g) for g in gfiles]
+
+for t in threshold_list:
+    for i in range(len(grids)):
+        cmd.load(r'%s'%(gfiles[i]), '%s_%s'%(grids[i], str(num)))
+        cmd.isosurface('surface_%s_%s_%s'%(grids[i], t, num), '%s_%s'%(grids[i], num), t)
+        cmd.set('transparency', surf_transparency, 'surface_%s_%s_%s'%(grids[i], t, num))
+        cmd.color(colour_dict['%s'%(grids[i])], 'surface_%s_%s_%s'%(grids[i], t, num))
+    cmd.group('threshold_%s'%(t), members = 'surface_apolar_%s_%s'%(t, num))
+    cmd.group('threshold_%s'%(t), members = 'surface_donor_%s_%s'%(t, num))
+    cmd.group('threshold_%s'%(t), members = 'surface_acceptor_%s_%s'%(t, num))
+    cmd.group('threshold_%s'%(t), members = 'label_threshold_%s.mol2'%(t))
+
+
+    try:
+        cmd.group('threshold_%s'%(t), members = 'surface_negative_%s_%s'%(t, num))
+        cmd.group('threshold_%s'%(t), members = 'surface_positive_%s_%s'%(t, num))
+
+    except:
+        continue
+
+    cmd.group('hotspot_%s'%(num), members= 'threshold_%s'%(t))
+    cmd.group('hotspot_%s'%(num), members = 'apolar_%s'%(num))
+    cmd.group('hotspot_%s'%(num), members = 'donor_%s'%(num))
+    cmd.group('hotspot_%s'%(num), members = 'acceptor_%s'%(num))
+    try:
+        cmd.group('hotspot_%s'%(num), members = 'negative_%s'%(num))
+        cmd.group('hotspot_%s'%(num), members = 'positive_%s'%(num))
+
+    except:
+        continue
+
+""".format(threshold,
+           gfiles,
+           grids,
+           i,
+           settings.transparency)
+
+    return out_str
+
+
+def pymol_display_settings(settings):
+    out_str = """
+cmd.bg_color("{0}")
+cmd.show("cartoon", "protein")
+cmd.color("slate", "protein")
 cmd.show("sticks", "organic")
 cmd.hide("lines", "protein")
-
-for probe in probes:
-    for cuttoff in cuttoff_dict[probe]:
-        cmd.isosurface('%s_%s'%(probe, cuttoff), probe, cuttoff)
-        cmd.set('transparency', 0.3,'%s_%s'%(probe, cuttoff))
-        cmd.color(colour_dict[probe], '%s_%s'%(probe, cuttoff))
-
-cmd.isosurface('acceptor_17', 'acceptor', 17)
-cmd.isosurface('acceptor_14', 'acceptor', 14)
-cmd.set('transparency', 0.3,'acceptor_14')
-cmd.isosurface('acceptor_10', 'acceptor', 10)
-cmd.set('transparency', 0.2,'acceptor_10')
-cmd.color('red', 'acceptor_17')
-cmd.color('red', 'acceptor_14')
-cmd.color('red', 'acceptor_10')
-
-cmd.isosurface('donor_17', 'donor', 17)
-cmd.isosurface('donor_14', 'donor', 14)
-cmd.isosurface('donor_10', 'donor', 10)
-cmd.set('transparency', 0.2,'donor_10')
-cmd.set('transparency', 0.3,'donor_14')
-cmd.color('blue', 'donor_17')
-cmd.color('blue', 'donor_14')
-cmd.color('blue', 'donor_10')
-
-cmd.isosurface('apolar_17', 'apolar', 17)
-cmd.isosurface('apolar_14', 'apolar', 14)
-cmd.isosurface('apolar_10', 'apolar', 10)
-cmd.set('transparency', 0.2,'apolar_10')
-cmd.set('transparency', 0.3,'apolar_14')
-cmd.color('yellow', 'apolar_17')
-cmd.color('yellow', 'apolar_14')
-cmd.color('yellow', 'apolar_10')
-
-# Uncomment lines below if using the incentive version of PyMol to generate apolar volumes
-
-#cmd.volume_ramp_new('ramp111', [\
-#     12.31, 0.03, 0.02, 0.00, 0.00, \
-#     14.01, 0.06, 0.04, 0.00, 0.04, \
-#     15.05, 0.06, 0.04, 0.00, 0.00, \
-#     15.98, 1.00, 0.60, 0.05, 0.00, \
-#     17.08, 1.00, 0.90, 0.05, 0.05, \
-#     19.55, 1.00, 0.69, 0.03, 0.13, \
-#     23.42, 1.00, 0.00, 0.00, 0.17, \
-#     25.00, 1.00, 0.10, 0.04, 0.16, \
-#    ])
-#cmd.volume("apolar_volume", "apolar","ramp111")
-
-cmd.disable('apolar_10')
-#cmd.disable('apolar_14')
-#cmd.disable('apolar_17')
-cmd.disable('donor_10')
-cmd.disable('acceptor_10')
-#cmd.disable('positive_10')
-#cmd.disable('negative_10')
-#cmd.set('all_states','on')
-        '''.format(prot_file, working_dir, probes, cutoff_dict)
-    return pymol_out
+""".format(settings.bg_color)
+    return out_str
 
 
 def colourmap(scheme="inferno"):
@@ -941,268 +786,3 @@ def colourmap(scheme="inferno"):
               [9.87052509e-01, 9.91437853e-01, 7.49504188e-01]]
 
     return cm
-
-def crossminer_header():
-    start_str = '''FEATURE_LIBRARY_START
-
-        FEATURE_SUBSTRUCTURE_START
-
-            FEATURE_NAME acceptor_projected
-
-            DEFINE_FEATURE ACCEPTOR_SP2 TRIGONAL 2.8
-            DEFINE_FEATURE ACCEPTOR_SP3 TETRAHEDRAL 2.8
-            DEFINE_FEATURE DUMMY DUMMY
-            DEFINE_FEATURE ACCEPTOR_SP LINEAR 2.8
-
-            SMARTS_DEF [C]1[NX2]=[C][NX2][C]=1
-            FEATURE ACCEPTOR_SP2 3
-            FEATURE ACCEPTOR_SP2 1
-
-            SMARTS_DEF [C][NX2;R]=[C][NX2][C](=[O])
-            FEATURE ACCEPTOR_SP2 1
-
-            SMARTS_DEF [C]([NX2][C])=[NX2][C]=[O]
-            FEATURE ACCEPTOR_SP2 3
-
-            SMARTS_DEF [N][C]1[N]=[*][*]=[*][N]=1
-            FEATURE ACCEPTOR_SP2 2
-            FEATURE ACCEPTOR_SP2 6
-
-            SMARTS_DEF [C]([NX1;X2])=[NX1]
-            FEATURE DUMMY 1
-            FEATURE DUMMY 2
-
-            SMARTS_DEF [C]([NX2][C])=[NX2][C]
-            FEATURE DUMMY 1
-            FEATURE DUMMY 3
-
-            SMARTS_DEF [C]1[NX2][NX2]=[C][C]=1
-            FEATURE ACCEPTOR_SP2 1
-            FEATURE ACCEPTOR_SP2 2
-
-            SMARTS_DEF [C]1[NX2]=[C][NX2][NX2]=1
-            FEATURE ACCEPTOR_SP2 1
-            FEATURE ACCEPTOR_SP2 3
-            FEATURE ACCEPTOR_SP2 4
-
-            SMARTS_DEF [C]1~[#7X2]~[#7X2]~[#7X2]~[#7X2]~1
-            FEATURE ACCEPTOR_SP2 1
-            FEATURE ACCEPTOR_SP2 2
-            FEATURE ACCEPTOR_SP2 3
-            FEATURE ACCEPTOR_SP2 4
-
-            SMARTS_DEF [*][C]1=[N]-[N]-[C]([*])=[C]1
-            FEATURE ACCEPTOR_SP2 2
-            FEATURE ACCEPTOR_SP2 3
-
-            SMARTS_DEF [C]#[N]
-            FEATURE ACCEPTOR_SP 1
-
-            SMARTS_DEF [*]=[#7X2]-[*]
-            FEATURE ACCEPTOR_SP2 1
-
-            SMARTS_DEF [*]:[#7X2]:[*]
-            FEATURE ACCEPTOR_SP2 1
-
-            SMARTS_DEF [C][O]-[CR](-[*X3;R])=[*X3;R]
-            FEATURE ACCEPTOR_SP3 1
-
-            SMARTS_DEF [F][C][O]-[CR](-[*R])=[*R]
-            FEATURE ACCEPTOR_SP3 2
-
-            SMARTS_DEF [O]-[c]:[*]
-            FEATURE DUMMY 0
-
-            SMARTS_DEF [O]-[CR](-[*R])=[*R]
-            FEATURE DUMMY 0
-
-            SMARTS_DEF [#8X1]~[#6X3]~[#8X1]
-            FEATURE ACCEPTOR_SP2 0
-            FEATURE ACCEPTOR_SP2 2
-
-            SMARTS_DEF [C]=[O]
-            FEATURE ACCEPTOR_SP2 1
-
-            SMARTS_DEF [#6]-[C]-[O]
-            FEATURE ACCEPTOR_SP3 2
-
-            SMARTS_DEF [OX1][N]([#6])[C]=[O]
-            FEATURE ACCEPTOR_SP3 0
-
-            SMARTS_DEF [S]~[O]
-            FEATURE ACCEPTOR_SP3 1
-
-            SMARTS_DEF [P]~[O]
-            FEATURE ACCEPTOR_SP3 1
-
-            SMARTS_DEF [#6][SX1]
-            FEATURE ACCEPTOR_SP3 1
-
-        FEATURE_SUBSTRUCTURE_END
-
-        FEATURE_SUBSTRUCTURE_START
-
-            FEATURE_NAME donor_projected
-
-            DEFINE_FEATURE DONOR_LIN_H LINEAR_NB 2.8
-            DEFINE_FEATURE DONOR_SP2 TRIGONAL 2.8
-            DEFINE_FEATURE DONOR_SP3 TETRAHEDRAL 2.8
-            DEFINE_FEATURE DONOR_SP LINEAR 2.8
-            DEFINE_FEATURE DUMMY DUMMY
-
-            SMARTS_DEF [#7][H] IF_H_PRESENT
-            FEATURE DONOR_LIN_H 1
-
-            SMARTS_DEF [OX2][H] IF_H_PRESENT
-            FEATURE DONOR_LIN_H 1
-
-            SMARTS_DEF [SX2][H] IF_H_PRESENT
-            FEATURE DONOR_LIN_H 1
-
-            SMARTS_DEF [C]1~[#7X2]~[#7X2]~[#7X2]~[#7X2]~1 IF_NO_H_PRESENT
-            FEATURE DUMMY 1
-            FEATURE DUMMY 2
-            FEATURE DUMMY 3
-            FEATURE DUMMY 4
-
-            SMARTS_DEF [Nr6]=[C][N]=[*] IF_NO_H_PRESENT
-            FEATURE DUMMY 0
-
-            SMARTS_DEF [N]=[C][NX3] IF_NO_H_PRESENT
-            FEATURE DUMMY 0
-
-            SMARTS_DEF [Nr]=[C][Nr0] IF_NO_H_PRESENT
-            FEATURE DUMMY 0
-
-            SMARTS_DEF [N]([C]=[O])=[C][N] IF_NO_H_PRESENT
-            FEATURE DUMMY 0
-
-            SMARTS_DEF [#6;#16](=O)-[NX2][*] IF_NO_H_PRESENT
-            FEATURE DONOR_SP2 2
-
-            SMARTS_DEF [#6](=O)-[NX1] IF_NO_H_PRESENT
-            FEATURE DONOR_SP2 2
-
-            SMARTS_DEF [#16](=O)-[NX1] IF_NO_H_PRESENT
-            FEATURE DONOR_SP3 2
-
-            SMARTS_DEF [*]-[#7X2]-[*]=[*] IF_NO_H_PRESENT
-            FEATURE DONOR_SP2 1
-
-            SMARTS_DEF [*]-[#7X2]-[*]:[*] IF_NO_H_PRESENT
-            FEATURE DONOR_SP2 1
-
-            SMARTS_DEF [*](!-[*])-[#7X1] IF_NO_H_PRESENT
-            FEATURE DONOR_SP2 2
-
-            SMARTS_DEF [N]=[C][N] IF_NO_H_PRESENT
-            FEATURE DONOR_SP2 0
-
-            SMARTS_DEF [*]-[#7X3](-[*])-[*]=[*] IF_NO_H_PRESENT
-            FEATURE DUMMY 1
-
-            SMARTS_DEF [*]-[#7X3](-[*])-[*] IF_NO_H_PRESENT
-            FEATURE DONOR_SP3 1
-
-            SMARTS_DEF [*]-[#7X2]-[*] IF_NO_H_PRESENT
-            FEATURE DONOR_SP3 1
-
-            SMARTS_DEF [*]-[#7X1] IF_NO_H_PRESENT
-            FEATURE DONOR_SP3 1
-
-            SMARTS_DEF [OX1]~[*]-[OX1] IF_NO_H_PRESENT
-            FEATURE DUMMY 2
-
-            SMARTS_DEF [*]-[*](-[OX1])=[*] IF_NO_H_PRESENT
-            FEATURE DONOR_SP2 2
-
-            SMARTS_DEF [c]-[OX1] IF_NO_H_PRESENT
-            FEATURE DONOR_SP2 1
-
-            SMARTS_DEF [C;N]-[OX1] IF_NO_H_PRESENT
-            FEATURE DONOR_SP3 1
-
-            SMARTS_DEF [C]-[SX1] IF_NO_H_PRESENT
-            FEATURE DONOR_SP3 1
-
-        FEATURE_SUBSTRUCTURE_END
-
-        FEATURE_SUBSTRUCTURE_START
-
-            FEATURE_NAME hydrophobic
-
-            DEFINE_FEATURE HYDROPHOBIC POINT
-            DEFINE_FEATURE DUMMY DUMMY
-
-            SMARTS_DEF [#6]([!H])([!H])=[!H;!O;!N]
-            FEATURE HYDROPHOBIC 0
-
-            SMARTS_DEF [#6](:[!H])(:[!H])~[!H]
-            FEATURE HYDROPHOBIC 0
-
-            SMARTS_DEF [#7;#8]~[#6]([!H])([!H])[!H]
-            FEATURE HYDROPHOBIC 1
-
-            SMARTS_DEF [#9]~[#6]([!H])([!H])[!H]
-            FEATURE HYDROPHOBIC 1
-
-            SMARTS_DEF [#6;#16](=O)~[#6]([!H])([!H])[!H]
-            FEATURE HYDROPHOBIC 2
-
-            SMARTS_DEF [#7;#8]~[#6]
-            FEATURE DUMMY 1
-
-            SMARTS_DEF [#9]~[#6]
-            FEATURE DUMMY 1
-
-            SMARTS_DEF [#6;#16](=O)~[#6]
-            FEATURE DUMMY 2
-
-            SMARTS_DEF [*]~[#6X3](~[*])~[*]
-            FEATURE HYDROPHOBIC 1
-
-            SMARTS_DEF [*]~[#6X2]~[*]
-            FEATURE HYDROPHOBIC 1
-
-            SMARTS_DEF [#6X4]
-            FEATURE HYDROPHOBIC 0
-
-            SMARTS_DEF [CX1][#6;#16]
-            FEATURE HYDROPHOBIC 0
-
-            SMARTS_DEF [N]([!H])([!H])[!H]=[O]
-            FEATURE HYDROPHOBIC 0
-
-            SMARTS_DEF [N]([!H]=[!H])([!H]=[!H])[!H]
-            FEATURE HYDROPHOBIC 0
-
-            SMARTS_DEF [F]
-            FEATURE HYDROPHOBIC 0
-
-            SMARTS_DEF [#16X2]
-            FEATURE HYDROPHOBIC 0
-
-            SMARTS_DEF [Cl]
-            FEATURE HYDROPHOBIC 0
-
-            SMARTS_DEF [Br]
-            FEATURE HYDROPHOBIC 0
-
-            SMARTS_DEF [I]
-            FEATURE HYDROPHOBIC 0
-
-        FEATURE_SUBSTRUCTURE_END
-
-        FEATURE_SUBSTRUCTURE_START
-
-            FEATURE_NAME heavy_atom
-
-            DEFINE_FEATURE OCCUPIED POINT
-
-            SMARTS_DEF [!H]
-            FEATURE OCCUPIED 0
-
-        FEATURE_SUBSTRUCTURE_END
-
-    FEATURE_LIBRARY_END'''
-    return start_str

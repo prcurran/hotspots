@@ -21,7 +21,8 @@ The main classes of the :mod:`fragment_hotspot_maps.extraction` module are:
     -Utilities
 """
 import math
-
+from os.path import exists
+from os import mkdir
 
 class Utilities(object):
     """
@@ -43,16 +44,12 @@ class Utilities(object):
         d = math.sqrt(xd ** 2 + yd ** 2 + zd ** 2)
         return d
 
-    # @staticmethod
-    # def rmsd(a, b):
-    #     """
-    #     given two structures, calulates the rmsd
-    #     :param coords1:
-    #     :param coords2:
-    #     :return:
-    #     """
-
-
+    @staticmethod
+    def get_out_dir(path):
+        """"""
+        if not exists(path):
+            mkdir(path)
+        return path
 
     @staticmethod
     def get_lines_from_file(fname):

@@ -26,29 +26,268 @@ TO DO:
 """
 import zipfile
 from os import listdir
-from os.path import splitext, join, basename
+from os.path import splitext, join, basename, dirname
 import tempfile
+import shutil
 
+from ccdc.molecule import Molecule, Atom
 from ccdc.protein import Protein
 from ccdc import io
 
 from grid_extension import Grid
 from hotspot_calculation import HotspotResults
+from template_strings import pymol_imports, pymol_arrow, pymol_protein, pymol_grids, pymol_display_settings, \
+    pymol_load_zip, pymol_labels
+from utilities import Utilities
+from pharmacophore import PharmacophoreModel
 
-
-class PyMolWriter(object):
+class HotspotWriter(object):
     """
     class to handle the writing of Hotspots to PyMol
     """
-    def __init__(self, path):
+    class Settings(object):
+        """class to hold writer settings"""
+        def __init__(self):
+            # format settings
+            self.grid_extension = ".grd"
+
+            # visual settings
+            self.bg_color = "white"
+
+            # protein
+            self.surface = True
+            self.surface_trim_factor = 13
+
+            # ligand
+            self.organic_sticks = True
+
+            # grid
+            self.isosurface_threshold=[10, 14, 17]
+            self.charged = True
+            self.transparency = 0.7
+            self.grid_labels = True
+
+            #pharmacophore
+            self.pharmacophore = False
+            self.pharmacophore_labels = True
+            self.pharmacophore_format = [".cm"]
+
+    def __init__(self, path, settings, zip_results=False):
         """
 
         :param path: directory (maybe zipped) containing hotspot information
         """
         self.path = path
+        self.settings = settings
+        self.zipped = zip_results
 
-    def write(self, hr, isosurface_threshold=[10, 14, 17], pharmacophores=false, island_labels=True):
+    def write(self, hr):
         """hr result can be instance or list"""
+        if isinstance(hr, list):
+            self.number_of_hotspots = len(hr)
+            self.out_dir= Utilities.get_out_dir(join(self.path, "hotspot_boundaries"))
+            self._write_protein(hr[0].prot)
+            if hr[0].pharmacophore:
+                self.settings.pharmacophore = True
+            self._write_pymol(hr)
+
+            for i, hotspot in enumerate(hr):
+                self.out_dir = Utilities.get_out_dir(join(self.path, "hotspot_boundaries", str(i)))
+                print self.out_dir
+                self._write_grids(hotspot.super_grids, buriedness=None)
+                self._write_protein(hotspot.prot)
+                if hotspot.pharmacophore:
+                    self._write_pharmacophore(hotspot.pharmacophore)
+                self._write_pymol(hotspot)
+
+        else:
+            self.number_of_hotspots = 1
+            self.out_dir = Utilities.get_out_dir(join(self.path, "out"))
+            self._write_grids(hr.super_grids, buriedness=hr.buriedness)
+            self._write_protein(hr.prot)
+            print hr
+            if hr.pharmacophore:
+                self.settings.pharmacophore = True
+                self._write_pharmacophore(hr.pharmacophore)
+            self._write_pymol(hr)
+
+        if self.zipped:
+            self.zip_results(self.out_dir)
+
+    def _write_grids(self, grid_dict, buriedness=None, out_dir=None):
+        """
+        writes grids to output directory
+        :param grid_dict:
+        :param buriedness:
+        :return:
+        """
+        for p, g in grid_dict.items():
+            fname = "{}{}".format(p, self.settings.grid_extension)
+            if not out_dir:
+                g.write(join(self.out_dir, fname))
+            else:
+                g.write(join(out_dir, fname))
+
+        if buriedness:
+            buriedness.write(join(self.out_dir, "buriedness{}".format(self.settings.grid_extension)))
+
+        if self.settings.grid_labels:
+            labels = {"label_threshold_{}.mol2".format(threshold): self._get_label(grid_dict, threshold=threshold)
+                      for threshold in self.settings.isosurface_threshold}
+
+            for fname, label in labels.items():
+                with io.MoleculeWriter(join(self.out_dir, fname)) as writer:
+                    writer.write(label)
+
+    def _write_protein(self, prot, out_dir=None):
+        """
+        writes protein to output directory
+        :param prot:
+        :return:
+        """
+        if not out_dir:
+            out = join(self.out_dir, "protein.pdb")
+
+        else:
+            out = join(out_dir, "protein.pdb")
+
+        with io.MoleculeWriter(out) as writer:
+            writer.write(prot)
+
+    def _write_pharmacophore(self, pharmacophore, label=None):
+        """
+        writes pharmacophore to output directory
+        :param pharmacophore:
+        :return:
+        """
+        out = [join(self.out_dir, "pharmacophore" + fmat) for fmat in self.settings.pharmacophore_format]
+        for o in out:
+            pharmacophore.write(o)
+
+        if self.settings.pharmacophore_labels:
+            label = self._get_label(pharmacophore)
+            with io.MoleculeWriter(join(self.out_dir, "{}".format(pharmacophore.identifier))) as writer:
+                writer.write(label)
+
+    def _write_pymol(self, hr):
+        """
+        Constructs PyMol python script to automatically display FH results
+        :return:
+        """
+        pymol_out = pymol_imports()
+
+        if self.settings.pharmacophore:
+            pymol_out += pymol_arrow()
+
+        if self.zipped:
+            pymol_out += pymol_load_zip(self.out_dir)
+
+        pymol_out += pymol_protein(self.settings, self.zipped)
+
+        if isinstance(hr, list):
+            for i, h in enumerate(hr):
+                if self.settings.grid_labels:
+
+                    for t in self.isosurface_threshold:
+                        pymol_out += pymol_labels(fname=self.out_dir,
+                                                  objname="label_threshold_{}.mol2".format(t))
+
+                pymol_out += pymol_grids(i, self.settings)
+
+                if h.pharmacophore:
+                    pymol_out += h.pharmacophore.get_pymol_pharmacophore()
+                    pymol_out += pymol_labels(fname=join(self.out_dir, h.pharmacophore.identifier),
+                                              objname=h.pharmacophore.identifier)
+
+        else:
+            if self.settings.grid_labels:
+
+                for t in self.settings.isosurface_threshold:
+                    pymol_out += pymol_labels(fname=self.out_dir,
+                                              objname="label_threshold_{}.mol2".format(t))
+
+            pymol_out += pymol_grids(None, self.settings)
+
+            if hr.pharmacophore:
+                pymol_out += hr.pharmacophore.get_pymol_pharmacophore()
+                pymol_out += pymol_labels(fname=join(self.out_dir, hr.pharmacophore.identifier),
+                                          objname=hr.pharmacophore.identifier)
+
+
+        pymol_out += pymol_display_settings(self.settings)
+
+        if self.zipped:
+            out = dirname(self.out_dir)
+        else:
+            out = self.out_dir
+
+        with open('{}/pymol_results_file.py'.format(out), 'w') as pymol_file:
+            pymol_file.write(pymol_out)
+
+    def _get_label(self, input, threshold=None):
+        """
+
+        :param input:
+        :return:
+        """
+        atom_dic = {"apolar": 'C',
+                    "donor": 'N',
+                    "acceptor": 'O',
+                    "negative": 'S',
+                    "positve": 'H'}
+
+        if isinstance(input, PharmacophoreModel):
+            interaction_types = [atom_dic[feat.feature_type] for feat in input.features]
+            coordinates = [feat.coordinates for feat in input.features]
+            scores = [feat.score for feat in input.features]
+
+        elif isinstance(input, dict):
+            if threshold == None:
+                pass
+
+            else:
+                interaction_types = []
+                coordinates = []
+                scores = []
+                for p, g in input.super_grids.items():
+                    for island in g.islands(threshold=threshold):
+                        interaction_types.append(atom_dic[p])
+                        coordinates.append(island.centroid())
+                        scores.append(island.grid_score(threshold=threshold, percentile=50))
+
+        else:
+            print "object not supported"
+
+        mol = Molecule(identifier = "pharmacophore_model")
+
+        pseudo_atms = [Atom(atomic_symbol=interaction_types[i],
+                            atomic_number=14,
+                            coordinates=coordinates[i],
+                            label=scores[i])
+                       for i in range(len(interaction_types))]
+
+        for a in pseudo_atms:
+            mol.add_atom(a)
+        return mol
+
+    def zip_results(self, archive_name, delete_directory=True):
+        """
+        Zips the output directory created for this :class:`fragment_hotspot_maps.HotspotResults` instance, and
+        removes the directory by default. The zipped file can be loaded directly into a new
+        :class:`fragment_hotspot_maps.HotspotResults` instance using the
+        :func:`~fragment_hotspot_maps.Hotspots.from_zip_dir` function
+
+        :param archive_name: str, file path
+        :param delete_directory: bool, remove the out directory once it has been zipped
+
+        :return: None
+        """
+        self.archive_name = archive_name
+        shutil.make_archive(self.archive_name, 'zip', self.out_dir)
+        self.archive_loc = dirname("{}.zip".format(self.archive_name))
+        if delete_directory:
+            shutil.rmtree(self.out_dir)
+
 
 class HotspotReader(object):
     """
@@ -154,4 +393,3 @@ class HotspotReader(object):
                               sampled_probes=None,
                               buriedness=self.buriedness,
                               out_dir=self.out_dir)
-    

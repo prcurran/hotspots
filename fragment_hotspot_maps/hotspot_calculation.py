@@ -31,7 +31,7 @@ from ccdc.utilities import _test_output_dir, PushDir
 
 from grid_extension import Grid
 import pkg_resources
-from template_strings import pymol_template, colourmap, superstar_ins, pymol_zip_template
+from template_strings import colourmap, superstar_ins
 from pharmacophore import PharmacophoreModel
 
 try:
@@ -1250,74 +1250,74 @@ class HotspotResults(_HotspotsHelper):
         for probe, g in self.super_grids.items():
             self.super_grids[probe] = g.max_value_of_neighbours()
 
-    def zip_results(self, archive_name='out', delete_directory=True):
-        """
-        Zips the output directory created for this :class:`fragment_hotspot_maps.HotspotResults` instance, and
-        removes the directory by default. The zipped file can be loaded directly into a new
-        :class:`fragment_hotspot_maps.HotspotResults` instance using the
-        :func:`~fragment_hotspot_maps.Hotspots.from_zip_dir` function
+    # def zip_results(self, archive_name='out', delete_directory=True):
+    #     """
+    #     Zips the output directory created for this :class:`fragment_hotspot_maps.HotspotResults` instance, and
+    #     removes the directory by default. The zipped file can be loaded directly into a new
+    #     :class:`fragment_hotspot_maps.HotspotResults` instance using the
+    #     :func:`~fragment_hotspot_maps.Hotspots.from_zip_dir` function
+    #
+    #     :param archive_name: str, file path
+    #     :param delete_directory: bool, remove the out directory once it has been zipped
+    #
+    #     :return: None
+    #     """
+    #     print(getcwd())
+    #     if not exists(self.out_dir):
+    #         mkdir(self.out_dir)
+    #
+    #     for probe, g in self.super_grids.items():
+    #         g.write('{0}/{1}.grd'.format(self.out_dir, probe))
+    #
+    #     with MoleculeWriter(join(self.out_dir, "protein.pdb")) as writer:
+    #         writer.write(self.prot)
+    #
+    #     self.archive_name = archive_name
+    #     shutil.make_archive(self.archive_name, 'zip', self.out_dir)
+    #     self.archive_loc = dirname("{}.zip".format(self.archive_name))
+    #     if delete_directory:
+    #         shutil.rmtree(self.out_dir)
 
-        :param archive_name: str, file path
-        :param delete_directory: bool, remove the out directory once it has been zipped
-
-        :return: None
-        """
-        print(getcwd())
-        if not exists(self.out_dir):
-            mkdir(self.out_dir)
-
-        for probe, g in self.super_grids.items():
-            g.write('{0}/{1}.grd'.format(self.out_dir, probe))
-
-        with MoleculeWriter(join(self.out_dir, "protein.pdb")) as writer:
-            writer.write(self.prot)
-
-        self.archive_name = archive_name
-        shutil.make_archive(self.archive_name, 'zip', self.out_dir)
-        self.archive_loc = dirname("{}.zip".format(self.archive_name))
-        if delete_directory:
-            shutil.rmtree(self.out_dir)
-
-    def output_pymol_file(self):
-        """
-        Output a python script to be run from within pymol to visualise output
-        :return:
-        """
-
-        percentiles = {'low': 30}
-        cutoff_by_probe = {}
-        for probe, g in self.super_grids.items():
-            cutoff_dict = self._get_grid_percentiles(g, percentiles)
-            cutoff_by_probe[probe] = cutoff_dict.values()
-
-        if self.archive_name is not None:
-
-            with open(path.join(self.archive_loc, 'pymol_results_file_{}.py'.format(self.archive_name)),
-                      'w') as pymol_file:
-                pymol_out = pymol_zip_template(self.archive_name, self.super_grids.keys(), cutoff_by_probe)
-                pymol_file.write(pymol_out)
-
-        else:
-
-            if self.fname is None:
-                with MoleculeWriter('{}/protein.pdb'.format(self.out_dir)) as w:
-                    w.write(self.prot)
-                    prot_file = ('{}/protein.pdb'.format(self.out_dir))
-            else:
-                prot_file = self.fname
-
-            for probe, g in self.super_grids.items():
-                g.write('{0}/{1}.grd'.format(self.out_dir, probe))
-
-            if self.buriedness is not None:
-                self.buriedness.write(join(self.out_dir, "buriedness.grd"))
-
-            with open('{}/pymol_results_file.py'.format(self.out_dir), 'w') as pymol_file:
-                pymol_out = pymol_template(prot_file, self.out_dir, self.super_grids.keys(), cutoff_by_probe)
-                pymol_file.write(pymol_out)
-
-            with MoleculeWriter(join(self.out_dir, "protein.pdb")) as writer:
-                writer.write(self.prot)
+    # def output_pymol_file(self):
+    #     """
+    #     Output a python script to be run from within pymol to visualise output
+    #     :return:
+    #     """
+    #
+    #     percentiles = {'low': 30}
+    #     cutoff_by_probe = {}
+    #     for probe, g in self.super_grids.items():
+    #         cutoff_dict = self._get_grid_percentiles(g, percentiles)
+    #         cutoff_by_probe[probe] = cutoff_dict.values()
+    #
+    #     if self.archive_name is not None:
+    #
+    #         with open(path.join(self.archive_loc, 'pymol_results_file_{}.py'.format(self.archive_name)),
+    #                   'w') as pymol_file:
+    #             pymol_out = pymol_zip_template(self.archive_name, self.super_grids.keys(), cutoff_by_probe)
+    #             pymol_file.write(pymol_out)
+    #
+    #     else:
+    #
+    #         if self.fname is None:
+    #             with MoleculeWriter('{}/protein.pdb'.format(self.out_dir)) as w:
+    #                 w.write(self.prot)
+    #                 prot_file = ('{}/protein.pdb'.format(self.out_dir))
+    #         else:
+    #             prot_file = self.fname
+    #
+    #         for probe, g in self.super_grids.items():
+    #             g.write('{0}/{1}.grd'.format(self.out_dir, probe))
+    #
+    #         if self.buriedness is not None:
+    #             self.buriedness.write(join(self.out_dir, "buriedness.grd"))
+    #
+    #         with open('{}/pymol_results_file.py'.format(self.out_dir), 'w') as pymol_file:
+    #             pymol_out = pymol_template(prot_file, self.out_dir, self.super_grids.keys(), cutoff_by_probe)
+    #             pymol_file.write(pymol_out)
+    #
+    #         with MoleculeWriter(join(self.out_dir, "protein.pdb")) as writer:
+    #             writer.write(self.prot)
 
 
 class Hotspots(_HotspotsHelper):
@@ -1608,30 +1608,6 @@ class Hotspots(_HotspotsHelper):
         else:
             self.sampler_settings = settings
 
-    def _get_cavity_centroid(self, cav):
-        """
-        Returns the centroid of a cavity object
-
-        :param cav:
-        :return:
-        """
-
-        x_coords = []
-        y_coords = []
-        z_coords = []
-
-        for feat in cav.features:
-            feature_coords = feat.coordinates
-            x_coords.append(feature_coords[0])
-            y_coords.append(feature_coords[1])
-            z_coords.append(feature_coords[2])
-
-        x_avg = round(np.mean(x_coords))
-        y_avg = round(np.mean(y_coords))
-        z_avg = round(np.mean(z_coords))
-
-        return x_avg, y_avg, z_avg
-
     @staticmethod
     def _superstar_job(args):
         """
@@ -1778,64 +1754,6 @@ class Hotspots(_HotspotsHelper):
         for probe in probe_types:
             top_probes = self._get_out_maps(probe, grid_dict)
             self.sampled_probes.update({probe: top_probes})
-
-    # def _from_grid_dic(self, super_grids, prot, fname=None, sampled_probes=None, buriedness=None):
-    #     """
-    #     Create a Hotspots_reults object from a dictionary of previously calculated grid objects
-    #
-    #     :param super_grids: dict, {'probe_name':grid} where the probe names are 'apolar', 'donor' and 'acceptor'
-    #     :param prot: a :class:`ccdc.protein.Protein` instance
-    #     :param fname: str, file path
-    #     :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
-    #     """
-    #
-    #     self.fname = fname
-    #     self.super_grids = super_grids
-    #     self.prot = prot
-    #     self.sampled_probes = sampled_probes
-    #     self.buriedness = buriedness
-    #     return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
-    #                           out_dir=self.out_dir)
-
-    # def from_zip_dir(self, zip_dir, probes=('apolar', 'donor', 'acceptor'), output_directory='out', temporary=True):
-    #     """
-    #     Create a Hotspots_reults object from zipped output directory with default file names. Extracts files to a
-    #     temp dir, and removes files once a :class:`fragment_hotspot_maps.HotspotResults` instance has been created
-    #
-    #     :param super_grids: dict, {'probe_name':grid} where the probe names are 'apolar', 'donor' and 'acceptor'
-    #     :param prot: a :class:`ccdc.protein.Protein` instance
-    #     :param fname: str, file path
-    #     :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
-    #     """
-    #
-    #     self.fname = 'protein.pdb'
-    #     self.out_dir = output_directory
-    #
-    #     if temporary:
-    #         dirpath = tempfile.mkdtemp()
-    #     else:
-    #         dirpath = self.out_dir
-    #         if not exists(self.out_dir):
-    #             mkdir(self.out_dir)
-    #
-    #     with zipfile.ZipFile(zip_dir) as hs_zip:
-    #         hs_zip.extractall(dirpath)
-    #
-    #     for p in probes:
-    #         print(path.join(dirpath, '{}.grd'.format(p)))
-    #
-    #     self.super_grids = {p: Grid.from_file(path.join(dirpath, '{}.grd'.format(p))) for p in probes}
-    #     self.prot = Protein.from_file(path.join(dirpath, 'protein.pdb'))
-    #     self.sampled_probes = {}
-    #     try:
-    #         self.buriedness = Grid.from_file(path.join(dirpath, 'buriedness.grd'))
-    #     except:
-    #         self.buriedness = None
-    #
-    #     if temporary:
-    #         shutil.rmtree(dirpath)
-    #     return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
-    #                           out_dir=self.out_dir)
 
     def from_protein(self, prot, charged_probes=False, binding_site_origin=None, probe_size=7,
                      ghecom_executable=None, output_directory='out'):
