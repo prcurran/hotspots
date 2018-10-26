@@ -56,7 +56,7 @@ class Settings():
         self.max_hbond_dist = 5
         self.radius = 1.0    # set more intelligently
         self.vector_on = 0
-        self.transparency = 0.9
+        self.transparency = 0.6
         self.excluded_volume = False
         self.binding_site_radius = 12
 
@@ -348,31 +348,6 @@ class PharmacophoreModel(object):
 
         else:
             raise TypeError("""""{}" output file type is not currently supported.""".format(extension))
-
-    # @staticmethod
-    # def get_feature_labels(**kwargs):
-    #     #supergrids
-    #     #islands
-    #     #PharmacophoreModel
-    #     elif extension == ".mol2":
-    #         mol = Molecule(identifier = "pharmacophore_model")
-    #         atom_dic = {"apolar": 'C',
-    #                     "donor": 'N',
-    #                     "acceptor": 'O',
-    #                     "negative": 'S',
-    #                     "positve": 'H'}
-    #
-    #         pseudo_atms = [Atom(atomic_symbol=atom_dic[feat.feature_type],
-    #                             atomic_number=14,
-    #                             coordinates=feat.feature_coordinates,
-    #                             label = str(feat.score))
-    #                        for feat in self.features]
-    #
-    #         for a in  pseudo_atms:
-    #             mol.add_atom(a)
-    #
-    #         with io.MoleculeWriter(fname) as w:
-    #             w.write(mol)
 
     @staticmethod
     def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5, settings=None):

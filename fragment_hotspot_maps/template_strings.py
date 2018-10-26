@@ -166,10 +166,11 @@ cmd.set("surface_trim_factor", {})
 
 def pymol_labels(fname, objname):
     out_str = """
-    cmd.load('{0}', '{1}')
-    cmd.hide('lines', '{1}')
-    cmd.hide('sticks', '{1}')
-    cmd.label("{1}", "name")
+cmd.load('{0}', '{1}')
+cmd.hide('everything', '{1}')
+cmd.label("{1}", "name")
+cmd.set("label_font_id", 7)
+cmd.set("label_size", -0.4)
 
 """.format(fname, objname)
     return out_str
@@ -209,7 +210,7 @@ for t in threshold_list:
     cmd.group('threshold_%s'%(t), members = 'surface_apolar_%s_%s'%(t, num))
     cmd.group('threshold_%s'%(t), members = 'surface_donor_%s_%s'%(t, num))
     cmd.group('threshold_%s'%(t), members = 'surface_acceptor_%s_%s'%(t, num))
-    cmd.group('threshold_%s'%(t), members = 'label_threshold_%s.mol2'%(t))
+    cmd.group('threshold_%s'%(t), members = 'label_threshold_%s'%(t))
 
 
     try:

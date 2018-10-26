@@ -25,7 +25,7 @@ TO DO:
 
 """
 import zipfile
-from os import listdir
+from os import listdir, walk
 from os.path import splitext, join, basename, dirname
 import tempfile
 import shutil
@@ -40,6 +40,7 @@ from template_strings import pymol_imports, pymol_arrow, pymol_protein, pymol_gr
     pymol_load_zip, pymol_labels
 from utilities import Utilities
 from pharmacophore import PharmacophoreModel
+
 
 class HotspotWriter(object):
     """
@@ -72,14 +73,26 @@ class HotspotWriter(object):
             self.pharmacophore_labels = True
             self.pharmacophore_format = [".cm"]
 
-    def __init__(self, path, settings, zip_results=False):
+    def __init__(self, path, grid_extension = ".grd", settings=None, zip_results=False):
         """
 
         :param path: directory (maybe zipped) containing hotspot information
         """
+        if settings is None:
+            self.settings = self.Settings()
+        else:
+            self.settings = settings
+
+        self.settings.grid_extension = grid_extension
         self.path = path
-        self.settings = settings
+
         self.zipped = zip_results
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        exit()
 
     def write(self, hr):
         """hr result can be instance or list"""
@@ -87,18 +100,19 @@ class HotspotWriter(object):
             self.number_of_hotspots = len(hr)
             self.out_dir= Utilities.get_out_dir(join(self.path, "hotspot_boundaries"))
             self._write_protein(hr[0].prot)
-            if hr[0].pharmacophore:
+            if hr[0].hotspot_result.pharmacophore:
                 self.settings.pharmacophore = True
+            #hts = [h.hotspot_result for h in hr]
             self._write_pymol(hr)
 
             for i, hotspot in enumerate(hr):
                 self.out_dir = Utilities.get_out_dir(join(self.path, "hotspot_boundaries", str(i)))
-                print self.out_dir
-                self._write_grids(hotspot.super_grids, buriedness=None)
-                self._write_protein(hotspot.prot)
-                if hotspot.pharmacophore:
-                    self._write_pharmacophore(hotspot.pharmacophore)
-                self._write_pymol(hotspot)
+                self.settings.isosurface_threshold = [round(hotspot.threshold,1)]
+                self._write_grids(hotspot.hotspot_result.super_grids, buriedness=None)
+                self._write_protein(hotspot.hotspot_result.prot)
+                if hotspot.hotspot_result.pharmacophore:
+                    self._write_pharmacophore(hotspot.hotspot_result.pharmacophore)
+                self._write_pymol(hotspot.hotspot_result)
 
         else:
             self.number_of_hotspots = 1
@@ -166,7 +180,8 @@ class HotspotWriter(object):
 
         if self.settings.pharmacophore_labels:
             label = self._get_label(pharmacophore)
-            with io.MoleculeWriter(join(self.out_dir, "{}".format(pharmacophore.identifier))) as writer:
+            with io.MoleculeWriter(join(self.out_dir, "label_threshold_{}.mol2".format(pharmacophore.identifier))) \
+                    as writer:
                 writer.write(label)
 
     def _write_pymol(self, hr):
@@ -186,32 +201,11 @@ class HotspotWriter(object):
 
         if isinstance(hr, list):
             for i, h in enumerate(hr):
-                if self.settings.grid_labels:
-
-                    for t in self.isosurface_threshold:
-                        pymol_out += pymol_labels(fname=self.out_dir,
-                                                  objname="label_threshold_{}.mol2".format(t))
-
-                pymol_out += pymol_grids(i, self.settings)
-
-                if h.pharmacophore:
-                    pymol_out += h.pharmacophore.get_pymol_pharmacophore()
-                    pymol_out += pymol_labels(fname=join(self.out_dir, h.pharmacophore.identifier),
-                                              objname=h.pharmacophore.identifier)
+                self.settings.isosurface_threshold = [round(h.threshold, 1)]
+                pymol_out += self._get_pymol_hotspot(h.hotspot_result, i=i)
 
         else:
-            if self.settings.grid_labels:
-
-                for t in self.settings.isosurface_threshold:
-                    pymol_out += pymol_labels(fname=self.out_dir,
-                                              objname="label_threshold_{}.mol2".format(t))
-
-            pymol_out += pymol_grids(None, self.settings)
-
-            if hr.pharmacophore:
-                pymol_out += hr.pharmacophore.get_pymol_pharmacophore()
-                pymol_out += pymol_labels(fname=join(self.out_dir, hr.pharmacophore.identifier),
-                                          objname=hr.pharmacophore.identifier)
+            pymol_out += self._get_pymol_hotspot(hr)
 
 
         pymol_out += pymol_display_settings(self.settings)
@@ -223,6 +217,40 @@ class HotspotWriter(object):
 
         with open('{}/pymol_results_file.py'.format(out), 'w') as pymol_file:
             pymol_file.write(pymol_out)
+
+    def _get_pymol_hotspot(self, h, i=None):
+        """
+        core pymol sequence
+        :param h: HotspotResult object
+        :return:
+        """
+        pymol_out = ""
+        if self.settings.grid_labels:
+
+            for t in self.settings.isosurface_threshold:
+                if i is not None:
+                    fname = join(str(i), "label_threshold_{}.mol2".format(t))
+                else:
+                    fname = "label_threshold_{}.mol2".format(t)
+                pymol_out += pymol_labels(fname= fname,
+                                          objname="label_threshold_{}".format(t))
+
+        pymol_out += pymol_grids(i, self.settings)
+
+        if h.pharmacophore:
+            pymol_out += h.pharmacophore.get_pymol_pharmacophore()
+
+            if i is not None:
+                f = join(str(i), "label_threshold_{}.mol2".format(h.pharmacophore.identifier))
+            else:
+                f = "label_threshold_{}.mol2".format(h.pharmacophore.identifier)
+            pymol_out += pymol_labels(fname=f,
+                                      objname="label_threshold_{}".format(h.pharmacophore.identifier))
+
+            pymol_out += """\ncmd.group('Pharmacophore_{0}', members= 'label_threshold_{0}')\n"""\
+                .format(h.pharmacophore.identifier)
+
+        return pymol_out
 
     def _get_label(self, input, threshold=None):
         """
@@ -238,7 +266,7 @@ class HotspotWriter(object):
 
         if isinstance(input, PharmacophoreModel):
             interaction_types = [atom_dic[feat.feature_type] for feat in input.features]
-            coordinates = [feat.coordinates for feat in input.features]
+            coordinates = [feat.feature_coordinates for feat in input.features]
             scores = [feat.score for feat in input.features]
 
         elif isinstance(input, dict):
@@ -249,7 +277,7 @@ class HotspotWriter(object):
                 interaction_types = []
                 coordinates = []
                 scores = []
-                for p, g in input.super_grids.items():
+                for p, g in input.items():
                     for island in g.islands(threshold=threshold):
                         interaction_types.append(atom_dic[p])
                         coordinates.append(island.centroid())
@@ -263,7 +291,7 @@ class HotspotWriter(object):
         pseudo_atms = [Atom(atomic_symbol=interaction_types[i],
                             atomic_number=14,
                             coordinates=coordinates[i],
-                            label=scores[i])
+                            label=str(scores[i]))
                        for i in range(len(interaction_types))]
 
         for a in pseudo_atms:

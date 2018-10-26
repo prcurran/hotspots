@@ -38,6 +38,8 @@ import numpy as np
 
 from hotspot_calculation import HotspotResults
 from grid_extension import Grid
+
+
 # from template_strings import extracted_hotspot_template
 
 
@@ -354,15 +356,22 @@ class Extractor(object):
     A class to handle the extraction of discrete, fragment size hotspots from the original maps
     """
 
-    def __init__(self, hr, settings):
+    def __init__(self, hr, settings=None, mode="seed", volume="125", pharmacophores=True):
         """
 
         :param hr:
         :param out_dir:
         :param settings:
         """
+        if settings is None:
+            self.settings = self.Settings()
+        else:
+            self.settings = settings
 
-        self.settings = settings
+        self.settings.mode = mode
+        self.settings.volume = volume
+        self.settings.pharmacophore = pharmacophores
+
         for probe, g in hr.super_grids.items():
 
             if g.bounding_box != hr.super_grids["apolar"].bounding_box:
@@ -418,7 +427,7 @@ class Extractor(object):
             self.min_feature_gp = 5
             self.max_features = 10
             self.min_distance = 8
-            self.drug_volume = 350
+            self.drug_volume = 125
             self.buriedness_value = 4
 
             self.fragments = None
