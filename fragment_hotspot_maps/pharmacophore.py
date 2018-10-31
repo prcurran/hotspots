@@ -25,7 +25,6 @@ The main classes of the :mod:`fragment_hotspot_maps.pharmacophore` module are:
 TO DO:
 Could this be made into and extension of the ccdc.pharmacophore :mod:
 """
-from utilities import Utilities
 import collections
 from os.path import basename, splitext
 from template_strings import pymol_arrow, pymol_imports
@@ -38,6 +37,9 @@ from ccdc import io
 from ccdc.molecule import Atom, Molecule
 from ccdc.descriptors import GeometricDescriptors
 from ccdc.pharmacophore import Pharmacophore
+
+from utilities import Utilities
+from grid_extension import Grid
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -57,7 +59,7 @@ class Settings():
         self.radius = 1.0    # set more intelligently
         self.vector_on = 0
         self.transparency = 0.6
-        self.excluded_volume = False
+        self.excluded_volume = True
         self.binding_site_radius = 12
 
 
@@ -154,6 +156,30 @@ class PharmacophoreModel(object):
                      '\ncmd.group("Pharmacophore_{0}", members="Arrows_{0}")\n'.format(self.identifier)
         return pymol_out
 
+    def as_grid(self, feature_type=None, tolerance=2):
+        """
+        returns features as grid
+        :param tolerance:
+        :return:
+        """
+        if feature_type == None:
+            filtered_features = self.features
+
+        else:
+            filtered_features = [feat for feat in self.features if feat.feature_type == feature_type]
+
+        x = [feat.feature_coordinates.x for feat in filtered_features]
+        y = [feat.feature_coordinates.y for feat in filtered_features]
+        z = [feat.feature_coordinates.z for feat in filtered_features]
+
+        origin = [min(x) - tolerance, min(y) - tolerance, min(z) - tolerance]
+        far_corner = [max(x) + tolerance, max(y) + tolerance, max(z) + tolerance]
+        grd = Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0, _grid=None)
+
+        for feat in filtered_features:
+            grd.set_sphere(point=feat.feature_coordinates,radius=self.settings.radius, value=1,scaling='None')
+        return grd
+
     def _get_binding_site_residues(self):
         """
 
@@ -181,11 +207,10 @@ class PharmacophoreModel(object):
 
         :return:
         """
+        # TO DO UPDATE WITH CHARGED FEATURES
         supported_features = {"acceptor_projected": "acceptor",
                               "donor_projected": "donor",
-                              "ring": "apolar",
-                              "": "negative",
-                              "": "positive"}
+                              "ring": "apolar"}
 
         Pharmacophore.read_feature_definitions()
 
@@ -194,16 +219,20 @@ class PharmacophoreModel(object):
 
         model_features = []
         for feat in self.features:
-            sphere = GeometricDescriptors.Sphere(feat.feature_coordinates, self.settings.radius)
-
-            if feat.projected_coordinates:
-                projected = GeometricDescriptors.Sphere(feat.projected_coordinates, self.settings.radius)
-                p = Pharmacophore.Feature(feature_definitions[feat.feature_type], *[sphere, projected])
+            if feat.feature_type == "negative" or feat.feature_type == "positive":
+                print "Charged feature not currently supported in CrossMiner: Its on the TODO list"
 
             else:
-                p = Pharmacophore.Feature(feature_definitions[feat.feature_type], sphere)
+                sphere = GeometricDescriptors.Sphere(feat.feature_coordinates, self.settings.radius)
 
-            model_features.append(p)
+                if feat.projected_coordinates:
+                    projected = GeometricDescriptors.Sphere(feat.projected_coordinates, self.settings.radius)
+                    p = Pharmacophore.Feature(feature_definitions[feat.feature_type], *[sphere, projected])
+
+                else:
+                    p = Pharmacophore.Feature(feature_definitions[feat.feature_type], sphere)
+
+                model_features.append(p)
 
         if self.settings.excluded_volume:
             if self.protein == None:
@@ -368,7 +397,8 @@ class PharmacophoreModel(object):
         with open(fname) as f:
             file = f.read().split("FEATURE_LIBRARY_END")[1]
             lines = [l for l in file.split("""\n\n""") if l != ""]
-            feature_list = [PharmacophoreFeature.from_crossminer(feature) for feature in lines]
+            feature_list = [f for f in [PharmacophoreFeature.from_crossminer(feature) for feature in lines] if f != None]
+
 
         return PharmacophoreModel(settings, identifier=identifier, features=feature_list, protein=protein)
 
@@ -481,31 +511,34 @@ class PharmacophoreFeature(Utilities):
         vector = None
         settings = Settings()
 
-        feat = re.search(r"PHARMACOPHORE_FEATURE (.+?)\n", feature_str)
-        feature_type =  cm_feature_dict[feat.group(1)]
-
-        spher = re.findall("PHARMACOPHORE_SPHERE (.+?)\n", feature_str)
-
-        if len(spher) == 1:
-            coords = spher[0].split(" ")
-            feature_coordinates = Coordinates(float(coords[0]), float(coords[1]), float(coords[2]))
-            projected = False
-            projected_coordinates = None
-            score = coords[3]
-
-        elif len(spher) == 2:
-            coords = spher[0].split(" ")
-            proj =  spher[1].split(" ")
-            feature_coordinates = Coordinates(float(coords[0]), float(coords[1]), float(coords[2]))
-            projected = True
-            projected_coordinates = Coordinates(float(proj[0]), float(proj[1]), float(proj[2]))
-            score = coords[3]
-
+        feat = re.search(r"""PHARMACOPHORE_FEATURE (.+?)\n""", feature_str)
+        if feat.group(1) == "excluded_volume":
+            pass
         else:
-            raise IOError("feature format not recognised")
+            feature_type =  cm_feature_dict[feat.group(1)]
 
-        return PharmacophoreFeature(projected, feature_type, feature_coordinates, projected_coordinates, score, vector,
-                                    settings)
+            spher = re.findall("""PHARMACOPHORE_SPHERE (.+?)\n""", feature_str)
+
+            if len(spher) == 1:
+                coords = spher[0].split(" ")
+                feature_coordinates = Coordinates(float(coords[0]), float(coords[1]), float(coords[2]))
+                projected = False
+                projected_coordinates = None
+                score = coords[3]
+
+            elif len(spher) == 2:
+                coords = spher[0].split(" ")
+                proj =  spher[1].split(" ")
+                feature_coordinates = Coordinates(float(coords[0]), float(coords[1]), float(coords[2]))
+                projected = True
+                projected_coordinates = Coordinates(float(proj[0]), float(proj[1]), float(proj[2]))
+                score = coords[3]
+
+            else:
+                raise IOError("feature format not recognised")
+
+            return PharmacophoreFeature(projected, feature_type, feature_coordinates, projected_coordinates, score, vector,
+                                        settings)
 
     @staticmethod
     def get_vector(projected_coordinates, feature_coordinates):

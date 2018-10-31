@@ -22,28 +22,19 @@ import zipfile
 import shutil
 import tempfile
 from concurrent import futures
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
 from ccdc.io import csd_directory, MoleculeWriter, MoleculeReader
 from ccdc.protein import Protein
-from ccdc.utilities import _test_output_dir, PushDir
+from ccdc.utilities import PushDir
 
 from grid_extension import Grid
 import pkg_resources
 from template_strings import colourmap, superstar_ins
 from pharmacophore import PharmacophoreModel
 from utilities import Figures, Utilities
-
-try:
-    from rdkit import Chem
-    from rdkit.Chem import Draw
-    from rdkit.Chem import AllChem
-    from matplotlib.colors import LinearSegmentedColormap
-except ImportError:
-    print("""ImportError: rdkit(optional)\nInfo: This module is required for producing 2D schematic maps""")
-if name == 'nt':
-    pass
 
 
 class _HotspotsHelper(object):
@@ -140,21 +131,21 @@ class _RunSuperstar(object):
         def __init__(self):
             self.jobname = None
             self.probename = None
-            self.moleculefile = None
+            self.moleculefile = "protein.pdb"
             self.cavity_origin = None
-
-            # self.occulsionthreshold = 5
             self.mapbackgroundvalue = 1
             self.boxborder = 10
             self.minpropensity = 1
             self.superstar_executable = None
             self.superstar_env = None
             self.working_directory = None
+            self.superstar_sigma = 0.5
 
-    def __init__(self, **kw):
-        settings = kw.get('settings')
-        if settings is None:
-            settings = self.Settings()
+    def __init__(self, settings):
+        """
+
+        :param settings:
+        """
         self.settings = settings
         base = csd_directory()
         main_dir = environ.get('MAINDIR')
@@ -244,6 +235,7 @@ class _RunSuperstar(object):
             else:
                 raise IOError("No protein supplied for SuperStar")
 
+            time.sleep(2)
             subprocess.call(cmd, shell=sys.platform != 'win32', env=env)
         return _SuperstarResult(self.settings)
 
@@ -261,6 +253,7 @@ class _SuperstarResult(object):
         if exists(grid_path):
             self.grid = Grid.from_file(grid_path)
         else:
+            print(grid_path)
             raise AttributeError('{} superstar grid could not be found'.format(self.identifier))
 
         ligsite_path = join(self.settings.working_directory, self.identifier + ".ins.ligsite.acnt")
@@ -308,7 +301,7 @@ class _RunGhecom(object):
             self.prot = None
             self.out_grid = None
             self.mode = "M"
-            self.working_directory = _test_output_dir()
+            self.working_directory = tempfile.mkdir()
             self.in_name = join(self.working_directory, "protein.pdb")
             self.out_name = join(self.working_directory, "ghecom_out.pdb")
 
@@ -345,7 +338,7 @@ class _RunGhecom(object):
                                                                               self.settings.radius_min_large_sphere,
                                                                               self.settings.radius_max_large_sphere,
                                                                               self.settings.out_name)
-            #
+
             system(cmd)
 
         return _GhecomResult(self.settings)
@@ -557,7 +550,7 @@ class HotspotResults(_HotspotsHelper):
     and using the results.
     """
 
-    def __init__(self, grid_dict, protein, fname, sampled_probes, buriedness, out_dir):
+    def __init__(self, grid_dict, protein, sampled_probes, buriedness):
         try:
             self.super_grids = grid_dict
             for probe, g in grid_dict.items():
@@ -566,19 +559,16 @@ class HotspotResults(_HotspotsHelper):
             raise TypeError("Not a valid Grid")
 
         self.prot = protein
-
-        self.fname = fname
         self.buriedness = buriedness
-        self.out_dir = out_dir
+        self.sampled_probes = sampled_probes
+        self.pharmacophore = None
+
         self.features_by_score = {}
         self.donor_scores = None
         self.acceptor_scores = None
         self.apolar_scores = None
         self.archive_name = None
         self.archive_loc = None
-        # self.sampled_probes = self.filter_by_score(sampled_probes)
-        self.sampled_probes = sampled_probes
-        self.pharmacophore = None
 
     def get_selectivity_map(self, other):
         '''
@@ -1308,7 +1298,6 @@ class Hotspots(_HotspotsHelper):
         n, ss_probe, centroid, prot, out_dir, wrk_dir = args
         s.settings.jobname = "{}.ins".format(n)
         s.settings.probename = ss_probe
-        s.settings.moleculefile = "protein.pdb"
         s.settings.cavity_origin = centroid
         s.settings.working_directory = wrk_dir
         result = s.run_superstar(prot, out_dir)
@@ -1339,12 +1328,17 @@ class Hotspots(_HotspotsHelper):
                 donor='UNCHARGED NH NITROGEN',
                 acceptor='CARBONYL OXYGEN')
 
-        wrk_dir = _test_output_dir()
+        wrk_dir = tempfile.mkdtemp()
         args = [(k, self.probe_dict[k], centroid, self.prot, self.out_dir, wrk_dir) for k in self.probe_dict.keys()]
-        ex = futures.ThreadPoolExecutor(max_workers=5)
-        results = ex.map(self._superstar_job, args)
 
-        return list(results)
+        if self.nthreads:
+            ex = futures.ThreadPoolExecutor(max_workers=self.nthreads)
+            results = ex.map(self._superstar_job, args)
+            return list(results)
+
+        else:
+            results = [self._superstar_job(arg) for arg in args]
+            return results
 
     def _get_weighted_maps(self):
         """
@@ -1414,15 +1408,13 @@ class Hotspots(_HotspotsHelper):
 
         :return:
         """
-
         print("Start SS")
-
         probe_types = ['apolar', 'donor', 'acceptor']
         if self.charged_probes:
             probe_types += ['negative', 'positive']
 
-        self.superstar_grids = self._run_ss(self.centroid)
 
+        self.superstar_grids = self._run_ss(self.centroid)
         print("SS complete")
 
         if self.ghecom_executable:
@@ -1443,46 +1435,36 @@ class Hotspots(_HotspotsHelper):
             top_probes = self._get_out_maps(probe, grid_dict)
             self.sampled_probes.update({probe: top_probes})
 
-    def from_protein(self, prot, charged_probes=False, binding_site_origin=None, probe_size=7,
-                     ghecom_executable=None, output_directory='out'):
+
+    # def from_cavity(self, fname, charged_probes=False, probe_size=7, ghecom_executable=None):
+    #     """"""
+    #
+    #     self.prot= Protein.from_file(fname)
+    #     self.charged_probes = charged_probes
+    #     self.probe_size = probe_size
+    #     self.ghecom_executable = ghecom_executable
+
+    def from_protein(self, prot, output_directory, charged_probes=False, probe_size=7, ghecom_executable=None,
+                     cavity_origin=None, nthreads=5):
         """
         Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object
 
         :param prot: a :class:`ccdc.protein.Protein` instance
-        :param binding_site_origin: a tuple of three floats, giving a coordinate within the binding site
-        :param probe_size: int, size of probe in number of heavy atoms (3-8 atoms)
-        :param ghecom_executable: str, path to ghecom executeable, if None ligsite used
+        :param out_dir: required to store ins
         :param charged_probes: bool, if True include positive and negative probes
+        :param binding_site_origin: binding_site_origin: a tuple of three floats, giving a coordinate within the binding site
+        :param probe_size: nt, size of probe in number of heavy atoms (3-8 atoms)
+        :param ghecom_executable: str, path to ghecom executeable, if None ligsite used
         :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
         """
-
         self.prot = prot
-        self.fname = 'protein.pdb'
-        self.probe_size = probe_size
         self.charged_probes = charged_probes
-
-
-        self.out_dir = output_directory
-        if not exists(self.out_dir):
-            mkdir(self.out_dir)
-        self.out_dir = path.abspath(self.out_dir)
-        self.working_dir = getcwd()
-
-
-
+        self.probe_size = probe_size
         self.ghecom_executable = ghecom_executable
-        self.centroid = binding_site_origin
-
-        # with MoleculeWriter(join(self.out_dir, 'protein.pdb')) as w:
-        #     w.write(self.prot)
-
+        self.nthreads = nthreads
+        self.out_dir = output_directory
+        self.centroid = cavity_origin
         self._calc_hotspots()
+        self.super_grids = {p: g[0] for p, g in self.out_grids.items()}
 
-        for probe in self.out_grids.keys():
-            probe = probe.lower()
-            sg = self.out_grids[probe][0]
-            self.super_grids[probe] = sg
-
-
-        return HotspotResults(self.super_grids, self.prot, self.fname, self.sampled_probes, self.buriedness,
-                              out_dir=self.out_dir)
+        return HotspotResults(self.super_grids, self.prot, self.sampled_probes, self.buriedness)

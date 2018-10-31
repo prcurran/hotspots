@@ -37,7 +37,7 @@ from ccdc import io
 from grid_extension import Grid
 from hotspot_calculation import HotspotResults
 from template_strings import pymol_imports, pymol_arrow, pymol_protein, pymol_grids, pymol_display_settings, \
-    pymol_load_zip, pymol_labels
+    pymol_load_zip, pymol_labels, pymol_mesh
 from utilities import Utilities
 from pharmacophore import PharmacophoreModel
 
@@ -92,43 +92,58 @@ class HotspotWriter(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        exit()
+        print traceback
 
     def write(self, hr):
         """hr result can be instance or list"""
+
         if isinstance(hr, list):
+            self.container = "hotspot_boundaries"
             self.number_of_hotspots = len(hr)
-            self.out_dir= Utilities.get_out_dir(join(self.path, "hotspot_boundaries"))
+
+            self.out_dir= Utilities.get_out_dir(join(self.path, self.container))
+
             self._write_protein(hr[0].prot)
             if hr[0].hotspot_result.pharmacophore:
                 self.settings.pharmacophore = True
             #hts = [h.hotspot_result for h in hr]
-            self._write_pymol(hr)
+            self._write_pymol(hr, self.zipped)
 
             for i, hotspot in enumerate(hr):
-                self.out_dir = Utilities.get_out_dir(join(self.path, "hotspot_boundaries", str(i)))
+                self.out_dir = Utilities.get_out_dir(join(self.path, self.container, str(i)))
                 self.settings.isosurface_threshold = [round(hotspot.threshold,1)]
-                self._write_grids(hotspot.hotspot_result.super_grids, buriedness=None)
+
+                bi = (Grid.super_grid(2, hotspot.best_island).max_value_of_neighbours()
+                      > hotspot.threshold)
+
+                self._write_grids(hotspot.hotspot_result.super_grids, buriedness=None, mesh=bi)
                 self._write_protein(hotspot.hotspot_result.prot)
+
                 if hotspot.hotspot_result.pharmacophore:
                     self._write_pharmacophore(hotspot.hotspot_result.pharmacophore)
-                self._write_pymol(hotspot.hotspot_result)
+                self._write_pymol(hotspot.hotspot_result, False)
+
+            self.out_dir = dirname(self.out_dir)
+            if self.zipped:
+                self.zip_results(join(dirname(self.out_dir), self.container))
 
         else:
+            self.container = "out"
             self.number_of_hotspots = 1
-            self.out_dir = Utilities.get_out_dir(join(self.path, "out"))
+
+            self.out_dir = Utilities.get_out_dir(join(self.path, self.container))
             self._write_grids(hr.super_grids, buriedness=hr.buriedness)
             self._write_protein(hr.prot)
-            print hr
+
             if hr.pharmacophore:
                 self.settings.pharmacophore = True
                 self._write_pharmacophore(hr.pharmacophore)
-            self._write_pymol(hr)
+            self._write_pymol(hr, self.zipped)
 
-        if self.zipped:
-            self.zip_results(self.out_dir)
+            if self.zipped:
+                self.zip_results(join(dirname(self.out_dir), self.container))
 
-    def _write_grids(self, grid_dict, buriedness=None, out_dir=None):
+    def _write_grids(self, grid_dict, buriedness=None, mesh=None, out_dir=None):
         """
         writes grids to output directory
         :param grid_dict:
@@ -144,6 +159,9 @@ class HotspotWriter(object):
 
         if buriedness:
             buriedness.write(join(self.out_dir, "buriedness{}".format(self.settings.grid_extension)))
+
+        if mesh:
+            mesh.write(join(self.out_dir, "mesh{}".format(self.settings.grid_extension)))
 
         if self.settings.grid_labels:
             labels = {"label_threshold_{}.mol2".format(threshold): self._get_label(grid_dict, threshold=threshold)
@@ -184,7 +202,7 @@ class HotspotWriter(object):
                     as writer:
                 writer.write(label)
 
-    def _write_pymol(self, hr):
+    def _write_pymol(self, hr, zipped=False):
         """
         Constructs PyMol python script to automatically display FH results
         :return:
@@ -194,8 +212,9 @@ class HotspotWriter(object):
         if self.settings.pharmacophore:
             pymol_out += pymol_arrow()
 
-        if self.zipped:
-            pymol_out += pymol_load_zip(self.out_dir)
+        if zipped:
+
+            pymol_out += pymol_load_zip(basename(self.out_dir))
 
         pymol_out += pymol_protein(self.settings, self.zipped)
 
@@ -203,6 +222,7 @@ class HotspotWriter(object):
             for i, h in enumerate(hr):
                 self.settings.isosurface_threshold = [round(h.threshold, 1)]
                 pymol_out += self._get_pymol_hotspot(h.hotspot_result, i=i)
+                pymol_out += pymol_mesh(i)
 
         else:
             pymol_out += self._get_pymol_hotspot(hr)
@@ -210,7 +230,7 @@ class HotspotWriter(object):
 
         pymol_out += pymol_display_settings(self.settings)
 
-        if self.zipped:
+        if zipped:
             out = dirname(self.out_dir)
         else:
             out = self.out_dir
@@ -417,7 +437,5 @@ class HotspotReader(object):
         """
         return HotspotResults(protein=self.prot,
                               grid_dict=self.grid_dic,
-                              fname=None,
                               sampled_probes=None,
-                              buriedness=self.buriedness,
-                              out_dir=self.out_dir)
+                              buriedness=self.buriedness)

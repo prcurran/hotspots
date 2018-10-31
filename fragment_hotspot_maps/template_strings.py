@@ -1,3 +1,5 @@
+from os.path import join
+
 def superstar_ins(settings):
     ss_str = '''JOBNAME {0}
 PROBENAME {1}
@@ -40,7 +42,7 @@ SAVE_EXCLUDED_VOLUME_MAP 0
 SAVE_ACCESSIBLE_VOLUME_MAP 0
 FLEXIBILITY_EXHAUSTIVE 0
 FLEXIBILITY_FLAG FLAG_ENSEMBLE
-SMEARING_SIGMA 0.5
+SMEARING_SIGMA {6}
 SMEARING_NSIGMAS 2
 POLAR_POLAR_CORRECTION 1
 POLAR_APOLAR_CORRECTION 1
@@ -68,7 +70,8 @@ SCORE_PACKING_SHELL 0
 ATOM_SCORING SINGLE_POINT'''.format(settings.jobname, settings.probename, settings.moleculefile,
                                     settings.mapbackgroundvalue,
                                     settings.boxborder,
-                                    settings.minpropensity)
+                                    settings.minpropensity,
+                                    settings.superstar_sigma)
 
     return ss_str
 
@@ -166,7 +169,12 @@ cmd.set("surface_trim_factor", {})
 
 def pymol_labels(fname, objname):
     out_str = """
-cmd.load('{0}', '{1}')
+if dirpath:
+    f = join(dirpath, "{0}")
+else:
+    f = "{0}"
+
+cmd.load(f, '{1}')
 cmd.hide('everything', '{1}')
 cmd.label("{1}", "name")
 cmd.set("label_font_id", 7)
@@ -239,6 +247,26 @@ for t in threshold_list:
 
     return out_str
 
+
+def pymol_mesh(i):
+    fname = join(str(i), "mesh.grd")
+    n = "mesh_{}".format(i)
+    out_str = """
+
+if dirpath:
+    f = join(dirpath, '{0}')
+else:
+    f = '{0}'
+cmd.load(f, '{1}')
+cmd.isomesh("iso{1}", "{1}", 0.9)
+cmd.color("grey80", "iso{1}")
+cmd.set('transparency', 0.4, "iso{1}")
+
+cmd.group('hotspot_{2}', "iso{1}")
+cmd.group('hotspot_{2}', "{1}")
+""".format(fname, n, i)
+
+    return out_str
 
 def pymol_display_settings(settings):
     out_str = """

@@ -104,7 +104,7 @@ class Grid(utilities.Grid):
         """
         mini = self.bounding_box[0]
         maxi = self.bounding_box[1]
-        if self.value_at_point(point) > threshold:
+        if self.value_at_point(point) >= threshold:
             return all([mini.x - tolerance < point[0] < maxi.x + tolerance,
                         mini.y - tolerance < point[1] < maxi.y + tolerance,
                         mini.z - tolerance < point[2] < maxi.z + tolerance])
@@ -271,6 +271,66 @@ class Grid(utilities.Grid):
         """Reduces grid size to the minimal dimensions"""
         return Grid.super_grid(1, *self.islands(threshold=1))
 
+    def limit_island_size(self, npoints, threshold=10):
+        """for a given grid, there are no islands above npoints (at any value)"""
+        g = (self > 10) * self
+        all_islands = []
+        for island in g.islands(threshold):
+            if island.count_grid() > npoints:
+                all_islands.append(island.top_points(npoints=npoints))
+            else:
+                all_islands.append(island)
+        return Grid.super_grid(0, *all_islands)
+
+    def top_points(self, npoints):
+        """orders points and returns the top npoints"""
+        pts = {}
+        nx, ny, nz = self.nsteps
+
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    val = self.value(i, j, k)
+
+                    if val in pts:
+                        pts[val].append((i, j, k))
+                    else:
+                        pts.update({self.value(i, j, k): [(i, j, k)]})
+
+        sorted_pts = sorted(pts.items(), key=lambda x: x[0], reverse=True)
+
+        thres = self._get_threshold(sorted_pts, npoints=npoints)
+        #thres = sorted_pts[npoints][0]
+
+        return (self > thres) * self
+
+    def step_out_mask(self, nsteps=2):
+        """Add one step in all directions to Grid boundary"""
+        origin = (self.bounding_box[0].x - (self.spacing * nsteps),
+                  self.bounding_box[0].y - (self.spacing * nsteps),
+                  self.bounding_box[0].z - (self.spacing * nsteps))
+
+        far_corner = (self.bounding_box[1].x + (self.spacing * nsteps),
+                      self.bounding_box[1].y + (self.spacing * nsteps),
+                      self.bounding_box[1].z + (self.spacing * nsteps))
+
+        return Grid(origin=origin,
+                    far_corner=far_corner,
+                    spacing=0.5,
+                    default=0,
+                    _grid=None)
+
+    @staticmethod
+    def _get_threshold(sorted_points, npoints):
+        """private method, hands off"""
+        count = []
+        for value, pts in sorted_points:
+            count.extend(pts)
+            if len(count) >= npoints:
+                return value
+            else:
+                continue
+
     @staticmethod
     def from_array(fname):
         """
@@ -296,18 +356,29 @@ class Grid(utilities.Grid):
 
         return grid
 
-    # def count_grid_points(self, threshold):
-    #     """
+    @staticmethod
+    def common_grid(grid_a, grid_b, padding=1):
+        """
+        returns two grid with common boundaries
+        :param grid_a:
+        :param grid_b:
+        :param padding:
+        :return:
+        """
+        sg = Grid.super_grid(padding, grid_a, grid_b)
+        out_g = sg.copy()
+        out_g *= 0
+        out_a = Grid.super_grid(padding, grid_a, out_g)
+        out_b = Grid.super_grid(padding, grid_b, out_g)
+        return out_a, out_b
+
+    # @staticmethod
+    # def combine(self, grids):
+    #     sg = Grid.super_grid(0, *grids)
+    #     out_g = sg.copy()
+    #     out_g *=0
+    #     []
     #
-    #     :param threshold:
-    #     :return:
-    #     """
-    #     island = self.get_best_island(threshold, mode="score")
-    #     if island is None:
-    #         return 9999
-    #     points = (island > threshold).count_grid()
-    #
-    #     return abs(target - len(points))
 
 utilities.Grid = Grid
 

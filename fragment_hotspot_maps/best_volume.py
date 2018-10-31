@@ -28,19 +28,21 @@ The main classes of the :mod:`fragment_hotspot_maps.best_volume` module are:
     -HotspotCreator
 """
 from os import mkdir
-from os.path import join, exists
+from os.path import join, exists, dirname
+import tempfile
+import operator
+from concurrent import futures
 
 from ccdc.io import MoleculeWriter
-import operator
+from ccdc.cavity import Cavity
+
 from skimage import feature
 from scipy import optimize
 import numpy as np
 
-from hotspot_calculation import HotspotResults
+from hotspot_calculation import HotspotResults, _RunSuperstar
 from grid_extension import Grid
-
-
-# from template_strings import extracted_hotspot_template
+from utilities import Utilities
 
 
 class HotspotFeatures(object):
@@ -53,10 +55,18 @@ class HotspotFeatures(object):
         self._grid = grid
 
         self._coordinates = grid.centroid()
-        self._count = grid.count_grid()
 
+        self._sphere = grid.copy_and_clear().step_out_mask()
+        self._sphere.set_sphere(point = self.coordinate,
+                               radius = 2,
+                               value = 1,
+                               scaling='None')
+
+        self._count = grid.count_grid()
         self._score = self.score_feature()
         self._rank = None
+        self.superstar_profile = None
+
 
     @property
     def feature_type(self):
@@ -82,6 +92,20 @@ class HotspotFeatures(object):
     def rank(self):
         return self._rank
 
+    @property
+    def sphere(self):
+        return self._sphere
+
+    # @property
+    # def superstar_profile(self):
+    #     return self._superstar_profile
+    #
+    # @superstar_profile.setter
+    # def superstar_profile(self):
+    #
+    #
+    #     return self._superstar_profile
+
     def score_feature(self):
         nx, ny, nz = self.grid.nsteps
 
@@ -93,7 +117,7 @@ class ExtractedHotspot(object):
     A class to handle the construction of indivdual hotspots
     """
 
-    def __init__(self, single_grid, mask_dic, settings, prot, large_cavities, seed=None):
+    def __init__(self, single_grid, mask_dic, settings, prot, large_cavities, superstar=None, seed=None):
         """
 
         :param single_grid:
@@ -127,10 +151,14 @@ class ExtractedHotspot(object):
         self.rank_features()
         self._score = self.score_hotspot(mode="apolar_peaks")
         self.hotspot_result = self.get_hotspot_result()
-        if large_cavities is not None:
-            self.elaboration_potential = self.get_elaboration_potential(large_cavities=large_cavities)
-        else:
-            self.elaboration_potential = None
+        # if large_cavities:
+        #     self.elaboration_potential = self.get_elaboration_potential(large_cavities=large_cavities)
+        # else:
+        #     self.elaboration_potential = None
+
+        if superstar:
+            self.superstar_results = self.get_superstar_result(superstar)
+            self.calc_feature_profile()
 
     @property
     def prot(self):
@@ -187,8 +215,10 @@ class ExtractedHotspot(object):
         if island is None:
             return 999999
         points = (island > threshold).count_grid()
+        # EXTRA PADDING FOR RUN
+        padding = self.settings.padding_factor * self.settings.num_gp
 
-        return abs(self.settings.num_gp - points)
+        return abs((self.settings.num_gp + padding) - points)
 
     def count_grid_points(self, threshold):
         """
@@ -208,8 +238,13 @@ class ExtractedHotspot(object):
         :return:
         """
         self.top_island = self.mask.get_best_island(threshold=threshold, mode="score")
+        # give some extra padding
+        #step_out = self.top_island.step_out_mask(nsteps=2)
+
+        # self.top_island = Grid.super_grid(1, *[i for i in self.top_island.islands(threshold=threshold)])
+
         new_threshold = optimize.fminbound(self.count_grid_points, 0, 30, xtol=0.025, disp=1)
-        self.top_island.write("C:/Users/pcurran/Desktop/test_dev_inputs/hotspot_volume/top_island.grd")
+
         best_island = (self.top_island > new_threshold)*self.top_island
 
         return new_threshold, best_island
@@ -224,9 +259,9 @@ class ExtractedHotspot(object):
             threshold = 1
 
         if self.settings.mode == "seed":
-            best_island = self.mask.get_best_island(threshold=threshold, mode="score")
-            print "target = {}, actual = {}".format(self.settings.num_gp, (best_island > threshold).count_grid())
-            return threshold, best_island
+            new_threshold, best_island = self.reselect_points(threshold=threshold)
+            print "target = {}, actual = {}".format(self.settings.num_gp, best_island.count_grid())
+            return new_threshold, best_island
 
         else:
             new_threshold, best_island = self.reselect_points(threshold=threshold)
@@ -327,10 +362,8 @@ class ExtractedHotspot(object):
 
         return HotspotResults(grid_dict=grid_dic,
                               protein=self.prot,
-                              fname=None,
                               sampled_probes=None,
-                              buriedness=None,
-                              out_dir=None)
+                              buriedness=None)
 
     def get_elaboration_potential(self, large_cavities):
         """
@@ -349,6 +382,51 @@ class ExtractedHotspot(object):
 
         else:
             return 1
+        
+    def get_superstar_result(self, superstar_results):
+        """
+        finds the overlap between the extracted hotspot and the superstar results
+        :param superstar_result:
+        :return:
+        """
+        extracted_superstar = []
+
+        for result in superstar_results:
+            common_best_island, common_result_grid = Grid.common_grid(result.grid, self.best_island)
+            ss_boundary = (common_best_island & common_result_grid) * common_result_grid
+
+            if len(ss_boundary.islands(threshold=2)) != 0:
+                result.grid = Grid.super_grid(2, *ss_boundary.islands(threshold=2))
+
+            else:
+                result.grid = ss_boundary.copy_and_clear()
+
+            extracted_superstar.append(result)
+
+        return extracted_superstar
+
+    def calc_feature_profile(self):
+        """
+        for each hotspot feature, the overlap between the feature sphere and superstar result is calculated
+        this is stored as an HotspotFeature attribute (superstar profile)
+        :return:
+        """
+        for feat in self.features:
+            super_profile = []
+
+            for result in self.superstar_results:
+                common_result_grid, common_sphere = Grid.common_grid(result.grid, feat.sphere)
+                super_sphere = (common_sphere & common_result_grid) * common_result_grid
+
+                if len(super_sphere.islands(threshold=2)) != 0:
+                    result.grid = Grid.super_grid(2, *super_sphere.islands(threshold=2))
+
+                else:
+                    result.grid = feat.sphere.copy_and_clear()
+
+                super_profile.append(result)
+
+            feat.superstar_profile = super_profile
 
 
 class Extractor(object):
@@ -356,13 +434,15 @@ class Extractor(object):
     A class to handle the extraction of discrete, fragment size hotspots from the original maps
     """
 
-    def __init__(self, hr, settings=None, mode="seed", volume="125", pharmacophores=True):
+    def __init__(self, hr, settings=None, mode="seed", volume="125", pharmacophores=True, superstar=True):
         """
 
         :param hr:
         :param out_dir:
         :param settings:
         """
+
+        self.hotspot_result = hr
         if settings is None:
             self.settings = self.Settings()
         else:
@@ -371,31 +451,17 @@ class Extractor(object):
         self.settings.mode = mode
         self.settings.volume = volume
         self.settings.pharmacophore = pharmacophores
-
-        for probe, g in hr.super_grids.items():
-
-            if g.bounding_box != hr.super_grids["apolar"].bounding_box:
-                g = hr.super_grids["apolar"].common_boundaries(g)
-
-            if self.settings.mode == "seed":
-                hr.super_grids.update({probe: g.gaussian(0.5).max_value_of_neighbours()})
-
-            else:
-                hr.super_grids.update({probe: g.max_value_of_neighbours()})
-        try:
-            hr.super_grids["negative"] = hr.super_grids["negative"].deduplicate(hr.super_grids["acceptor"],
-                                                                                threshold=10,
-                                                                                tolerance=4)
-
-            hr.super_grids["positive"] = hr.super_grids["positive"].deduplicate(hr.super_grids["donor"],
-                                                                                threshold=10,
-                                                                                tolerance=4)
-        except KeyError:
-            pass
-
-        self.hotspot_result = hr
+        self.settings.tempdir = tempfile.mkdtemp()
         self.out_dir = None
 
+        # fragment hotspot post processing
+        if self.settings.mode == "seed":
+            hr.super_grids = self.grid_post_process(hr.super_grids)
+
+        else:
+            hr.super_grids.update({probe: g.max_value_of_neighbours()})
+
+        # enable extraction to run in seeded or global modes
         if self.settings.mode == "seed":
             self._peaks = self.get_peaks()
 
@@ -405,13 +471,24 @@ class Extractor(object):
         else:
             raise IOError("Mode not currently supported")
 
+        # extracted superstar information
+        if superstar == True:
+            with MoleculeWriter(join(self.settings.tempdir, "protein.pdb")) as writer:
+                writer.write(hr.prot)
+            cavities = Cavity.from_pdb_file(join(self.settings.tempdir, "protein.pdb"))
+            self.cavity_grids = self._select_cavity_grids(cavities)
+            self.superstar_results = self.run_ss()
+
+        # runs and ranks extraction procedure
         self._masked_dic, self._single_grid = self.get_single_grid()
         self._large_cavities = self._get_large_cavities()
         self.extracted_hotspots = self._get_extracted_hotspots()
         self._rank_extracted_hotspots()
 
+        # generate pharmacophores
         if self.settings.pharmacophore:
             self.get_pharmacophores()
+
 
     class Settings(object):
         """
@@ -419,19 +496,25 @@ class Extractor(object):
         """
 
         def __init__(self):
-            self.volume = 125
-            self.spacing = 0.5
+            self.volume = 150
             self.cutoff = 14
             self.search_radius = int(5)
             self.mode = "seed"
+            self.padding_factor = 0.5
+
+            self.spacing = 0.5
+
             self.min_feature_gp = 5
             self.max_features = 10
-            self.min_distance = 8
-            self.drug_volume = 125
-            self.buriedness_value = 4
+            self.min_distance = 6
+            self.island_max_size = 12
+            self.sigma = 0.3
 
+            self.drug_volume = 300
+            self.buriedness_value = 4
             self.fragments = None
             self.lead = None
+
             self.pharmacophore = True
 
         @property
@@ -454,15 +537,37 @@ class Extractor(object):
     def large_cavities(self):
         return self._large_cavities
 
-    @staticmethod
-    def get_out_dir(out):
+    def grid_post_process(self, super_grids):
         """
-        create output directory
+        carry out post-processing of fragment hotspot maps
+
+        Limit the size of polar islands. Keep top scores upto X grid points
         :return:
         """
-        if not exists(out):
-            mkdir(out)
-        return out
+        for probe, g in super_grids.items():
+            if probe == "apolar":
+                super_grids.update({probe: g.gaussian(self.settings.sigma).max_value_of_neighbours()})
+
+            else:
+                h = g.max_value_of_neighbours().gaussian(self.settings.sigma)
+                h = h.limit_island_size(self.settings.island_max_size)
+                if h.bounding_box != super_grids["apolar"].bounding_box:
+                    h = super_grids["apolar"].common_boundaries(g)
+
+                super_grids.update({probe: h})
+
+        try:
+            super_grids["negative"] = super_grids["negative"].deduplicate(super_grids["acceptor"],
+                                                                                threshold=10,
+                                                                                tolerance=2)
+
+            super_grids["positive"] = super_grids["positive"].deduplicate(super_grids["donor"],
+                                                                                threshold=10,
+                                                                                tolerance=2)
+        except KeyError:
+            pass
+
+        return super_grids
 
     def get_peaks(self):
         """
@@ -510,35 +615,6 @@ class Extractor(object):
                     if (i > self.settings.buriedness_value).count_grid()
                     > (self.settings.drug_volume * (self.settings.spacing ** 3))]
 
-    def _get_extracted_hotspots(self):
-        """
-        locate peaks in apolar maps and define fragment size volume
-        :return: list of peak coordinates
-        """
-        extracted_hotspots = []
-        if self.settings.mode == "seed":
-            for peak in self.peaks:
-                e = ExtractedHotspot(self.single_grid,
-                                     self.masked_dic,
-                                     self.settings,
-                                     self.hotspot_result.prot,
-                                     self.large_cavities,
-                                     seed=peak)
-                if e.threshold > 12:
-                    extracted_hotspots.append(e)
-
-        else:
-            e = ExtractedHotspot(self.single_grid,
-                                 self.masked_dic,
-                                 self.settings,
-                                 self.hotspot_result.prot,
-                                 self.large_cavities,
-                                 seed=None)
-
-            extracted_hotspots.append(e)
-
-        return extracted_hotspots
-
     def get_single_grid(self):
         """
         from a collection of grids, create one grid with the maximum value at each grid point
@@ -554,6 +630,37 @@ class Extractor(object):
         blank = sg["apolar"].copy_and_clear()
 
         return mask_dic, reduce(operator.add, mask_dic.values(), blank)
+
+    def _get_extracted_hotspots(self):
+        """
+        locate peaks in apolar maps and define fragment size volume
+        :return: list of peak coordinates
+        """
+        extracted_hotspots = []
+        if self.settings.mode == "seed":
+            for peak in self.peaks:
+                e = ExtractedHotspot(self.single_grid,
+                                     self.masked_dic,
+                                     self.settings,
+                                     self.hotspot_result.prot,
+                                     self.large_cavities,
+                                     superstar=self.superstar_results,
+                                     seed=peak)
+                if e.threshold > 12:
+                    extracted_hotspots.append(e)
+
+        else:
+            e = ExtractedHotspot(self.single_grid,
+                                 self.masked_dic,
+                                 self.settings,
+                                 self.hotspot_result.prot,
+                                 self.large_cavities,
+                                 superstar=None,
+                                 seed=None)
+
+            extracted_hotspots.append(e)
+
+        return extracted_hotspots
 
     def _rank_extracted_hotspots(self):
         """
@@ -574,6 +681,23 @@ class Extractor(object):
             hs.identifier = "rank_{}".format(hs.rank)
             print "rank", hs.rank, "score", hs.score
 
+    def _select_cavity_grids(self, cavs):
+        """get empty cavity grids"""
+        grds = [Grid(origin=cav.bounding_box[0],
+                     far_corner=cav.bounding_box[1],
+                     spacing=self.settings.spacing,
+                     default=0)
+                for cav in cavs]
+
+        if self.settings.mode == "seed":
+            filtered = set([g for seed in [p for p in self.peaks]
+                            for g in grds
+                            if g.contains_point(seed)])
+
+        else:
+            raise IOError("Currently only available in seed mode")
+
+        return filtered
 
     def get_pharmacophores(self):
         """
@@ -583,46 +707,98 @@ class Extractor(object):
         for i, hotspot in enumerate(self.extracted_hotspots):
             hotspot.hotspot_result.pharmacophore = hotspot.hotspot_result.get_pharmacophore_model(identifier=
                                                                                                   hotspot.identifier)
+    @staticmethod
+    def _superstar_job(args):
+        """initiates a SS run"""
+        prot, fname, probe, out_dir, wkdir, centroid = args
+        print probe
+        superstar_settings = _RunSuperstar.Settings()
+        superstar_settings.jobname = "{}.ins".format(fname)
+        superstar_settings.probename = probe
+        superstar_settings.cavity_origin = centroid
+        superstar_settings.working_directory = wkdir
+        superstar_settings.superstar_sigma = 0.5
 
-    def write(self, out_dir, pharmacophore=True, peaks=False, best_islands=False):
+        s = _RunSuperstar(superstar_settings)
+        return s.run_superstar(prot, out_dir)
+
+    def _merge_ss_results(self, results):
+        """"""
+        result_dict = {}
+        for result in results:
+            if result.identifier in result_dict:
+                result_dict[result.identifier].append(result)
+            else:
+                result_dict.update({result.identifier: [result]})
+
+        ss = []
+        for probe, ss_result in result_dict:
+            g = Grid.super_grid(0, *[r.grid for r in ss_result])
+            threshold = g.grid_score(threshold=1, percentile=50)
+            ss_result.grid = g > threshold
+            ss.append(ss_result)
+
+        return ss
+
+    def run_ss(self):
+        """run superstar"""
+        atomic_probes = {"alcohol_oxygen": "ALCOHOL OXYGEN",
+                         "water_oxygen": "WATER OXYGEN",
+                         "carbonyl_oxygen": "CARBONYL OXYGEN",
+                         "carboxylate": "CARBOXYLATE OXYGEN",
+                         "oxygen": "OXYGEN ATOM",
+                         "uncharged_nh_nitrogen": "UNCHARGED NH NITROGEN",
+                         "charged_nh_nirtogen": "CHARGED NH NITROGEN",
+                         "ammonium": "RNH3 NITROGEN",
+                         "aliphatic_carbon": "METHYL CARBON",
+                         "aromatic_carbon": "AROMATIC CH CARBON",
+                         "hetroaromatic": "CYANO NITROGEN",
+                         "chloride_ion": "CHLORIDE ANION",
+                         "iodide_ion": "IODIDE ANION"}
+
+        all_results = []
+        for cav in self.cavity_grids:
+            args = [[self.hotspot_result.prot, fname, probe, self.settings.tempdir, self.settings.tempdir, cav.centroid()]
+                for fname, probe in atomic_probes.items()]
+
+            ex = futures.ThreadPoolExecutor(max_workers=6)
+            r = ex.map(self._superstar_job, args)
+            print r
+            all_results.extend(list(r))
+
+        if len(self.cavity_grids) == 1:
+            return all_results
+        else:
+            return self._merge_ss_results(all_results)
+
+    # def extracted_superstar(self):
+    #     """assign volume overlap of best island and superstar output to Extracted Hotspot object"""
+    # 
+    #     for extracted_hotspot in self.extracted_hotspots:
+    #         ss_results = []
+    # 
+    #         for result in self.superstar_results:
+    #             common_best_island = result.grid.common_boundaries(extracted_hotspot.best_island)
+    #             ss_boundary = (common_best_island & result.grid) * result.grid
+    # 
+    #             if len(ss_boundary.islands(threshold=2)) == 0:
+    #                 continue
+    # 
+    #             else:
+    #                 result.grid = Grid.super_grid(2, *ss_boundary.islands(threshold=2))
+    #                 ss_results.append(result)
+    #         extracted_hotspot.superstar_result = ss_results
+
+    def _write(self, out_dir, mode="best_islands"):
         """
         write out information to aid debugging: valid modes:
             -peaks:
             -locations: spheres and islands at apolar peak locations
             -features: islands and probes at feature point locations
         """
-        #!!!!!! MOVED TO IO MODULE !!!!!!!
-        #
-        # self.out_dir = self.get_out_dir(out_dir)
-        #
-        # contours = [h.threshold for h in self.extracted_hotspots]
-        # num_hotspots = len(self.extracted_hotspots)
-        # self.pymol_out = extracted_hotspot_template(num_hotspots,
-        #                                             self.settings.fragments,
-        #                                             self.settings.lead,
-        #                                             contours)
-        #
-        # for i, hotspot in enumerate(self.extracted_hotspots):
-        #     hotspot.identifier = "rank_{}".format(hotspot.rank)
-        #     hotspot.hotspot_result.out_dir = self.get_out_dir(join(self.out_dir, str(i)))
-        #     out = hotspot.hotspot_result.out_dir
-        #
-        #     if pharmacophore:
-        #         hotspot.hotspot_result.pharmacophore = hotspot.hotspot_result.get_pharmacophore_model(identifier=hotspot.identifier)
-        #         hotspot.hotspot_result.pharmacophore.identifier = hotspot.identifier
-        #         self.pymol_out += hotspot.hotspot_result.pharmacophore.get_pymol_pharmacophore()
-        #
-        #     hotspot.hotspot_result.pharmacophore.write(join(out, "pharmacophore.cm"))
-        #     hotspot.hotspot_result.pharmacophore.write(join(out, "pharmacophore.mol2"))
-        #     hotspot.hotspot_result.output_pymol_file()
-        #
-        # with open(join(self.out_dir, "extracted_hotspots.py"), 'w') as w:
-        #     w.write(self.pymol_out)
-        #
-        # with MoleculeWriter(join(self.out_dir, "protein.pdb")) as w:
-        #     w.write(self.hotspot_result.prot)
 
-        if peaks:
+        if mode == "peaks":
+            out_dir = Utilities.get_out_dir(join(out_dir))
             pymol_out = 'from pymol import cmd\nfrom pymol.cgo import *\n'
             for i, peak in enumerate(self.peaks):
                 score = "{0:.2f}".format(self.hotspot_result.super_grids["apolar"].value_at_point(peak))
@@ -633,17 +809,15 @@ class Extractor(object):
                 pymol_out += sphere
                 pymol_out += '\ncmd.load_cgo(score_{1}, "score_{0}", 1)'.format(score, i)
                 pymol_out += '\ncmd.group("Peaks", members="score_{0}")\n'.format(score)
-            with open(join(self.out_dir, "peaks.py"), "w") as pymol_file:
+            with open(join(out_dir, "peaks.py"), "w") as pymol_file:
                 pymol_file.write(pymol_out)
 
-        elif best_islands:
+        elif mode == "best_islands":
+            out_dir = Utilities.get_out_dir(join(out_dir, "best_islands"))
             pymol_out = 'from pymol import cmd\nfrom pymol.cgo import *\n'
-            od = join(self.out_dir, "hotspot_volume", "best_islands")
-            if not exists(od):
-                mkdir(od)
             thresholds = []
             for i, extracted in enumerate(self.extracted_hotspots):
-                extracted.best_island.write(join(od, "island_{}.grd".format(i)))
+                extracted.best_island.write(join(out_dir, "island_{}.grd".format(i)))
                 thresholds.append(extracted.threshold)
             pymol_out += """
 nh = {0}
@@ -658,6 +832,10 @@ for n in range(nh):
     cmd.group('hotspot_%s'%(n), members= 'apolar_%s'%(n))""" \
             .format(len(self.extracted_hotspots), thresholds)
 
-            with open(join(self.out_dir, "best_islands.py"), "w") as pymol_file:
+            with open(join(dirname(out_dir), "best_islands.py"), "w") as pymol_file:
                 pymol_file.write(pymol_out)
+
+        else:
+            raise IOError("mode not supported")
+
 
