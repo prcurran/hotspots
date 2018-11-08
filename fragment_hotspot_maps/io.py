@@ -26,7 +26,7 @@ TO DO:
 """
 import zipfile
 from os import listdir, walk
-from os.path import splitext, join, basename, dirname
+from os.path import splitext, join, basename, dirname, isdir
 import tempfile
 import shutil
 
@@ -341,12 +341,13 @@ class HotspotReader(object):
     """
     class to handle the reading of Hotspots
     """
-    def __init__(self, path, sampled_probes=False):
+    def __init__(self, path):
         """
 
         :param path:
         """
         self._supported_interactions = ["apolar", "donor", "acceptor", "positive", "negative"]
+        self._not_hs_dir = ["best_islands", "peaks", "ins"]
         self._path = path
 
         ext = splitext(self._path)[1]
@@ -358,14 +359,15 @@ class HotspotReader(object):
         self._files = listdir(self._base)
         self._extensions = set([splitext(f)[1] for f in self._files if f != "" or f != ".py"])
 
-        self.prot = Protein.from_file(join(self._base, [f for f in self._files if splitext(f)[1] == ".pdb"][0]))
-        self.grid_dic, self.buriedness = self._get_grids()
-        if sampled_probes:
-            self.sampled_probes = self._get_sampled_probes()
-        else:
-            self.sampled_probes = None
+        pfiles = [f for f in self._files if splitext(f)[1] == ".pdb"]
 
-        self.out_dir = None
+        if len(pfiles) > 1:
+            print "WARNING! {} has been used as default protein".format(join(base, "protein.pdb"))
+            pfiles = [p for p in self._files if f =="protein.pdb"]
+
+        self.protein = Protein.from_file(join(self._base, pfiles[0]))
+        self.hs_dir = [d for d in self._files
+                       if isdir(join(self._base, d)) and d not in self._not_hs_dir]
 
     def _path_from_zip(self):
         """
@@ -377,17 +379,24 @@ class HotspotReader(object):
 
         with zipfile.ZipFile(self._path) as hs_zip:
             hs_zip.extractall(base)
-        d = splitext(basename(self._path))
+        #d = splitext(basename(self._path))
 
-        return join(base, d[0])
+        return base
 
-    def _get_grids(self):
+    def _get_grids(self, sub_dir=None):
         """
         create a grid dictorionary
         :return:
         """
+        if sub_dir:
+            base = join(self._base, sub_dir)
+            self._files = listdir(base)
+            self._extensions = set([splitext(f)[1] for f in self._files if f != "" or f != ".py"])
+        else:
+            base = self._base
+
         if ".grd" in self._extensions:
-            grid_dic = {splitext(fname)[0]: Grid.from_file(join(self._base, fname))
+            grid_dic = {splitext(fname)[0]: Grid.from_file(join(base, fname))
                              for fname in [f for f in self._files
                                            if splitext(f)[1] == ".grd"
                                            and splitext(f)[0] in self._supported_interactions]}
@@ -397,12 +406,12 @@ class HotspotReader(object):
                 buriedness = None
 
         elif ".dat" in self._extensions:
-            grid_dic = {splitext(fname)[0]: Grid.from_array(join(self._base, fname))
+            grid_dic = {splitext(fname)[0]: Grid.from_array(join(base, fname))
                              for fname in [f for f in self._files
                                            if splitext(f)[1] == ".grd"
                                            and splitext(f)[0] in self._supported_interactions]}
             try:
-                buriedness = Grid.from_array(join(self._base, "buriedness.dat"))
+                buriedness = Grid.from_array(join(self.base, "buriedness.dat"))
             except RuntimeError:
                 buriedness = None
 
@@ -410,32 +419,54 @@ class HotspotReader(object):
             raise IOError("grids not recognised")
 
         return grid_dic, buriedness
+    #
+    # def _get_sampled_probes(self):
+    #     """
+    #     retrieves sampled probes
+    #     :return:
+    #     """
+    #     if ".mol2" not in self._extensions:
+    #         return None
+    #     else:
+    #
+    #         try:
+    #             probe_dict = {splitext(fname)[0].split("_")[0]: io.MoleculeReader(join(self._base,fname))
+    #                          for fname in [f for f in self._files
+    #                                        if splitext(f)[1] == ".mol2"
+    #                                        and splitext(f)[0].split("_")[0] in self._supported_interactions]}
+    #         except:
+    #              probe_dict = None
+    #
+    #     return probe_dict
 
-    def _get_sampled_probes(self):
-        """
-        retrieves sampled probes
-        :return:
-        """
-        if ".mol2" not in self._extensions:
-            return None
-        else:
-
-            try:
-                probe_dict = {splitext(fname)[0].split("_")[0]: io.MoleculeReader(join(self._base,fname))
-                             for fname in [f for f in self._files
-                                           if splitext(f)[1] == ".mol2"
-                                           and splitext(f)[0].split("_")[0] in self._supported_interactions]}
-            except:
-                 probe_dict = None
-
-        return probe_dict
-
-    def read(self):
+    def read(self, identifier=None):
         """
         creates a hotspot result
         :return:
         """
-        return HotspotResults(protein=self.prot,
-                              grid_dict=self.grid_dic,
-                              sampled_probes=None,
-                              buriedness=self.buriedness)
+
+        if len(self.hs_dir) == 0:
+            self.grid_dic, self.buriedness = self._get_grids()
+            return HotspotResults(protein=self.protein,
+                                  super_grids=self.grid_dic,
+                                  buriedness=self.buriedness)
+
+        else:
+            hrs = []
+            if identifier:
+                self.grid_dic, self.buriedness = self._get_grids(sub_dir=str(identifier))
+                return HotspotResults(protein=self.protein,
+                                      super_grids=self.grid_dic,
+                                      buriedness=self.buriedness)
+            else:
+                for dir in self.hs_dir:
+                    self.grid_dic, self.buriedness = self._get_grids(sub_dir=dir)
+                    hrs.append(HotspotResults(protein=self.protein,
+                                              super_grids=self.grid_dic,
+                                              buriedness=self.buriedness))
+            return hrs
+
+
+
+
+

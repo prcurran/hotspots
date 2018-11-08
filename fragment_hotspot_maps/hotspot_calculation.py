@@ -23,267 +23,27 @@ import shutil
 import tempfile
 from concurrent import futures
 import time
+import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import percentileofscore
 from ccdc.io import csd_directory, MoleculeWriter, MoleculeReader
 from ccdc.protein import Protein
+from ccdc.cavity import Cavity
+from ccdc.molecule import Molecule
 from ccdc.utilities import PushDir
 
-from grid_extension import Grid
 import pkg_resources
+
+from grid_extension import Grid
+from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
 from template_strings import colourmap, superstar_ins
 from pharmacophore import PharmacophoreModel
 from utilities import Figures, Utilities
 
 
-class _HotspotsHelper(object):
-    """
-    class providing utility functions
-    """
-
-    @staticmethod
-    def _indices_to_point(i, j, k, g):
-        """
-        Return x,y,z coordinate for a given grid index
-
-        :param i: int, indice (x-axis)
-        :param j: int, indice (y-axis)
-        :param k: int, indice (z-axis)
-        :param g: a :class: `ccdc.utilities.Grid` instance
-        :return: float(x), float(y), float(z)
-        """
-
-        ox, oy, oz, = g.bounding_box[0]
-        gs = 0.5
-        return ox + float(i) * gs, oy + float(j) * gs, oz + gs * float(k)
-
-    @staticmethod
-    def _point_to_indices(p, g):
-        """
-        Return the nearest grid index for a given point
-
-        :param p: tup, (float(x), float(y), float(z)), a coordinate on a 3D grid
-        :param g: a :class: `ccdc.utilities.Grid` instance
-        :return: int(x), int(y), int(z)
-        """
-
-        gs = 0.5
-        rx, ry, rz = [round(i / gs) for i in p]
-        ox, oy, oz = [round(i / gs) for i in g.bounding_box[0]]
-        return int(rx - ox), int(ry - oy), int(rz - oz)
-
-    @staticmethod
-    def _get_distance(coords1, coords2):
-        """
-        given two coordinates, calculates the distance
-
-        :param coords1: tup, (float(x), float(y), float(z), coordinates of point 1
-        :param coords2: tup, (float(x), float(y), float(z), coordinates of point 2
-        :return: float, distance
-        """
-        xd = coords1[0] - coords2[0]
-        yd = coords1[1] - coords2[1]
-        zd = coords1[2] - coords2[2]
-        d = math.sqrt(xd ** 2 + yd ** 2 + zd ** 2)
-        return d
-
-    @staticmethod
-    def _copy_and_clear(grid):
-        """
-        make a new empty grid
-
-        :param grid: a :class: `ccdc.utilities.Grid` instance
-        :return: an empty :class: `ccdc.utilities.Grid` instance
-        """
-
-        g = grid.copy()
-        g *= 0
-        return g
-
-    def _common_grid(self, g1, g2, padding=1):
-        """
-        finds a common frame of reference for two grids
-
-        :param g1: a :class: `ccdc.utilities.Grid` instance
-        :param g2: a :class: `ccdc.utilities.Grid` instance
-        :param padding: int, additional grid point in x, y, z directions
-        :return:
-        """
-
-        sg = Grid.super_grid(padding, g1, g2)
-        out_g = self._copy_and_clear(sg)
-        out1 = Grid.super_grid(padding, g1, out_g)
-        out2 = Grid.super_grid(padding, g2, out_g)
-        return out1, out2
-
-
-class _RunSuperstar(object):
-    """
-    class to handle SuperStar run
-    """
-
-    class Settings(object):
-        """
-        setting for Superstar run
-        """
-
-        def __init__(self):
-            self.jobname = None
-            self.probename = None
-            self.moleculefile = "protein.pdb"
-            self.cavity_origin = None
-            self.mapbackgroundvalue = 1
-            self.boxborder = 10
-            self.minpropensity = 1
-            self.superstar_executable = None
-            self.superstar_env = None
-            self.working_directory = None
-            self.superstar_sigma = 0.5
-
-    def __init__(self, settings):
-        """
-
-        :param settings:
-        """
-        self.settings = settings
-        base = csd_directory()
-        main_dir = environ.get('MAINDIR')
-        if main_dir:
-            if sys.platform == 'win32':
-                self.settings.superstar_executable = 'superstar_app.exe'
-            else:
-                self.settings.superstar_executable = ' '.join([join(environ['MAINDIR'], 'run.sh'), 'superstar_app.x'])
-            self.settings.superstar_env = dict()
-        else:
-            if sys.platform == 'win32':
-                merc = glob.glob(join(base, 'mercury*'))
-                if len(merc):
-                    merc = merc[0]
-                self.settings.superstar_executable = join(merc, 'superstar_app.exe')
-                # TO DO: try except?
-                # self.settings.superstar_executable = join(merc, 'superstar.exe')
-                self.settings.superstar_env = dict(
-                    SUPERSTAR_ISODIR=str(join(base, 'isostar_files', 'istr')),
-                    SUPERSTAR_ROOT=str(join(base, "Mercury"))
-                )
-
-            elif sys.platform == 'darwin':
-                print("OS X not supported")
-
-            else:
-                base = dirname(base)
-                self.settings.superstar_executable = join(base, 'bin', 'superstar')
-
-                self.settings.superstar_env = dict(
-                    SUPERSTAR_ISODIR=str(join(base, 'isostar_files', 'istr')),
-                    SUPERSTAR_ROOT=str(base)
-                )
-
-    def _append_cavity_info(self):
-        """
-        updates ins file with any cavity information
-
-        :return: None
-        """
-
-        if self.settings.cavity_origin is not None:
-            pnt = self.settings.cavity_origin
-            extension = '\nCAVITY_ORIGIN {} {} {}'.format(pnt[0], pnt[1], pnt[2])
-        else:
-            extension = '\nSUBSTRUCTURE ALL'
-        self.ins += extension
-
-    def _get_inputs(self, out_dir):
-        """
-        assembles the ins files, uses a template string from template_strings.py
-
-        :param out_dir: str, output directory
-        :return: None
-        """
-
-        self.ins = superstar_ins(self.settings)
-        self._append_cavity_info()
-        out = join(out_dir, "ins")
-        try:
-            if not exists(out):
-                mkdir(out)
-        except OSError:
-            pass
-
-        self.fname = join(out, "superstar_{}.ins".format(self.settings.jobname.split(".")[0]))
-        with open(self.fname, "w") as w:
-            w.write(self.ins)
-
-    def run_superstar(self, prot, out_dir):
-        """
-        calls SuperStar as command-line subprocess
-
-        :param prot: a :class:`ccdc.protein.Protein` instance
-        :param out_dir: str, output directory
-        :return:
-        """
-
-        with PushDir(self.settings.working_directory):
-            self._get_inputs(out_dir)
-            env = environ.copy()
-            env.update(self.settings.superstar_env)
-            cmd = '{}'.format(self.settings.superstar_executable) + ' ' + '{}'.format(self.fname)
-            if prot:
-                with MoleculeWriter(join(self.settings.working_directory, 'protein.pdb')) as writer:
-                    writer.write(prot)
-            else:
-                raise IOError("No protein supplied for SuperStar")
-
-            time.sleep(2)
-            subprocess.call(cmd, shell=sys.platform != 'win32', env=env)
-        return _SuperstarResult(self.settings)
-
-
-class _SuperstarResult(object):
-    """
-    class to store a SuperStar result
-    """
-
-    def __init__(self, settings):
-        self.settings = settings
-        self.identifier = settings.jobname.split(".")[0]
-
-        grid_path = join(self.settings.working_directory, self.identifier + ".ins.acnt")
-        if exists(grid_path):
-            self.grid = Grid.from_file(grid_path)
-        else:
-            print(grid_path)
-            raise AttributeError('{} superstar grid could not be found'.format(self.identifier))
-
-        ligsite_path = join(self.settings.working_directory, self.identifier + ".ins.ligsite.acnt")
-        if exists(grid_path):
-            l = Grid.from_file(ligsite_path)
-            self.ligsite = self.correct_ligsite(self.grid, l)
-        else:
-            raise AttributeError('{} ligsite grid could not be found'.format(self.identifier))
-
-    @staticmethod
-    def correct_ligsite(g, l):
-        """
-        Grid points where ligsite has a score of 0 (i.e. a clash) and SuperStar has a favourable score, set the ligsite
-        grid point to its maximum neighbour
-
-        :param g:
-        :param l:
-        :return:
-        """
-
-        mask = ((l < 1) & (g > 2))
-        lc = l.copy()
-        lc = lc.max_value_of_neighbours()
-        correction = mask * lc
-        correction = correction.mean_value_of_neighbours()
-        corrected = l + correction
-        return corrected
-
-
-class _RunGhecom(object):
+class Buriedness(object):
     """
     class to handle ghecom run
     """
@@ -301,23 +61,23 @@ class _RunGhecom(object):
             self.prot = None
             self.out_grid = None
             self.mode = "M"
-            self.working_directory = tempfile.mkdir()
+            self.working_directory = tempfile.mkdtemp()
             self.in_name = join(self.working_directory, "protein.pdb")
             self.out_name = join(self.working_directory, "ghecom_out.pdb")
 
-    def __init__(self, **kw):
+    def __init__(self, protein, out_grid, ghecom_executable, settings=None):
         """
 
         :param kw: settings for ghecom run
         """
 
-        settings = kw.get('settings')
         if settings is None:
             settings = self.Settings()
 
         self.settings = settings
-        self.settings.prot = None
-        self.settings.out_grid = None
+        self.settings.prot = protein
+        self.settings.out_grid = out_grid
+        self.ghecom_executable = ghecom_executable
 
     def run_ghecom(self):
         """
@@ -341,10 +101,10 @@ class _RunGhecom(object):
 
             system(cmd)
 
-        return _GhecomResult(self.settings)
+        return BuriednessResult(self.settings)
 
 
-class _GhecomResult(object):
+class BuriednessResult(object):
     """
     class to store a Ghecom result
     """
@@ -357,10 +117,11 @@ class _GhecomResult(object):
             self.grid = self._initalise_grid(padding=1)
         self.update_grid()
 
+
+    # TODO use property setters
     def _initalise_grid(self, padding=1):
         """
         install grid over protein to hold scores
-
         :param padding: value of buffer added to coordinate extremities
         :return: a `ccdc.utilities.Grid` instance
         """
@@ -382,7 +143,6 @@ class _GhecomResult(object):
     def update_grid(self):
         """
         update initialised grid with ghecom values
-
         :return: None
         """
 
@@ -407,7 +167,7 @@ class _WeightedResult(object):
         self.grid = grid
 
 
-class _SampleGrid(_HotspotsHelper):
+class _SampleGrid(object):
     """
     class to handle sampled grids
     """
@@ -415,7 +175,6 @@ class _SampleGrid(_HotspotsHelper):
     def __init__(self, name, grid, atom_predicate):
         """
         attributes of SampleGrid
-
         :param name: str, name of probe (donor, acceptor, apolar, positive, negative)
         :param grid: a :class: `ccdc.utilities.Grid` instance
         :param atom_predicate: atom_predicate will be used to select atoms of a molecule for sampling
@@ -429,7 +188,6 @@ class _SampleGrid(_HotspotsHelper):
     def add_coordinates(coord, trans):
         """
         provides a coordinate list of atoms to be scored be scored in the SampleGrid
-
         :param coord: tup, (float(x), float(y), float(z)), set of atomic coordinates for "active" coordinates
         :param trans: tup, (float(x), float(y), float(z)), set of translations to translate probes to points
         above threshold
@@ -441,7 +199,6 @@ class _SampleGrid(_HotspotsHelper):
     def sample(self, coordinate_list, trans):
         """
         score Molecule in grids for which it has active atoms
-
         :param coordinate_list: list, set of coordinates of translated and rotated probe atoms to be scored
         :param trans:
         :return:
@@ -461,7 +218,6 @@ class _SampleGrid(_HotspotsHelper):
         :param polar_contribution:
         :return:
         """
-
         self.mol = mol
         if self.name == 'apolar' and not polar_contribution and len([a for a in mol.atoms
                                                                      if a.is_donor or a.is_acceptor]) > 0:
@@ -491,7 +247,6 @@ class _SampleGrid(_HotspotsHelper):
         :param a: a `ccdc.molecule.Atom` instance
         :return: bool, true if the atom classification is "acceptor"
         """
-
         if a.is_acceptor and a.formal_charge == 0:
             return True
         else:
@@ -505,7 +260,6 @@ class _SampleGrid(_HotspotsHelper):
         :param a: a `ccdc.molecule.Atom` instance
         :return: bool, true if the atom classification is "apolar"
         """
-
         if a.is_donor or a.is_acceptor or a.formal_charge != 0 or a.atomic_symbol == "Xe":
             return False
         else:
@@ -519,7 +273,6 @@ class _SampleGrid(_HotspotsHelper):
         :param a: a `ccdc.molecule.Atom` instance
         :return: bool, true if the atom is positively charged
         """
-
         return a.formal_charge > 0
 
     @staticmethod
@@ -540,35 +293,287 @@ class _SampleGrid(_HotspotsHelper):
         :param a: a `ccdc.molecule.Atom` instance
         :return: bool, true if the atom is aromatic
         """
-
         return a.atomic_symbol == 'C' and a.is_cyclic and any(b.atom_type == 'aromatic' for b in a.bonds)
 
 
-class HotspotResults(_HotspotsHelper):
+class _Scorer(object):
+    """a class to handle the annotation of objects with Fragment Hotspot Scores"""
+    def __init__(self, hotspot_result, object, tolerance):
+        self.hotspot_result = hotspot_result
+        self.object = object
+        self.tolerance = tolerance
+
+        if isinstance(object, Protein):
+            self._scored_object = self.score_protein()
+
+        elif isinstance(object, Molecule):
+            self._scored_object = self.score_molecule()
+
+            values = [a.partial_charge for a in self.scored_object.atoms]
+            self._score = self._geometric_mean(values=values)
+
+        elif isinstance(object, Cavity):
+            self._scored_object = self.score_cavity()
+
+        elif not object:
+            self._scored_object = self.score_hotspot()
+
+        else:
+            raise IOError("supplied object not currently supported, soz!")
+
+    @property
+    def scored_object(self):
+        return self._scored_object
+
+    @property
+    def score(self):
+        return self._score
+
+    def score_protein(self):
+        """
+        score a protein's atoms, values stored as partial charge
+        h_bond_distance between 1.5 - 2.5 A (2.0 A taken for simplicity)
+        :return:
+        """
+        # TODO: enable cavities to be generated from Protein objects
+        #
+        prot = copy.copy(self.object)
+        h_bond_distance = 2.0
+        interaction_pairs = {"acceptor": "donor",
+                             "donor": "acceptor",
+                             "pi": "apolar",
+                             "aliphatic":"apolar",
+                             "aromatic": "apolar",
+                             "apolar": "apolar",
+                             "donor_acceptor": "doneptor",
+                             "dummy": "dummy"}
+
+        cavities = Utilities.cavity_from_protein(self.hotspot_result.prot)
+        for cavity in cavities:
+
+            for feature in cavity.features:
+                grid_type = interaction_pairs[feature.type]
+
+                if feature.type == "aliphatic" or feature.type == "aromatic":
+                    coordinates = Utilities.cavity_centroid(feature)
+
+                else:
+                    v = feature.protein_vector
+                    translate = tuple(map((h_bond_distance).__mul__, (v.x, v.y, v.z)))
+                    c = feature.coordinates
+                    coordinates = tuple(map(operator.add, (c.x, c.y, c.z), translate))
+
+                if feature.atom:
+                    score = self._score_atom_type(grid_type, coordinates, tolerance=self.tolerance)
+                    prot.atoms[feature.atom.index].partial_charge = score
+                else:
+                    print("WARNING: no atom")
+
+        return prot
+
+    def score_molecule(self):
+        """
+        score a molecule's atoms, values stored as partial charge
+        :return:
+        """
+        # TODO: score has been placed in partial charge field. This score will persist during read and write
+        mol = copy.copy(self.object)
+        for atom in mol.heavy_atoms:
+            atom_type = self._atom_type(atom=atom)
+            score = self._score_atom_type(atom_type, atom.coordinates, tolerance=self.tolerance)
+            atom.partial_charge = score
+
+        return mol
+
+    def score_cavity(self):
+        # TODO: return scored cavity features, the score protein function should be enough tbh
+        return 0
+
+    def score_hotspot(self, threshold=5, percentile=50):
+        """
+        Hotspot scored on the median value of all points included in the hotspot.
+        NB: grid point with value < 5 are ommited from fragment hotspot map (hence the default threshold)
+        :param percentile:
+        :return:
+        """
+        sg = Grid.get_single_grid([g for g in self.hotspot_result.super_grids.values()])
+        return sg.grid_score(threshold=threshold, percentile=percentile)
+
+    def _score_atom_type(self, grid_type, coordinates, tolerance=2):
+        """
+        atom
+        :param grid_type:
+        :param coordinate:
+        :param tolerance:
+        :return:
+        """
+        if grid_type == "doneptor":
+            grid_type = self._doneptor_grid(coordinates)
+
+        return self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
+                                                                              tolerance=tolerance,
+                                                                              position=False)
+
+    def _percentage_rank(self, obj, threshold=5):
+        """
+        NB: must score obj first!
+        :param obj:
+        :param threshold:
+        :return:
+        """
+        mol = copy.copy(self.scored_object)
+        adict = {p: g.grid_values(threshold=threshold) for p, g in self.hotspot_result.super_grids.items()}
+
+        for atom in mol.atoms:
+            atom_type = self._atom_type(atom)
+            coordinates = atom.coordinates
+            if atom_type == "doneptor":
+                atom_type = self._doneptor_grid(atom.coordinates, grid_type=True)
+            atom.partial_charge = percentileofscore(adict[atom_type], atom.partial_charge)
+
+        return mol
+
+    def _doneptor_grid(self, coordinates):
+        """
+        An atom is scored from the grid which yields the highest value
+        :param coordinates:
+        :param grid_type:
+        :return:
+        """
+        scores = [self.hotspot_result.super_grids["donor"].value_at_coordinate(coordinates,
+                                                                               tolerance=tolerance,
+                                                                               position=False),
+                  self.hotspot_result.super_grids["acceptor"].value_at_coordinate(coordinates,
+                                                                                  tolerance=tolerance,
+                                                                                  position=False)
+                  ]
+        d = dict(scores, ["donor", "acceptor"])
+        return d[max(d.keys())]
+
+
+    @staticmethod
+    def _geometric_mean(values):
+        '''Calculate geometric mean of scores'''
+        return reduce(operator.__mul__, values, 1.0) ** (1. / len(values))
+
+    @staticmethod
+    def _atom_type(atom):
+        """
+        from a ccdc Atom, the "atom type" is returned
+        :param a:
+        :return:
+        """
+        if atom.is_donor and atom.is_acceptor:
+            return "doneptor"
+
+        elif atom.is_acceptor:
+            return "acceptor"
+
+        elif atom.is_donor:
+            return "donor"
+
+        elif atom.atomic_symbol == "Xe":
+            return "dummy"
+
+        else:
+            return "apolar"
+
+
+class HotspotResults(object):
     """
     A Hotspot_results object is returned at the end of a Hotspots calculation. It contains functions for accessing
     and using the results.
     """
 
-    def __init__(self, grid_dict, protein, sampled_probes, buriedness):
+    def __init__(self, super_grids, protein, buriedness, pharmacophore=None):
         try:
-            self.super_grids = grid_dict
-            for probe, g in grid_dict.items():
+            self.super_grids = super_grids
+            for probe, g in super_grids.items():
                 b = g.bounding_box
         except:
             raise TypeError("Not a valid Grid")
 
         self.prot = protein
         self.buriedness = buriedness
-        self.sampled_probes = sampled_probes
-        self.pharmacophore = None
 
-        self.features_by_score = {}
-        self.donor_scores = None
-        self.acceptor_scores = None
-        self.apolar_scores = None
-        self.archive_name = None
-        self.archive_loc = None
+        if pharmacophore:
+            self.pharmacophore = self.get_pharmacophore_model()
+
+    class HotspotFeature(object):
+        """
+        class to hold polar islands above threshold "features"
+        purpose: enables feature ranking
+        """
+
+        def __init__(self, feature_type, grid):
+            """
+
+            :param feature_type:
+            :param grid:
+            """
+            self._feature_type = feature_type
+            self._grid = grid
+            self._feature_coordinates = grid.centroid()
+            self._count = (grid > 0).count_grid()
+            self._score = self.score_feature()
+
+            # set these
+            self._rank = None
+            self.superstar_results = []
+
+        @property
+        def feature_type(self):
+            return self._feature_type
+
+        @property
+        def grid(self):
+            return self._grid
+
+        @property
+        def feature_coordinates(self):
+            return self._feature_coordinates
+
+        @property
+        def sphere(self):
+            return self._sphere
+
+        @property
+        def count(self):
+            return self._count
+
+        @property
+        def score(self):
+            return self._score
+
+        @property
+        def rank(self):
+            return self._rank
+
+        def score_feature(self):
+            """
+            returns
+            :return:
+            """
+            nx, ny, nz = self.grid.nsteps
+
+            return sum([self.grid.value(i, j, k)
+                        for i in range(nx) for j in range(ny) for k in range(nz)
+                        if self.grid.value(i, j, k) > 0]) / self.count
+
+    def score(self, obj, return_value=False, tolerance=2):
+        """
+        Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores
+        :param obj:
+        :param return_value:
+        :return:
+        """
+        scorer = _Scorer(self, obj, tolerance)
+
+        if return_value:
+            return scorer.score, scorer.scored_object
+
+        else:
+            return scorer.scored_object
 
     def get_selectivity_map(self, other):
         '''
@@ -623,329 +628,94 @@ class HotspotResults(_HotspotsHelper):
         """
         Figures._2D_diagram(hr, ligand, title=False, output="diagram.png")
 
-
-    def score(self, obj):
-        """"""
-
-        if isinstance(obj, Protein):
-            return Score().score_protein(obj)
-
-    #
-    #     return Score.score_ligand()
-    #
-    #
-    #     return score.score_cavity()
-
-    def _combine(self):
+    def get_superstar_profile(self, feature_radius=1.5, nthreads=6):
         """
-        combines multiple grid objects in a single grid
-        :return: a :class: `ccdc.utilities.Grid` instance
-        """
-
-        sg = Grid.super_grid(0, *self.super_grids.values())
-        out_g = self._copy_and_clear(sg)
-        return {probe: Grid.super_grid(1, g, out_g) for probe, g in self.super_grids.items()}
-
-
-    def _get_near_score(self, coordinates, atom_type, tolerance):
-        '''Searches nearby grid points and returns the maximum score'''
-
-        i, j, k = self._point_to_indices(coordinates, self.super_grids[atom_type])
-        nx, ny, nz = self.super_grids[atom_type].nsteps
-        if nx - i < tolerance + 1 or ny - j < tolerance + 1 or nz - k < tolerance + 1:
-            return 0, "outside"
-        if i < tolerance or j < tolerance or k < tolerance:
-            return 0, "outside"
-
-        g = self.super_grids[atom_type]
-
-        scores = {g.value(i + di, j + dj, k + dk): (i + di, j + dj, k + dk) for di in
-                  range(-tolerance, +tolerance + 1)
-                  for dj in range(-tolerance, +tolerance + 1) for dk in range(-tolerance, +tolerance + 1)}
-
-        score = sorted(scores.keys(), reverse=True)[0]
-        if score < 0.01:
-            return 0, 0
-        i, j, k = scores[score]
-        return score, self._indices_to_point(i, j, k, g)
-
-    def _get_atom_type(self, atom):
-        if atom.is_donor and atom.is_acceptor:
-            return "doneptor"
-        elif atom.is_acceptor:
-            return "acceptor"
-        elif atom.is_donor:
-            return "donor"
-        elif atom.atomic_symbol == "Xe":
-            return "dummy"
-        else:
-            return "apolar"
-
-    def _update_score_dic(self, atoms_by_score, atom, residue, score, atom_type):
-        try:
-            atoms_by_score[score].append((atom, residue, atom_type))
-        except KeyError:
-            atoms_by_score[score] = [(atom, residue, atom_type)]
-
-    def _score_protein_atoms(self):
-        '''Assigns a score to each protein atom. Donor scores are assigned to polar hydrogens, rather than the heavy
-        atom. Returns a dictionary of {score:[atoms]}'''
-        interaction_partner_dic = {'donor': 'acceptor', 'acceptor': 'donor', 'apolar': 'apolar'}
-        atoms_by_score = {}
-        residue = "Blah"
-        for residue in self.prot.residues:
-            atom_scores = []
-            for atom in residue.atoms:
-                if atom.atomic_number == 1:
-                    continue
-                atom_type = self._get_atom_type(atom)
-                if atom_type == 'donor':
-                    for n in atom.neighbours:
-                        if n.atomic_number == 1:
-                            score = self._get_near_score(atom.coordinates, 'acceptor', tolerance=5)
-                            self._update_score_dic(atoms_by_score, n, residue, score, atom_type)
-                elif atom_type == 'doneptor':
-                    score = self._get_near_score(atom.coordinates, 'donor', tolerance=5)
-                    self._update_score_dic(atoms_by_score, atom, residue, score, 'acceptor')
-                    for n in atom.neighbours:
-                        if n.atomic_number == 1:
-                            score = self._get_near_score(atom.coordinates, 'acceptor', tolerance=5)
-                            self._update_score_dic(atoms_by_score, n, residue, score, 'donor')
-                else:
-                    score = self._get_near_score(atom.coordinates, interaction_partner_dic[atom_type],
-                                                 tolerance=5)
-                    self._update_score_dic(atoms_by_score, atom, residue, score, atom_type)
-
-        return atoms_by_score
-
-    def score_protein(self):
-        '''
-        Assigns a score to each protein atom. Donor scores are assigned to polar hydrogens, rather than the heavy
-        atom.
-        atom_id = "{0}/{1}/{2}".format(residue.chain_identifier, residue.identifier.split(':')[1][3:],atom.label)
-
-        :return: dict of {atom_id: score}
-
-        '''
-
-        atom_dic = {}
-        donor_scores = []
-        acceptor_scores = []
-        apolar_scores = []
-        for residue in self.prot.residues:
-            for atom in residue.atoms:
-                if atom.atomic_number == 1:
-                    continue
-
-                donor, donor_coord = self._get_near_score(atom.coordinates, 'acceptor', tolerance=4)
-                acceptor, acceptor_coord = self._get_near_score(atom.coordinates, 'donor', tolerance=4)
-                apolar, apolar_coord = self._get_near_score(atom.coordinates, 'apolar', tolerance=4)
-                id = "{0}/{1}/{2}".format(residue.chain_identifier, residue.identifier.split(':')[1][3:],
-                                          atom.label)
-                atom_dic[id] = {
-                    'donor': donor,
-                    'acceptor': acceptor,
-                    'apolar': apolar,
-                    'residue': residue,
-                    'donor_coord': donor_coord,
-                    'acceptor_coord': acceptor_coord,
-                    'apolar_coord': apolar_coord,
-                }
-
-                if donor > 0:
-                    donor_scores.append(donor)
-                if acceptor > 0:
-                    acceptor_scores.append(acceptor)
-                if apolar > 0:
-                    apolar_scores.append(apolar)
-
-        self.donor_scores = donor_scores
-        self.acceptor_scores = acceptor_scores
-        self.apolar_scores = apolar_scores
-
-        return atom_dic
-
-    def _get_percentiles(self, percentile=90):
-        if self.apolar_scores is None:
-            self.score_protein()
-
-        try:
-            donor_percentile = np.percentile(self.donor_scores, percentile)
-        except IndexError:
-            donor_percentile = 14
-
-        try:
-            acceptor_percentile = np.percentile(self.acceptor_scores, percentile)
-        except IndexError:
-            acceptor_percentile = 14
-
-        try:
-            apolar_percentile = np.percentile(self.apolar_scores, percentile)
-        except:
-            apolar_percentile = 14
-
-        return {'donor': donor_percentile,
-                'acceptor': acceptor_percentile,
-                'apolar': apolar_percentile}
-
-
-    def _score(self, values):
-        '''Calculate geometric mean of scores'''
-        return reduce(operator.__mul__, values, 1.0) ** (1. / len(values))
-
-    def score_ligand_atoms(self, mol, dict=False, schematic=False, tolerance=2):
-        '''
-        Score ligand atoms in hotspot maps, taking interaction type into account.
-
-        :param mol: a :class:`ccdc.Molecule` instance
-        :param schematic: bool, catgorises score,for use with 2D depiction
-        :param tolerance: int, the highest scoring grid point within +/- tolerance in each of the x,y and z directions will be assigned to the atom
-        :return:
-
-        '''
-        if dict == True or schematic == True:
-            scores = {}
-        else:
-            scores = []
-        atom_labels = []
-        for atom in mol.heavy_atoms:
-            atom_labels.append(atom.label)
-            atom_type = self._get_atom_type(atom)
-            if atom_type == 'doneptor':
-                d_score = self._get_near_score(atom.coordinates, 'donor', tolerance=tolerance)[0]
-                a_score = self._get_near_score(atom.coordinates, 'acceptor', tolerance=tolerance)[0]
-                score = max(d_score, a_score)
-            else:
-                score, coords = self._get_near_score(atom.coordinates, atom_type, tolerance=tolerance)
-                # print(score, atom_type, atom.atomic_symbol)
-
-            if schematic == True:
-                if score >= 17:
-                    score = 20
-                elif score < 17 and score >= 14:
-                    score = 10
-                else:
-                    score = 0
-                scores.update({atom.label: score})
-
-            elif dict == True:
-                scores.update({str(atom.label): score})
-            else:
-                scores.append(score)
-        # return atom_labels , scores
-        return scores
-
-    def score_ligand(self, mol, tolerance=2):
-        '''
-        Score ligand in hotspot maps, taking interaction type into account.
-
-        :param mol: a :class:`ccdc.Molecule` object
-        :return: float, Geometric mean of atomic scores
-        '''
-        scores = self.score_ligand_atoms(mol, dict=False, schematic=False, tolerance=tolerance)
-        # print(scores)
-        geo_mean = self._score(scores)
-        return geo_mean
-
-    def _get_percentage_rank(self, atom, atom_type):
-        coordinates = atom.coordinates
-        score, indices = self._get_near_score(coordinates, atom_type, 2)
-
-        nx, ny, nz = self.super_grids[atom_type].nsteps
-
-        g = self.super_grids[atom_type]
-        scores = [g.value(i, j, k) for i in range(0, nx) for j in range(0, ny) for k in range(0, nz)
-                  if g.value(i, j, k) > 0]
-
-        filtered_scores = [x for x in scores if x < score]
-
-        percentage_rank = 100 * float(len(filtered_scores)) / float(len(scores))
-        return percentage_rank
-
-    def _get_ligand_percentage_rank(self, mol):
-        """
-        Calculate the percentage rank for each atom of a ligand
-        :param mol: a :class:`ccdc.Molecule` instance
+        EXPERIMENTAL
         :return:
         """
+        # set additional object properties
+        self.features = self._get_features(threshold=5, min_feature_size=6)
+        self.best_volume = Grid.get_single_grid(self.super_grids, mask=False)
 
-        percentage_ranks = []
-        for atom in mol.heavy_atoms:
-            atom_type = self._get_atom_type(atom)
-            if atom_type == 'doneptor':
-                atom_type = 'donor'
-            percentage_ranks.append(self._get_percentage_rank(atom, atom_type))
-        return percentage_ranks
+        self.feature_spheres = self.best_volume.copy_and_clear()
+        for feat in self.features:
+            self.feature_spheres.set_sphere(point=feat.feature_coordinates,
+                                            radius=feature_radius,
+                                            value=1,
+                                            scaling="None"
+                                            )
 
-    def _get_grid_percentiles(self, g, percentiles):
+        # superstar run
+        centroid = [self.best_volume.centroid()]
+        a = AtomicHotspot()
+        a.settings.atomic_probes = ["carbonyl_oxygen", "carboxylate", "pyramidal_r3n", "water_oxygen"]
+
+        self.superstar_result = a.calculate(protein=self.prot,
+                                            nthreads=nthreads,
+                                            cavity_origins=centroid)
+
+        self.ss = []
+
+        # find overlap
+        for r in self.superstar_result:
+            common_spheres, common_result = Grid.common_grid([self.feature_spheres, r.grid])
+            r.grid = (common_spheres & common_result) * common_result
+
+        # assign island to Hotspot Feature
+        feat_id = []
+        ss_id = []
+        score = []
+        import pandas as pd
+
+        for i, feat in enumerate(self.features):
+
+            for r in self.superstar_result:
+                feat_id.append(i)
+                ss_id.append(r.identifier)
+
+                ss_dict = {Utilities.get_distance(feat.feature_coordinates, island.centroid()) :island
+                           for island in r.grid.islands(threshold=1)
+                           if Utilities.get_distance(feat.feature_coordinates, island.centroid()) < 1}
+
+                if len(ss_dict) == 0:
+                    g = r.grid.copy_and_clear()
+
+                else:
+                    shortest = sorted([f[0] for f in ss_dict.items()], reverse=False)[0]
+                    g = ss_dict[shortest]
+
+
+                feat.superstar_results.append(AtomicHotspotResult(identifier=r.identifier,
+                                                                  grid= g,
+                                                                  buriedness=None)
+                                              )
+
+                score.append(g.grid_score(threshold=1, percentile=50))
+
+        return pd.DataFrame({"feature_id": feat_id, "interaction": ss_id, "score": score})
+
+
+    def _get_features(self, threshold=5, min_feature_size=6):
         """
-        percentile of non-zero grid values
-
+        returns Hotspot Feature object with a score to enable ranking
+        :param probe:
         :param g:
-        :param percentiles:
         :return:
         """
+        return [HotspotResults.HotspotFeature(probe, island)
+                     for probe, g in self.super_grids.items() for island in g.islands(threshold=threshold)
+                     if (island > threshold).count_grid() > min_feature_size]
 
-        nx, ny, nz = g.nsteps
-        percentiles_dict = {}
-        values = [g.value(i, j, k) for i in range(0, nx) for j in range(0, ny) for k in range(0, ny)
-                  if g.value(i, j, k) > 1]
-        if len(values) == 0:
-            return percentiles_dict
-        else:
-            for strength, percentile in percentiles.items():
-                cutoff = np.percentile(values, percentile) - 0.01
-                percentiles_dict[strength] = cutoff
+    def _rank_features(self):
+        """
+        rank features based upon feature score (TO DO: modify score if required)
+        :return:
+        """
+        feature_by_score = {feat.score: feat for feat in self.features}
+        score = sorted([f[0] for f in feature_by_score.items()], reverse=True)
+        for i, key in enumerate(score):
+            feature_by_score[key]._rank = int(i + 1)
 
-        return percentiles_dict
-
-    def _grid_values_in_range(self, grid, r_start, r_finish, score_cutoff):
-
-        all_points = []
-        range_points = []
-
-        island = grid.islands(score_cutoff - 0.01)
-        for g in island:
-            nx, ny, nz = g.nsteps
-            island_all_points = [g.value(i, j, k)
-                                 for i in range(nx) for j in range(ny) for k in range(nz)
-                                 if g.value(i, j, k) >= score_cutoff]
-
-            island_range_points = [g.value(i, j, k)
-                                   for i in range(nx) for j in range(ny) for k in range(nz)
-                                   if g.value(i, j, k) >= r_start and g.value(i, j, k) < r_finish]
-
-            all_points += island_all_points
-            range_points += island_range_points
-
-        avg_score = np.mean(all_points)
-        return range_points, all_points, avg_score
-
-    def _percent_by_type(self, grid_dict):
-
-        all_g = grid_dict.values()
-        sum_g = all_g[0].copy()
-
-        for g in all_g[1:]:
-            sum_g += g
-        combined_range_points, combined_all_points, avg_score = self._grid_values_in_range(sum_g, 1, 10000, 1)
-
-        percent_by_type = {}
-        percent_by_type['average'] = avg_score
-        percent_by_type['volume'] = float(len(combined_all_points)) * 0.125
-        print(percent_by_type['volume'])
-        for probe, g in grid_dict.items():
-
-            range_points, all_points, score = self._grid_values_in_range(g, 1, 10000, 1)
-            print(probe, len(combined_all_points), len(all_points))
-            print(probe, len(combined_range_points), len(range_points))
-            try:
-                p = (float(len(all_points)) / float(len(combined_all_points))) * 100
-            except ZeroDivisionError:
-                p = 0
-            percent_by_type[probe] = p
-
-        return percent_by_type
 
     def extract_pocket(self, whole_residues=False):
         '''
@@ -975,35 +745,15 @@ class HotspotResults(_HotspotsHelper):
                     pocket.remove_atom(atom)
             if whole_residues and not keep_residue:
                 pocket.remove_atoms(residue.atoms)
-
         return pocket
 
-    def _smooth_crude(self):
-        for probe, g in self.super_grids.items():
-            self.super_grids[probe] = g.max_value_of_neighbours()
 
-# class Score():
-#     """
-#     A class to handle the scoring of objects with Fragment Hotspot Maps
-#     """
-#     def __init__(self,x):
-#         self.x = x
-#
-#     def score_protein
-#
-#     def score_ligand
-#
-#     def score_cavity
-
-
-
-
-class Hotspots(_HotspotsHelper):
+class Hotspots(object):
     """
     A class for running Fragment Hotspot Map calculations
     """
 
-    class _Sampler(_HotspotsHelper):
+    class _Sampler(object):
         """
         Samples one or more grids with a probe molecule
         """
@@ -1042,7 +792,7 @@ class Hotspots(_HotspotsHelper):
                 settings = self.Settings()
 
             self.settings = settings
-            self.probe_grids = [_SampleGrid(g.name, self._copy_and_clear(g.grid), g.atom_predicate) for g in self.grids]
+            self.probe_grids = [_SampleGrid(g.name, g.grid.copy_and_clear(), g.atom_predicate) for g in self.grids]
 
         def get_priority_atom(self, molecule):
             """
@@ -1052,17 +802,16 @@ class Hotspots(_HotspotsHelper):
             :param molecule: a :class: `ccdc.molecule.Molecule` instance
             :return: a :class: `ccdc.molecule.Molecule` instance, str atom type
             """
-
             c = molecule.centre_of_geometry()
             polar_atoms = [a for a in molecule.atoms if a.is_donor or a.is_acceptor]
             atom_by_distance = {}
             if len(polar_atoms) > 0:
                 for a in polar_atoms:
-                    d = self._get_distance(c, a.coordinates)
+                    d = Utilities.get_distance(c, a.coordinates)
                     atom_by_distance[d] = a
             else:
                 for a in molecule.atoms:
-                    d = self._get_distance(c, a.coordinates)
+                    d = Utilities.get_distance(c, a.coordinates)
                     atom_by_distance[d] = a
 
             greatest_distance = sorted(atom_by_distance.keys())[0]
@@ -1091,7 +840,6 @@ class Hotspots(_HotspotsHelper):
             :param priority_atom_type: str, atomic interaction type
             :return: list, list of :class: `ccdc.molecule.Molecule` instances
             """
-
             translate_probe = []
             wg = self.grid_dic[priority_atom_type]
 
@@ -1117,7 +865,6 @@ class Hotspots(_HotspotsHelper):
 
             :return: tup, (a,b,c,d)
             """
-
             quaternions = []
             i = 1
             if self.settings.nrotations > 1:
@@ -1191,7 +938,7 @@ class Hotspots(_HotspotsHelper):
                 if len(actives) == 0:
                     continue
                 for a in actives:
-                    i, j, k = self._point_to_indices(pg.add_coordinates(a, trans), pg.grid)
+                    i, j, k = pg.grid.point_to_indices(pg.add_coordinates(a, trans))
                     pg.grid.set_value(i, j, k, max(score, pg.grid.value(i, j, k)))
 
         def get_active_coordinates(self):
@@ -1286,60 +1033,6 @@ class Hotspots(_HotspotsHelper):
         else:
             self.sampler_settings = settings
 
-    @staticmethod
-    def _superstar_job(args):
-        """
-        creates a RunSuperstar class and returns a SuperstarResult object
-        :param args: tuple, probe name and centroid
-        :return: a :class: `__main__().SuperstarResult` object
-        """
-
-        s = _RunSuperstar()
-        n, ss_probe, centroid, prot, out_dir, wrk_dir = args
-        s.settings.jobname = "{}.ins".format(n)
-        s.settings.probename = ss_probe
-        s.settings.cavity_origin = centroid
-        s.settings.working_directory = wrk_dir
-        result = s.run_superstar(prot, out_dir)
-        return result
-
-    def _run_ss(self, centroid=None):
-        """
-        initiates a SuperStar run for a given protein and probe
-
-        :param prot: a :class:`ccdc.protein.Protein` instance
-        :param out_dir: str, output directory
-        :param centroid: tup, coordinates of cavity origin
-        :param charged_probes: bool, if True 'positive' and 'negative' probes will be used
-        :return: a :class:`SuperstarResult` instance
-        """
-
-        if self.charged_probes:
-            self.probe_dict = dict(
-                apolar='AROMATIC CH CARBON',
-                donor='UNCHARGED NH NITROGEN',
-                acceptor='CARBONYL OXYGEN',
-                positive='CHARGED NH NITROGEN',
-                negative='CARBOXYLATE OXYGEN'
-            )
-        else:
-            self.probe_dict = dict(
-                apolar='AROMATIC CH CARBON',
-                donor='UNCHARGED NH NITROGEN',
-                acceptor='CARBONYL OXYGEN')
-
-        wrk_dir = tempfile.mkdtemp()
-        args = [(k, self.probe_dict[k], centroid, self.prot, self.out_dir, wrk_dir) for k in self.probe_dict.keys()]
-
-        if self.nthreads:
-            ex = futures.ThreadPoolExecutor(max_workers=self.nthreads)
-            results = ex.map(self._superstar_job, args)
-            return list(results)
-
-        else:
-            results = [self._superstar_job(arg) for arg in args]
-            return results
-
     def _get_weighted_maps(self):
         """
         weight superstar output by burriedness
@@ -1405,47 +1098,40 @@ class Hotspots(_HotspotsHelper):
     def _calc_hotspots(self):
         """
         Function for overall organisation of hotspot calculation
-
         :return:
         """
-        print("Start SS")
+        print("Start atomic hotspot detection")
+        a = AtomicHotspot()
         probe_types = ['apolar', 'donor', 'acceptor']
+
         if self.charged_probes:
             probe_types += ['negative', 'positive']
 
+        self.superstar_grids = a.calculate(protein=protein,
+                                           nthreads=self.nthreads,
+                                           cavity_origins=self.cavity_origins)
+        print("Atomic hotspot detection complete")
 
-        self.superstar_grids = self._run_ss(self.centroid)
-        print("SS complete")
-
+        print("Start buriedness calcualtion")
         if self.ghecom_executable:
-            out_grid = self._copy_and_clear(self.superstar_grids[0].ligsite)
-            r = _RunGhecom()
-            r.settings.prot = self.prot
-            r.settings.out_grid = out_grid
-            r.settings.ghecom_executable = self.ghecom_executable
+            out_grid = self.superstar_grids[0].ligsite.copy_and_clear()
+            r = Buriedness(protein=self.prot,
+                           out_grid=out_grid,
+                           ghecom_executable=self.ghecom_executable)
             self.ghecom = r.run_ghecom()
-            chdir(self.working_dir)
-
         self.weighted_grids = self._get_weighted_maps()
-        self.buriedness.write(join(self.out_dir, "buriedness.grd"))
+        print("Buriedness calcualtion complete")
 
+        print("Start sampling")
         grid_dict = {w.identifier: w.grid for w in self.weighted_grids}
 
         for probe in probe_types:
             top_probes = self._get_out_maps(probe, grid_dict)
             self.sampled_probes.update({probe: top_probes})
+        print("Sampling complete")
 
-
-    # def from_cavity(self, fname, charged_probes=False, probe_size=7, ghecom_executable=None):
-    #     """"""
-    #
-    #     self.prot= Protein.from_file(fname)
-    #     self.charged_probes = charged_probes
-    #     self.probe_size = probe_size
-    #     self.ghecom_executable = ghecom_executable
-
-    def from_protein(self, prot, output_directory, charged_probes=False, probe_size=7, ghecom_executable=None,
-                     cavity_origin=None, nthreads=5):
+    def from_protein(self, prot, charged_probes=False, probe_size=7, ghecom_executable=None,
+                     cavity_origins=None, nthreads=5):
         """
         Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object
 
@@ -1462,8 +1148,8 @@ class Hotspots(_HotspotsHelper):
         self.probe_size = probe_size
         self.ghecom_executable = ghecom_executable
         self.nthreads = nthreads
-        self.out_dir = output_directory
-        self.centroid = cavity_origin
+        self.cavity_origins = cavity_origins
+
         self._calc_hotspots()
         self.super_grids = {p: g[0] for p, g in self.out_grids.items()}
 

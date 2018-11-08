@@ -17,16 +17,24 @@ for review and development. For example, gaussian smoothing function:
 I.e. this returns a new grid object in which gaussian smoothing has been applied
 '''
 #############################################################################
-
-from ccdc import utilities
 import operator
+
 import numpy as np
 import numpy.ma as ma
 from scipy import ndimage
-from utilities import Utilities
 
+from ccdc import utilities
+from utilities import Utilities as util
 
 class Grid(utilities.Grid):
+    """
+    Initialisation handled in the main class
+    """
+    def grid_values(self, threshold=0):
+        """"""
+        array = self.get_array()
+        masked_array = ma.masked_less_equal(array, threshold)
+        return masked_array.compressed()
 
     def grid_score(self, threshold=0, percentile=75):
         """
@@ -182,7 +190,7 @@ class Grid(utilities.Grid):
                            for island in major.islands(threshold=threshold)
                            if jsland.contains_point(island.centroid(), tolerance=tolerance)
                            or jsland.count_grid() <= 8
-                           or Utilities.get_distance(jsland.centroid(), island.centroid()) < 4])
+                           or util.get_distance(jsland.centroid(), island.centroid()) < 4])
 
         retained_jslands = list(all_islands - bin_islands)
         print "Charged_islands, {}".format(len(retained_jslands))
@@ -201,7 +209,6 @@ class Grid(utilities.Grid):
         :param self:
         :return:
         """
-
         g = self.copy()
         g *= 0
         return g
@@ -212,7 +219,6 @@ class Grid(utilities.Grid):
         :param grid:
         :return:
         """
-
         reference = Grid.super_grid(0, self, grid)
         blank = reference.copy_and_clear()
 
@@ -225,7 +231,6 @@ class Grid(utilities.Grid):
         :param grid:
         :return:
         """
-
         max_grids = [self > g for g in grids]
         blank = -self.copy_and_clear()
         return reduce(operator.__and__, max_grids, blank)
@@ -305,7 +310,7 @@ class Grid(utilities.Grid):
         return (self > thres) * self
 
     def step_out_mask(self, nsteps=2):
-        """Add one step in all directions to Grid boundary"""
+        """Add one step in all directions to Grid boundary, returns blank grid"""
         origin = (self.bounding_box[0].x - (self.spacing * nsteps),
                   self.bounding_box[0].y - (self.spacing * nsteps),
                   self.bounding_box[0].z - (self.spacing * nsteps))
@@ -338,8 +343,6 @@ class Grid(utilities.Grid):
         :param fname:
         :return:
         """
-
-
         grid = Grid(origin=[-35.00, -42.00, 44.00],
                     far_corner=[59.00, 53.00, 54.00],
                     spacing=0.5,
@@ -357,7 +360,7 @@ class Grid(utilities.Grid):
         return grid
 
     @staticmethod
-    def common_grid(grid_a, grid_b, padding=1):
+    def common_grid(grid_list, padding=1):
         """
         returns two grid with common boundaries
         :param grid_a:
@@ -365,20 +368,86 @@ class Grid(utilities.Grid):
         :param padding:
         :return:
         """
-        sg = Grid.super_grid(padding, grid_a, grid_b)
+        sg = Grid.super_grid(padding, *grid_list)
         out_g = sg.copy()
         out_g *= 0
-        out_a = Grid.super_grid(padding, grid_a, out_g)
-        out_b = Grid.super_grid(padding, grid_b, out_g)
-        return out_a, out_b
+        out = [Grid.super_grid(padding, g, out_g) for g in grid_list]
+        return out
 
-    # @staticmethod
-    # def combine(self, grids):
-    #     sg = Grid.super_grid(0, *grids)
-    #     out_g = sg.copy()
-    #     out_g *=0
-    #     []
-    #
+    @staticmethod
+    def get_single_grid(grd_dict, mask=True):
+        """
+        Combines a dictionary of identifier (str): Grid (ccdc.utilties.Grid) to a single grid.
+        Grid points of the single_grid are set to the maximum value at each point across all the input grids
+        :param grd_dict:
+        :param mask:
+        :return:
+        """
+        mask_dic = {}
+
+        if len(set([g.bounding_box for g in grd_dict.values()])) > 1:
+            grd_dict = dict(zip(grd_dict.keys(), Grid.common_grid(grd_dict.values())))
+
+        for probe, grid in grd_dict.items():
+            other_grids = [grd_dict[p] for p in grd_dict.keys() if p != probe]
+            mask_dic.update({probe: grid * grid.multi_max_mask(other_grids)})
+
+        o = [g.bounding_box[0] for g in grd_dict.values()]
+        origin = [min([coord.x for coord in o]),
+                  min([coord.y for coord in o]),
+                  min([coord.z for coord in o])
+                  ]
+
+        f = [g.bounding_box[1] for g in grd_dict.values()]
+        far_corner = [max([coord.x for coord in f]),
+                      max([coord.y for coord in f]),
+                      max([coord.z for coord in f])
+                      ]
+
+        blank = Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0, _grid=None)
+
+        if mask:
+            return mask_dic, reduce(operator.add, mask_dic.values(), blank)
+        else:
+            return reduce(operator.add, mask_dic.values(), blank)
+
+
+    def value_at_coordinate(self, coordinates, tolerance=1, position=True):
+        """
+        Uses Grid.value() rather than Grid.value_at_point(). Chris Radoux reported speed issues.
+        :param coordinates:
+        :param tolerance:
+        :return:
+        """
+        i, j, k = self.point_to_indices(coordinates)
+        nx, ny, nz = self.nsteps
+        scores = {}
+
+        for di in range(-tolerance, +tolerance + 1):
+            for dj in range(-tolerance, +tolerance + 1):
+                for dk in range(-tolerance, +tolerance + 1):
+                    if 0 < (i + di) < nx and 0 < (j + dj) < ny and 0 < (k + dk) < nz:
+                        scores.update({self.value(i + di, j + dj, k + dk): (i + di, j + dj, k + dk)})
+
+        if len(scores) > 0:
+            score = sorted(scores.keys(), reverse=True)[0]
+
+            if score < 0.1:
+                score = 0
+                point = (0, 0, 0)
+
+            else:
+                a, b, c = scores[score]
+                point = self.indices_to_point(a, b, c)
+
+        else:
+            score = 0
+            point = (0, 0, 0)
+
+        if position:
+            return score, point
+
+        else:
+            return score
 
 utilities.Grid = Grid
-

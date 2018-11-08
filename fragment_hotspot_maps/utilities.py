@@ -20,11 +20,18 @@ general functionality.
 The main classes of the :mod:`fragment_hotspot_maps.extraction` module are:
     -Utilities
 """
+import collections
 import math
+from os.path import exists, join
+from os import mkdir
+import tempfile
+
 import numpy as np
 
-from os.path import exists
-from os import mkdir
+from ccdc.io import MoleculeWriter
+from ccdc.cavity import Cavity
+
+Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
 class Utilities(object):
     """
@@ -69,7 +76,7 @@ class Utilities(object):
         return lines
 
     @staticmethod
-    def get_cavity_centroid(cav):
+    def cavity_centroid(obj):
         """
         Returns the centroid of a cavity object
         :param cav:
@@ -78,18 +85,37 @@ class Utilities(object):
         x_coords = []
         y_coords = []
         z_coords = []
+        if isinstance(obj, Cavity):
+            features = (f.coordinates for f in cav.features)
 
-        for feat in cav.features:
-            feature_coords = feat.coordinates
-            x_coords.append(feature_coords[0])
-            y_coords.append(feature_coords[1])
-            z_coords.append(feature_coords[2])
+        else:
+            features = obj.surface_points
+
+            for feat in features:
+                x_coords.append(feat[0])
+                y_coords.append(feat[1])
+                z_coords.append(feat[2])
 
         x_avg = round(np.mean(x_coords))
         y_avg = round(np.mean(y_coords))
         z_avg = round(np.mean(z_coords))
 
-        return x_avg, y_avg, z_avg
+        return Coordinates(x=x_avg, y=y_avg, z=z_avg)
+
+    @staticmethod
+    def cavity_from_protein(prot):
+        """
+        generates a cavities from prot.
+        :param prot:
+        :return:
+        """
+        # TODO: proper solution has been requested
+
+        tfile = join(tempfile.mkdtemp(), "protein.pdb")
+        with MoleculeWriter(tfile) as writer:
+            writer.write(prot)
+
+        return Cavity.from_pdb_file(tfile)
 
 class Figures(object):
     """
