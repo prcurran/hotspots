@@ -61,7 +61,7 @@ class Buriedness(object):
             self.grid_spacing = 0.5
             self.radius_min_large_sphere = 2.5
             self.radius_max_large_sphere = 9.5
-            self.prot = None
+            self.protein = None
             self.out_grid = None
             self.mode = "M"
             self.working_directory = tempfile.mkdtemp()
@@ -78,7 +78,7 @@ class Buriedness(object):
             settings = self.Settings()
 
         self.settings = settings
-        self.settings.prot = protein
+        self.settings.protein = protein
         self.settings.out_grid = out_grid
         self.ghecom_executable = ghecom_executable
 
@@ -90,9 +90,9 @@ class Buriedness(object):
         """
 
         with PushDir(self.settings.working_directory):
-            if self.settings.prot is not None:
+            if self.settings.protein is not None:
                 with MoleculeWriter('protein.pdb') as writer:
-                    writer.write(self.settings.prot)
+                    writer.write(self.settings.protein)
 
             cmd = "{}/ghecom {} -M {} -gw {} -rli {} -rlx {} -opoc {}".format(self.settings.ghecom_executable,
                                                                               self.settings.in_name,
@@ -133,7 +133,7 @@ class BuriednessResult(object):
         y = []
         z = []
 
-        for atm in self.prot.atoms:
+        for atm in self.protein.atoms:
             x.append(atm.coordinates.x)
             y.append(atm.coordinates.y)
             z.append(atm.coordinates.z)
@@ -351,7 +351,7 @@ class _Scorer(object):
                              "donor_acceptor": "doneptor",
                              "dummy": "dummy"}
 
-        cavities = Utilities.cavity_from_protein(self.hotspot_result.prot)
+        cavities = Utilities.cavity_from_protein(self.hotspot_result.protein)
         for cavity in cavities:
 
             for feature in cavity.features:
@@ -399,7 +399,7 @@ class _Scorer(object):
         :param percentile:
         :return:
         """
-        sg = Grid.get_single_grid([g for g in self.hotspot_result.super_grids.values()])
+        sg = Grid.get_single_grid(self.hotspot_result.super_grids, mask=False)
         return sg.grid_score(threshold=threshold, percentile=percentile)
 
     def _score_atom_type(self, grid_type, coordinates):
@@ -496,7 +496,7 @@ class HotspotResults(object):
         except:
             raise TypeError("Not a valid Grid")
 
-        self.prot = protein
+        self.protein = protein
         self.buriedness = buriedness
         self.pharmacophore = None
 
@@ -596,7 +596,7 @@ class HotspotResults(object):
             og1, og2 = self._common_grid(g1, g2)
             sele = og1 - og2
             selectivity_grids[probe] = sele
-        hr = Hotspots.HotspotResults(selectivity_grids, self.prot, self.fname, None, None, self.out_dir)
+        hr = Hotspots.HotspotResults(selectivity_grids, self.protein, self.fname, None, None, self.out_dir)
         return hr
 
     def get_pharmacophore_model(self, identifier="id_01", cutoff=5):
@@ -604,7 +604,7 @@ class HotspotResults(object):
         method of hotspot results object(intended to be run after extracted HS) returns PharmacophoreModel
         :return:
         """
-        return PharmacophoreModel.from_hotspot(self.prot, self.super_grids, identifier=identifier, cutoff=cutoff)
+        return PharmacophoreModel.from_hotspot(self.protein, self.super_grids, identifier=identifier, cutoff=cutoff)
 
     def get_histogram(self, fpath="histogram.png", plot=True):
         """
@@ -677,7 +677,7 @@ class HotspotResults(object):
         a = AtomicHotspot()
         a.settings.atomic_probes = ["carbonyl_oxygen", "carboxylate", "pyramidal_r3n", "water_oxygen"]
 
-        self.superstar_result = a.calculate(protein=self.prot,
+        self.superstar_result = a.calculate(protein=self.protein,
                                             nthreads=nthreads,
                                             cavity_origins=centroid)
 
@@ -756,7 +756,7 @@ class HotspotResults(object):
         :return: a :class:`ccdc.Protein` instance
         '''
         prot_scores = self.score_protein()
-        pocket = self.prot.copy()
+        pocket = self.protein.copy()
         pocket.remove_hydrogens()
         for residue in pocket.residues:
             keep_residue = False
@@ -799,7 +799,7 @@ class HotspotResults(object):
             g.write(join(out, "{}.ccp4".format(p)))
 
         with MoleculeWriter(join(out, "protein.pdb")) as w:
-            w.write(self.prot)
+            w.write(self.protein)
 
         view = nv.NGLWidget()
         view.add_component(join(out, "protein.pdb"))
@@ -1092,7 +1092,7 @@ class Hotspots(object):
         self.weighted_grids = None
         self.sampled_probes = {}
 
-        self.prot = None
+        self.protein = None
         self.fname = None
         self.probe_size = None
         self.charged_probes = None
@@ -1181,7 +1181,7 @@ class Hotspots(object):
             a.settings.atomic_probes = {"negative": "CARBOXYLATE OXYGEN", "positive": "CHARGED NH NITROGEN"}
 
         probe_types = a.settings.atomic_probes.keys()
-        self.superstar_grids = a.calculate(protein=self.prot,
+        self.superstar_grids = a.calculate(protein=self.protein,
                                            nthreads=self.nthreads,
                                            cavity_origins=self.cavity)
 
@@ -1191,7 +1191,7 @@ class Hotspots(object):
         if self.ghecom_executable:
             print("    method: Ghecom")
             out_grid = self.superstar_grids[0].ligsite.copy_and_clear() # fix
-            b = Buriedness(protein=self.prot,
+            b = Buriedness(protein=self.protein,
                            out_grid=out_grid,
                            ghecom_executable=self.ghecom_executable)
             self.ghecom = b.calculate_buriedness()
@@ -1213,7 +1213,7 @@ class Hotspots(object):
 
         print("Sampling complete\n")
 
-    def from_protein(self, prot, charged_probes=False, probe_size=7, ghecom_executable=None,
+    def from_protein(self, protein, charged_probes=False, probe_size=7, ghecom_executable=None,
                      cavity=None, nthreads=None, sampler_settings=None):
         """
         Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object
@@ -1227,7 +1227,7 @@ class Hotspots(object):
         :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
         """
         start = time.time()
-        self.prot = prot
+        self.protein = protein
         self.charged_probes = charged_probes
         self.probe_size = probe_size
         self.ghecom_executable = ghecom_executable
@@ -1240,4 +1240,4 @@ class Hotspots(object):
         self.super_grids = {p: g[0] for p, g in self.out_grids.items()}
         print("Runtime = {}seconds".format(time.time() - start))
 
-        return HotspotResults(self.super_grids, self.prot, self.sampled_probes, self.buriedness)
+        return HotspotResults(self.super_grids, self.protein, self.sampled_probes, self.buriedness)

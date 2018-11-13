@@ -115,7 +115,7 @@ class HotspotWriter(object):
 
             self.out_dir= Utilities.get_out_dir(join(self.path, self.container))
 
-            self._write_protein(hr[0].prot)
+            self._write_protein(hr[0].protein)
             if hr[0].hotspot_result.pharmacophore:
                 self.settings.pharmacophore = True
             #hts = [h.hotspot_result for h in hr]
@@ -129,7 +129,7 @@ class HotspotWriter(object):
                       > hotspot.threshold)
 
                 self._write_grids(hotspot.hotspot_result.super_grids, buriedness=None, mesh=bi)
-                self._write_protein(hotspot.hotspot_result.prot)
+                self._write_protein(hotspot.hotspot_result.protein)
 
                 if hotspot.hotspot_result.pharmacophore:
                     self._write_pharmacophore(hotspot.hotspot_result.pharmacophore)
@@ -146,7 +146,7 @@ class HotspotWriter(object):
 
             self.out_dir = Utilities.get_out_dir(join(self.path, self.container))
             self._write_grids(hr.super_grids, buriedness=hr.buriedness)
-            self._write_protein(hr.prot)
+            self._write_protein(hr.protein)
 
             if hr.pharmacophore:
                 self.settings.pharmacophore = True

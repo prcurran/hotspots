@@ -40,6 +40,7 @@ from ccdc.cavity import Cavity
 from skimage import feature
 from scipy import optimize
 import numpy as np
+from tqdm import tqdm
 
 import hotspot_calculation # import HotspotResults, _RunSuperstar
 from atomic_hotspot_calculation import AtomicHotspot
@@ -172,7 +173,7 @@ class HotspotResults(hotspot_calculation.HotspotResults):
     #                             best_island=best_island)
 
     @staticmethod
-    def from_hotspot(single_grid, mask_dic, settings, prot, large_cavities, seed=None):
+    def from_hotspot(single_grid, mask_dic, settings, prot, seed=None):
         """
         create a Extracted Hotspot object from HotspotResult object
         :param single_grid:
@@ -204,51 +205,15 @@ class HotspotResults(hotspot_calculation.HotspotResults):
         location, features = HotspotResults.get_interaction_type(mask_dic, best_island, threshold, settings)
         grd_dict = HotspotResults.get_grid_dict(location, features, settings)
 
-        return HotspotResults(grd_dict, prot)
 
-    @property
-    def prot(self):
-        return self._protein
-
-    @property
-    def seed(self):
-        return self._seed
-
-    @property
-    def seed_value(self):
-        return self._seed_value
-
-    @property
-    def mask(self):
-        return self._mask
-
-    @property
-    def single_grid(self):
-        return self._single_grid
-
-    @property
-    def mask_dic(self):
-        return self._mask_dic
-
-    @property
-    def threshold(self):
-        return self._threshold
-
-    @property
-    def location(self):
-        return self._location
-
-    @property
-    def features(self):
-        return self._features
-
-    @property
-    def rank(self):
-        return self._rank
-
-    @property
-    def score(self):
-        return self._score
+        hr = HotspotResults(super_grids=grd_dict, protein=prot)
+        hr.threshold = threshold
+        hr.best_island = best_island
+        hr.location = location
+        hr.features = features
+        hr.score = hr.score()
+        hr.rank = hr._rank_features()
+        return hr
 
     # def count_island_points(self, threshold):
     #     """
@@ -421,54 +386,37 @@ class HotspotResults(hotspot_calculation.HotspotResults):
 
         return grid_dic
 
-    def get_hotspot_result(self):
-        """
-        formats the location and set of interaction feature into super_grids, a dict of interaction type: grid
-        :return:
-        """
-
-        apolar_min = self.location.minimal()
-        grid_dic = {"apolar": apolar_min}
-        for probe in self.mask_dic.keys():
-            if probe != "apolar":
-                if self.settings.mode == "seed":
-                    grids = [feat.grid for feat in self.features
-                             if feat.feature_type == probe and
-                             feat.rank <= self.settings.max_features and
-                             feat.score >= self.settings.cutoff]
-                else:
-                    grids = [feat.grid for feat in self.features
-                             if feat.feature_type == probe]
-
-                if len(grids) == 0:
-                    grids = [apolar_min.copy_and_clear()]
-
-                grid_dic.update({probe: Grid.super_grid(1, *grids)})
-            else:
-                continue
-
-        return HotspotResults(grid_dict=grid_dic,
-                              protein=self.prot,
-                              sampled_probes=None,
-                              buriedness=None)
-
-    # def get_elaboration_potential(self, large_cavities):
+    # def get_hotspot_result(self):
     #     """
-    #     Is the hotspot within a drug size cavity:
-    #     0 = False
-    #     1 = True
-    #     TODO: develop a more sophicated method to evaluate elaboration potential
-    #     :param large_cavities:
+    #     formats the location and set of interaction feature into super_grids, a dict of interaction type: grid
     #     :return:
     #     """
-    #     centroid = self.location.centroid()
-    #     cavity = [c for c in large_cavities if c.contains_point(centroid)]
     #
-    #     if len(cavity) == 0:
-    #         return 0
+    #     apolar_min = self.location.minimal()
+    #     grid_dic = {"apolar": apolar_min}
+    #     for probe in self.mask_dic.keys():
+    #         if probe != "apolar":
+    #             if self.settings.mode == "seed":
+    #                 grids = [feat.grid for feat in self.features
+    #                          if feat.feature_type == probe and
+    #                          feat.rank <= self.settings.max_features and
+    #                          feat.score >= self.settings.cutoff]
+    #             else:
+    #                 grids = [feat.grid for feat in self.features
+    #                          if feat.feature_type == probe]
     #
-    #     else:
-    #         return 1
+    #             if len(grids) == 0:
+    #                 grids = [apolar_min.copy_and_clear()]
+    #
+    #             grid_dic.update({probe: Grid.super_grid(1, *grids)})
+    #         else:
+    #             continue
+    #
+    #     return HotspotResults(grid_dict=grid_dic,
+    #                           protein=self.prot,
+    #                           sampled_probes=None,
+    #                           buriedness=None)
+
         
     # def get_superstar_result(self, superstar_results):
     #     """
@@ -532,7 +480,7 @@ class Extractor(object):
         :param out_dir:
         :param settings:
         """
-
+        print "Initialise Extractor"
         self.hotspot_result = hr
         if settings is None:
             self.settings = self.Settings()
@@ -553,17 +501,21 @@ class Extractor(object):
 
         # enable extraction to run in seeded or global modes
         if self.settings.mode == "seed":
+            print "    Mode: 'seed'"
             self._peaks = self.get_peaks()
 
         elif self.settings.mode == "global":
+            print "    Mode: 'global'"
             self._peaks = None
 
         else:
             raise IOError("Mode not currently supported")
 
         # runs and ranks extraction procedure
+        print "Generate Single Grid"
         self._masked_dic, self._single_grid = Grid.get_single_grid(self.hotspot_result.super_grids)
-        self._large_cavities = self._get_large_cavities()
+        # self._large_cavities = self._get_large_cavities()
+        print "Extracting Hotspots"
         self.extracted_hotspots = self._get_extracted_hotspots()
         self._rank_extracted_hotspots()
 
@@ -589,7 +541,7 @@ class Extractor(object):
             self.min_feature_gp = 5
             self.max_features = 10
             self.min_distance = 6
-            self.island_max_size = 12
+            self.island_max_size = 20
             self.sigma = 0.3
 
             self.drug_volume = 300
@@ -614,10 +566,6 @@ class Extractor(object):
     @property
     def peaks(self):
         return self._peaks
-
-    @property
-    def large_cavities(self):
-        return self._large_cavities
 
     def grid_post_process(self, super_grids):
         """
@@ -683,20 +631,6 @@ class Extractor(object):
                                  )
         return average_peaks
 
-    def _get_large_cavities(self):
-        """
-        returns cavity island if it is "drug-sized"
-        :return:
-        """
-        b = self.hotspot_result.buriedness
-        if b is None:
-            return None
-
-        else:
-            return [i for i in b.islands(threshold=self.settings.buriedness_value)
-                    if (i > self.settings.buriedness_value).count_grid()
-                    > (self.settings.drug_volume * (self.settings.spacing ** 3))]
-
     def _get_extracted_hotspots(self):
         """
         locate peaks in apolar maps and define fragment size volume
@@ -705,12 +639,11 @@ class Extractor(object):
         extracted_hotspots = []
         if self.settings.mode == "seed":
             for peak in self.peaks:
-                HotspotResults.from_hotspot(self.single_grid,
-                                            self.masked_dic,
-                                            self.settings,
-                                            self.hotspot_result.prot,
-                                            self.large_cavities,
-                                            seed=peak)
+                e = HotspotResults.from_hotspot(self.single_grid,
+                                                self.masked_dic,
+                                                self.settings,
+                                                self.hotspot_result.protein,
+                                                seed=peak)
 
                 if e.threshold > 12:
                     extracted_hotspots.append(e)
@@ -719,8 +652,7 @@ class Extractor(object):
             e = HotspotResults.from_hotspot(self.single_grid,
                                             self.masked_dic,
                                             self.settings,
-                                            self.hotspot_result.prot,
-                                            self.large_cavities,
+                                            self.hotspot_result.protein,
                                             seed=None)
 
             extracted_hotspots.append(e)
@@ -770,8 +702,7 @@ class Extractor(object):
         :return:
         """
         for i, hotspot in enumerate(self.extracted_hotspots):
-            hotspot.hotspot_result.pharmacophore = hotspot.hotspot_result.get_pharmacophore_model(identifier=
-                                                                                                  hotspot.identifier)
+            hotspot.pharmacophore = hotspot.get_pharmacophore_model(identifier=hotspot.identifier)
 
 
     def _write(self, out_dir, mode="best_islands"):
