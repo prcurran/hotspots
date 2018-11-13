@@ -33,6 +33,7 @@ import shutil
 from ccdc.molecule import Molecule, Atom
 from ccdc.protein import Protein
 from ccdc import io
+import nglview as nv
 
 from grid_extension import Grid
 from hotspot_calculation import HotspotResults
@@ -44,7 +45,7 @@ from pharmacophore import PharmacophoreModel
 
 class HotspotWriter(object):
     """
-    class to handle the writing of Hotspots to PyMol
+    class to handle the writing of Hotspots to file. And creation of visualisation scripts.
     """
     class Settings(object):
         """class to hold writer settings"""
@@ -67,15 +68,15 @@ class HotspotWriter(object):
             self.charged = True
             self.transparency = 0.7
             self.grid_labels = True
+            self.supported_grids = [".grd", ".ccp4", ".acnt"]
 
             #pharmacophore
             self.pharmacophore = False
             self.pharmacophore_labels = True
             self.pharmacophore_format = [".cm"]
 
-    def __init__(self, path, grid_extension = ".grd", settings=None, zip_results=False):
+    def __init__(self, path, visualisation="pymol", grid_extension=".grd", zip_results=False, settings=None):
         """
-
         :param path: directory (maybe zipped) containing hotspot information
         """
         if settings is None:
@@ -83,9 +84,20 @@ class HotspotWriter(object):
         else:
             self.settings = settings
 
-        self.settings.grid_extension = grid_extension
-        self.path = path
+        if grid_extension in self.settings.supported_grids:
+            self.settings.grid_extension = grid_extension
+        else:
+            self.settings.grid_extension = ".grd"
+            print "WARNING: Invalid grid file format provided. Default: '.grd' will be used"
 
+        self.settings.visualisation = visualisation
+        if visualisation == "ngl":
+            self.settings.visualisation = visualisation
+            if grid_extension != ".ccp4":
+                self.settings.grid_extension = ".ccp4"
+                print "WARNING: Grids must be .ccp4 format for visualisation with NGLViewer"
+
+        self.path = path
         self.zipped = zip_results
 
     def __enter__(self):
@@ -121,6 +133,7 @@ class HotspotWriter(object):
 
                 if hotspot.hotspot_result.pharmacophore:
                     self._write_pharmacophore(hotspot.hotspot_result.pharmacophore)
+
                 self._write_pymol(hotspot.hotspot_result, False)
 
             self.out_dir = dirname(self.out_dir)
@@ -201,6 +214,10 @@ class HotspotWriter(object):
             with io.MoleculeWriter(join(self.out_dir, "label_threshold_{}.mol2".format(pharmacophore.identifier))) \
                     as writer:
                 writer.write(label)
+
+    def _write_ngl(self):
+        view = nv.NGLWidget()
+        return 0
 
     def _write_pymol(self, hr, zipped=False):
         """
@@ -347,6 +364,7 @@ class HotspotReader(object):
         :param path:
         """
         self._supported_interactions = ["apolar", "donor", "acceptor", "positive", "negative"]
+        self._supported_grids = [".grd", ".ccp4", ".acnt", ".dat"]
         self._not_hs_dir = ["best_islands", "peaks", "ins"]
         self._path = path
 
@@ -395,49 +413,31 @@ class HotspotReader(object):
         else:
             base = self._base
 
-        if ".grd" in self._extensions:
-            grid_dic = {splitext(fname)[0]: Grid.from_file(join(base, fname))
-                             for fname in [f for f in self._files
-                                           if splitext(f)[1] == ".grd"
-                                           and splitext(f)[0] in self._supported_interactions]}
-            try:
-                buriedness = Grid.from_file("buriedness.grd")
-            except RuntimeError:
-                buriedness = None
-
-        elif ".dat" in self._extensions:
+        if ".dat" in self._extensions:
             grid_dic = {splitext(fname)[0]: Grid.from_array(join(base, fname))
-                             for fname in [f for f in self._files
-                                           if splitext(f)[1] == ".grd"
-                                           and splitext(f)[0] in self._supported_interactions]}
+                        for fname in [f for f in self._files
+                                      if splitext(f)[1] == ".grd"
+                                      and splitext(f)[0] in self._supported_interactions]}
             try:
                 buriedness = Grid.from_array(join(self.base, "buriedness.dat"))
             except RuntimeError:
                 buriedness = None
 
         else:
-            raise IOError("grids not recognised")
+            ext = list(set(self._extensions).intersection(self._supported_grids))
+            if len(ext) == 1:
+                grid_dic = {splitext(fname)[0]: Grid.from_file(join(base, fname))
+                                 for fname in [f for f in self._files
+                                               if splitext(f)[1] == ext[0]
+                                               and splitext(f)[0] in self._supported_interactions]}
+                try:
+                    buriedness = Grid.from_file("buriedness{}".format(ext[0]))
+                except RuntimeError:
+                    buriedness = None
+            else:
+                raise RuntimeError("Opps, something went wrong.")
 
         return grid_dic, buriedness
-    #
-    # def _get_sampled_probes(self):
-    #     """
-    #     retrieves sampled probes
-    #     :return:
-    #     """
-    #     if ".mol2" not in self._extensions:
-    #         return None
-    #     else:
-    #
-    #         try:
-    #             probe_dict = {splitext(fname)[0].split("_")[0]: io.MoleculeReader(join(self._base,fname))
-    #                          for fname in [f for f in self._files
-    #                                        if splitext(f)[1] == ".mol2"
-    #                                        and splitext(f)[0].split("_")[0] in self._supported_interactions]}
-    #         except:
-    #              probe_dict = None
-    #
-    #     return probe_dict
 
     def read(self, identifier=None):
         """

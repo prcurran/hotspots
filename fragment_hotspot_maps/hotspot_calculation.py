@@ -11,6 +11,7 @@ from __future__ import print_function, division
 import argparse
 import math
 import operator
+from tqdm import tqdm
 
 from os.path import join, dirname, exists, splitext
 from os import environ, name, getcwd, mkdir, chdir, system, path, listdir
@@ -33,6 +34,8 @@ from ccdc.protein import Protein
 from ccdc.cavity import Cavity
 from ccdc.molecule import Molecule
 from ccdc.utilities import PushDir
+import nglview as nv
+from ipywidgets import IntSlider, interact
 
 import pkg_resources
 
@@ -79,7 +82,7 @@ class Buriedness(object):
         self.settings.out_grid = out_grid
         self.ghecom_executable = ghecom_executable
 
-    def run_ghecom(self):
+    def calculate_buriedness(self):
         """
         runs ghecom in temporary directory
 
@@ -309,7 +312,7 @@ class _Scorer(object):
         elif isinstance(object, Molecule):
             self._scored_object = self.score_molecule()
 
-            values = [a.partial_charge for a in self.scored_object.atoms]
+            values = [a.partial_charge for a in self.scored_object.heavy_atoms]
             self._score = self._geometric_mean(values=values)
 
         elif isinstance(object, Cavity):
@@ -364,7 +367,7 @@ class _Scorer(object):
                     coordinates = tuple(map(operator.add, (c.x, c.y, c.z), translate))
 
                 if feature.atom:
-                    score = self._score_atom_type(grid_type, coordinates, tolerance=self.tolerance)
+                    score = self._score_atom_type(grid_type, coordinates)
                     prot.atoms[feature.atom.index].partial_charge = score
                 else:
                     print("WARNING: no atom")
@@ -380,7 +383,7 @@ class _Scorer(object):
         mol = copy.copy(self.object)
         for atom in mol.heavy_atoms:
             atom_type = self._atom_type(atom=atom)
-            score = self._score_atom_type(atom_type, atom.coordinates, tolerance=self.tolerance)
+            score = self._score_atom_type(atom_type, atom.coordinates)
             atom.partial_charge = score
 
         return mol
@@ -399,7 +402,7 @@ class _Scorer(object):
         sg = Grid.get_single_grid([g for g in self.hotspot_result.super_grids.values()])
         return sg.grid_score(threshold=threshold, percentile=percentile)
 
-    def _score_atom_type(self, grid_type, coordinates, tolerance=2):
+    def _score_atom_type(self, grid_type, coordinates):
         """
         atom
         :param grid_type:
@@ -411,7 +414,7 @@ class _Scorer(object):
             grid_type = self._doneptor_grid(coordinates)
 
         return self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
-                                                                              tolerance=tolerance,
+                                                                              tolerance=self.tolerance,
                                                                               position=False)
 
     def _percentage_rank(self, obj, threshold=5):
@@ -441,13 +444,13 @@ class _Scorer(object):
         :return:
         """
         scores = [self.hotspot_result.super_grids["donor"].value_at_coordinate(coordinates,
-                                                                               tolerance=tolerance,
+                                                                               tolerance=self.tolerance,
                                                                                position=False),
                   self.hotspot_result.super_grids["acceptor"].value_at_coordinate(coordinates,
-                                                                                  tolerance=tolerance,
+                                                                                  tolerance=self.tolerance,
                                                                                   position=False)
                   ]
-        d = dict(scores, ["donor", "acceptor"])
+        d = dict(zip(scores, ["donor", "acceptor"]))
         return d[max(d.keys())]
 
 
@@ -485,7 +488,7 @@ class HotspotResults(object):
     and using the results.
     """
 
-    def __init__(self, super_grids, protein, buriedness, pharmacophore=None):
+    def __init__(self, super_grids, protein, buriedness=None, pharmacophore=None):
         try:
             self.super_grids = super_grids
             for probe, g in super_grids.items():
@@ -495,6 +498,7 @@ class HotspotResults(object):
 
         self.prot = protein
         self.buriedness = buriedness
+        self.pharmacophore = None
 
         if pharmacophore:
             self.pharmacophore = self.get_pharmacophore_model()
@@ -560,7 +564,7 @@ class HotspotResults(object):
                         for i in range(nx) for j in range(ny) for k in range(nz)
                         if self.grid.value(i, j, k) > 0]) / self.count
 
-    def score(self, obj, return_value=False, tolerance=2):
+    def score(self, obj=None, return_value=False, tolerance=2):
         """
         Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores
         :param obj:
@@ -612,11 +616,10 @@ class HotspotResults(object):
         if plot:
             data, plt = Figures.histogram(self, plot)
             plt.savefig(fpath)
-            plt.close()
+            return data, plt
         else:
             data = Figures.histogram(self, plot)
-
-        return data
+            return data
 
     def get_2D_diagram(self, ligand, fpath="diagram.png", title=False):
         """
@@ -628,14 +631,38 @@ class HotspotResults(object):
         """
         Figures._2D_diagram(hr, ligand, title=False, output="diagram.png")
 
-    def get_superstar_profile(self, feature_radius=1.5, nthreads=6):
+    def get_elaboration_potential(self, large_cavities):
+        """
+        Is the hotspot within a drug size cavity:
+        0 = False
+        1 = True
+        TODO: develop a more sophicated method to evaluate elaboration potential
+        :param large_cavities:
+        :return:
+        """
+        centroid = self.location.centroid()
+        cavity = [c for c in large_cavities if c.contains_point(centroid)]
+
+        if len(cavity) == 0:
+            return 0
+        else:
+            return 1
+
+    def get_superstar_profile(self, feature_radius=1.5, nthreads=6, features=None, best_volume=None):
         """
         EXPERIMENTAL
         :return:
         """
         # set additional object properties
-        self.features = self._get_features(threshold=5, min_feature_size=6)
-        self.best_volume = Grid.get_single_grid(self.super_grids, mask=False)
+        if features:
+            self.features = features
+        else:
+            self.features = self._get_features(threshold=5, min_feature_size=6)
+
+        if best_volume:
+            self.best_volume = best_volume
+        else:
+            self.best_volume = Grid.get_single_grid(self.super_grids, mask=False)
 
         self.feature_spheres = self.best_volume.copy_and_clear()
         for feat in self.features:
@@ -694,17 +721,21 @@ class HotspotResults(object):
 
         return pd.DataFrame({"feature_id": feat_id, "interaction": ss_id, "score": score})
 
-
-    def _get_features(self, threshold=5, min_feature_size=6):
+    @staticmethod
+    def _get_features(interaction_dict, threshold=5, min_feature_gp=6, excluded=["apolar"]):
         """
         returns Hotspot Feature object with a score to enable ranking
         :param probe:
         :param g:
         :return:
         """
-        return [HotspotResults.HotspotFeature(probe, island)
-                     for probe, g in self.super_grids.items() for island in g.islands(threshold=threshold)
-                     if (island > threshold).count_grid() > min_feature_size]
+        f = []
+        for probe, g in interaction_dict.items():
+            if len(g.islands(threshold=threshold)) > 0:
+                for island in g.islands(threshold=threshold):
+                    if (island > threshold).count_grid() > min_feature_gp and probe not in excluded:
+                        f.append(HotspotResults.HotspotFeature(probe, island))
+        return f
 
     def _rank_features(self):
         """
@@ -747,6 +778,47 @@ class HotspotResults(object):
                 pocket.remove_atoms(residue.atoms)
         return pocket
 
+    def ngl_widget(self, out_dir=None):
+        """
+        jupyter notebook --NotebookApp.iopub_data_rate_limit=10000000000.0
+        creates ngl widget from hotspot. For use in ipython notebooks
+        :param out_dir:
+        :return:
+        """
+        color_dict = {"apolar": "yellow",
+                      "donor": "blue",
+                      "acceptor": "red",
+                      "negative": "magenta",
+                      "positive": "cyan"}
+        if out_dir:
+            out = Utilities.get_out_dir(out_dir)
+        else:
+            out = tempfile.mkdtemp()
+
+        for p, g in self.super_grids.items():
+            g.write(join(out, "{}.ccp4".format(p)))
+
+        with MoleculeWriter(join(out, "protein.pdb")) as w:
+            w.write(self.prot)
+
+        view = nv.NGLWidget()
+        view.add_component(join(out, "protein.pdb"))
+
+        k = self.super_grids.keys()
+        for i, p in enumerate(k):
+            view.add_component(join(out, "{}.ccp4".format(p)))
+            view.add_representation('isosurface', component=i + 1)
+            view.update_representation(component=i + 1, color=color_dict[p])
+
+        @interact(x=IntSlider(description="HS Score", min=0, max=30, step=1))
+        def f(x):
+            view.update_representation(component=1, isolevel=int(x), isoleveltype='value')
+            view.update_representation(component=2, isolevel=int(x), isoleveltype='value')
+            view.update_representation(component=3, isolevel=int(x), isoleveltype='value')
+            view.update_representation(component=4, isolevel=int(x), isoleveltype='value')
+            view.update_representation(component=5, isolevel=int(x), isoleveltype='value')
+
+        return view
 
 class Hotspots(object):
     """
@@ -774,6 +846,7 @@ class Hotspots(object):
             apolar_translation_threshold = 15
             polar_translation_threshold = 15
             polar_contributions = False
+            return_probes = False
 
         def __init__(self, *grids, **kw):
             """
@@ -851,12 +924,11 @@ class Hotspots(object):
             for g in hs:
                 nx, ny, nz = g.nsteps
 
-                maxima = [self._indices_to_point(i, j, k, g)
+                maxima = [g.indices_to_point(i, j, k)
                           for i in range(nx) for j in range(ny) for k in range(nz)
                           if g.value(i, j, k) >= translation_threshold]
 
                 translate_probe = translate_probe + maxima
-            # print(priority_atom_type, len(translate_probe))
             return translate_probe
 
         def generate_rand_quaternions(self):
@@ -905,7 +977,6 @@ class Hotspots(object):
             :param probe: str, interaction_type
             :return:
             """
-
             if probe == "negative" or probe == "positive":
                 atoms = [g.mol.atoms for g in self.grids if g.name == "positive"][0]
                 weight = int(6 / len([a for a in atoms if str(a.atomic_symbol) == "C"]))
@@ -947,7 +1018,6 @@ class Hotspots(object):
 
             :return:
             """
-
             active_coords_dic = {
                 g.name: [a.coordinates for a in g._active_atoms]
                 for g in self.grids
@@ -955,7 +1025,7 @@ class Hotspots(object):
 
             return active_coords_dic
 
-        def sample(self, molecule, probe):
+        def sample(self, molecule, probe, return_probes):
             """
             Sample the grids according to the settings
 
@@ -963,14 +1033,13 @@ class Hotspots(object):
             :param probe: str, interaction type, (donor, acceptor, negative, positive, apolar)
             :return:
             """
-
             high_scoring_probes = {}
             priority_atom, priority_atom_type = self.get_priority_atom(molecule)
             translate_points = self.get_translation_points(priority_atom_type)
             molecule.remove_hydrogens()
             quaternions = self.generate_rand_quaternions()
 
-            print("Q", len(quaternions), "P", probe)
+            print("\n    nRotations:", len(quaternions), "nTranslations:" , len(translate_points), "probename:", probe)
 
             for g in self.grids:
                 g.set_molecule(molecule, True)
@@ -978,7 +1047,7 @@ class Hotspots(object):
             for g in self.probe_grids:
                 g.set_molecule(molecule, self.settings.polar_contributions)
 
-            for q in quaternions:
+            for q in tqdm(quaternions):
                 molecule.apply_quaternion(q)
                 priority_atom_coordinates = priority_atom.coordinates
                 active_coordinates_dic = self.get_active_coordinates()
@@ -989,28 +1058,31 @@ class Hotspots(object):
                                    for i in xrange(0, len(priority_atom_coordinates))]
 
                     score = self.sample_pose(translation, active_coordinates_dic, probe)
-
-                    if score < 5:
-                        continue
-                    if score > 14:
-                        m = molecule.copy()
-                        m.translate(translation)
-                        m.identifier = "{}".format(score)
-
-                        try:
-                            high_scoring_probes[score].append(m)
-                        except KeyError:
-                            high_scoring_probes[score] = [m]
                     self.update_out_grids(score, active_coordinates_dic, translation)
 
-            sampled_probes = []
-            for key in sorted(high_scoring_probes.iterkeys(), reverse=True):
-                sampled_probes.extend(high_scoring_probes[key])
+                    if self.settings.return_probes:
+                        if score < 5:
+                            continue
+                        if score > 14:
+                            m = molecule.copy()
+                            m.translate(translation)
+                            m.identifier = "{}".format(score)
 
-            if len(sampled_probes) > 10000:
-                return sampled_probes[:10000]
-            else:
-                return sampled_probes
+                            try:
+                                high_scoring_probes[score].append(m)
+                            except KeyError:
+                                high_scoring_probes[score] = [m]
+
+
+            if self.settings.return_probes:
+                sampled_probes = []
+                for key in sorted(high_scoring_probes.iterkeys(), reverse=True):
+                    sampled_probes.extend(high_scoring_probes[key])
+
+                if len(sampled_probes) > 10000:
+                    return sampled_probes[:10000]
+                else:
+                    return sampled_probes
 
     def __init__(self, settings=None):
         self.out_grids = {}
@@ -1033,27 +1105,27 @@ class Hotspots(object):
         else:
             self.sampler_settings = settings
 
+
     def _get_weighted_maps(self):
         """
         weight superstar output by burriedness
-
         :return: a list of :class: `WeightedResult` instances
         """
+        if self.ghecom_executable:
+            self.buriedness = self.ghecom.grid
+        else:
+            self.buriedness = Grid.get_single_grid(grd_dict={s.identifier: s.buriedness for s in self.superstar_grids},
+                                                   mask=False)
 
         results = []
         for s in self.superstar_grids:
-            if self.ghecom_executable:
-                self.buriedness = self.ghecom.grid
-            else:
-                self.buriedness = s.ligsite
-
-            s.grid, self.buriedness = self._common_grid(s.grid, self.buriedness, 1)
-
-            weighted_grid = s.grid * self.buriedness
+            g, b = Grid.common_grid([s.grid, s.buriedness], padding=1)
+            weighted_grid = g * b
             results.append(_WeightedResult(s.identifier, weighted_grid))
+
         return results
 
-    def _get_out_maps(self, probe, grid_dict):
+    def _get_out_maps(self, probe, grid_dict, return_probes=False):
         """
         Function to organise sampling of weighted superstar maps by molecular probes
 
@@ -1086,52 +1158,63 @@ class Hotspots(object):
         else:
             mol = MoleculeReader(join(probe_path, "rotate-{}_{}_flat.mol2".format(probe, self.probe_size)))[0]
 
-        probes = self.sampler.sample(mol, probe=probe)
+        probes = self.sampler.sample(mol, probe=probe, return_probes=return_probes)
+
         for pg in self.sampler.probe_grids:
             if pg.name.lower() == probe:
                 try:
                     self.out_grids[pg.name].append(pg.grid)
                 except KeyError:
                     self.out_grids[pg.name] = [pg.grid]
-        return probes
 
-    def _calc_hotspots(self):
+        if return_probes:
+            return probes
+
+    def _calc_hotspots(self, return_probes=False):
         """
         Function for overall organisation of hotspot calculation
         :return:
         """
         print("Start atomic hotspot detection")
         a = AtomicHotspot()
-        probe_types = ['apolar', 'donor', 'acceptor']
-
         if self.charged_probes:
-            probe_types += ['negative', 'positive']
+            a.settings.atomic_probes = {"negative": "CARBOXYLATE OXYGEN", "positive": "CHARGED NH NITROGEN"}
 
-        self.superstar_grids = a.calculate(protein=protein,
+        probe_types = a.settings.atomic_probes.keys()
+        self.superstar_grids = a.calculate(protein=self.prot,
                                            nthreads=self.nthreads,
-                                           cavity_origins=self.cavity_origins)
-        print("Atomic hotspot detection complete")
+                                           cavity_origins=self.cavity)
+
+        print("Atomic hotspot detection complete\n")
 
         print("Start buriedness calcualtion")
         if self.ghecom_executable:
-            out_grid = self.superstar_grids[0].ligsite.copy_and_clear()
-            r = Buriedness(protein=self.prot,
+            print("    method: Ghecom")
+            out_grid = self.superstar_grids[0].ligsite.copy_and_clear() # fix
+            b = Buriedness(protein=self.prot,
                            out_grid=out_grid,
                            ghecom_executable=self.ghecom_executable)
-            self.ghecom = r.run_ghecom()
+            self.ghecom = b.calculate_buriedness()
+        else:
+            print("    method: LIGSITE")
         self.weighted_grids = self._get_weighted_maps()
-        print("Buriedness calcualtion complete")
+
+        print("Buriedness calcualtion complete\n")
 
         print("Start sampling")
         grid_dict = {w.identifier: w.grid for w in self.weighted_grids}
 
         for probe in probe_types:
-            top_probes = self._get_out_maps(probe, grid_dict)
-            self.sampled_probes.update({probe: top_probes})
-        print("Sampling complete")
+            if return_probes:
+                self.sampled_probes.update(probe, self._get_out_maps(probe, grid_dict))
+
+            else:
+                self._get_out_maps(probe, grid_dict)
+
+        print("Sampling complete\n")
 
     def from_protein(self, prot, charged_probes=False, probe_size=7, ghecom_executable=None,
-                     cavity_origins=None, nthreads=5):
+                     cavity=None, nthreads=None, sampler_settings=None):
         """
         Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object
 
@@ -1143,14 +1226,18 @@ class Hotspots(object):
         :param ghecom_executable: str, path to ghecom executeable, if None ligsite used
         :return: a :class:`fragment_hotspot_maps.HotspotResults` instance
         """
+        start = time.time()
         self.prot = prot
         self.charged_probes = charged_probes
         self.probe_size = probe_size
         self.ghecom_executable = ghecom_executable
         self.nthreads = nthreads
-        self.cavity_origins = cavity_origins
+        self.sampler_settings = sampler_settings
 
-        self._calc_hotspots()
+        self.cavity = [Utilities.cavity_centroid(c) for c in cavity]
+
+        self._calc_hotspots()     # return probes = False by default
         self.super_grids = {p: g[0] for p, g in self.out_grids.items()}
+        print("Runtime = {}seconds".format(time.time() - start))
 
         return HotspotResults(self.super_grids, self.prot, self.sampled_probes, self.buriedness)

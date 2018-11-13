@@ -193,7 +193,7 @@ class Grid(utilities.Grid):
                            or util.get_distance(jsland.centroid(), island.centroid()) < 4])
 
         retained_jslands = list(all_islands - bin_islands)
-        print "Charged_islands, {}".format(len(retained_jslands))
+        #print "Charged_islands, {}".format(len(retained_jslands))
 
         if len(retained_jslands) == 0:
             blank = major.copy_and_clear()

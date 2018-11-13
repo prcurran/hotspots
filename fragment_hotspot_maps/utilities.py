@@ -20,13 +20,16 @@ general functionality.
 The main classes of the :mod:`fragment_hotspot_maps.extraction` module are:
     -Utilities
 """
+from __future__ import division
 import collections
 import math
-from os.path import exists, join
+from os.path import exists, join, abspath
 from os import mkdir
 import tempfile
 
 import numpy as np
+import numpy.ma as ma
+import matplotlib.pyplot as plt
 
 from ccdc.io import MoleculeWriter
 from ccdc.cavity import Cavity
@@ -56,9 +59,9 @@ class Utilities(object):
     @staticmethod
     def get_out_dir(path):
         """"""
-        if not exists(path):
-            mkdir(path)
-        return path
+        if not exists(abspath(path)):
+            mkdir(abspath(path))
+        return abspath(path)
 
     @staticmethod
     def get_lines_from_file(fname):
@@ -82,23 +85,15 @@ class Utilities(object):
         :param cav:
         :return:
         """
-        x_coords = []
-        y_coords = []
-        z_coords = []
         if isinstance(obj, Cavity):
-            features = (f.coordinates for f in cav.features)
+            features = [f.coordinates for f in obj.features]
 
         else:
             features = obj.surface_points
 
-            for feat in features:
-                x_coords.append(feat[0])
-                y_coords.append(feat[1])
-                z_coords.append(feat[2])
-
-        x_avg = round(np.mean(x_coords))
-        y_avg = round(np.mean(y_coords))
-        z_avg = round(np.mean(z_coords))
+        x_avg = round(np.mean([feat[0] for feat in features if isinstance(feat[0], float)]))
+        y_avg = round(np.mean([feat[1] for feat in features if isinstance(feat[1], float)]))
+        z_avg = round(np.mean([feat[2] for feat in features if isinstance(feat[2], float)]))
 
         return Coordinates(x=x_avg, y=y_avg, z=z_avg)
 
@@ -123,17 +118,18 @@ class Figures(object):
 
     TO DO: is there a better place for this to live?
     """
-    def histogram(self, hr, plot):
+    @staticmethod
+    def histogram(hr, plot):
         """ creates a histrogram from grid values"""
         data = {}
-        for p, g in hr.super_grids:
+        for p, g in hr.super_grids.items():
             array = g.get_array()
             masked_array = ma.masked_less_equal(array, 1)
             grid_values = masked_array.compressed()
-            data.update({p, grid_values})
+            data.update({p: grid_values})
 
         if plot:
-            plt = self._plot_histogram(data)
+            plt = Figures._plot_histogram(data)
             return data, plt
         else:
             return data
@@ -201,26 +197,32 @@ class Figures(object):
 
         fig.savefig(output, bbox_inches='tight')
 
-
-    def _plot_histogram(self, data):
+    @staticmethod
+    def _plot_histogram(data, title="Fragment Hotspot Maps"):
             """
             initialise the matplotlib figure to output histograms
 
             :param data:
             :return:
             """
+            colour_dict = {"acceptor": "r",
+                           "donor": "b",
+                           "apolar": "y",
+                           "negative": "m",
+                           "positive": "c"}
             plt.figure(1)
             for n, key in enumerate(data.keys()):
-                plt.subplot(3, 1, (n + 1))
+                j = int(len(data.keys()))
+                plt.subplot(j, 1, (n + 1))
                 hist, bin_edges = np.histogram(data[key], bins=range(0, 40), normed=True)
-                self._histogram_settings(bin_edges)
+                Figures._histogram_settings(bin_edges)
                 if n == 0:
                     plt.title(title)
-                if n < 2:
+                if n < j - 1:
                     plt.xticks([])
-                if n == 2:
+                if n == j - 1:
                     plt.xlabel("Fragment hotspot score")
-                if n == 1:
+                if n == int(round(j / 2) - 1):
                     plt.ylabel("Frequency")
                 plt.bar(bin_edges[:-1], hist, width=1, color=colour_dict[key])
             return plt

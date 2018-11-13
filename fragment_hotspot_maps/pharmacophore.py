@@ -192,7 +192,7 @@ class PharmacophoreModel(object):
                                        origin=centroid,
                                        distance=self.settings.binding_site_radius)
 
-        print "bs", len(bs.residues)
+        #print "bs", len(bs.residues)
 
         bs_residues = [str(r.identifier) for r in bs.residues]
         protein_residues = [str(p.identifier) for p in prot.residues]
@@ -207,12 +207,14 @@ class PharmacophoreModel(object):
 
         :return:
         """
-        # TO DO UPDATE WITH CHARGED FEATURES
+        # TODO: UPDATE WITH CHARGED FEATURES
         supported_features = {"acceptor_projected": "acceptor",
                               "donor_projected": "donor",
                               "ring": "apolar"}
-
-        Pharmacophore.read_feature_definitions()
+        try:
+            Pharmacophore.read_feature_definitions()
+        except:
+            raise ImportError("CrossMiner must be installed")
 
         feature_definitions = {supported_features[fd.identifier]: fd for fd in Pharmacophore.feature_definitions.values()
                                if fd.identifier in supported_features.keys()}
@@ -253,7 +255,7 @@ class PharmacophoreModel(object):
                     centre = mol.centre_of_geometry()
                     ev = Pharmacophore.ExcludedVolume(GeometricDescriptors.Sphere(centre, 2))
                     model_features.append(ev)
-        print len(model_features)
+        #print len(model_features)
         return Pharmacophore.Query(model_features)
 
     def write(self, fname):
@@ -265,7 +267,7 @@ class PharmacophoreModel(object):
         extension = splitext(fname)[1]
 
         if extension == ".cm":
-            print "!warning! charged features not supported!"
+            print "WARNING! Charged features not currently supported in CrossMiner!"
             pharmacophore = self.get_crossminer_pharmacophore()
             pharmacophore.write(fname)
 

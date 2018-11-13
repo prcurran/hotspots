@@ -42,32 +42,9 @@ class AtomicHotspot(object):
 
             # TODO: decide which probes should be included
             # TODO: this could be read in from superstar defaults (talk to Richard)
-            self._csd_atomic_probes = {"alcohol_oxygen": "ALCOHOL OXYGEN",
-                                       "carbonyl_oxygen": "CARBONYL OXYGEN",
-                                       "aliphatic_ether": "ALIPHATIC ETHER OXYGEN",
-                                       "aromatic_ether": "AROMATIC ETHER OXYGEN",
-                                       "carboxylate": "CARBOXYLATE OXYGEN",
-                                       "oxygen": "OXYGEN ATOM",
-                                       "sulphur": "SULPHUR ATOM",
-                                       "planar_r3n": "PLANAR R3N NITROGEN",
-                                       "pyramidal_r3n": "PYRAMIDAL R3N NITROGEN",
-
-                                       "ammonium": "RNH3 NITROGEN",
-                                       "uncharged_nh_nitrogen": "UNCHARGED NH NITROGEN",
-                                       "charged_nh_nitrogen": "CHARGED NH NITROGEN",
-
-                                       "water_oxygen": "WATER OXYGEN",
-                                       "water_hydrogen" : "WATER HYDROGEN",
-
-                                       "aliphatic_ch": "ALIPHATIC CH CARBON",
-                                       "methyl_carbon": "METHYL CARBON",
-                                       "aromatic_carbon": "AROMATIC CH CARBON",
-                                       "hetroaromatic": "SP2 CNC NITROGEN",
-
-                                       "chloride_ion": "CHLORIDE ANION",
-                                       "iodide_ion": "IODIDE ANION",
-                                       "nitro": "NITRO OXYGEN"
-                                       }
+            self._csd_atomic_probes = {"acceptor": "CARBONYL OXYGEN",
+                                       "donor": "UNCHARGED NH NITROGEN",
+                                       "apolar": "AROMATIC CH CARBON"}
 
             # TODO: add PDB probes
             self._pdb_atomic_probes = {}
@@ -128,10 +105,10 @@ class AtomicHotspot(object):
         @atomic_probes.setter
         def atomic_probes(self, probes):
             if self.database == 'CSD':
-                self._csd_atomic_probes = {probe: self._csd_atomic_probes[probe] for probe in probes}
+                self._csd_atomic_probes.update({k: v for k, v in probes.items()})
 
             elif self.database == 'PDB':
-                self._pdb_atomic_probes = {probe: self._pdb_atomic_probes[probe] for probe in probes}
+                self._pdb_atomic_probes.update({k: v for k, v in probes.items()})
 
             else:
                 raise TypeError("Database must be 'CSD' or 'PDB'")
@@ -168,7 +145,6 @@ class AtomicHotspot(object):
         :return:
         """
         cmd, jobname, superstar_env, temp_dir = args
-        print jobname
         env = environ.copy()
         env.update(superstar_env)
         with PushDir(temp_dir):
@@ -185,7 +161,6 @@ class AtomicHotspot(object):
         :return:
         """
         cmds = []
-        print cavity_origin
         if not out:
             out = self.settings.temp_dir
 
@@ -224,9 +199,9 @@ class AtomicHotspot(object):
             g_dict = {"grid_{}".format(i): g.grid for i, g in enumerate(atomic_results)}
             g = Grid.get_single_grid(g_dict, mask=False)
 
-
-            b_dict = {"buriedness_{}".format(i): g.grid for i, g in enumerate(atomic_results)}
+            b_dict = {"buriedness_{}".format(i): g.buriedness for i, g in enumerate(atomic_results)}
             b = Grid.get_single_grid(b_dict, mask=False)
+
 
             merged_results.append(AtomicHotspotResult(identifier=identifier,
                                                       grid=g,
@@ -251,14 +226,12 @@ class AtomicHotspot(object):
 
             if len(cavity_origins) > 1:
                 self._merge = True
-                print "here"
 
             # create input lists per cavity
             temp_dirs = []
             cmds = []
             env_str = [self.settings.superstar_env] * len(self.settings.atomic_probes) * len(cavity_origins)
             jobnames = self.settings.atomic_probes.keys() * len(cavity_origins)
-            print jobnames
 
             for i, cavity_origin in enumerate(cavity_origins):
                 out = (join(self.settings.temp_dir, str(i)))
@@ -329,7 +302,6 @@ class AtomicHotspotResult(object):
         else:
             raise IOError("Must supply a fragment_hotspot_maps.grid_extension.Grid class instance")
 
-
     @staticmethod
     def find(temp_dir, jobname):
         """
@@ -370,9 +342,8 @@ class AtomicHotspotResult(object):
         """
         mask = ((l < 1) & (g > 2))
         lc = l.copy()
-        lc = lc.max_value_of_neighbours()
-        return l + (mask * lc).mean_value_of_neighbours()
-
+        lc = lc.max_value_of_neighbours().max_value_of_neighbours()
+        return l + ((mask * lc).mean_value_of_neighbours() * mask)
 
 def atomic_hotspot_ins(jobname, probename, settings):
     ss_str = '''
