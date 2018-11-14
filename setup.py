@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 print find_packages()
 
 setup(
-    name="fragment_hotspot_maps",
+    name="hotspots",
 	authors = "Chris Radoux, Peter Curran",
     version="0.1",
     packages=find_packages(),
@@ -22,6 +22,6 @@ setup(
         # If any package contains *.txt or *.rst files, include them:
         '': ['*.txt', '*.rst','*.pkl'],
         # And include any *.mol2 files found in the 'probes' package, too:
-        'fragment_hotspot_maps': ['probes/*.mol2'],
+        'hotspots': ['probes/*.mol2'],
     }
 )

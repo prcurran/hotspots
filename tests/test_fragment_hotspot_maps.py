@@ -1,6 +1,6 @@
 import unittest
 
-import fragment_hotspot_maps.fragment_hotspot_maps as fhm
+import hotspots.fragment_hotspot_maps as fhm
 from ccdc_development.grid import Grid
 
 class Test_BuildLocation(unittest.TestCase):

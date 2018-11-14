@@ -2354,7 +2354,7 @@ class Hotspots(_HotspotsHelper):
         else:
             self.sampler = self._Sampler(apolar_grid, donor_grid, acceptor_grid, **kw)
 
-        probe_path = pkg_resources.resource_filename('fragment_hotspot_maps', 'probes/')
+        probe_path = pkg_resources.resource_filename('hotspots', 'probes/')
 
         if self.charged_probes:
             if probe == "negative" or probe == "positive":
@@ -2479,7 +2479,7 @@ def main():
     # out_dir = args.out_dir
     # ghecom_exe = args.ghecom_exe
 
-    prot_file = "Z:/fragment_hotspot_maps/protein.pdb"
+    prot_file = "Z:/hotspots/protein.pdb"
     ghecom_exe = None
     prot = Protein.from_file(prot_file)
 

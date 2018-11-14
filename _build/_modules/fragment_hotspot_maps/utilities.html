@@ -1,0 +1,519 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fragment_hotspot_maps.utilities &mdash; Fragment Hotspot Maps 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fragment Hotspot Maps
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../hotspot_calculation_api.html">Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../io_api.html">IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_volume_api.html">Best Volume API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fragment_elaboration_api.html">Fragment Elaboration API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities_api.html">Hotspot Utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fragment Hotspot Maps</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>fragment_hotspot_maps.utilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for fragment_hotspot_maps.utilities</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># This code is Copyright (C) 2015 The Cambridge Crystallographic Data Centre</span>
+<span class="c1"># (CCDC) of 12 Union Road, Cambridge CB2 1EZ, UK and a proprietary work of CCDC.</span>
+<span class="c1"># This code may not be used, reproduced, translated, modified, disassembled or</span>
+<span class="c1"># copied, except in accordance with a valid licence agreement with CCDC and may</span>
+<span class="c1"># not be disclosed or redistributed in any form, either in whole or in part, to</span>
+<span class="c1"># any third party. All copies of this code made in accordance with a valid</span>
+<span class="c1"># licence agreement as referred to above must contain this copyright notice.</span>
+<span class="c1">#</span>
+<span class="c1"># No representations, warranties, or liabilities are expressed or implied in the</span>
+<span class="c1"># supply of this code by CCDC, its servants or agents, except where such</span>
+<span class="c1"># exclusion or limitation is prohibited, void or unenforceable under governing</span>
+<span class="c1"># law.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">The :mod:`fragment_hotspot_maps.utilities` module contains classes to for</span>
+<span class="sd">general functionality.</span>
+
+<span class="sd">The main classes of the :mod:`fragment_hotspot_maps.extraction` module are:</span>
+<span class="sd">    -Utilities</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">mkdir</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">ccdc.io</span> <span class="k">import</span> <span class="n">MoleculeWriter</span>
+<span class="kn">from</span> <span class="nn">ccdc.cavity</span> <span class="k">import</span> <span class="n">Cavity</span>
+
+<span class="n">Coordinates</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Coordinates&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="Utilities"><a class="viewcode-back" href="../../utilities_api.html#fragment_hotspot_maps.utilities.Utilities">[docs]</a><span class="k">class</span> <span class="nc">Utilities</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    class providing utility functions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Utilities.get_distance"><a class="viewcode-back" href="../../utilities_api.html#fragment_hotspot_maps.utilities.Utilities.get_distance">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_distance</span><span class="p">(</span><span class="n">coords1</span><span class="p">,</span> <span class="n">coords2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        given two coordinates, calculates the distance</span>
+
+<span class="sd">        :param coords1: tup, (float(x), float(y), float(z), coordinates of point 1</span>
+<span class="sd">        :param coords2: tup, (float(x), float(y), float(z), coordinates of point 2</span>
+<span class="sd">        :return: float, distance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xd</span> <span class="o">=</span> <span class="n">coords1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">coords2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">yd</span> <span class="o">=</span> <span class="n">coords1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">coords2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">zd</span> <span class="o">=</span> <span class="n">coords1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">coords2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xd</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">yd</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">zd</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_out_dir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+            <span class="n">mkdir</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Utilities.get_lines_from_file"><a class="viewcode-back" href="../../utilities_api.html#fragment_hotspot_maps.utilities.Utilities.get_lines_from_file">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_lines_from_file</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        fetch lines from ghecom output</span>
+
+<span class="sd">        :return: str, lines from output file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+            <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">lines</span></div>
+
+<div class="viewcode-block" id="Utilities.cavity_centroid"><a class="viewcode-back" href="../../utilities_api.html#fragment_hotspot_maps.utilities.Utilities.cavity_centroid">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">cavity_centroid</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the centroid of a cavity object</span>
+<span class="sd">        :param cav:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Cavity</span><span class="p">):</span>
+            <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">coordinates</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">features</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">features</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">surface_points</span>
+
+        <span class="n">x_avg</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">feat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">features</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">float</span><span class="p">)]))</span>
+        <span class="n">y_avg</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">feat</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">features</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">float</span><span class="p">)]))</span>
+        <span class="n">z_avg</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">feat</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">features</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="nb">float</span><span class="p">)]))</span>
+
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x_avg</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y_avg</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">z_avg</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Utilities.cavity_from_protein"><a class="viewcode-back" href="../../utilities_api.html#fragment_hotspot_maps.utilities.Utilities.cavity_from_protein">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">cavity_from_protein</span><span class="p">(</span><span class="n">prot</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        generates a cavities from prot.</span>
+<span class="sd">        :param prot:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: proper solution has been requested</span>
+
+        <span class="n">tfile</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(),</span> <span class="s2">&quot;protein.pdb&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">MoleculeWriter</span><span class="p">(</span><span class="n">tfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Cavity</span><span class="o">.</span><span class="n">from_pdb_file</span><span class="p">(</span><span class="n">tfile</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="Figures"><a class="viewcode-back" href="../../utilities_api.html#fragment_hotspot_maps.utilities.Figures">[docs]</a><span class="k">class</span> <span class="nc">Figures</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to handle the generation of hotspot related figures</span>
+
+<span class="sd">    TO DO: is there a better place for this to live?</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Figures.histogram"><a class="viewcode-back" href="../../utilities_api.html#fragment_hotspot_maps.utilities.Figures.histogram">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">histogram</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="n">plot</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; creates a histrogram from grid values&quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">hr</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get_array</span><span class="p">()</span>
+            <span class="n">masked_array</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_less_equal</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">grid_values</span> <span class="o">=</span> <span class="n">masked_array</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">p</span><span class="p">:</span> <span class="n">grid_values</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
+            <span class="n">plt</span> <span class="o">=</span> <span class="n">Figures</span><span class="o">.</span><span class="n">_plot_histogram</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">plt</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_2D_diagram</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="n">ligand</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Display the distribution of scores as a heatmap on a 2D depiction of the molecule</span>
+
+<span class="sd">        :param ligand: a :class:`ccdc.Molecule` object.</span>
+<span class="sd">        :param title: str, Title placed at the top of the image</span>
+<span class="sd">        :param output: str, Output file name</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">rdkit</span> <span class="k">import</span> <span class="n">Chem</span>
+            <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Draw</span>
+            <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">AllChem</span>
+            <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="k">import</span> <span class="n">LinearSegmentedColormap</span>
+
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;rdkit is needed for this method&quot;&quot;&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">MoleculeReader</span><span class="p">(</span><span class="n">ligand</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">ligand</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;mol2&quot;</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">ligand</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lig</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">lig</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">mol_rdkit</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromMol2Block</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">AllChem</span><span class="o">.</span><span class="n">Compute2DCoords</span><span class="p">(</span><span class="n">mol_rdkit</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">ligand</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;sdf&quot;</span><span class="p">:</span>
+            <span class="n">suppl</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">SDMolSupplier</span><span class="p">(</span><span class="n">ligand</span><span class="p">)</span>
+            <span class="n">mol_rdkit</span> <span class="o">=</span> <span class="n">suppl</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">AllChem</span><span class="o">.</span><span class="n">Compute2DCoords</span><span class="p">(</span><span class="n">mol_rdkit</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Method supports .mol2 files only!&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>
+
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">hr</span><span class="o">.</span><span class="n">score_ligand_atoms</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">schematic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">num_atoms</span> <span class="o">=</span> <span class="n">mol_rdkit</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="mf">0.9</span> <span class="o">/</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">num_atoms</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="mf">0.005</span>
+
+        <span class="n">contribs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">mol_rdkit</span><span class="o">.</span><span class="n">GetAtomWithIdx</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">GetProp</span><span class="p">(</span><span class="s1">&#39;_TriposAtomName&#39;</span><span class="p">)])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
+                    <span class="nb">range</span><span class="p">(</span><span class="n">mol_rdkit</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">())]</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">Draw</span><span class="o">.</span><span class="n">MolToMPL</span><span class="p">(</span><span class="n">mol_rdkit</span><span class="p">)</span>
+
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">colourmap</span><span class="p">(</span><span class="n">scheme</span><span class="o">=</span><span class="s2">&quot;inferno&quot;</span><span class="p">)</span>
+        <span class="n">test_cm</span> <span class="o">=</span> <span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="vm">__file__</span><span class="p">,</span> <span class="n">cm</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">Draw</span><span class="o">.</span><span class="n">calcAtomGaussians</span><span class="p">(</span><span class="n">mol_rdkit</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">contribs</span><span class="p">)</span>
+
+            <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">test_cm</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;bilinear&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+                               <span class="n">extent</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">1.25</span><span class="p">,</span> <span class="mf">2.3</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">,</span>
+                     <span class="n">color</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_plot_histogram</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Fragment Hotspot Maps&quot;</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            initialise the matplotlib figure to output histograms</span>
+
+<span class="sd">            :param data:</span>
+<span class="sd">            :return:</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">colour_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;acceptor&quot;</span><span class="p">:</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;donor&quot;</span><span class="p">:</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;apolar&quot;</span><span class="p">:</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;negative&quot;</span><span class="p">:</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;positive&quot;</span><span class="p">:</span> <span class="s2">&quot;c&quot;</span><span class="p">}</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">hist</span><span class="p">,</span> <span class="n">bin_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span> <span class="n">normed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">Figures</span><span class="o">.</span><span class="n">_histogram_settings</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">([])</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Fragment hotspot score&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">j</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Frequency&quot;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">hist</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colour_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">plt</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_histogram_settings</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        display settings</span>
+<span class="sd">        :param bin_edges:</span>
+<span class="sd">        :param title:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">colour_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;acceptor&quot;</span><span class="p">:</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;donor&quot;</span><span class="p">:</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;apolar&quot;</span><span class="p">:</span> <span class="s2">&quot;y&quot;</span><span class="p">}</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.35</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">([])</span></div>
+
+<span class="c1"># def _histogram_info(self, data, key, n):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     data for the matplotlib figure</span>
+<span class="c1">#</span>
+<span class="c1">#     :param data:</span>
+<span class="c1">#     :param key:</span>
+<span class="c1">#     :param n:</span>
+<span class="c1">#     :return:</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#     colour_dict = {&quot;acceptor&quot;: &quot;r&quot;, &quot;donor&quot;: &quot;b&quot;, &quot;apolar&quot;: &quot;y&quot;}</span>
+<span class="c1">#     hist, bin_edges = np.histogram(data[key], bins=range(0, 40), normed=True)</span>
+<span class="c1">#     plt.bar(bin_edges[:-1], hist, width=1, color=colour_dict[key])</span>
+<span class="c1">#     plt.xlim(min(bin_edges), max(bin_edges))</span>
+<span class="c1">#     plt.ylim(0, 0.35)</span>
+<span class="c1">#     plt.yticks([])</span>
+<span class="c1">#     if n == 0:</span>
+<span class="c1">#         plt.title(&quot;Fragment-hotspot Maps&quot;)</span>
+<span class="c1">#     if n &lt; 2:</span>
+<span class="c1">#         plt.xticks([])</span>
+<span class="c1">#     if n == 2:</span>
+<span class="c1">#         plt.xlabel(&quot;Fragment hotspot score&quot;)</span>
+<span class="c1">#     if n == 1:</span>
+<span class="c1">#         plt.ylabel(&quot;Frequency&quot;)</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1"># def _generate_histogram(self, data):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     initialise the matplotlib figure to output histograms</span>
+<span class="c1">#</span>
+<span class="c1">#     :param data:</span>
+<span class="c1">#     :return:</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#     plt.figure(1)</span>
+<span class="c1">#     for n, key in enumerate(data.keys()):</span>
+<span class="c1">#         plt.subplot(3, 1, (n + 1))</span>
+<span class="c1">#         self._histogram_info(data, key, n)</span>
+<span class="c1">#     plt.savefig(&quot;hotspot_histogram.png&quot;)</span>
+<span class="c1">#     plt.close()</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1"># def hotspot_histograms(self, ligand=None):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     Outputs histograms of hotspot score.</span>
+<span class="c1">#</span>
+<span class="c1">#     :param ligand:</span>
+<span class="c1">#     :return: None</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#     self.data = {}</span>
+<span class="c1">#     if ligand:</span>
+<span class="c1">#         self.bs_centroid = ligand.centre_of_geometry()</span>
+<span class="c1">#         for g in self.super_grids.keys():</span>
+<span class="c1">#             grd = self.super_grids[g]</span>
+<span class="c1">#             fragment_centroid = self._point_to_indices(self.bs_centroid, grd)</span>
+<span class="c1">#             n = 8</span>
+<span class="c1">#             rx = range(fragment_centroid[0] - n, fragment_centroid[0] + n)</span>
+<span class="c1">#             ry = range(fragment_centroid[1] - n, fragment_centroid[1] + n)</span>
+<span class="c1">#             rz = range(fragment_centroid[2] - n, fragment_centroid[2] + n)</span>
+<span class="c1">#</span>
+<span class="c1">#             self.data[g] = np.array(</span>
+<span class="c1">#                 [grd.value(i, j, k) for i in rx for j in ry for k in rz if grd.value(i, j, k) != 0])</span>
+<span class="c1">#</span>
+<span class="c1">#     else:</span>
+<span class="c1">#         for g in self.super_grids.keys():</span>
+<span class="c1">#             grd = self.super_grids[g]</span>
+<span class="c1">#             nx, ny, nz = grd.nsteps</span>
+<span class="c1">#             self.data[g] = np.array(</span>
+<span class="c1">#                 [grd.value(i, j, k) for i in xrange(0, nx) for j in xrange(0, ny) for k in xrange(0, nz) if</span>
+<span class="c1">#                  grd.value(i, j, k) != 0])</span>
+<span class="c1">#</span>
+<span class="c1">#     self._generate_histogram(self.data)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Chris Radoux and Peter Curran
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
