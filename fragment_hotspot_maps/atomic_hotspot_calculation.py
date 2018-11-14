@@ -5,7 +5,7 @@ import glob
 import subprocess
 import collections
 
-from os.path import join, exists, isfile
+from os.path import join, exists, isfile, dirname
 from os import environ, mkdir
 from concurrent import futures
 
