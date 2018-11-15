@@ -1,10 +1,3 @@
-# import enhanced_grid
-# # import extraction
-# import hotspots
-# # import pharmacophore
-# # import template_strings
-# # import utilities
-
 __author__ = "Chris Radoux and Peter Curran"
 __copyright__ = None
 __credits__ = None

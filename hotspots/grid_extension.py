@@ -24,7 +24,8 @@ import numpy.ma as ma
 from scipy import ndimage
 
 from ccdc import utilities
-from utilities import Utilities as util
+from utilities import Utilities as ut
+
 
 class Grid(utilities.Grid):
     """
@@ -190,7 +191,7 @@ class Grid(utilities.Grid):
                            for island in major.islands(threshold=threshold)
                            if jsland.contains_point(island.centroid(), tolerance=tolerance)
                            or jsland.count_grid() <= 8
-                           or util.get_distance(jsland.centroid(), island.centroid()) < 4])
+                           or ut.get_distance(jsland.centroid(), island.centroid()) < 4])
 
         retained_jslands = list(all_islands - bin_islands)
         #print "Charged_islands, {}".format(len(retained_jslands))

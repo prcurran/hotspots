@@ -11,19 +11,19 @@ from __future__ import print_function, division
 import operator
 from tqdm import tqdm
 from os.path import join
-from os import name, system
+from os import system, environ
 import random
-import zipfile
-import shutil
+import sys
 import tempfile
 import time
 import copy
 import pkg_resources
+import collections
+import multiprocessing
 
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import percentileofscore
-from ccdc.io import csd_directory, MoleculeWriter, MoleculeReader
+from ccdc.io import MoleculeWriter, MoleculeReader
 from ccdc.protein import Protein
 from ccdc.cavity import Cavity
 from ccdc.molecule import Molecule
@@ -31,11 +31,13 @@ from ccdc.utilities import PushDir
 import nglview as nv
 from ipywidgets import IntSlider, interact
 
-from grid_extension import Grid
-from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
-from template_strings import colourmap, superstar_ins
-from pharmacophore import PharmacophoreModel
-from utilities import Figures, Utilities
+#from grid_extension import Grid
+# from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
+# from pharmacophore import PharmacophoreModel
+# from utilities import Figures, Utilities
+
+
+Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
 
 class Buriedness(object):
@@ -60,11 +62,8 @@ class Buriedness(object):
             self.in_name = join(self.working_directory, "protein.pdb")
             self.out_name = join(self.working_directory, "ghecom_out.pdb")
 
-    def __init__(self, protein, out_grid, ghecom_executable, settings=None):
-        """
-
-        :param kw: settings for ghecom run
-        """
+    def __init__(self, protein, out_grid, settings=None):
+        """"""
 
         if settings is None:
             settings = self.Settings()
@@ -72,7 +71,6 @@ class Buriedness(object):
         self.settings = settings
         self.settings.protein = protein
         self.settings.out_grid = out_grid
-        self.settings.ghecom_executable = ghecom_executable
 
     def calculate_buriedness(self):
         """
@@ -87,13 +85,13 @@ class Buriedness(object):
                 with MoleculeWriter('protein.pdb') as writer:
                     writer.write(self.settings.protein)
 
-            cmd = "{}/ghecom {} -M {} -gw {} -rli {} -rlx {} -opoc {}".format(self.settings.ghecom_executable,
-                                                                              self.settings.in_name,
-                                                                              self.settings.mode,
-                                                                              self.settings.grid_spacing,
-                                                                              self.settings.radius_min_large_sphere,
-                                                                              self.settings.radius_max_large_sphere,
-                                                                              self.settings.out_name)
+            cmd = "{} {} -M {} -gw {} -rli {} -rlx {} -opoc {}".format(environ['GHECOM_EXE'],
+                                                                       self.settings.in_name,
+                                                                       self.settings.mode,
+                                                                       self.settings.grid_spacing,
+                                                                       self.settings.radius_min_large_sphere,
+                                                                       self.settings.radius_max_large_sphere,
+                                                                       self.settings.out_name)
 
             system(cmd)
 
@@ -113,8 +111,6 @@ class BuriednessResult(object):
             self.grid = self._initalise_grid(padding=1)
         self.update_grid()
 
-
-    # TODO use property setters
     def _initalise_grid(self, padding=1):
         """
         install grid over protein to hold scores
@@ -614,15 +610,15 @@ class HotspotResults(object):
             data = Figures.histogram(self, plot)
             return data
 
-    def get_2D_diagram(self, ligand, fpath="diagram.png", title=False):
-        """
-
-        :param ligand:
-        :param fpath:
-        :param title:
-        :return:
-        """
-        Figures._2D_diagram(hr, ligand, title=False, output="diagram.png")
+    # def get_2D_diagram(self, ligand, fpath="diagram.png", title=False):
+    #     """
+    #
+    #     :param ligand:
+    #     :param fpath:
+    #     :param title:
+    #     :return:
+    #     """
+    #     Figures._2D_diagram(hr, ligand, title=False, output="diagram.png")
 
     def get_elaboration_potential(self, large_cavities):
         """
@@ -1081,31 +1077,134 @@ class Hotspots(object):
         self.out_grids = {}
         self.super_grids = {}
 
-        self.superstar_grids = None
-        self.weighted_grids = None
-        self.sampled_probes = {}
-
-        self.protein = None
-        self.fname = None
-        self.probe_size = None
-        self.charged_probes = None
-
-        self.out_dir = None
-        self.wrk_dir = None
+        # self.superstar_grids = None
+        # self.weighted_grids = None
+        # self.sampled_probes = {}
+        #
+        # self.protein = None
+        # self.fname = None
+        # self.probe_size = None
+        # self.charged_probes = None
+        #
+        # #self.out_dir = None
+        # self.wrk_dir = None
 
         if settings is None:
             self.sampler_settings = self._Sampler.Settings()
         else:
             self.sampler_settings = settings
 
+    @property
+    def protein(self):
+        return self._protein
+
+    @protein.setter
+    def protein(self, prot):
+        if isinstance(prot, Protein):
+            self._protein = prot
+        else:
+            raise TypeError("`ccdc.protein.Protein` must be supplied. Hint: Use Protein.from_file()")
+
+    @property
+    def charged_probes(self):
+        return self._charged_probes
+
+    @charged_probes.setter
+    def charged_probes(self, option):
+        if option is bool:
+            self._charged_probes = option
+        else:
+            raise TypeError("Expecting a bool, got {} instead".format(type(option)))
+
+    @property
+    def probe_size(self):
+        return self._probe_size
+
+    @probe_size.setter
+    def probe_size(self, size):
+        if size is int:
+            if size in range(3,8):
+                self._probe_size = size
+            else:
+                raise ValueError("Probe size must be an integer between 3-7")
+        else:
+            raise ValueError("Probe size must be an integer between 3-7")
+
+    @property
+    def buriedness_method(self):
+        return self._buriedness_method
+
+    @buriedness_method.setter
+    def buriedness_method(self, method):
+        method = method.lower()
+        if method == 'ghecom':
+            if sys.platform == 'linux' or sys.platform == 'linux2':
+                if 'GHECOM_EXE' in environ:
+                    self._buriedness_method = method
+                else:
+                    raise EnvironmentError("Must set Ghecom environment variable")
+            else:
+                raise OSError('Ghecom is only supported on linux')
+
+        elif method == 'ligsite':
+            if sys.platform == 'linux' or sys.platfrom == 'linux2':
+                print("RECOMMENDATION: you have chosen LIGSITE as buriedness method, ghecom is recommended")
+            self._buriedness_method = method
+
+        else:
+            raise ValueError("Buriedness method must be 'ghecom' (default) or 'ligsite")
+
+    @property
+    def cavities(self):
+        return self._cavities
+
+    @cavities.setter
+    def cavities(self, obj):
+        if isinstance(obj, list):
+            if isinstance(obj, Coordinates):
+                self._cavities = obj
+            elif isinstance(obj, Molecule):
+                self._cavity = [m.centre_of_geometry() for m in obj]
+            elif isinstance(obj, Cavity):
+                self._cavity = [Utilities.cavity_centroid(c) for c in obj]
+        else:
+            if isinstance(obj, Coordinates):
+                self._cavities = [obj]
+            elif isinstance(obj, Molecule):
+                self._cavity = [obj.centre_of_geometry()]
+            elif isinstance(obj, Cavity):
+                self._cavity = [Utilities.cavity_centroid(obj)]
+
+    @property
+    def nprocesses(self):
+        return self._nprocesses
+
+    @nprocesses.setter
+    def nprocesses(self, num):
+        num = int(num)
+        if num in range(0, int(multiprocessing.cpu_count())):
+            self._nprocesses = num
+        else:
+            raise OSError("CPU count = {}".format(multiprocessing.cpu_count()))
+
+    @property
+    def sampler_settings(self):
+        return self._sampler_settings
+
+    @sampler_settings.setter
+    def sampler_settings(self, settings):
+        if isinstance(settings, self._Sampler.Settings):
+            self._sampler_settings = settings
+        else:
+            self._sampler_settings = None
 
     def _get_weighted_maps(self):
         """
         weight superstar output by burriedness
         :return: a list of :class: `WeightedResult` instances
         """
-        if self.ghecom_executable:
-            self.buriedness = self.ghecom.grid
+        if self.buriedness_method == 'ghecom':
+            self.buriedness = self.buriedness.grid
         else:
             self.buriedness = Grid.get_single_grid(grd_dict={s.identifier: s.buriedness for s in self.superstar_grids},
                                                    mask=False)
@@ -1172,8 +1271,7 @@ class Hotspots(object):
         a = AtomicHotspot()
         a.settings.atomic_probes = {"apolar" : "AROMATIC CH CARBON",
                                     "donor" : "UNCHARGED NH NITROGEN",
-                                    "acceptor" : "CARBONYL OXYGEN"
-                                    }
+                                    "acceptor" : "CARBONYL OXYGEN"}
         if self.charged_probes:
             a.settings.atomic_probes = {"negative": "CARBOXYLATE OXYGEN", "positive": "CHARGED NH NITROGEN"}
 
@@ -1185,13 +1283,12 @@ class Hotspots(object):
         print("Atomic hotspot detection complete\n")
 
         print("Start buriedness calcualtion")
-        if self.ghecom_executable:
+        if self.buriedness_method == 'ghecom':
             print("    method: Ghecom")
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
             b = Buriedness(protein=self.protein,
-                           out_grid=out_grid,
-                           ghecom_executable=self.ghecom_executable)
-            self.ghecom = b.calculate_buriedness()
+                           out_grid=out_grid)
+            self.buriedness = b.calculate_buriedness()
         else:
             print("    method: LIGSITE")
         self.weighted_grids = self._get_weighted_maps()
@@ -1210,35 +1307,35 @@ class Hotspots(object):
 
         print("Sampling complete\n")
 
-    def from_protein(self, protein, charged_probes=False, probe_size=7, ghecom_executable=None,
-                     cavity=None, nthreads=None, sampler_settings=None):
+    def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method= 'ghecom',
+                     cavities=None, nprocesses=None, sampler_settings=None):
         """
-        Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object
 
-        :param prot: a :class:`ccdc.protein.Protein` instance
-        :param out_dir: required to store ins
+        :param protein: a :class:`ccdc.protein.Protein` instance
         :param charged_probes: bool, if True include positive and negative probes
-        :param binding_site_origin: binding_site_origin: a tuple of three floats, giving a coordinate within the binding site
-        :param probe_size: nt, size of probe in number of heavy atoms (3-8 atoms)
-        :param ghecom_executable: str, path to ghecom executeable, if None ligsite used
-        :return: a :class:`hotspots.HotspotResults` instance
+        :param probe_size: int, size of probe in number of heavy atoms (3-8 atoms)
+        :param buriedness_method: str, either 'ghecom' or 'ligsite'
+        :param cavities: Coordinate or `ccdc.cavity.Cavity` or `ccdc.molecule.Molecule` or list,
+        algorithm run on parsed cavity
+        :param nprocesses: int, number of CPU's used
+        :param sampler_settings: a `hotspots.Hotspot._Sampler.Settings`, holds the sampler settings
+        :return:
         """
+
         start = time.time()
         self.protein = protein
         self.charged_probes = charged_probes
         self.probe_size = probe_size
-        self.ghecom_executable = ghecom_executable
-        self.nthreads = nthreads
+        self._buriedness_method = buriedness_method
+        self.cavities = cavities
+        self.nprocesses = nprocesses
         self.sampler_settings = sampler_settings
-
-        # TODO isinstance support point, molecule, cav
-        # Try/except to account for cavity list
-        # enable single cavity
-
-        self.cavity = [Utilities.cavity_centroid(c) for c in cavity]
 
         self._calc_hotspots()     # return probes = False by default
         self.super_grids = {p: g[0] for p, g in self.out_grids.items()}
+
         print("Runtime = {}seconds".format(time.time() - start))
 
-        return HotspotResults(self.super_grids, self.protein, self.sampled_probes, self.buriedness)
+        return HotspotResults(super_grids=self.super_grids,
+                              protein=self.protein,
+                              buriedness=self.buriedness)

@@ -1,5 +1,4 @@
 import tempfile
-import time
 import sys
 import glob
 import subprocess
@@ -11,8 +10,6 @@ from concurrent import futures
 
 from ccdc.utilities import PushDir
 from ccdc.io import csd_directory, MoleculeWriter
-
-from pprint import pprint
 
 try:
     from grid_extension import Grid
@@ -269,13 +266,13 @@ class AtomicHotspot(object):
         results = []
         if nthreads:
             with futures.ProcessPoolExecutor(max_workers=nthreads) as executor:
-                for t, j  in executor.map(_run_job, inputs):
+                for t, j in executor.map(_run_job, inputs):
                     results.append(AtomicHotspotResult.find(temp_dir=t, jobname=j) )
 
         else:
             for input in inputs:
-                _run_job(input)
-            results = [AtomicHotspotResult.find(temp_dir=t, jobname=j) for t, j in result_input]
+                t, j = _run_job(input)
+                results.append(AtomicHotspotResult.find(temp_dir=t, jobname=j))
 
         # merge the atomic hotspot results for different cavities
         if self._merge == True:

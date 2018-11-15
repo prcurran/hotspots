@@ -31,7 +31,7 @@ import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
 
-from ccdc.io import MoleculeWriter
+from ccdc.io import MoleculeWriter, MoleculeReader
 from ccdc.cavity import Cavity
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
@@ -134,68 +134,68 @@ class Figures(object):
         else:
             return data
 
-    @staticmethod
-    def _2D_diagram(hr, ligand, fpath, title):
-        '''
-        Display the distribution of scores as a heatmap on a 2D depiction of the molecule
-
-        :param ligand: a :class:`ccdc.Molecule` object.
-        :param title: str, Title placed at the top of the image
-        :param output: str, Output file name
-        :return:
-        '''
-        try:
-            from rdkit import Chem
-            from rdkit.Chem import Draw
-            from rdkit.Chem import AllChem
-            from matplotlib.colors import LinearSegmentedColormap
-
-        except ImportError:
-            print("""rdkit is needed for this method""")
-            exit()
-
-        mol = MoleculeReader(ligand)[0]
-
-        if ligand.split(".")[-1] == "mol2":
-            with open(ligand, 'r') as lig:
-                data = lig.read()
-            mol_rdkit = Chem.MolFromMol2Block(data)
-            AllChem.Compute2DCoords(mol_rdkit)
-
-        elif ligand.split(".")[-1] == "sdf":
-            suppl = Chem.SDMolSupplier(ligand)
-            mol_rdkit = suppl[0]
-            AllChem.Compute2DCoords(mol_rdkit)
-        else:
-            print("Method supports .mol2 files only!")
-            raise ValueError
-
-        scores = hr.score_ligand_atoms(mol, schematic=True, tolerance=2)
-        num_atoms = mol_rdkit.GetNumAtoms()
-        a = 0.9 / (float(num_atoms))
-        s = 0.005
-
-        contribs = [float(scores[mol_rdkit.GetAtomWithIdx(i).GetProp('_TriposAtomName')]) for i in
-                    range(mol_rdkit.GetNumAtoms())]
-
-        fig = Draw.MolToMPL(mol_rdkit)
-
-        cm = colourmap(scheme="inferno")
-        test_cm = LinearSegmentedColormap.from_list(__file__, cm)
-        try:
-            x, y, z = Draw.calcAtomGaussians(mol_rdkit, a, step=s, weights=contribs)
-
-            fig.axes[0].imshow(z, cmap=test_cm, interpolation='bilinear', origin='lower', alpha=0.9,
-                               extent=(0, 1, 0, 1))
-            fig.axes[0].contour(x, y, z, 5, colors='k', alpha=0.2)
-        except ValueError:
-            print("")
-
-        if title:
-            fig.text(1.25, 2.3, title, fontsize=20, horizontalalignment='center', verticalalignment='top',
-                     color="white")
-
-        fig.savefig(output, bbox_inches='tight')
+    # @staticmethod
+    # def _2D_diagram(hr, ligand, fpath, title):
+    #     '''
+    #     Display the distribution of scores as a heatmap on a 2D depiction of the molecule
+    #
+    #     :param ligand: a :class:`ccdc.Molecule` object.
+    #     :param title: str, Title placed at the top of the image
+    #     :param output: str, Output file name
+    #     :return:
+    #     '''
+    #     try:
+    #         from rdkit import Chem
+    #         from rdkit.Chem import Draw
+    #         from rdkit.Chem import AllChem
+    #         from matplotlib.colors import LinearSegmentedColormap
+    #
+    #     except ImportError:
+    #         print("""rdkit is needed for this method""")
+    #         exit()
+    #
+    #     mol = MoleculeReader(ligand)[0]
+    #
+    #     if ligand.split(".")[-1] == "mol2":
+    #         with open(ligand, 'r') as lig:
+    #             data = lig.read()
+    #         mol_rdkit = Chem.MolFromMol2Block(data)
+    #         AllChem.Compute2DCoords(mol_rdkit)
+    #
+    #     elif ligand.split(".")[-1] == "sdf":
+    #         suppl = Chem.SDMolSupplier(ligand)
+    #         mol_rdkit = suppl[0]
+    #         AllChem.Compute2DCoords(mol_rdkit)
+    #     else:
+    #         print("Method supports .mol2 files only!")
+    #         raise ValueError
+    #
+    #     scores = hr.score_ligand_atoms(mol, schematic=True, tolerance=2)
+    #     num_atoms = mol_rdkit.GetNumAtoms()
+    #     a = 0.9 / (float(num_atoms))
+    #     s = 0.005
+    #
+    #     contribs = [float(scores[mol_rdkit.GetAtomWithIdx(i).GetProp('_TriposAtomName')]) for i in
+    #                 range(mol_rdkit.GetNumAtoms())]
+    #
+    #     fig = Draw.MolToMPL(mol_rdkit)
+    #
+    #     cm = colourmap(scheme="inferno")
+    #     test_cm = LinearSegmentedColormap.from_list(__file__, cm)
+    #     try:
+    #         x, y, z = Draw.calcAtomGaussians(mol_rdkit, a, step=s, weights=contribs)
+    #
+    #         fig.axes[0].imshow(z, cmap=test_cm, interpolation='bilinear', origin='lower', alpha=0.9,
+    #                            extent=(0, 1, 0, 1))
+    #         fig.axes[0].contour(x, y, z, 5, colors='k', alpha=0.2)
+    #     except ValueError:
+    #         print("")
+    #
+    #     if title:
+    #         fig.text(1.25, 2.3, title, fontsize=20, horizontalalignment='center', verticalalignment='top',
+    #                  color="white")
+    #
+    #     fig.savefig(output, bbox_inches='tight')
 
     @staticmethod
     def _plot_histogram(data, title="Fragment Hotspot Maps"):

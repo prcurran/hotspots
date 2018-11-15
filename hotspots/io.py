@@ -73,7 +73,7 @@ class HotspotWriter(object):
             #pharmacophore
             self.pharmacophore = False
             self.pharmacophore_labels = True
-            self.pharmacophore_format = [".cm"]
+            self.pharmacophore_format = [".py"]
 
     def __init__(self, path, visualisation="pymol", grid_extension=".grd", zip_results=False, settings=None):
         """
@@ -104,7 +104,8 @@ class HotspotWriter(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        print "traceback", traceback
+        if traceback:
+            print traceback
 
     def write(self, hr):
         """hr result can be instance or list"""
