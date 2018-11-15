@@ -186,16 +186,13 @@ cmd.set("label_size", -0.4)
 
 
 def pymol_grids(i, settings):
-    grids = ["apolar", "donor", "acceptor"]
-    if settings.charged:
-        grids.extend(["negative", "positive"])
-
+    grids = settings.grids
     threshold = settings.isosurface_threshold
 
     if i is not None:
-        gfiles = ["{}/{}.grd".format(i,p) for p in grids]
+        gfiles = ["{}/{}{}".format(i,p,settings.grid_extension) for p in grids]
     else:
-        gfiles = ["{}.grd".format(p) for p in grids]
+        gfiles = ["{}{}".format(p,settings.grid_extension) for p in grids]
         i = 0
 
     out_str = """

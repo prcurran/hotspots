@@ -8,23 +8,17 @@ More information about the fragment hotspot maps method is available from:
 """
 from __future__ import print_function, division
 
-import argparse
-import math
 import operator
 from tqdm import tqdm
-
-from os.path import join, dirname, exists, splitext
-from os import environ, name, getcwd, mkdir, chdir, system, path, listdir
-import sys
-import glob
+from os.path import join
+from os import name, system
 import random
-import subprocess
 import zipfile
 import shutil
 import tempfile
-from concurrent import futures
 import time
 import copy
+import pkg_resources
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,8 +30,6 @@ from ccdc.molecule import Molecule
 from ccdc.utilities import PushDir
 import nglview as nv
 from ipywidgets import IntSlider, interact
-
-import pkg_resources
 
 from grid_extension import Grid
 from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
@@ -80,7 +72,7 @@ class Buriedness(object):
         self.settings = settings
         self.settings.protein = protein
         self.settings.out_grid = out_grid
-        self.ghecom_executable = ghecom_executable
+        self.settings.ghecom_executable = ghecom_executable
 
     def calculate_buriedness(self):
         """
@@ -90,6 +82,7 @@ class Buriedness(object):
         """
 
         with PushDir(self.settings.working_directory):
+
             if self.settings.protein is not None:
                 with MoleculeWriter('protein.pdb') as writer:
                     writer.write(self.settings.protein)
@@ -1177,6 +1170,10 @@ class Hotspots(object):
         """
         print("Start atomic hotspot detection")
         a = AtomicHotspot()
+        a.settings.atomic_probes = {"apolar" : "AROMATIC CH CARBON",
+                                    "donor" : "UNCHARGED NH NITROGEN",
+                                    "acceptor" : "CARBONYL OXYGEN"
+                                    }
         if self.charged_probes:
             a.settings.atomic_probes = {"negative": "CARBOXYLATE OXYGEN", "positive": "CHARGED NH NITROGEN"}
 
@@ -1190,7 +1187,7 @@ class Hotspots(object):
         print("Start buriedness calcualtion")
         if self.ghecom_executable:
             print("    method: Ghecom")
-            out_grid = self.superstar_grids[0].ligsite.copy_and_clear() # fix
+            out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
             b = Buriedness(protein=self.protein,
                            out_grid=out_grid,
                            ghecom_executable=self.ghecom_executable)
@@ -1233,6 +1230,10 @@ class Hotspots(object):
         self.ghecom_executable = ghecom_executable
         self.nthreads = nthreads
         self.sampler_settings = sampler_settings
+
+        # TODO isinstance support point, molecule, cav
+        # Try/except to account for cavity list
+        # enable single cavity
 
         self.cavity = [Utilities.cavity_centroid(c) for c in cavity]
 

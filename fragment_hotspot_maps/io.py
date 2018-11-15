@@ -65,7 +65,7 @@ class HotspotWriter(object):
 
             # grid
             self.isosurface_threshold=[10, 14, 17]
-            self.charged = True
+            self.grids = None
             self.transparency = 0.7
             self.grid_labels = True
             self.supported_grids = [".grd", ".ccp4", ".acnt"]
@@ -104,19 +104,20 @@ class HotspotWriter(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        print traceback
+        print "traceback", traceback
 
     def write(self, hr):
         """hr result can be instance or list"""
 
         if isinstance(hr, list):
+            self.settings.grids = hr[0].super_grids.keys()
             self.container = "hotspot_boundaries"
             self.number_of_hotspots = len(hr)
 
             self.out_dir= Utilities.get_out_dir(join(self.path, self.container))
 
             self._write_protein(hr[0].protein)
-            if hr[0].hotspot_result.pharmacophore:
+            if hr[0].pharmacophore:
                 self.settings.pharmacophore = True
             #hts = [h.hotspot_result for h in hr]
             self._write_pymol(hr, self.zipped)
@@ -128,19 +129,20 @@ class HotspotWriter(object):
                 bi = (Grid.super_grid(2, hotspot.best_island).max_value_of_neighbours()
                       > hotspot.threshold)
 
-                self._write_grids(hotspot.hotspot_result.super_grids, buriedness=None, mesh=bi)
-                self._write_protein(hotspot.hotspot_result.protein)
+                self._write_grids(hotspot.super_grids, buriedness=None, mesh=bi)
+                self._write_protein(hotspot.protein)
 
-                if hotspot.hotspot_result.pharmacophore:
-                    self._write_pharmacophore(hotspot.hotspot_result.pharmacophore)
+                if hotspot.pharmacophore:
+                    self._write_pharmacophore(hotspot.pharmacophore)
 
-                self._write_pymol(hotspot.hotspot_result, False)
+                self._write_pymol(hotspot, False)
 
             self.out_dir = dirname(self.out_dir)
             if self.zipped:
                 self.zip_results(join(dirname(self.out_dir), self.container))
 
         else:
+            self.settings.grids = hr.super_grids.keys()
             self.container = "out"
             self.number_of_hotspots = 1
 
@@ -238,7 +240,7 @@ class HotspotWriter(object):
         if isinstance(hr, list):
             for i, h in enumerate(hr):
                 self.settings.isosurface_threshold = [round(h.threshold, 1)]
-                pymol_out += self._get_pymol_hotspot(h.hotspot_result, i=i)
+                pymol_out += self._get_pymol_hotspot(h, i=i)
                 pymol_out += pymol_mesh(i)
 
         else:
@@ -409,7 +411,7 @@ class HotspotReader(object):
         if sub_dir:
             base = join(self._base, sub_dir)
             self._files = listdir(base)
-            self._extensions = set([splitext(f)[1] for f in self._files if f != "" or f != ".py"])
+            self._extensions = set([splitext(f)[1] for f in self._files if f != '' or f != '.py'])
         else:
             base = self._base
 

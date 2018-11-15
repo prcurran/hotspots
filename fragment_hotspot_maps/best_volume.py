@@ -83,7 +83,6 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             :return: int
             """
             points = (self.top_island > threshold).count_grid()
-
             return abs(self.settings.num_gp - points)
 
         def _reselect_points(self, threshold):
@@ -106,7 +105,6 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             threshold = optimize.fminbound(self._count_island_points, 0, 30, xtol=0.025, disp=1)
             if threshold > 29:
                 threshold = 1
-
             new_threshold, best_island = self._reselect_points(threshold=threshold)
             print "target = {}, actual = {}".format(self.settings.num_gp, best_island.count_grid())
 
@@ -644,7 +642,6 @@ class Extractor(object):
                                                 self.settings,
                                                 self.hotspot_result.protein,
                                                 seed=peak)
-
                 if e.threshold > 12:
                     extracted_hotspots.append(e)
 
@@ -669,7 +666,7 @@ class Extractor(object):
         print score
 
         for i, key in enumerate(score):
-            hotspot_by_score[key]._rank = int(i + 1)
+            hotspot_by_score[key].rank = int(i + 1)
 
         extracted_hotspots_by_rank = {h.rank: h for h in self.extracted_hotspots}
         self.extracted_hotspots = [value for (key, value) in sorted(extracted_hotspots_by_rank.items())]
