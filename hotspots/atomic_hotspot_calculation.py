@@ -21,6 +21,22 @@ except ImportError:
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
+
+def _run_job(args):
+    """
+    runs atomic hotspot(superstar) job (paralyzable)
+    :param args:
+    :return:
+    """
+    cmd, jobname, superstar_env, temp_dir = args
+    env = environ.copy()
+    env.update(superstar_env)
+    with PushDir(temp_dir):
+        subprocess.call(cmd, shell=sys.platform != 'win32', env=env)
+
+    return temp_dir, jobname
+
+
 class AtomicHotspot(object):
     """
     class to handle SuperStar run
@@ -42,9 +58,7 @@ class AtomicHotspot(object):
 
             # TODO: decide which probes should be included
             # TODO: this could be read in from superstar defaults (talk to Richard)
-            self._csd_atomic_probes = {"acceptor": "CARBONYL OXYGEN",
-                                       "donor": "UNCHARGED NH NITROGEN",
-                                       "apolar": "AROMATIC CH CARBON"}
+            self._csd_atomic_probes = {}
 
             # TODO: add PDB probes
             self._pdb_atomic_probes = {}
@@ -105,10 +119,10 @@ class AtomicHotspot(object):
         @atomic_probes.setter
         def atomic_probes(self, probes):
             if self.database == 'CSD':
-                self._csd_atomic_probes.update({k: v for k, v in probes.items()})
+                self._csd_atomic_probes.update(probes)
 
             elif self.database == 'PDB':
-                self._pdb_atomic_probes.update({k: v for k, v in probes.items()})
+                self._pdb_atomic_probes.update(probes)
 
             else:
                 raise TypeError("Database must be 'CSD' or 'PDB'")
@@ -137,20 +151,19 @@ class AtomicHotspot(object):
         else:
             settings = settings
 
-    @staticmethod
-    def _run_job(args):
-        """
-        runs atomic hotspot(superstar) job (paralyzable)
-        :param args:
-        :return:
-        """
-        cmd, jobname, superstar_env, temp_dir = args
-        env = environ.copy()
-        env.update(superstar_env)
-        with PushDir(temp_dir):
-            subprocess.call(cmd, shell=sys.platform != 'win32', env=env)
-
-        return AtomicHotspotResult.find(temp_dir=temp_dir, jobname=jobname)
+    # @staticmethod
+    # def _run_job(args):
+    #     """
+    #     runs atomic hotspot(superstar) job (paralyzable)
+    #     :param args:
+    #     :return:
+    #     """
+    #     cmd, jobname, superstar_env, temp_dir = args
+    #     env = environ.copy()
+    #     env.update(superstar_env)
+    #     with PushDir(temp_dir):
+    #         subprocess.call(cmd, shell=sys.platform != 'win32', env=env)
+    #     return AtomicHotspotResult.find(temp_dir=temp_dir, jobname=jobname)
 
     def _get_cmd(self, protein, cavity_origin, out=None):
         """
@@ -247,17 +260,22 @@ class AtomicHotspot(object):
             # create input lists
             temp_dirs = [self.settings.temp_dir] * len(self.settings.atomic_probes)
             env_str = [self.settings.superstar_env] * len(self.settings.atomic_probes)
-            jobnames = self.settings.atomic_probes.key()
+            jobnames = self.settings.atomic_probes.keys()
             cmds = self._get_cmd(protein, cavity_origins)
 
         inputs = zip(cmds, jobnames, env_str, temp_dirs)
 
         # paralyze atomic hotspot calculation
+        results = []
         if nthreads:
-            ex = futures.ThreadPoolExecutor(max_workers=nthreads)
-            results = list(ex.map(self._run_job, inputs))
+            with futures.ProcessPoolExecutor(max_workers=nthreads) as executor:
+                for t, j  in executor.map(_run_job, inputs):
+                    results.append(AtomicHotspotResult.find(temp_dir=t, jobname=j) )
+
         else:
-            results = [self._run_job(input) for input in inputs]
+            for input in inputs:
+                _run_job(input)
+            results = [AtomicHotspotResult.find(temp_dir=t, jobname=j) for t, j in result_input]
 
         # merge the atomic hotspot results for different cavities
         if self._merge == True:
@@ -310,12 +328,15 @@ class AtomicHotspotResult(object):
         :return:
         """
         grid_path = join(temp_dir, jobname + ".acnt")
-        if exists(grid_path):
-            grid = Grid.from_file(grid_path)
 
-        else:
-            print grid_path
-            raise AttributeError('{} superstar grid could not be found'.format(jobname))
+        grid = Grid.from_file(grid_path)
+
+        # if exists(grid_path):
+        #     grid = Grid.from_file(grid_path)
+        #
+        # else:
+        #     print grid_path
+        #     raise AttributeError('{} superstar grid could not be found'.format(jobname))
 
         buriedness_path = join(temp_dir, jobname + ".ligsite.acnt")
         if exists(buriedness_path):
