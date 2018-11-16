@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fff6cdfe-3350-4e55-9a40-c20d787cf095" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fragment-hotspot-maps0.1.zip" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hotspots/hotspot_calculation.py" afterPath="$PROJECT_DIR$/hotspots/hotspot_calculation.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hotspots/best_volume.py" afterPath="$PROJECT_DIR$/hotspots/best_volume.py" />
     </list>
     <ignored path=".idea/dataSources.local.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -27,10 +29,59 @@
             <file leaf-file-name="run.py" pinned="false" current-in-tab="true">
               <entry file="file://Z:/unittest/run.py">
                 <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="697">
-                    <caret line="41" column="19" selection-start-line="41" selection-start-column="19" selection-end-line="41" selection-end-column="19" />
+                  <state relative-caret-position="799">
+                    <caret line="47" column="41" selection-start-line="47" selection-start-column="41" selection-end-line="47" selection-end-column="41" />
                     <folding>
                       <element signature="e#0#49#0" expanded="true" />
+                    </folding>
+                  </state>
+                </provider>
+              </entry>
+            </file>
+            <file leaf-file-name="cavity.py" pinned="false" current-in-tab="false">
+              <entry file="file://$USER_HOME$/AppData/Local/Continuum/anaconda2/Lib/site-packages/ccdc/cavity.py">
+                <provider selected="true" editor-type-id="text-editor">
+                  <state relative-caret-position="730">
+                    <caret line="179" column="15" selection-start-line="179" selection-start-column="12" selection-end-line="179" selection-end-column="15" />
+                    <folding>
+                      <marker date="1538177181000" expanded="true" signature="30939:30992" ph="SELECT xml F... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="32412:32440" ph="DROP TABLE I... " />
+                      <marker date="1538177181000" expanded="true" signature="32473:32503" ph="DROP TABLE I... " />
+                      <marker date="1538177181000" expanded="true" signature="32536:32565" ph="DROP TABLE I... " />
+                      <marker date="1538177181000" expanded="true" signature="32598:32630" ph="DROP TABLE I... " />
+                      <marker date="1538177181000" expanded="true" signature="33245:33273" ph="DROP TABLE I... " />
+                      <marker date="1538177181000" expanded="true" signature="33321:33484" ph="CREATE TABLE... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="36395:36431" ph="SELECT COUNT... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="36530:36573" ph="INSERT INTO cav_xml... " />
+                      <marker date="1538177181000" expanded="true" signature="36691:36727" ph="SELECT COUNT... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="37042:37072" ph="DROP TABLE I... " />
+                      <marker date="1538177181000" expanded="true" signature="37120:37390" ph="CREATE TABLE... cav_hists" />
+                      <marker date="1538177181000" expanded="true" signature="37501:37574" ph="SELECT cavit... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="38207:38307" ph="INSERT INTO cav_hists... " />
+                      <marker date="1538177181000" expanded="true" signature="38399:38465" ph="CREATE INDEX... cav_hists_index" />
+                      <marker date="1538177181000" expanded="true" signature="38524:38554" ph="SELECT COUNT... cav_hists" />
+                      <marker date="1538177181000" expanded="true" signature="38814:38843" ph="DROP TABLE I... " />
+                      <marker date="1538177181000" expanded="true" signature="38917:39317" ph="CREATE TABLE... cav_info" />
+                      <marker date="1538177181000" expanded="true" signature="39467:39540" ph="SELECT cavit... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="40201:40529" ph="INSERT INTO cav_info... " />
+                      <marker date="1538177181000" expanded="true" signature="40621:40685" ph="CREATE INDEX... cav_info_index" />
+                      <marker date="1538177181000" expanded="true" signature="40912:40944" ph="DROP TABLE I... " />
+                      <marker date="1538177181000" expanded="true" signature="40992:41134" ph="CREATE TABLE... cav_ligands" />
+                      <marker date="1538177181000" expanded="true" signature="41258:41331" ph="SELECT cavit... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="41762:41851" ph="INSERT INTO cav_ligands... " />
+                      <marker date="1538177181000" expanded="true" signature="41956:42026" ph="CREATE INDEX... cav_ligands_index" />
+                      <marker date="1538177181000" expanded="true" signature="42100:42140" ph="SELECT COUNT... cav_ligands" />
+                      <marker date="1538177181000" expanded="true" signature="42633:42674" ph="SELECT xml f... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="43000:43049" ph="SELECT xml F... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="43350:43499" ph="SELECT ligan... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="43781:43934" ph="SELECT cav_l... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="44223:44419" ph="SELECT xml F... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="44308:44405" ph="SELECT DISTI... cav_ligands" />
+                      <marker date="1538177181000" expanded="true" signature="44759:44959" ph="SELECT DISTI... cav_ligands" />
+                      <marker date="1538177181000" expanded="true" signature="45372:45581" ph="SELECT volum... cav_info" />
+                      <marker date="1538177181000" expanded="true" signature="45965:46005" ph="SELECT COUNT... cav_xml" />
+                      <marker date="1538177181000" expanded="true" signature="46272:46316" ph="SELECT COUNT... cav_ligands" />
+                      <marker date="1538177181000" expanded="true" signature="50642:50755" ph="SELECT DISTI... cav_xml" />
                     </folding>
                   </state>
                 </provider>
@@ -47,14 +98,24 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="hotspot_calculation.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="hotspot_calculation.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
-              <caret line="1017" column="12" selection-start-line="1017" selection-start-column="12" selection-end-line="1017" selection-end-column="12" />
+            <state relative-caret-position="294">
+              <caret line="379" column="8" selection-start-line="379" selection-start-column="8" selection-end-line="379" selection-end-column="8" />
               <folding>
                 <element signature="e#299#346#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hotspot_io.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hotspots/hotspot_io.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="345">
+              <caret line="303" column="36" selection-start-line="303" selection-start-column="36" selection-end-line="303" selection-end-column="36" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -115,11 +176,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="best_volume.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="best_volume.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/hotspots/best_volume.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="387">
-              <caret line="36" column="36" selection-start-line="36" selection-start-column="36" selection-end-line="36" selection-end-column="36" />
+            <state relative-caret-position="379">
+              <caret line="176" column="0" selection-start-line="176" selection-start-column="0" selection-end-line="176" selection-end-column="0" />
               <folding>
                 <element signature="e#1288#1299#0" expanded="true" />
               </folding>
@@ -193,12 +254,13 @@
         <option value="$PROJECT_DIR$/hotspots/atomic_hotspot_calculation.py" />
         <option value="$PROJECT_DIR$/hotspots/fragment_elaboration.py" />
         <option value="$PROJECT_DIR$/hotspots/not_real.py" />
-        <option value="$PROJECT_DIR$/hotspots/best_volume.py" />
         <option value="$PROJECT_DIR$/hotspots/hotspot_utilities.py" />
         <option value="$PROJECT_DIR$/hotspots/grid_extension.py" />
         <option value="$USER_HOME$/Desktop/ntest.py" />
+        <option value="$PROJECT_DIR$/hotspots/hotspot_io.py" />
         <option value="$PROJECT_DIR$/hotspots/hotspot_calculation.py" />
         <option value="Z:/unittest/run.py" />
+        <option value="$PROJECT_DIR$/hotspots/best_volume.py" />
       </list>
     </option>
   </component>
@@ -212,9 +274,25 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="2702" />
-    <option name="width" value="1145" />
+    <option name="x" value="2251" />
+    <option name="width" value="1596" />
     <option name="height" value="1047" />
+  </component>
+  <component name="ProjectInspectionProfilesVisibleTreeState">
+    <entry key="Project Default">
+      <profile-state>
+        <expanded-state>
+          <State>
+            <id />
+          </State>
+        </expanded-state>
+        <selected-state>
+          <State>
+            <id>AngularJS</id>
+          </State>
+        </selected-state>
+      </profile-state>
+    </entry>
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -284,7 +362,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="Errors" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
   <component name="RecentsManager">
@@ -565,10 +643,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="2702" y="0" width="1145" height="1047" extended-state="0" />
+    <frame x="2251" y="0" width="1596" height="1047" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21013825" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1484375" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32932165" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
@@ -805,14 +883,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_io.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="328">
-          <caret line="107" column="27" selection-start-line="107" selection-start-column="27" selection-end-line="107" selection-end-column="27" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/AppData/Local/Continuum/anaconda2/Lib/os.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="304">
@@ -871,16 +941,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/best_volume.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="387">
-          <caret line="36" column="36" selection-start-line="36" selection-start-column="36" selection-end-line="36" selection-end-column="36" />
-          <folding>
-            <element signature="e#1288#1299#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/hotspots/atomic_hotspot_calculation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="459">
@@ -897,51 +957,6 @@
           <caret line="27" column="0" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
           <folding>
             <element signature="e#1176#1194#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/AppData/Local/Continuum/anaconda2/Lib/site-packages/ccdc/cavity.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="664">
-          <caret line="91" column="6" selection-start-line="91" selection-start-column="6" selection-end-line="91" selection-end-column="6" />
-          <folding>
-            <element signature="e#3155#3219#0" expanded="false" />
-            <marker date="1538177181000" expanded="true" signature="30939:30992" ph="SELECT xml F... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="32412:32440" ph="DROP TABLE I... " />
-            <marker date="1538177181000" expanded="true" signature="32473:32503" ph="DROP TABLE I... " />
-            <marker date="1538177181000" expanded="true" signature="32536:32565" ph="DROP TABLE I... " />
-            <marker date="1538177181000" expanded="true" signature="32598:32630" ph="DROP TABLE I... " />
-            <marker date="1538177181000" expanded="true" signature="33245:33273" ph="DROP TABLE I... " />
-            <marker date="1538177181000" expanded="true" signature="33321:33484" ph="CREATE TABLE... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="36395:36431" ph="SELECT COUNT... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="36530:36573" ph="INSERT INTO cav_xml... " />
-            <marker date="1538177181000" expanded="true" signature="36691:36727" ph="SELECT COUNT... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="37042:37072" ph="DROP TABLE I... " />
-            <marker date="1538177181000" expanded="true" signature="37120:37390" ph="CREATE TABLE... cav_hists" />
-            <marker date="1538177181000" expanded="true" signature="37501:37574" ph="SELECT cavit... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="38399:38465" ph="CREATE INDEX... cav_hists_index" />
-            <marker date="1538177181000" expanded="true" signature="38814:38843" ph="DROP TABLE I... " />
-            <marker date="1538177181000" expanded="true" signature="38917:39317" ph="CREATE TABLE... cav_info" />
-            <marker date="1538177181000" expanded="true" signature="39467:39540" ph="SELECT cavit... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="40201:40529" ph="INSERT INTO cav_info... " />
-            <marker date="1538177181000" expanded="true" signature="40621:40685" ph="CREATE INDEX... cav_info_index" />
-            <marker date="1538177181000" expanded="true" signature="40912:40944" ph="DROP TABLE I... " />
-            <marker date="1538177181000" expanded="true" signature="40992:41134" ph="CREATE TABLE... cav_ligands" />
-            <marker date="1538177181000" expanded="true" signature="41258:41331" ph="SELECT cavit... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="41762:41851" ph="INSERT INTO cav_ligands... " />
-            <marker date="1538177181000" expanded="true" signature="41956:42026" ph="CREATE INDEX... cav_ligands_index" />
-            <marker date="1538177181000" expanded="true" signature="42100:42140" ph="SELECT COUNT... cav_ligands" />
-            <marker date="1538177181000" expanded="true" signature="42633:42674" ph="SELECT xml f... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="43000:43049" ph="SELECT xml F... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="43781:43934" ph="SELECT cav_l... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="44223:44419" ph="SELECT xml F... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="44308:44405" ph="SELECT DISTI... cav_ligands" />
-            <marker date="1538177181000" expanded="true" signature="44759:44959" ph="SELECT DISTI... cav_ligands" />
-            <marker date="1538177181000" expanded="true" signature="45372:45581" ph="SELECT volum... cav_info" />
-            <marker date="1538177181000" expanded="true" signature="45965:46005" ph="SELECT COUNT... cav_xml" />
-            <marker date="1538177181000" expanded="true" signature="46272:46316" ph="SELECT COUNT... cav_ligands" />
-            <marker date="1538177181000" expanded="true" signature="50642:50755" ph="SELECT DISTI... cav_xml" />
           </folding>
         </state>
       </provider>
@@ -984,25 +999,105 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://Z:/unittest/run.py">
+    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_io.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="697">
-          <caret line="41" column="19" selection-start-line="41" selection-start-column="19" selection-end-line="41" selection-end-column="19" />
+        <state relative-caret-position="345">
+          <caret line="303" column="36" selection-start-line="303" selection-start-column="36" selection-end-line="303" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/AppData/Local/Continuum/anaconda2/Lib/site-packages/ccdc/cavity.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="730">
+          <caret line="179" column="15" selection-start-line="179" selection-start-column="12" selection-end-line="179" selection-end-column="15" />
           <folding>
-            <element signature="e#0#49#0" expanded="true" />
+            <marker date="1538177181000" expanded="true" signature="30939:30992" ph="SELECT xml F... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="32412:32440" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="32473:32503" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="32536:32565" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="32598:32630" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="33245:33273" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="33321:33484" ph="CREATE TABLE... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="36395:36431" ph="SELECT COUNT... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="36530:36573" ph="INSERT INTO cav_xml... " />
+            <marker date="1538177181000" expanded="true" signature="36691:36727" ph="SELECT COUNT... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="37042:37072" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="37120:37390" ph="CREATE TABLE... cav_hists" />
+            <marker date="1538177181000" expanded="true" signature="37501:37574" ph="SELECT cavit... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="38207:38307" ph="INSERT INTO cav_hists... " />
+            <marker date="1538177181000" expanded="true" signature="38399:38465" ph="CREATE INDEX... cav_hists_index" />
+            <marker date="1538177181000" expanded="true" signature="38524:38554" ph="SELECT COUNT... cav_hists" />
+            <marker date="1538177181000" expanded="true" signature="38814:38843" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="38917:39317" ph="CREATE TABLE... cav_info" />
+            <marker date="1538177181000" expanded="true" signature="39467:39540" ph="SELECT cavit... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="40201:40529" ph="INSERT INTO cav_info... " />
+            <marker date="1538177181000" expanded="true" signature="40621:40685" ph="CREATE INDEX... cav_info_index" />
+            <marker date="1538177181000" expanded="true" signature="40912:40944" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="40992:41134" ph="CREATE TABLE... cav_ligands" />
+            <marker date="1538177181000" expanded="true" signature="41258:41331" ph="SELECT cavit... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="41762:41851" ph="INSERT INTO cav_ligands... " />
+            <marker date="1538177181000" expanded="true" signature="41956:42026" ph="CREATE INDEX... cav_ligands_index" />
+            <marker date="1538177181000" expanded="true" signature="42100:42140" ph="SELECT COUNT... cav_ligands" />
+            <marker date="1538177181000" expanded="true" signature="42633:42674" ph="SELECT xml f... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="43000:43049" ph="SELECT xml F... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="43350:43499" ph="SELECT ligan... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="43781:43934" ph="SELECT cav_l... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="44223:44419" ph="SELECT xml F... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="44308:44405" ph="SELECT DISTI... cav_ligands" />
+            <marker date="1538177181000" expanded="true" signature="44759:44959" ph="SELECT DISTI... cav_ligands" />
+            <marker date="1538177181000" expanded="true" signature="45372:45581" ph="SELECT volum... cav_info" />
+            <marker date="1538177181000" expanded="true" signature="45965:46005" ph="SELECT COUNT... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="46272:46316" ph="SELECT COUNT... cav_ligands" />
+            <marker date="1538177181000" expanded="true" signature="50642:50755" ph="SELECT DISTI... cav_xml" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="1017" column="12" selection-start-line="1017" selection-start-column="12" selection-end-line="1017" selection-end-column="12" />
+        <state relative-caret-position="294">
+          <caret line="379" column="8" selection-start-line="379" selection-start-column="8" selection-end-line="379" selection-end-column="8" />
           <folding>
             <element signature="e#299#346#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://Z:/unittest/run.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="799">
+          <caret line="47" column="41" selection-start-line="47" selection-start-column="41" selection-end-line="47" selection-end-column="41" />
+          <folding>
+            <element signature="e#0#49#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/best_volume.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="379">
+          <caret line="176" column="0" selection-start-line="176" selection-start-column="0" selection-end-line="176" selection-end-column="0" />
+          <folding>
+            <element signature="e#1288#1299#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ScopeChooserConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
   </component>
 </project>

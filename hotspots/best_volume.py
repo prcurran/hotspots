@@ -173,7 +173,7 @@ class HotspotResults(hotspot_calculation.HotspotResults):
 
         blank = single_grid.copy_and_clear()
         if settings.mode == "seed":
-            seed_value = single_grid.value_at_point(seed)
+            # seed_value = single_grid.value_at_point(seed)
 
             sphere = copy.copy(blank)
             sphere.set_sphere(point=seed,
