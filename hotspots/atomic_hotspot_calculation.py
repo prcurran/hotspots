@@ -1,15 +1,14 @@
-import tempfile
-import sys
+import collections
 import glob
 import subprocess
-import collections
-
-from os.path import join, exists, isfile, dirname
+import sys
+import tempfile
 from os import environ, mkdir
-from concurrent import futures
+from os.path import join, exists, isfile, dirname
 
-from ccdc.utilities import PushDir
 from ccdc.io import csd_directory, MoleculeWriter
+from ccdc.utilities import PushDir
+from concurrent import futures
 
 try:
     from grid_extension import Grid

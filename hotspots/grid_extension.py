@@ -20,11 +20,9 @@ I.e. this returns a new grid object in which gaussian smoothing has been applied
 import operator
 
 import numpy as np
-import numpy.ma as ma
-from scipy import ndimage
-
 from ccdc import utilities
-from utilities import Utilities as ut
+from hotspots.hotspot_utilities import Helper
+from scipy import ndimage
 
 
 class Grid(utilities.Grid):
@@ -34,7 +32,7 @@ class Grid(utilities.Grid):
     def grid_values(self, threshold=0):
         """"""
         array = self.get_array()
-        masked_array = ma.masked_less_equal(array, threshold)
+        masked_array = np.ma.masked_less_equal(array, threshold)
         return masked_array.compressed()
 
     def grid_score(self, threshold=0, percentile=75):
@@ -47,7 +45,7 @@ class Grid(utilities.Grid):
         :return:
         """
         array = self.get_array()
-        masked_array = ma.masked_less_equal(array, threshold)
+        masked_array = np.ma.masked_less_equal(array, threshold)
         values = masked_array.compressed()
 
         if len(values) == 0:
@@ -191,7 +189,7 @@ class Grid(utilities.Grid):
                            for island in major.islands(threshold=threshold)
                            if jsland.contains_point(island.centroid(), tolerance=tolerance)
                            or jsland.count_grid() <= 8
-                           or ut.get_distance(jsland.centroid(), island.centroid()) < 4])
+                           or Helper.get_distance(jsland.centroid(), island.centroid()) < 4])
 
         retained_jslands = list(all_islands - bin_islands)
         #print "Charged_islands, {}".format(len(retained_jslands))
@@ -411,7 +409,6 @@ class Grid(utilities.Grid):
             return mask_dic, reduce(operator.add, mask_dic.values(), blank)
         else:
             return reduce(operator.add, mask_dic.values(), blank)
-
 
     def value_at_coordinate(self, coordinates, tolerance=1, position=True):
         """

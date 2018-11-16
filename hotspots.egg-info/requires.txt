@@ -1,0 +1,11 @@
+numpy>=1.9
+csd-python-api>=1.5
+matplotlib
+scipy
+sklearn
+scikit-image
+pandas
+futures
+cython
+tqdm
+nglview

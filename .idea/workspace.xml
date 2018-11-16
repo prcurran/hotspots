@@ -2,76 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fff6cdfe-3350-4e55-9a40-c20d787cf095" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/conf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/hotspot_api.rst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/index.rst" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/index.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/fragment_hotspot_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/fragment_hotspot_maps/fragment_hotspot_maps.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/create_hotspots_zip.py" beforeDir="false" afterPath="$PROJECT_DIR$/create_hotspots_zip.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/atomic_hotspot_calculation.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/atomic_hotspot_calculation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/best_volume.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/best_volume.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/fragment_elaboration.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/fragment_elaboration.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/grid_extension.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/grid_extension.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/hotspot_calculation.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/hotspot_calculation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/io.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/io.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/pharmacophore.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/pharmacophore.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_3_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_3_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_3_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_3_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_4_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_4_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_4_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_4_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_5_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_5_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_5_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_5_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_6_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_6_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_6_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_6_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_7_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_7_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_7_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_7_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_8_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_8_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-acceptor_8_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-acceptor_8_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_3_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_3_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_3_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_3_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_4_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_4_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_4_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_4_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_5_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_5_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_5_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_5_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_6_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_6_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_6_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_6_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_7_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_7_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_7_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_7_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_8_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_8_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-apolar_8_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-apolar_8_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_3_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_3_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_3_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_3_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_4_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_4_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_4_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_4_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_5_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_5_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_5_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_5_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_6_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_6_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_6_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_6_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_7_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_7_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_7_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_7_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_8_3d.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_8_3d.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-donor_8_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-donor_8_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-negative_3_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-negative_3_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-negative_7_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-negative_7_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-negative_8_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-negative_8_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-negative_test_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-negative_test_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-positive_3_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-positive_3_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-positive_7_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-positive_7_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-positive_8_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-positive_8_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/probes/rotate-positive_test_flat.mol2" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/probes/rotate-positive_test_flat.mol2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/img/apiframework.png" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/src/img/apiframework.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/img/figure1.png" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/src/img/figure1.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/img/figure2.png" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/src/img/figure2.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/img/figure3.png" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/src/img/figure3.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/img/pymol.png" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/src/img/pymol.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/src/img/schematic.png" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/src/img/schematic.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/template_strings.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/template_strings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fragment_hotspot_maps/utilities.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/utilities.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_fragment_hotspot_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_fragment_hotspot_maps.py" afterDir="false" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fragment_hotspot_maps.egg-info/PKG-INFO" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fragment_hotspot_maps.egg-info/SOURCES.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fragment_hotspot_maps.egg-info/dependency_links.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fragment_hotspot_maps.egg-info/requires.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fragment_hotspot_maps.egg-info/top_level.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/tests/input_files/apolar.grd" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/fragment_hotspot_maps.iml" afterPath="$PROJECT_DIR$/.idea/fragment_hotspot_maps.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hotspots/atomic_hotspot_calculation.py" afterPath="$PROJECT_DIR$/hotspots/atomic_hotspot_calculation.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hotspots/best_volume.py" afterPath="$PROJECT_DIR$/hotspots/best_volume.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hotspots/fragment_elaboration.py" afterPath="$PROJECT_DIR$/hotspots/fragment_elaboration.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hotspots/grid_extension.py" afterPath="$PROJECT_DIR$/hotspots/grid_extension.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hotspots/hotspot_calculation.py" afterPath="$PROJECT_DIR$/hotspots/hotspot_calculation.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/hotspots/io.py" afterPath="$PROJECT_DIR$/hotspots/hotspot_io.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/hotspots/pharmacophore.py" afterPath="$PROJECT_DIR$/hotspots/hotspot_pharmacophore.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/hotspots/utilities.py" afterPath="$PROJECT_DIR$/hotspots/hotspot_utilities.py" />
     </list>
+    <ignored path=".idea/dataSources.local.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -79,96 +28,101 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/fragment_hotspot_maps$run.coverage" NAME="run Coverage Results" MODIFIED="1542360198933" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="Z:/unittest" />
+  </component>
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="" />
+  </component>
+  <component name="DockManager">
+    <window id="3">
+      <content type="file-editors">
+        <state>
+          <leaf>
+            <file leaf-file-name="test_hotspot_calculation.py" pinned="false" current-in-tab="true">
+              <entry file="file://Z:/unittest/test_hotspot_calculation.py">
+                <provider selected="true" editor-type-id="text-editor">
+                  <state relative-caret-position="119">
+                    <caret line="7" column="20" selection-start-line="7" selection-start-column="20" selection-end-line="7" selection-end-column="20" />
+                    <folding>
+                      <element signature="e#0#15#0" expanded="true" />
+                    </folding>
+                  </state>
+                </provider>
+              </entry>
+            </file>
+          </leaf>
+        </state>
+      </content>
+    </window>
+    <window id="2">
+      <content type="file-editors">
+        <state>
+          <leaf>
+            <file leaf-file-name="run.py" pinned="false" current-in-tab="true">
+              <entry file="file://Z:/unittest/run.py">
+                <provider selected="true" editor-type-id="text-editor">
+                  <state relative-caret-position="612">
+                    <caret line="36" column="24" selection-start-line="36" selection-start-column="24" selection-end-line="36" selection-end-column="25" />
+                    <folding>
+                      <element signature="e#0#49#0" expanded="true" />
+                    </folding>
+                  </state>
+                </provider>
+              </entry>
+            </file>
+          </leaf>
+        </state>
+      </content>
+    </window>
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="FavoritesManager">
+    <favorites_list name="fragment_hotspot_maps" />
+  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="hotspot_calculation.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="hotspot_calculation.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3645">
-              <caret line="243" selection-start-line="243" selection-end-line="243" />
+            <state relative-caret-position="294">
+              <caret line="984" column="34" selection-start-line="984" selection-start-column="28" selection-end-line="984" selection-end-column="34" />
               <folding>
                 <element signature="e#299#346#0" expanded="true" />
-                <element signature="e#28410#39068#0" />
-                <element signature="e#39117#39599#0" />
-                <element signature="e#39644#40310#0" />
-                <element signature="e#40388#42296#0" />
-                <element signature="e#42357#43929#0" />
-                <element signature="e#44108#45411#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="best_volume_api.rst" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Docs/best_volume_api.rst">
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hotspots/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" selection-start-line="1" selection-end-line="1" selection-end-column="120" />
+            <state relative-caret-position="153">
+              <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="fragment_elaboration_api.rst" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Docs/fragment_elaboration_api.rst">
+      <file leaf-file-name="hotspot_pharmacophore.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hotspots/hotspot_pharmacophore.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="120" selection-start-line="1" selection-start-column="120" selection-end-line="1" selection-end-column="120" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="hotspot_calculation_api.rst" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Docs/hotspot_calculation_api.rst">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="120" selection-start-line="1" selection-start-column="120" selection-end-line="1" selection-end-column="120" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="io_api.rst" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Docs/io_api.rst">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="120" selection-start-line="1" selection-start-column="120" selection-end-line="1" selection-end-column="120" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pharmacophore_api.rst" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Docs/pharmacophore_api.rst">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="120" selection-start-line="1" selection-start-column="120" selection-end-line="1" selection-end-column="120" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="utilities_api.rst" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Docs/utilities_api.rst">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="120" selection-start-line="1" selection-start-column="120" selection-end-line="1" selection-end-column="120" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="conf.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Docs/conf.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="287">
-              <caret line="87" column="31" selection-start-line="87" selection-start-column="31" selection-end-line="87" selection-end-column="31" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="best_volume.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/hotspots/best_volume.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="881">
-              <caret line="76" selection-start-line="76" selection-end-line="76" />
+            <state relative-caret-position="255">
+              <caret line="27" column="0" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
               <folding>
-                <element signature="e#1314#1334#0" expanded="true" />
+                <element signature="e#1176#1194#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hotspot_utilities.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hotspots/hotspot_utilities.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="323">
+              <caret line="35" column="30" selection-start-line="35" selection-start-column="30" selection-end-line="35" selection-end-column="30" />
+              <folding>
+                <element signature="e#967#998#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -177,8 +131,45 @@
       <file leaf-file-name="atomic_hotspot_calculation.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/hotspots/atomic_hotspot_calculation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1688">
-              <caret line="3" column="11" selection-start-line="3" selection-start-column="11" selection-end-line="3" selection-end-column="11" />
+            <state relative-caret-position="459">
+              <caret line="27" column="24" selection-start-line="27" selection-start-column="24" selection-end-line="27" selection-end-column="24" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="best_volume.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hotspots/best_volume.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="387">
+              <caret line="36" column="36" selection-start-line="36" selection-start-column="36" selection-end-line="36" selection-end-column="36" />
+              <folding>
+                <element signature="e#1288#1299#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="grid_extension.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hotspots/grid_extension.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="6906">
+              <caret line="411" column="0" selection-start-line="411" selection-start-column="0" selection-end-line="411" selection-end-column="0" />
+              <folding>
+                <element signature="e#609#624#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="template_strings.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hotspots/template_strings.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="221">
+              <caret line="13" column="20" selection-start-line="13" selection-start-column="18" selection-end-line="13" selection-end-column="20" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -210,7 +201,6 @@
         <option value="$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" />
         <option value="$PROJECT_DIR$/../astex_diverse_set/run_nrdld.py" />
         <option value="$PROJECT_DIR$/fragment_hotspot_maps/atomic_hotspot_calculation.py" />
-        <option value="$PROJECT_DIR$/hotspots/hotspot_calculation.py" />
         <option value="$PROJECT_DIR$/Docs/best_volume_api.rst" />
         <option value="$PROJECT_DIR$/Docs/fragment_elaboration_api.rst" />
         <option value="$PROJECT_DIR$/Docs/hotspot_calculation_api.rst" />
@@ -218,6 +208,21 @@
         <option value="$PROJECT_DIR$/Docs/pharmacophore_api.rst" />
         <option value="$PROJECT_DIR$/Docs/utilities_api.rst" />
         <option value="$PROJECT_DIR$/Docs/conf.py" />
+        <option value="$PROJECT_DIR$/hotspots/__init__.py" />
+        <option value="$USER_HOME$/Desktop/tests/test_hotspot_calculation.py" />
+        <option value="$PROJECT_DIR$/hotspots/io.py" />
+        <option value="Z:/unittest/sf.py" />
+        <option value="$PROJECT_DIR$/hotspots/grid_extension (2).py" />
+        <option value="$PROJECT_DIR$/hotspots/pharmacophore.py" />
+        <option value="$PROJECT_DIR$/hotspots/utilities.py" />
+        <option value="$PROJECT_DIR$/hotspots/atomic_hotspot_calculation.py" />
+        <option value="$PROJECT_DIR$/hotspots/fragment_elaboration.py" />
+        <option value="$PROJECT_DIR$/hotspots/not_real.py" />
+        <option value="$PROJECT_DIR$/hotspots/best_volume.py" />
+        <option value="$PROJECT_DIR$/hotspots/hotspot_utilities.py" />
+        <option value="$PROJECT_DIR$/hotspots/grid_extension.py" />
+        <option value="Z:/unittest/run.py" />
+        <option value="$PROJECT_DIR$/hotspots/hotspot_calculation.py" />
       </list>
     </option>
   </component>
@@ -231,33 +236,71 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-1468" />
-    <option name="y" value="55" />
-    <option name="width" value="1440" />
-    <option name="height" value="821" />
+    <option name="x" value="2596" />
+    <option name="width" value="1251" />
+    <option name="height" value="1047" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectView">
-    <navigator proportions="" version="1">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
-          <expand>
-            <path>
-              <item name="fragment_hotspot_maps" type="b2602c69:ProjectViewProjectNode" />
-              <item name="fragment_hotspot_maps" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="fragment_hotspot_maps" type="b2602c69:ProjectViewProjectNode" />
-              <item name="fragment_hotspot_maps" type="462c0819:PsiDirectoryNode" />
-              <item name="hotspots" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fragment_hotspot_maps" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fragment_hotspot_maps" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fragment_hotspot_maps" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fragment_hotspot_maps" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fragment_hotspot_maps" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hotspots" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -266,6 +309,7 @@
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -289,6 +333,239 @@
       </list>
     </option>
   </component>
+  <component name="RunManager" selected="Python.run">
+    <configuration default="false" name="run" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="Z:/unittest" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="fragment_hotspot_maps" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="Z:/unittest/run.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="DjangoTestsConfigurationType" factoryName="Django tests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="fragment_hotspot_maps" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="TARGET" value="" />
+      <option name="SETTINGS_FILE" value="" />
+      <option name="CUSTOM_SETTINGS" value="false" />
+      <option name="USE_OPTIONS" value="false" />
+      <option name="OPTIONS" value="" />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
+      <method />
+    </configuration>
+    <configuration default="true" type="PyBehaveRunConfigurationType" factoryName="Behave">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="fragment_hotspot_maps" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="ADDITIONAL_ARGS" value="" />
+      <method />
+    </configuration>
+    <configuration default="true" type="PyLettuceRunConfigurationType" factoryName="Lettuce">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="fragment_hotspot_maps" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="ADDITIONAL_ARGS" value="" />
+      <method />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="fragment_hotspot_maps" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <module name="fragment_hotspot_maps" />
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.npm" factoryName="npm">
+      <command value="run-script" />
+      <scripts />
+      <node-interpreter value="project" />
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Attests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="fragment_hotspot_maps" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Doctests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="fragment_hotspot_maps" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Nosetests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="fragment_hotspot_maps" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Unittests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="fragment_hotspot_maps" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PUREUNITTEST" value="true" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="py.test">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="fragment_hotspot_maps" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="testToRun" value="" />
+      <option name="keywords" value="" />
+      <option name="params" value="" />
+      <option name="USE_PARAM" value="false" />
+      <option name="USE_KEYWORD" value="false" />
+      <method />
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="Python.run" />
+    </list>
+    <recent_temporary>
+      <list size="1">
+        <item index="0" class="java.lang.String" itemvalue="Python.run" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -302,50 +579,69 @@
     </task>
     <servers />
   </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
   <component name="ToolWindowManager">
-    <frame x="-1920" y="-174" width="1440" height="821" extended-state="0" />
+    <frame x="2596" y="0" width="1251" height="1047" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
-      <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info anchor="bottom" id="Python Console" order="7" />
-      <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
-      <window_info anchor="right" id="R Packages" order="3" />
-      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="right" id="R Graphics" order="3" />
-      <window_info anchor="right" id="Database" order="3" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.32931727" />
-      <window_info anchor="right" id="SciView" order="3" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="bottom" id="Docker" order="8" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info id="Favorites" order="3" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
-      <window_info anchor="right" id="SciView" order="4" />
-      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="right" id="Database" order="4" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Event Log" order="8" side_tool="true" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info anchor="bottom" id="Python Console" order="8" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19143577" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32932165" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32932165" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32932165" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3249453" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32932165" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
+    <layout-to-restore>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32932165" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32932165" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32932165" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3249453" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32932165" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+    </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.UiProperties">
+    <option name="RECENTLY_FILTERED_USER_GROUPS">
+      <collection />
+    </option>
+    <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+      <collection />
+    </option>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
@@ -359,86 +655,39 @@
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>
-      <option name="time" value="2" />
+      <option name="time" value="3" />
     </breakpoint-manager>
+    <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/MANIFEST.in">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="43" selection-start-column="43" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/best_volume.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#1314#1334#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/io.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1455">
-          <caret line="112" selection-start-line="112" selection-end-line="116" selection-end-column="58" />
-          <folding>
-            <element signature="e#1083#1097#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/template_strings.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="13" column="20" lean-forward="true" selection-start-line="13" selection-start-column="18" selection-end-line="13" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/pharmacophore.py">
+    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_pharmacophore.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2550">
           <caret line="182" column="11" selection-start-line="182" selection-start-column="11" selection-end-line="182" selection-end-column="11" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst" />
     <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="465">
           <caret line="31" column="28" selection-start-line="31" selection-start-column="28" selection-end-line="31" selection-end-column="28" />
-          <folding>
-            <element signature="e#299#346#0" expanded="true" />
-            <element signature="e#28410#39068#0" />
-            <element signature="e#39117#39599#0" />
-            <element signature="e#39644#40310#0" />
-            <element signature="e#40388#42296#0" />
-            <element signature="e#42357#43929#0" />
-            <element signature="e#44108#45411#0" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/MANIFEST.in">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="43" selection-start-column="43" selection-end-column="43" />
+        <state relative-caret-position="0">
+          <caret line="0" column="43" selection-start-line="0" selection-start-column="43" selection-end-line="0" selection-end-column="43" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/hotspots/best_volume.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#1314#1334#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -449,21 +698,15 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/pharmacophore.py">
+    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_pharmacophore.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2550">
           <caret line="182" column="11" selection-start-line="182" selection-start-column="11" selection-end-line="182" selection-end-column="11" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/io.py">
+    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst" />
+    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_io.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1530">
           <caret line="117" column="57" selection-start-line="117" selection-start-column="57" selection-end-line="117" selection-end-column="57" />
@@ -473,14 +716,14 @@
     <entry file="file://$PROJECT_DIR$/hotspots/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="135">
-          <caret line="9" selection-start-line="9" selection-end-line="9" />
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/MANIFEST.in">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="43" selection-start-column="43" selection-end-column="43" />
+        <state relative-caret-position="0">
+          <caret line="0" column="43" selection-start-line="0" selection-start-column="43" selection-end-line="0" selection-end-column="43" />
         </state>
       </provider>
     </entry>
@@ -492,13 +735,7 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" />
-    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst" />
     <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" />
     <entry file="file://$PROJECT_DIR$/../astex_diverse_set/run_nrdld.py" />
     <entry file="file://$PROJECT_DIR$/setup.py">
@@ -511,49 +748,23 @@
     <entry file="file://$PROJECT_DIR$/hotspots/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="240">
-          <caret line="16" selection-start-line="16" selection-end-line="16" />
+          <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/hotspot_calculation_extension.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="29" selection-start-line="29" selection-end-line="29" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/hotspot_calculation_extension.py" />
     <entry file="file://$PROJECT_DIR$/MANIFEST.in">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="43" selection-start-column="43" selection-end-column="43" />
+        <state relative-caret-position="0">
+          <caret line="0" column="43" selection-start-line="0" selection-start-column="43" selection-end-line="0" selection-end-column="43" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/template_strings.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="13" column="20" selection-start-line="13" selection-start-column="18" selection-end-line="13" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst" />
     <entry file="file://$PROJECT_DIR$/MANIFEST.in">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="43" selection-start-column="43" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" selection-start-line="9" selection-end-line="9" />
+        <state relative-caret-position="0">
+          <caret line="0" column="43" selection-start-line="0" selection-start-column="43" selection-end-line="0" selection-end-column="43" />
         </state>
       </provider>
     </entry>
@@ -564,72 +775,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Docs/hotspot_api.rst" />
     <entry file="file://$PROJECT_DIR$/fragment_hotspot_maps/fragment_hotspot_maps.py" />
     <entry file="file://$PROJECT_DIR$/../astex_diverse_set/run_nrdld.py" />
-    <entry file="file://$PROJECT_DIR$/hotspots/pharmacophore.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="667">
-          <caret line="182" column="11" selection-start-line="182" selection-start-column="11" selection-end-line="182" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/io.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1680">
-          <caret line="112" selection-start-line="112" selection-end-line="116" />
-          <folding>
-            <element signature="e#1083#1097#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/atomic_hotspot_calculation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1688">
-          <caret line="3" column="11" selection-start-line="3" selection-start-column="11" selection-end-line="3" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/best_volume.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="881">
-          <caret line="76" selection-start-line="76" selection-end-line="76" />
-          <folding>
-            <element signature="e#1314#1334#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/fragment_elaboration.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3645">
-          <caret line="243" selection-start-line="243" selection-end-line="243" />
-          <folding>
-            <element signature="e#299#346#0" expanded="true" />
-            <element signature="e#28410#39068#0" />
-            <element signature="e#39117#39599#0" />
-            <element signature="e#39644#40310#0" />
-            <element signature="e#40388#42296#0" />
-            <element signature="e#42357#43929#0" />
-            <element signature="e#44108#45411#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Docs/best_volume_api.rst">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="15">
-          <caret line="1" selection-start-line="1" selection-end-line="1" selection-end-column="120" />
+          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="120" />
         </state>
       </provider>
     </entry>
@@ -670,8 +822,208 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Docs/conf.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="287">
-          <caret line="87" column="31" selection-start-line="87" selection-start-column="31" selection-end-line="87" selection-end-column="31" />
+        <state relative-caret-position="1479">
+          <caret line="87" column="24" selection-start-line="87" selection-start-column="24" selection-end-line="87" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Desktop/tests/test_hotspot_calculation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="442">
+          <caret line="26" column="19" selection-start-line="26" selection-start-column="19" selection-end-line="26" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_io.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="328">
+          <caret line="107" column="27" selection-start-line="107" selection-start-column="27" selection-end-line="107" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/AppData/Local/Continuum/anaconda2/Lib/os.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="304">
+          <caret line="509" column="6" selection-start-line="509" selection-start-column="6" selection-end-line="509" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://Z:/unittest/test_hotspot_calculation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="7" column="20" selection-start-line="7" selection-start-column="20" selection-end-line="7" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://Z:/unittest/sf.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/grid_extension (2).py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="592">
+          <caret line="453" column="0" selection-start-line="453" selection-start-column="0" selection-end-line="453" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/fragment_elaboration.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="493">
+          <caret line="29" column="63" selection-start-line="29" selection-start-column="63" selection-end-line="29" selection-end-column="63" />
+          <folding>
+            <element signature="e#92#101#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="153">
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/not_real.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="13" selection-start-line="2" selection-start-column="13" selection-end-line="2" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/template_strings.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="13" column="20" selection-start-line="13" selection-start-column="18" selection-end-line="13" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/best_volume.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="387">
+          <caret line="36" column="36" selection-start-line="36" selection-start-column="36" selection-end-line="36" selection-end-column="36" />
+          <folding>
+            <element signature="e#1288#1299#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/atomic_hotspot_calculation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="459">
+          <caret line="27" column="24" selection-start-line="27" selection-start-column="24" selection-end-line="27" selection-end-column="24" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_pharmacophore.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="27" column="0" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
+          <folding>
+            <element signature="e#1176#1194#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/AppData/Local/Continuum/anaconda2/Lib/site-packages/ccdc/cavity.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="664">
+          <caret line="91" column="6" selection-start-line="91" selection-start-column="6" selection-end-line="91" selection-end-column="6" />
+          <folding>
+            <element signature="e#3155#3219#0" expanded="false" />
+            <marker date="1538177181000" expanded="true" signature="30939:30992" ph="SELECT xml F... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="32412:32440" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="32473:32503" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="32536:32565" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="32598:32630" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="33245:33273" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="33321:33484" ph="CREATE TABLE... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="36395:36431" ph="SELECT COUNT... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="36530:36573" ph="INSERT INTO cav_xml... " />
+            <marker date="1538177181000" expanded="true" signature="36691:36727" ph="SELECT COUNT... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="37042:37072" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="37120:37390" ph="CREATE TABLE... cav_hists" />
+            <marker date="1538177181000" expanded="true" signature="37501:37574" ph="SELECT cavit... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="38399:38465" ph="CREATE INDEX... cav_hists_index" />
+            <marker date="1538177181000" expanded="true" signature="38814:38843" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="38917:39317" ph="CREATE TABLE... cav_info" />
+            <marker date="1538177181000" expanded="true" signature="39467:39540" ph="SELECT cavit... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="40201:40529" ph="INSERT INTO cav_info... " />
+            <marker date="1538177181000" expanded="true" signature="40621:40685" ph="CREATE INDEX... cav_info_index" />
+            <marker date="1538177181000" expanded="true" signature="40912:40944" ph="DROP TABLE I... " />
+            <marker date="1538177181000" expanded="true" signature="40992:41134" ph="CREATE TABLE... cav_ligands" />
+            <marker date="1538177181000" expanded="true" signature="41258:41331" ph="SELECT cavit... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="41762:41851" ph="INSERT INTO cav_ligands... " />
+            <marker date="1538177181000" expanded="true" signature="41956:42026" ph="CREATE INDEX... cav_ligands_index" />
+            <marker date="1538177181000" expanded="true" signature="42100:42140" ph="SELECT COUNT... cav_ligands" />
+            <marker date="1538177181000" expanded="true" signature="42633:42674" ph="SELECT xml f... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="43000:43049" ph="SELECT xml F... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="43781:43934" ph="SELECT cav_l... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="44223:44419" ph="SELECT xml F... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="44308:44405" ph="SELECT DISTI... cav_ligands" />
+            <marker date="1538177181000" expanded="true" signature="44759:44959" ph="SELECT DISTI... cav_ligands" />
+            <marker date="1538177181000" expanded="true" signature="45372:45581" ph="SELECT volum... cav_info" />
+            <marker date="1538177181000" expanded="true" signature="45965:46005" ph="SELECT COUNT... cav_xml" />
+            <marker date="1538177181000" expanded="true" signature="46272:46316" ph="SELECT COUNT... cav_ligands" />
+            <marker date="1538177181000" expanded="true" signature="50642:50755" ph="SELECT DISTI... cav_xml" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_utilities.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="35" column="30" selection-start-line="35" selection-start-column="30" selection-end-line="35" selection-end-column="30" />
+          <folding>
+            <element signature="e#967#998#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/grid_extension.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6906">
+          <caret line="411" column="0" selection-start-line="411" selection-start-column="0" selection-end-line="411" selection-end-column="0" />
+          <folding>
+            <element signature="e#609#624#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://Z:/unittest/run.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="612">
+          <caret line="36" column="24" selection-start-line="36" selection-start-column="24" selection-end-line="36" selection-end-column="25" />
+          <folding>
+            <element signature="e#0#49#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="294">
+          <caret line="984" column="34" selection-start-line="984" selection-start-column="28" selection-end-line="984" selection-end-column="34" />
+          <folding>
+            <element signature="e#299#346#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

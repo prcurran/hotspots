@@ -8,33 +8,32 @@ More information about the fragment hotspot maps method is available from:
 """
 from __future__ import print_function, division
 
+import collections
+import copy
+import multiprocessing
 import operator
-from tqdm import tqdm
-from os.path import join
-from os import system, environ
 import random
 import sys
 import tempfile
 import time
-import copy
-import pkg_resources
-import collections
-import multiprocessing
+from os import system, environ
+from os.path import join
 
-import numpy as np
-from scipy.stats import percentileofscore
-from ccdc.io import MoleculeWriter, MoleculeReader
-from ccdc.protein import Protein
-from ccdc.cavity import Cavity
-from ccdc.molecule import Molecule
-from ccdc.utilities import PushDir
 import nglview as nv
+import numpy as np
+import pkg_resources
+from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
+from ccdc.cavity import Cavity
+from ccdc.io import MoleculeWriter, MoleculeReader
+from ccdc.molecule import Molecule
+from ccdc.protein import Protein
+from ccdc.utilities import PushDir
+from grid_extension import Grid
 from ipywidgets import IntSlider, interact
-
-#from grid_extension import Grid
-# from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
-# from pharmacophore import PharmacophoreModel
-# from utilities import Figures, Utilities
+from hotspot_pharmacophore import PharmacophoreModel
+from scipy.stats import percentileofscore
+from tqdm import tqdm
+from hotspot_utilities import Figures, Helper
 
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
@@ -138,7 +137,7 @@ class BuriednessResult(object):
         :return: None
         """
 
-        lines = Utilities.get_lines_from_file(self.settings.out_name)
+        lines = Helper.get_lines_from_file(self.settings.out_name)
         for line in lines:
             if line.startswith("HETATM"):
                 coordinates = (float(line[31:38]), float(line[39:46]), float(line[47:54]))
@@ -340,14 +339,14 @@ class _Scorer(object):
                              "donor_acceptor": "doneptor",
                              "dummy": "dummy"}
 
-        cavities = Utilities.cavity_from_protein(self.hotspot_result.protein)
+        cavities = Helper.cavity_from_protein(self.hotspot_result.protein)
         for cavity in cavities:
 
             for feature in cavity.features:
                 grid_type = interaction_pairs[feature.type]
 
                 if feature.type == "aliphatic" or feature.type == "aromatic":
-                    coordinates = Utilities.cavity_centroid(feature)
+                    coordinates = Helper.cavity_centroid(feature)
 
                 else:
                     v = feature.protein_vector
@@ -689,9 +688,9 @@ class HotspotResults(object):
                 feat_id.append(i)
                 ss_id.append(r.identifier)
 
-                ss_dict = {Utilities.get_distance(feat.feature_coordinates, island.centroid()) :island
+                ss_dict = {Helper.get_distance(feat.feature_coordinates, island.centroid()) :island
                            for island in r.grid.islands(threshold=1)
-                           if Utilities.get_distance(feat.feature_coordinates, island.centroid()) < 1}
+                           if Helper.get_distance(feat.feature_coordinates, island.centroid()) < 1}
 
                 if len(ss_dict) == 0:
                     g = r.grid.copy_and_clear()
@@ -780,7 +779,7 @@ class HotspotResults(object):
                       "negative": "magenta",
                       "positive": "cyan"}
         if out_dir:
-            out = Utilities.get_out_dir(out_dir)
+            out = Helper.get_out_dir(out_dir)
         else:
             out = tempfile.mkdtemp()
 
@@ -808,6 +807,12 @@ class HotspotResults(object):
             view.update_representation(component=5, isolevel=int(x), isoleveltype='value')
 
         return view
+
+
+def _sample_job(q, ):
+
+    return 0
+
 
 class Hotspots(object):
     """
@@ -869,11 +874,11 @@ class Hotspots(object):
             atom_by_distance = {}
             if len(polar_atoms) > 0:
                 for a in polar_atoms:
-                    d = Utilities.get_distance(c, a.coordinates)
+                    d = Helper.get_distance(c, a.coordinates)
                     atom_by_distance[d] = a
             else:
                 for a in molecule.atoms:
-                    d = Utilities.get_distance(c, a.coordinates)
+                    d = Helper.get_distance(c, a.coordinates)
                     atom_by_distance[d] = a
 
             greatest_distance = sorted(atom_by_distance.keys())[0]
@@ -1014,7 +1019,7 @@ class Hotspots(object):
 
             return active_coords_dic
 
-        def sample(self, molecule, probe, return_probes):
+        def sample(self, molecule, probe):
             """
             Sample the grids according to the settings
 
@@ -1061,7 +1066,6 @@ class Hotspots(object):
                                 high_scoring_probes[score].append(m)
                             except KeyError:
                                 high_scoring_probes[score] = [m]
-
 
             if self.settings.return_probes:
                 sampled_probes = []
@@ -1111,7 +1115,7 @@ class Hotspots(object):
 
     @charged_probes.setter
     def charged_probes(self, option):
-        if option is bool:
+        if type(option) is bool:
             self._charged_probes = option
         else:
             raise TypeError("Expecting a bool, got {} instead".format(type(option)))
@@ -1122,11 +1126,8 @@ class Hotspots(object):
 
     @probe_size.setter
     def probe_size(self, size):
-        if size is int:
-            if size in range(3,8):
-                self._probe_size = size
-            else:
-                raise ValueError("Probe size must be an integer between 3-7")
+        if size in range(3,8):
+            self._probe_size = size
         else:
             raise ValueError("Probe size must be an integer between 3-7")
 
@@ -1160,20 +1161,26 @@ class Hotspots(object):
 
     @cavities.setter
     def cavities(self, obj):
-        if isinstance(obj, list):
-            if isinstance(obj, Coordinates):
-                self._cavities = obj
-            elif isinstance(obj, Molecule):
-                self._cavity = [m.centre_of_geometry() for m in obj]
-            elif isinstance(obj, Cavity):
-                self._cavity = [Utilities.cavity_centroid(c) for c in obj]
-        else:
-            if isinstance(obj, Coordinates):
+        if obj is not None:
+            if isinstance(obj, list) or isinstance(obj, tuple):
+                if isinstance(obj, Coordinates):
+                    self._cavities = obj
+                elif isinstance(obj, Molecule):
+                    self._cavities = [m.centre_of_geometry() for m in obj]
+                elif isinstance(obj, Cavity):
+                    self._cavities = [Helper.cavity_centroid(c) for c in obj]
+                else:
+                    self._cavities = None
+
+            elif isinstance(obj, Coordinates):
                 self._cavities = [obj]
             elif isinstance(obj, Molecule):
-                self._cavity = [obj.centre_of_geometry()]
+                self._cavities = [obj.centre_of_geometry()]
             elif isinstance(obj, Cavity):
-                self._cavity = [Utilities.cavity_centroid(obj)]
+                self._cavities = [Helper.cavity_centroid(obj)]
+
+            else:
+                raise TypeError("Type unsupported. Hint: Cavity can be list, Coordinate, Molecule or Cavity")
 
     @property
     def nprocesses(self):
@@ -1203,12 +1210,6 @@ class Hotspots(object):
         weight superstar output by burriedness
         :return: a list of :class: `WeightedResult` instances
         """
-        if self.buriedness_method == 'ghecom':
-            self.buriedness = self.buriedness.grid
-        else:
-            self.buriedness = Grid.get_single_grid(grd_dict={s.identifier: s.buriedness for s in self.superstar_grids},
-                                                   mask=False)
-
         results = []
         for s in self.superstar_grids:
             g, b = Grid.common_grid([s.grid, s.buriedness], padding=1)
@@ -1277,8 +1278,8 @@ class Hotspots(object):
 
         probe_types = a.settings.atomic_probes.keys()
         self.superstar_grids = a.calculate(protein=self.protein,
-                                           nthreads=self.nthreads,
-                                           cavity_origins=self.cavity)
+                                           nthreads=self.nprocesses,
+                                           cavity_origins=self.cavities)
 
         print("Atomic hotspot detection complete\n")
 
@@ -1288,9 +1289,12 @@ class Hotspots(object):
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
             b = Buriedness(protein=self.protein,
                            out_grid=out_grid)
-            self.buriedness = b.calculate_buriedness()
+            self.buriedness = b.calculate_buriedness().grid
         else:
             print("    method: LIGSITE")
+            self.buriedness = Grid.get_single_grid(grd_dict={s.identifier: s.buriedness for s in self.superstar_grids},
+                                                   mask=False)
+
         self.weighted_grids = self._get_weighted_maps()
 
         print("Buriedness calcualtion complete\n")
@@ -1326,7 +1330,7 @@ class Hotspots(object):
         self.protein = protein
         self.charged_probes = charged_probes
         self.probe_size = probe_size
-        self._buriedness_method = buriedness_method
+        self.buriedness_method = buriedness_method
         self.cavities = cavities
         self.nprocesses = nprocesses
         self.sampler_settings = sampler_settings

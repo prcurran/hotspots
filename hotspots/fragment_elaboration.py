@@ -2,23 +2,19 @@
 
 import os
 from os import listdir
-from os.path import isfile, join
+
 import numpy as np
-
-from rdkit import Chem
-from rdkit.Chem import AllChem
-from rdkit.Chem import Draw
-from pprint import pprint
-from itertools import chain
-
 from ccdc import io
+from ccdc import molecule
+from ccdc.docking import Docker
+from ccdc.io import _CSDDatabaseLocator
 from ccdc.protein import Protein
+from ccdc.utilities import _private_importer
 from ccdc_internal import molecule
 from ccdc_internal.interaction import Grid
-from ccdc import molecule
-from ccdc.io import _CSDDatabaseLocator
-from ccdc.docking import Docker
-from ccdc.utilities import _private_importer
+from rdkit import Chem
+from rdkit.Chem import AllChem
+
 with _private_importer():
     import ChemicalAnalysisLib
     import ConformerGeneratorLib

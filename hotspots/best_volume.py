@@ -27,25 +27,14 @@ The main classes of the :mod:`hotspots.best_volume` module are:
     -ExtractHotspot
     -HotspotCreator
 """
-from os import mkdir
-from os.path import join, exists, dirname
-import tempfile
-import operator
-from concurrent import futures
 import copy
-
-from ccdc.io import MoleculeWriter
-from ccdc.cavity import Cavity
-
-from skimage import feature
-from scipy import optimize
-import numpy as np
-from tqdm import tqdm
+from os.path import join, dirname
 
 import hotspot_calculation # import HotspotResults, _RunSuperstar
-from atomic_hotspot_calculation import AtomicHotspot
 from grid_extension import Grid
-from utilities import Utilities
+from scipy import optimize
+from skimage import feature
+from hotspot_utilities import Helper
 
 
 class HotspotResults(hotspot_calculation.HotspotResults):
@@ -711,7 +700,7 @@ class Extractor(object):
         """
 
         if mode == "peaks":
-            out_dir = Utilities.get_out_dir(join(out_dir))
+            out_dir = Helper.get_out_dir(join(out_dir))
             pymol_out = 'from pymol import cmd\nfrom pymol.cgo import *\n'
             for i, peak in enumerate(self.peaks):
                 score = "{0:.2f}".format(self.hotspot_result.super_grids["apolar"].value_at_point(peak))
@@ -726,7 +715,7 @@ class Extractor(object):
                 pymol_file.write(pymol_out)
 
         elif mode == "best_islands":
-            out_dir = Utilities.get_out_dir(join(out_dir, "best_islands"))
+            out_dir = Helper.get_out_dir(join(out_dir, "best_islands"))
             pymol_out = 'from pymol import cmd\nfrom pymol.cgo import *\n'
             thresholds = []
             for i, extracted in enumerate(self.extracted_hotspots):

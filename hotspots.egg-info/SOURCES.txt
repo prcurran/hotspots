@@ -1,0 +1,17 @@
+MANIFEST.in
+README.md
+hotspots/__init__.py
+hotspots/atomic_hotspot_calculation.py
+hotspots/best_volume.py
+hotspots/fragment_elaboration.py
+hotspots/grid_extension.py
+hotspots/hotspot_calculation.py
+hotspots/hotspot_io.py
+hotspots/hotspot_pharmacophore.py
+hotspots/hotspot_utilities.py
+hotspots/template_strings.py
+hotspots.egg-info/PKG-INFO
+hotspots.egg-info/SOURCES.txt
+hotspots.egg-info/dependency_links.txt
+hotspots.egg-info/requires.txt
+hotspots.egg-info/top_level.txt
