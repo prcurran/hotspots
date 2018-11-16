@@ -29,11 +29,12 @@ from ccdc.molecule import Molecule
 from ccdc.protein import Protein
 from ccdc.utilities import PushDir
 from grid_extension import Grid
-from ipywidgets import IntSlider, interact
 from hotspot_pharmacophore import PharmacophoreModel
+from hotspot_utilities import Figures, Helper
+from ipywidgets import IntSlider, interact
+from numba import jit
 from scipy.stats import percentileofscore
 from tqdm import tqdm
-from hotspot_utilities import Figures, Helper
 
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
@@ -809,11 +810,6 @@ class HotspotResults(object):
         return view
 
 
-def _sample_job(q, ):
-
-    return 0
-
-
 class Hotspots(object):
     """
     A class for running Fragment Hotspot Map calculations
@@ -1027,7 +1023,6 @@ class Hotspots(object):
             :param probe: str, interaction type, (donor, acceptor, negative, positive, apolar)
             :return:
             """
-            high_scoring_probes = {}
             priority_atom, priority_atom_type = self.get_priority_atom(molecule)
             translate_points = self.get_translation_points(priority_atom_type)
             molecule.remove_hydrogens()
@@ -1055,6 +1050,7 @@ class Hotspots(object):
                     self.update_out_grids(score, active_coordinates_dic, translation)
 
                     if self.settings.return_probes:
+                         high_scoring_probes = {}
                         if score < 5:
                             continue
                         if score > 14:
@@ -1080,18 +1076,6 @@ class Hotspots(object):
     def __init__(self, settings=None):
         self.out_grids = {}
         self.super_grids = {}
-
-        # self.superstar_grids = None
-        # self.weighted_grids = None
-        # self.sampled_probes = {}
-        #
-        # self.protein = None
-        # self.fname = None
-        # self.probe_size = None
-        # self.charged_probes = None
-        #
-        # #self.out_dir = None
-        # self.wrk_dir = None
 
         if settings is None:
             self.sampler_settings = self._Sampler.Settings()
@@ -1148,7 +1132,7 @@ class Hotspots(object):
                 raise OSError('Ghecom is only supported on linux')
 
         elif method == 'ligsite':
-            if sys.platform == 'linux' or sys.platfrom == 'linux2':
+            if sys.platform == 'linux' or sys.platform == 'linux2':
                 print("RECOMMENDATION: you have chosen LIGSITE as buriedness method, ghecom is recommended")
             self._buriedness_method = method
 
@@ -1251,7 +1235,7 @@ class Hotspots(object):
         else:
             mol = MoleculeReader(join(probe_path, "rotate-{}_{}_flat.mol2".format(probe, self.probe_size)))[0]
 
-        probes = self.sampler.sample(mol, probe=probe, return_probes=return_probes)
+        probes = self.sampler.sample(mol, probe=probe)
 
         for pg in self.sampler.probe_grids:
             if pg.name.lower() == probe:
