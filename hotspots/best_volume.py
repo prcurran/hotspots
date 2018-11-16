@@ -363,9 +363,7 @@ class HotspotResults(hotspot_calculation.HotspotResults):
                          feat.score >= settings.cutoff]
 
             else:
-                grids = [feat.grid for feat in self.features
-                         if feat.feature_type == probe]
-
+                grids = [feat.grid for feat in features if feat.feature_type == probe]
             if len(grids) == 0:
                 grids = [location.minimal.copy_and_clear()]
 
@@ -460,7 +458,7 @@ class Extractor(object):
     A class to handle the extraction of discrete, fragment size hotspots from the original maps
     """
 
-    def __init__(self, hr, settings=None, mode="seed", volume="125", pharmacophores=True, superstar=False):
+    def __init__(self, hr, settings=None, mode="seed", volume="125", pharmacophores=True):
         """
 
         :param hr:
@@ -484,7 +482,18 @@ class Extractor(object):
             hr.super_grids = self.grid_post_process(hr.super_grids)
 
         else:
-            hr.super_grids.update({probe: g.max_value_of_neighbours()})
+            hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
+
+        try:
+            hr.super_grids["negative"] = hr.super_grids["negative"].deduplicate(hr.super_grids["acceptor"],
+                                                                                threshold=10,
+                                                                                tolerance=2)
+
+            hr.super_grids["positive"] = hr.super_grids["positive"].deduplicate(hr.super_grids["donor"],
+                                                                                threshold=10,
+                                                                                tolerance=2)
+        except KeyError:
+            pass
 
         # enable extraction to run in seeded or global modes
         if self.settings.mode == "seed":
@@ -573,16 +582,16 @@ class Extractor(object):
 
                 super_grids.update({probe: h})
 
-        try:
-            super_grids["negative"] = super_grids["negative"].deduplicate(super_grids["acceptor"],
-                                                                                threshold=10,
-                                                                                tolerance=2)
-
-            super_grids["positive"] = super_grids["positive"].deduplicate(super_grids["donor"],
-                                                                                threshold=10,
-                                                                                tolerance=2)
-        except KeyError:
-            pass
+        # try:
+        #     super_grids["negative"] = super_grids["negative"].deduplicate(super_grids["acceptor"],
+        #                                                                         threshold=10,
+        #                                                                         tolerance=2)
+        #
+        #     super_grids["positive"] = super_grids["positive"].deduplicate(super_grids["donor"],
+        #                                                                         threshold=10,
+        #                                                                         tolerance=2)
+        # except KeyError:
+        #     pass
 
         return super_grids
 
@@ -594,7 +603,6 @@ class Extractor(object):
         apolar = self.hotspot_result.super_grids["apolar"]
         peaks = feature.peak_local_max(apolar.get_array(),
                                        min_distance=self.settings.min_distance,
-                                       num_peaks_per_label=1,
                                        threshold_abs=self.settings.cutoff)
         peak_by_value = {}
         for peak in peaks:
@@ -631,6 +639,8 @@ class Extractor(object):
                                                 self.settings,
                                                 self.hotspot_result.protein,
                                                 seed=peak)
+
+                print e.threshold
                 if e.threshold > 12:
                     extracted_hotspots.append(e)
 

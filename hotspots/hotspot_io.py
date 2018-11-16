@@ -302,7 +302,7 @@ class HotspotWriter(object):
                     "donor": 'N',
                     "acceptor": 'O',
                     "negative": 'S',
-                    "positve": 'H'}
+                    "positive": 'H'}
 
         if isinstance(input, PharmacophoreModel):
             interaction_types = [atom_dic[feat.feature_type] for feat in input.features]

@@ -25,19 +25,15 @@ import pkg_resources
 from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
 from ccdc.cavity import Cavity
 from ccdc.io import MoleculeWriter, MoleculeReader
-from ccdc.molecule import Molecule
+from ccdc.molecule import Molecule, Coordinates
 from ccdc.protein import Protein
 from ccdc.utilities import PushDir
 from grid_extension import Grid
 from hotspot_pharmacophore import PharmacophoreModel
 from hotspot_utilities import Figures, Helper
 from ipywidgets import IntSlider, interact
-from numba import jit
 from scipy.stats import percentileofscore
 from tqdm import tqdm
-
-
-Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
 
 class Buriedness(object):
@@ -1148,23 +1144,28 @@ class Hotspots(object):
         if obj is not None:
             if isinstance(obj, list) or isinstance(obj, tuple):
                 if isinstance(obj, Coordinates):
-                    self._cavities = obj
+                    try:
+                        x = obj.x
+                        self._cavities = [obj]
+                    except AttributeError:
+                        self._cavities = obj
+
+                    self._cavities = [obj]
                 elif isinstance(obj, Molecule):
                     self._cavities = [m.centre_of_geometry() for m in obj]
                 elif isinstance(obj, Cavity):
                     self._cavities = [Helper.cavity_centroid(c) for c in obj]
                 else:
+                    print("WARNING! Failed to detected cavity, Atomic Hotspot detection to run on whole protein")
                     self._cavities = None
 
-            elif isinstance(obj, Coordinates):
-                self._cavities = [obj]
             elif isinstance(obj, Molecule):
                 self._cavities = [obj.centre_of_geometry()]
             elif isinstance(obj, Cavity):
                 self._cavities = [Helper.cavity_centroid(obj)]
 
             else:
-                raise TypeError("Type unsupported. Hint: Cavity can be list, Coordinate, Molecule or Cavity")
+                print("WARNING! Failed to detected cavity, Atomic Hotspot detection to run on whole protein")
 
     @property
     def nprocesses(self):
