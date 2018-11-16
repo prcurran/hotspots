@@ -20,26 +20,6 @@
     <option name="PATCH_PATH" value="" />
   </component>
   <component name="DockManager">
-    <window id="3">
-      <content type="file-editors">
-        <state>
-          <leaf>
-            <file leaf-file-name="test_hotspot_calculation.py" pinned="false" current-in-tab="true">
-              <entry file="file://Z:/unittest/test_hotspot_calculation.py">
-                <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="442">
-                    <caret line="26" column="19" selection-start-line="26" selection-start-column="19" selection-end-line="26" selection-end-column="19" />
-                    <folding>
-                      <element signature="e#0#15#0" expanded="true" />
-                    </folding>
-                  </state>
-                </provider>
-              </entry>
-            </file>
-          </leaf>
-        </state>
-      </content>
-    </window>
     <window id="2">
       <content type="file-editors">
         <state>
@@ -47,8 +27,8 @@
             <file leaf-file-name="run.py" pinned="false" current-in-tab="true">
               <entry file="file://Z:/unittest/run.py">
                 <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="578">
-                    <caret line="34" column="37" selection-start-line="34" selection-start-column="37" selection-end-line="34" selection-end-column="37" />
+                  <state relative-caret-position="697">
+                    <caret line="41" column="19" selection-start-line="41" selection-start-column="19" selection-end-line="41" selection-end-column="19" />
                     <folding>
                       <element signature="e#0#49#0" expanded="true" />
                     </folding>
@@ -70,8 +50,8 @@
       <file leaf-file-name="hotspot_calculation.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2545">
-              <caret line="1083" column="0" selection-start-line="1083" selection-start-column="0" selection-end-line="1083" selection-end-column="0" />
+            <state relative-caret-position="90">
+              <caret line="1017" column="12" selection-start-line="1017" selection-start-column="12" selection-end-line="1017" selection-end-column="12" />
               <folding>
                 <element signature="e#299#346#0" expanded="true" />
               </folding>
@@ -217,8 +197,8 @@
         <option value="$PROJECT_DIR$/hotspots/hotspot_utilities.py" />
         <option value="$PROJECT_DIR$/hotspots/grid_extension.py" />
         <option value="$USER_HOME$/Desktop/ntest.py" />
-        <option value="Z:/unittest/run.py" />
         <option value="$PROJECT_DIR$/hotspots/hotspot_calculation.py" />
+        <option value="Z:/unittest/run.py" />
       </list>
     </option>
   </component>
@@ -1006,8 +986,8 @@
     </entry>
     <entry file="file://Z:/unittest/run.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="578">
-          <caret line="34" column="37" selection-start-line="34" selection-start-column="37" selection-end-line="34" selection-end-column="37" />
+        <state relative-caret-position="697">
+          <caret line="41" column="19" selection-start-line="41" selection-start-column="19" selection-end-line="41" selection-end-column="19" />
           <folding>
             <element signature="e#0#49#0" expanded="true" />
           </folding>
@@ -1016,8 +996,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2545">
-          <caret line="1083" column="0" selection-start-line="1083" selection-start-column="0" selection-end-line="1083" selection-end-column="0" />
+        <state relative-caret-position="90">
+          <caret line="1017" column="12" selection-start-line="1017" selection-start-column="12" selection-end-line="1017" selection-end-column="12" />
           <folding>
             <element signature="e#299#346#0" expanded="true" />
           </folding>

@@ -1050,7 +1050,7 @@ class Hotspots(object):
                     self.update_out_grids(score, active_coordinates_dic, translation)
 
                     if self.settings.return_probes:
-                         high_scoring_probes = {}
+                        high_scoring_probes = {}
                         if score < 5:
                             continue
                         if score > 14:
