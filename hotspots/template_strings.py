@@ -209,33 +209,26 @@ if dirpath:
 
 for t in threshold_list:
     for i in range(len(grids)):
-        cmd.load(r'%s'%(gfiles[i]), '%s_%s'%(grids[i], str(num)))
-        cmd.isosurface('surface_%s_%s_%s'%(grids[i], t, num), '%s_%s'%(grids[i], num), t)
-        cmd.set('transparency', surf_transparency, 'surface_%s_%s_%s'%(grids[i], t, num))
-        cmd.color(colour_dict['%s'%(grids[i])], 'surface_%s_%s_%s'%(grids[i], t, num))
-    cmd.group('threshold_%s'%(t), members = 'surface_apolar_%s_%s'%(t, num))
-    cmd.group('threshold_%s'%(t), members = 'surface_donor_%s_%s'%(t, num))
-    cmd.group('threshold_%s'%(t), members = 'surface_acceptor_%s_%s'%(t, num))
-    cmd.group('threshold_%s'%(t), members = 'label_threshold_%s'%(t))
+        try:
+            cmd.load(r'%s'%(gfiles[i]), '%s_%s'%(grids[i], str(num)))
+            cmd.isosurface('surface_%s_%s_%s'%(grids[i], t, num), '%s_%s'%(grids[i], num), t)
+            cmd.set('transparency', surf_transparency, 'surface_%s_%s_%s'%(grids[i], t, num))
+            cmd.color(colour_dict['%s'%(grids[i])], 'surface_%s_%s_%s'%(grids[i], t, num))
+            cmd.group('threshold_%s'%(t), members = 'surface_%s_%s_%s'%(grids[i],t, num))
+            cmd.group('threshold_%s' % (t), members='label_threshold_%s' % (t))
+        except:
+            continue
+
 
 
     try:
-        cmd.group('threshold_%s'%(t), members = 'surface_negative_%s_%s'%(t, num))
-        cmd.group('threshold_%s'%(t), members = 'surface_positive_%s_%s'%(t, num))
-
+        cmd.group('hotspot_%s' % (num), members='threshold_%s' % (t))
     except:
         continue
-
-    cmd.group('hotspot_%s'%(num), members= 'threshold_%s'%(t))
-    cmd.group('hotspot_%s'%(num), members = 'apolar_%s'%(num))
-    cmd.group('hotspot_%s'%(num), members = 'donor_%s'%(num))
-    cmd.group('hotspot_%s'%(num), members = 'acceptor_%s'%(num))
-    try:
-        cmd.group('hotspot_%s'%(num), members = 'negative_%s'%(num))
-        cmd.group('hotspot_%s'%(num), members = 'positive_%s'%(num))
-
-    except:
-        continue
+    
+    for g in grids:
+        
+        cmd.group('hotspot_%s' % (num), members='%s_%s' % (g,num))
 
 """.format(threshold,
            gfiles,
