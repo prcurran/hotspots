@@ -27,7 +27,7 @@ The main classes of the :mod:`hotspots.best_volume` module are:
     -ExtractHotspot
     -HotspotCreator
 """
-import copy
+from __future__ import print_function
 from os.path import join, dirname
 
 import hotspot_calculation # import HotspotResults, _RunSuperstar
@@ -45,7 +45,8 @@ class HotspotResults(hotspot_calculation.HotspotResults):
         """
         A class to handle the optimisation operations
         """
-        def __init__(self, mask, settings):
+        def __init__(self, mask, settings, peak=None):
+            self.peak = peak
             self.mask = mask
             self.settings = settings
 
@@ -56,13 +57,15 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             :param threshold:
             :return: int
             """
-            island = self.mask.get_best_island(threshold, mode="score")
+            island = self.mask.get_best_island(threshold, mode="score", peak=self.peak)
             if island is None:
                 return 999999
             points = (island > threshold).count_grid()
-            padding = self.settings.padding_factor * self.settings.num_gp
-
-            return abs((self.settings.num_gp + padding) - points)
+            if self.peak:
+                padding = self.settings.padding_factor * self.settings.num_gp
+                return abs((self.settings.num_gp + padding) - points)
+            else:
+                return abs(self.settings.num_gp - points)
 
         def _count_grid_points(self, threshold):
             """
@@ -80,8 +83,8 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             :param threshold: float, island threshold
             :return:
             """
-            self.top_island = self.mask.get_best_island(threshold=threshold, mode="score")
-            new_threshold = optimize.fminbound(self._count_grid_points, 0, 30, xtol=0.025, disp=1)
+            self.top_island = self.mask.get_best_island(threshold=threshold, mode="score", peak=self.peak)
+            new_threshold = optimize.fminbound(self._count_grid_points, 0, 30, xtol=0.025)
             best_island = (self.top_island > new_threshold) * self.top_island
 
             return new_threshold, best_island
@@ -91,11 +94,11 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             Takes the input mask and finds the island threshold which returns the desired volume
             :return:
             """
-            threshold = optimize.fminbound(self._count_island_points, 0, 30, xtol=0.025, disp=1)
+            threshold = optimize.fminbound(self._count_island_points, 0, 30, xtol=0.025)
             if threshold > 29:
                 threshold = 1
             new_threshold, best_island = self._reselect_points(threshold=threshold)
-            print "target = {}, actual = {}".format(self.settings.num_gp, best_island.count_grid())
+            print("target = {}, actual = {}".format(self.settings.num_gp, best_island.count_grid()))
 
             return new_threshold, best_island
 
@@ -171,27 +174,12 @@ class HotspotResults(hotspot_calculation.HotspotResults):
         :return:
         """
 
-        blank = single_grid.copy_and_clear()
-        if settings.mode == "seed":
-            # seed_value = single_grid.value_at_point(seed)
-
-            sphere = copy.copy(blank)
-            sphere.set_sphere(point=seed,
-                              radius=settings.search_radius,
-                              value=1,
-                              scaling='None'
-                              )
-            mask = single_grid * sphere
-
-        else:
-            mask = single_grid
-
-        optimiser = HotspotResults.Optimiser(mask=mask, settings=settings)
+        mask = single_grid
+        optimiser = HotspotResults.Optimiser(mask=mask, settings=settings, peak=seed)
         threshold, best_island = optimiser.optimize_island_threshold()
 
         location, features = HotspotResults.get_interaction_type(mask_dic, best_island, threshold, settings)
         grd_dict = HotspotResults.get_grid_dict(location, features, settings)
-
 
         hr = HotspotResults(super_grids=grd_dict, protein=prot)
         hr.threshold = threshold
@@ -465,7 +453,7 @@ class Extractor(object):
         :param out_dir:
         :param settings:
         """
-        print "Initialise Extractor"
+        print("Initialise Extractor")
         self.hotspot_result = hr
         if settings is None:
             self.settings = self.Settings()
@@ -497,22 +485,30 @@ class Extractor(object):
 
         # enable extraction to run in seeded or global modes
         if self.settings.mode == "seed":
-            print "    Mode: 'seed'"
+            print("    Mode: 'seed'")
             self._peaks = self.get_peaks()
 
         elif self.settings.mode == "global":
-            print "    Mode: 'global'"
+            print("    Mode: 'global'")
             self._peaks = None
 
         else:
             raise IOError("Mode not currently supported")
 
         # runs and ranks extraction procedure
-        print "Generate Single Grid"
+        print("Generate Single Grid")
         self._masked_dic, self._single_grid = Grid.get_single_grid(self.hotspot_result.super_grids)
         # self._large_cavities = self._get_large_cavities()
-        print "Extracting Hotspots"
+        print("Extracting Hotspots")
         self.extracted_hotspots = self._get_extracted_hotspots()
+
+        # remove HS with > 80% overlap
+        # for i, h in enumerate(self.extracted_hotspots):
+        #     for i in range(i, len(self.extracted_hotspots) + 1):
+        #         overlap = h.best_island.overlap(self.extracted_hotspots[i])
+        #         if overlap > 0.8
+
+
         self._rank_extracted_hotspots()
 
         # generate pharmacophores
@@ -530,14 +526,14 @@ class Extractor(object):
             self.cutoff = 14
             self.search_radius = int(5)
             self.mode = "seed"
-            self.padding_factor = 0.5
+            self.padding_factor = 0.25
 
             self.spacing = 0.5
 
             self.min_feature_gp = 5
             self.max_features = 10
             self.min_distance = 6
-            self.island_max_size = 20
+            self.island_max_size = 100
             self.sigma = 0.3
 
             self.drug_volume = 300
@@ -634,13 +630,14 @@ class Extractor(object):
         extracted_hotspots = []
         if self.settings.mode == "seed":
             for peak in self.peaks:
+                print(peak)
                 e = HotspotResults.from_hotspot(self.single_grid,
                                                 self.masked_dic,
                                                 self.settings,
                                                 self.hotspot_result.protein,
                                                 seed=peak)
 
-                print e.threshold
+                print(e.threshold)
                 if e.threshold > 12:
                     extracted_hotspots.append(e)
 
@@ -662,7 +659,7 @@ class Extractor(object):
         """
         hotspot_by_score = {hotspot.score: hotspot for hotspot in self.extracted_hotspots}
         score = sorted([f[0] for f in hotspot_by_score.items()], reverse=True)
-        print score
+        print(score)
 
         for i, key in enumerate(score):
             hotspot_by_score[key].rank = int(i + 1)
@@ -672,7 +669,7 @@ class Extractor(object):
 
         for i, hs in enumerate(self.extracted_hotspots):
             hs.identifier = "rank_{}".format(hs.rank)
-            print "rank", hs.rank, "score", hs.score
+            print("rank", hs.rank, "score", hs.score)
 
     def _select_cavity_grids(self, cavs):
         """get empty cavity grids"""

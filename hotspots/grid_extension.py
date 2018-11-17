@@ -234,7 +234,7 @@ class Grid(utilities.Grid):
         blank = -self.copy_and_clear()
         return reduce(operator.__and__, max_grids, blank)
 
-    def get_best_island(self, threshold, mode="count"):
+    def get_best_island(self, threshold, mode="count", peak=None):
         """
         returns the best grid island. Mode: "count" or "score"
         :param threshold: island threshold
@@ -252,24 +252,46 @@ class Grid(utilities.Grid):
             island_by_rank = {}
             if mode == "count":
                 for island in islands:
-                    g = (island > threshold) * island
-                    rank = g.count_grid()
-                    island_by_rank.update({rank: island})
+                    if peak:
+                        if island.contains_point(peak):
+                            g = (island > threshold) * island
+                            rank = g.count_grid()
+                            island_by_rank.update({rank: island})
+                        else:
+                            continue
+                    else:
+                        g = (island > threshold) * island
+                        rank = g.count_grid()
+                        island_by_rank.update({rank: island})
 
             elif mode == "score":
                 for island in islands:
-                    nx, ny, nz = island.nsteps
-                    island_points = [island.value(i, j, k)
-                                     for i in range(nx) for j in range(ny) for k in range(nz)
-                                     if island.value(i, j, k) >= threshold]
-                    rank = sum(island_points)
-                    island_by_rank.update({rank: island})
+                    if peak:
+                        if island.contains_point(peak):
+                            nx, ny, nz = island.nsteps
+                            island_points = [island.value(i, j, k)
+                                             for i in range(nx) for j in range(ny) for k in range(nz)
+                                             if island.value(i, j, k) >= threshold]
+                            rank = sum(island_points)
+                            island_by_rank.update({rank: island})
+                        else:
+                            continue
+                    else:
+                        nx, ny, nz = island.nsteps
+                        island_points = [island.value(i, j, k)
+                                         for i in range(nx) for j in range(ny) for k in range(nz)
+                                         if island.value(i, j, k) >= threshold]
+                        rank = sum(island_points)
+                        island_by_rank.update({rank: island})
 
             else:
                 raise IOError("mode not supported")
 
-            rank = sorted(island_by_rank.keys(), reverse=True)[0]
-            return island_by_rank[rank]
+            if len(island_by_rank) == 0:
+                return None
+            else:
+                rank = sorted(island_by_rank.keys(), reverse=True)[0]
+                return island_by_rank[rank]
 
     def minimal(self):
         """Reduces grid size to the minimal dimensions"""
@@ -409,6 +431,16 @@ class Grid(utilities.Grid):
             return mask_dic, reduce(operator.add, mask_dic.values(), blank)
         else:
             return reduce(operator.add, mask_dic.values(), blank)
+
+    def volume_overlap(self, g, threshold=0):
+        """
+        Will find the volume overlap between
+        :param g:
+        :param threshold:
+        :return:
+        """
+
+        return 0
 
     def value_at_coordinate(self, coordinates, tolerance=1, position=True):
         """
