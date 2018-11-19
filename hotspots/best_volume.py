@@ -101,8 +101,9 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             best_island = (best_island > threshold) * best_island
 
             if best_island.count_grid() > self.settings.num_gp:
-                threshold += 0.1
+                threshold += 0.01
                 best_island = (best_island > threshold) * best_island
+
             # new_threshold, best_island = self._reselect_points(threshold=threshold)
             print("target = {}, actual = {}".format(self.settings.num_gp, best_island.count_grid()))
 
@@ -347,18 +348,19 @@ class HotspotResults(hotspot_calculation.HotspotResults):
         """
         grid_dic = {"apolar": location.minimal()}
         interaction_types = set([feat.feature_type for feat in features])
-
+        feature_by_score = {f.score: f for f in features}
+        features = [feature_by_score[s]
+                    for s in sorted([f[0] for f in feature_by_score.items()], reverse=True)][:settings.max_features - 1]
         for probe in interaction_types:
             if settings.mode == "seed":
                 grids = [feat.grid for feat in features
                          if feat.feature_type == probe and
-                         feat.rank <= settings.max_features and
                          feat.score >= settings.cutoff]
 
             else:
                 grids = [feat.grid for feat in features if feat.feature_type == probe]
             if len(grids) == 0:
-                grids = [location.minimal.copy_and_clear()]
+                grids = [location.minimal().copy_and_clear()]
 
             grid_dic.update({probe: Grid.super_grid(1, *grids)})
 

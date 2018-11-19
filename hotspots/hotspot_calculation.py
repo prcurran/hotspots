@@ -414,9 +414,8 @@ class _Scorer(object):
 
         for atom in mol.atoms:
             atom_type = self._atom_type(atom)
-            coordinates = atom.coordinates
             if atom_type == "doneptor":
-                atom_type = self._doneptor_grid(atom.coordinates, grid_type=True)
+                atom_type = self._doneptor_grid(atom.coordinates)
             atom.partial_charge = percentileofscore(adict[atom_type], atom.partial_charge)
 
         return mol
@@ -731,7 +730,6 @@ class HotspotResults(object):
         score = sorted([f[0] for f in feature_by_score.items()], reverse=True)
         for i, key in enumerate(score):
             feature_by_score[key]._rank = int(i + 1)
-
 
     def extract_pocket(self, whole_residues=False):
         '''
