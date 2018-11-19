@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fff6cdfe-3350-4e55-9a40-c20d787cf095" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/fragment_hotspot_maps.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/fragment_hotspot_maps.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hotspots/best_volume.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/best_volume.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hotspots/template_strings.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/template_strings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hotspots/hotspot_calculation.py" beforeDir="false" afterPath="$PROJECT_DIR$/hotspots/hotspot_calculation.py" afterDir="false" />
     </list>
     <ignored path=".idea/dataSources.local.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -36,14 +33,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="hotspot_calculation.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="hotspot_calculation.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="5" column="27" selection-start-line="5" selection-start-column="27" selection-end-line="5" selection-end-column="27" />
-              <folding>
-                <element signature="e#299#346#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="-7000">
+              <caret line="818" column="22" selection-start-line="818" selection-start-column="14" selection-end-line="818" selection-end-column="22" />
             </state>
           </provider>
         </entry>
@@ -93,7 +87,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="best_volume.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="best_volume.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/hotspots/best_volume.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="256">
@@ -153,6 +147,7 @@
       <find>get_best</find>
       <find>padding_factor</find>
       <find>print(&quot;targe</find>
+      <find>settings</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -188,9 +183,9 @@
         <option value="$PROJECT_DIR$/hotspots/grid_extension.py" />
         <option value="$USER_HOME$/Desktop/ntest.py" />
         <option value="Z:/unittest/run.py" />
-        <option value="$PROJECT_DIR$/hotspots/hotspot_calculation.py" />
         <option value="$PROJECT_DIR$/hotspots/template_strings.py" />
         <option value="$PROJECT_DIR$/hotspots/best_volume.py" />
+        <option value="$PROJECT_DIR$/hotspots/hotspot_calculation.py" />
       </list>
     </option>
   </component>
@@ -203,11 +198,11 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="297" />
-    <option name="y" value="168" />
-    <option name="width" value="800" />
-    <option name="height" value="526" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="-1751" />
+    <option name="y" value="-16" />
+    <option name="width" value="1440" />
+    <option name="height" value="826" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -518,7 +513,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="826" extended-state="6" />
+    <frame x="-1751" y="-16" width="1440" height="826" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32932165" />
@@ -598,9 +593,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="465">
           <caret line="31" column="28" selection-start-line="31" selection-start-column="28" selection-end-line="31" selection-end-column="28" />
-          <folding>
-            <element signature="e#299#346#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -809,16 +801,6 @@
     <entry file="file://$USER_HOME$/Desktop/ntest.py" />
     <entry file="file://Z:/unittest/test_hotspot_calculation.py" />
     <entry file="file://Z:/unittest/run.py" />
-    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" column="27" selection-start-line="5" selection-start-column="27" selection-end-line="5" selection-end-column="27" />
-          <folding>
-            <element signature="e#299#346#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/hotspots/hotspot_io.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="570">
@@ -850,6 +832,13 @@
           <folding>
             <element signature="e#1288#1325#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hotspots/hotspot_calculation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-7000">
+          <caret line="818" column="22" selection-start-line="818" selection-start-column="14" selection-end-line="818" selection-end-column="22" />
         </state>
       </provider>
     </entry>
