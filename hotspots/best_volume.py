@@ -97,11 +97,16 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             threshold = optimize.fminbound(self._count_island_points, 0, 30, xtol=0.025)
             if threshold > 29:
                 threshold = 1
-            new_threshold, best_island = self._reselect_points(threshold=threshold)
+            best_island = self.mask.get_best_island(threshold=threshold, mode='score', peak=self.peak)
+            best_island = (best_island > threshold) * best_island
+
+            if best_island.count_grid() > self.settings.num_gp:
+                threshold += 0.1
+                best_island = (best_island > threshold) * best_island
+            # new_threshold, best_island = self._reselect_points(threshold=threshold)
             print("target = {}, actual = {}".format(self.settings.num_gp, best_island.count_grid()))
 
-            return new_threshold, best_island
-
+            return threshold, best_island
 
 
     # def __init__(self, single_grid, mask_dic, settings, prot, large_cavities, superstar=None, seed=None):
@@ -526,7 +531,7 @@ class Extractor(object):
             self.cutoff = 14
             self.search_radius = int(5)
             self.mode = "seed"
-            self.padding_factor = 0.25
+            self.padding_factor = 0
 
             self.spacing = 0.5
 
@@ -568,10 +573,10 @@ class Extractor(object):
         """
         for probe, g in super_grids.items():
             if probe == "apolar":
-                super_grids.update({probe: g.gaussian(self.settings.sigma).max_value_of_neighbours()})
+                super_grids.update({probe: g.max_value_of_neighbours()})
 
             else:
-                h = g.max_value_of_neighbours().gaussian(self.settings.sigma)
+                h = g.max_value_of_neighbours()
                 h = h.limit_island_size(self.settings.island_max_size)
                 if h.bounding_box != super_grids["apolar"].bounding_box:
                     h = super_grids["apolar"].common_boundaries(g)

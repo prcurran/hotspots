@@ -1166,6 +1166,9 @@ class Hotspots(object):
 
             else:
                 print("WARNING! Failed to detected cavity, Atomic Hotspot detection to run on whole protein")
+                self._cavities = None
+        else:
+            self._cavities = None
 
     @property
     def nprocesses(self):
