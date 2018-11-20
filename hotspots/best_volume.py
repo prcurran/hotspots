@@ -84,7 +84,7 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             :return:
             """
             self.top_island = self.mask.get_best_island(threshold=threshold, mode="score", peak=self.peak)
-            new_threshold = optimize.fminbound(self._count_grid_points, 0, 30, xtol=0.025)
+            new_threshold = optimize.fminbound(self._count_grid_points, 0, 30, xtol=0.01)
             best_island = (self.top_island > new_threshold) * self.top_island
 
             return new_threshold, best_island
@@ -95,8 +95,6 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             :return:
             """
             threshold = optimize.fminbound(self._count_island_points, 0, 30, xtol=0.025)
-            if threshold > 29:
-                threshold = 1
             best_island = self.mask.get_best_island(threshold=threshold, mode='score', peak=self.peak)
             best_island = (best_island > threshold) * best_island
 
@@ -105,9 +103,12 @@ class HotspotResults(hotspot_calculation.HotspotResults):
                 best_island = (best_island > threshold) * best_island
 
             # new_threshold, best_island = self._reselect_points(threshold=threshold)
-            print("target = {}, actual = {}".format(self.settings.num_gp, best_island.count_grid()))
 
+            # if (self.settings.num_gp * 0.85) < best_island.count_grid() < (self.settings.num_gp * 1.15):
+            print("target = {}, actual = {}".format(self.settings.num_gp, best_island.count_grid()))
             return threshold, best_island
+            # else:
+            #     return None, None
 
 
     # def __init__(self, single_grid, mask_dic, settings, prot, large_cavities, superstar=None, seed=None):
@@ -183,18 +184,18 @@ class HotspotResults(hotspot_calculation.HotspotResults):
         mask = single_grid
         optimiser = HotspotResults.Optimiser(mask=mask, settings=settings, peak=seed)
         threshold, best_island = optimiser.optimize_island_threshold()
+        if best_island is not None:
+            location, features = HotspotResults.get_interaction_type(mask_dic, best_island, threshold, settings)
+            grd_dict = HotspotResults.get_grid_dict(location, features, settings)
 
-        location, features = HotspotResults.get_interaction_type(mask_dic, best_island, threshold, settings)
-        grd_dict = HotspotResults.get_grid_dict(location, features, settings)
-
-        hr = HotspotResults(super_grids=grd_dict, protein=prot)
-        hr.threshold = threshold
-        hr.best_island = best_island
-        hr.location = location
-        hr.features = features
-        hr.score = hr.score()
-        hr.rank = hr._rank_features()
-        return hr
+            hr = HotspotResults(super_grids=grd_dict, protein=prot)
+            hr.threshold = threshold
+            hr.best_island = best_island
+            hr.location = location
+            hr.features = features
+            hr.score = hr.score()
+            hr.rank = hr._rank_features()
+            return hr
 
     # def count_island_points(self, threshold):
     #     """
@@ -473,11 +474,11 @@ class Extractor(object):
         self.out_dir = None
 
         # fragment hotspot post processing
-        if self.settings.mode == "seed":
-            hr.super_grids = self.grid_post_process(hr.super_grids)
+        # if self.settings.mode == "seed":
+        #     hr.super_grids = self.grid_post_process(hr.super_grids)
 
-        else:
-            hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
+        # else:
+        hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
 
         try:
             hr.super_grids["negative"] = hr.super_grids["negative"].deduplicate(hr.super_grids["acceptor"],
@@ -505,7 +506,7 @@ class Extractor(object):
         # runs and ranks extraction procedure
         print("Generate Single Grid")
         self._masked_dic, self._single_grid = Grid.get_single_grid(self.hotspot_result.super_grids)
-        # self._large_cavities = self._get_large_cavities()
+
         print("Extracting Hotspots")
         self.extracted_hotspots = self._get_extracted_hotspots()
 
@@ -531,7 +532,6 @@ class Extractor(object):
         def __init__(self):
             self.volume = 150
             self.cutoff = 14
-            self.search_radius = int(5)
             self.mode = "seed"
             self.padding_factor = 0
 
@@ -566,37 +566,37 @@ class Extractor(object):
     def peaks(self):
         return self._peaks
 
-    def grid_post_process(self, super_grids):
-        """
-        carry out post-processing of fragment hotspot maps
-
-        Limit the size of polar islands. Keep top scores upto X grid points
-        :return:
-        """
-        for probe, g in super_grids.items():
-            if probe == "apolar":
-                super_grids.update({probe: g.max_value_of_neighbours()})
-
-            else:
-                h = g.max_value_of_neighbours()
-                h = h.limit_island_size(self.settings.island_max_size)
-                if h.bounding_box != super_grids["apolar"].bounding_box:
-                    h = super_grids["apolar"].common_boundaries(g)
-
-                super_grids.update({probe: h})
-
-        # try:
-        #     super_grids["negative"] = super_grids["negative"].deduplicate(super_grids["acceptor"],
-        #                                                                         threshold=10,
-        #                                                                         tolerance=2)
-        #
-        #     super_grids["positive"] = super_grids["positive"].deduplicate(super_grids["donor"],
-        #                                                                         threshold=10,
-        #                                                                         tolerance=2)
-        # except KeyError:
-        #     pass
-
-        return super_grids
+    # def grid_post_process(self, super_grids):
+    #     """
+    #     carry out post-processing of fragment hotspot maps
+    #
+    #     Limit the size of polar islands. Keep top scores upto X grid points
+    #     :return:
+    #     """
+    #     for probe, g in super_grids.items():
+    #         if probe == "apolar":
+    #             super_grids.update({probe: g.max_value_of_neighbours()})
+    #
+    #         else:
+    #             h = g.max_value_of_neighbours()
+    #             h = h.limit_island_size(self.settings.island_max_size)
+    #             if h.bounding_box != super_grids["apolar"].bounding_box:
+    #                 h = super_grids["apolar"].common_boundaries(g)
+    #
+    #             super_grids.update({probe: h})
+    #
+    #     # try:
+    #     #     super_grids["negative"] = super_grids["negative"].deduplicate(super_grids["acceptor"],
+    #     #                                                                         threshold=10,
+    #     #                                                                         tolerance=2)
+    #     #
+    #     #     super_grids["positive"] = super_grids["positive"].deduplicate(super_grids["donor"],
+    #     #                                                                         threshold=10,
+    #     #                                                                         tolerance=2)
+    #     # except KeyError:
+    #     #     pass
+    #
+    #     return super_grids
 
     def get_peaks(self):
         """
@@ -644,9 +644,10 @@ class Extractor(object):
                                                 self.hotspot_result.protein,
                                                 seed=peak)
 
-                print(e.threshold)
-                if e.threshold > 12:
-                    extracted_hotspots.append(e)
+                if e:
+                    if e.threshold > 12:
+                        print(e.threshold)
+                        extracted_hotspots.append(e)
 
         else:
             e = HotspotResults.from_hotspot(self.single_grid,

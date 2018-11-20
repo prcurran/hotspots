@@ -17,6 +17,9 @@ for review and development. For example, gaussian smoothing function:
 I.e. this returns a new grid object in which gaussian smoothing has been applied
 '''
 #############################################################################
+from __future__ import print_function, division
+
+import collections
 import operator
 
 import numpy as np
@@ -24,6 +27,7 @@ from ccdc import utilities
 from hotspots.hotspot_utilities import Helper
 from scipy import ndimage
 
+Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
 class Grid(utilities.Grid):
     """
@@ -192,7 +196,6 @@ class Grid(utilities.Grid):
                            or Helper.get_distance(jsland.centroid(), island.centroid()) < 4])
 
         retained_jslands = list(all_islands - bin_islands)
-        #print "Charged_islands, {}".format(len(retained_jslands))
 
         if len(retained_jslands) == 0:
             blank = major.copy_and_clear()
@@ -432,15 +435,61 @@ class Grid(utilities.Grid):
         else:
             return reduce(operator.add, mask_dic.values(), blank)
 
-    def volume_overlap(self, g, threshold=0):
+    def percentage_overlap(self, other):
         """
-        Will find the volume overlap between
-        :param g:
-        :param threshold:
+        find the percentage overlap of this grid with other.
+        :param other: `hotspots.grid_extension.Grid`
+        :return:`hotspots.grid_extension.Grid`
+        """
+        g, h = Grid.common_grid(grid_list=[self, other], padding=1)
+        vol = (g > 0).count_grid()
+        overlap = (g & h).count_grid()
+        return (overlap / vol) * 100
+
+    @staticmethod
+    def from_molecule(mol, padding=1, scaling=0.5):
+        """
+        generate a molecule mask where gp within the vdw radius of the molecule heavy atoms are set to 1.0
+        :param mol: `ccdc.molecule.Molecule`
+        :param padding: int
+        :param scaling: float
+        :return: `hotspots.grid_extension.Grid`
+        """
+        x = set()
+        y = set()
+        z = set()
+        for a in mol.atoms:
+            x.add(a.coordinates.x)
+            y.add(a.coordinates.y)
+            z.add(a.coordinates.z)
+        origin = Coordinates(x=round(min(x) - padding),
+                             y=round(min(y) - padding),
+                             z=round(min(z) - padding))
+
+        far_corner = Coordinates(x=round(max(x) + padding),
+                                 y=round(max(y) + padding),
+                                 z=round(max(z) + padding))
+
+        g = Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0, _grid=None)
+        for a in mol.heavy_atoms:
+            g.set_sphere(point=a.coordinates,
+                         radius=a.vdw_radius * scaling,
+                         value=1,
+                         scaling='None')
+        return g > 0.1
+
+    @staticmethod
+    def grow(inner, template, percentile=60):
+        """
+        experimental
+        Dilates grid to the points in the top percentile of the template
+        :param template:
         :return:
         """
-
-        return 0
+        expand = inner.max_value_of_neighbours() > 0.2
+        outer = expand.__sub__(inner) * template
+        threshold = np.percentile(a=outer.grid_values(threshold=1), q=int(percentile))
+        return inner.__add__(outer > threshold)
 
     def value_at_coordinate(self, coordinates, tolerance=1, position=True):
         """
