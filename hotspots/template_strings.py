@@ -163,6 +163,7 @@ cmd.show("cartoon", "protein")
 cmd.set("surface_cavity_mode", 1)
 cmd.show("surface", "protein")
 cmd.set("surface_trim_factor", {})
+cmd.set('transparency', 0.5, "protein")
     """.format(settings.surface_trim_factor)
 
     return out_str

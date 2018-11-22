@@ -24,6 +24,7 @@ The main classes of the :mod:`hotspots.io` module are:
 TO DO:
 
 """
+from __future__ import print_function
 import zipfile
 from os import listdir, walk
 from os.path import splitext, join, basename, dirname, isdir
@@ -66,7 +67,7 @@ class HotspotWriter(object):
             # grid
             self.isosurface_threshold=[10, 14, 17]
             self.grids = None
-            self.transparency = 0.7
+            self.transparency = 0.2
             self.grid_labels = True
             self.supported_grids = [".grd", ".ccp4", ".acnt"]
 
@@ -88,14 +89,14 @@ class HotspotWriter(object):
             self.settings.grid_extension = grid_extension
         else:
             self.settings.grid_extension = ".grd"
-            print "WARNING: Invalid grid file format provided. Default: '.grd' will be used"
+            print("WARNING: Invalid grid file format provided. Default: '.grd' will be used")
 
         self.settings.visualisation = visualisation
         if visualisation == "ngl":
             self.settings.visualisation = visualisation
             if grid_extension != ".ccp4":
                 self.settings.grid_extension = ".ccp4"
-                print "WARNING: Grids must be .ccp4 format for visualisation with NGLViewer"
+                print("WARNING: Grids must be .ccp4 format for visualisation with NGLViewer")
 
         self.path = path
         self.zipped = zip_results
@@ -105,7 +106,7 @@ class HotspotWriter(object):
 
     def __exit__(self, type, value, traceback):
         if traceback:
-            print traceback
+            print(traceback)
 
     def write(self, hr):
         """hr result can be instance or list"""
@@ -298,6 +299,12 @@ class HotspotWriter(object):
         :param input:
         :return:
         """
+        min_size_dict = {"apolar": 40,
+                         "donor": 15,
+                         "acceptor": 15,
+                         "negative": 15,
+                         "positive": 15}
+
         atom_dic = {"apolar": 'C',
                     "donor": 'N',
                     "acceptor": 'O',
@@ -310,21 +317,21 @@ class HotspotWriter(object):
             scores = [feat.score for feat in input.features]
 
         elif isinstance(input, dict):
-            if threshold == None:
+            if not threshold:
                 pass
-
             else:
                 interaction_types = []
                 coordinates = []
                 scores = []
                 for p, g in input.items():
                     for island in g.islands(threshold=threshold):
-                        interaction_types.append(atom_dic[p])
-                        coordinates.append(island.centroid())
-                        scores.append(island.grid_score(threshold=threshold, percentile=50))
+                        if island.count_grid() > min_size_dict[p]:
+                            interaction_types.append(atom_dic[p])
+                            coordinates.append(island.centroid())
+                            scores.append(island.grid_score(threshold=threshold, percentile=50))
 
         else:
-            print "object not supported"
+            print("object not supported")
 
         mol = Molecule(identifier = "pharmacophore_model")
 
@@ -383,7 +390,7 @@ class HotspotReader(object):
         pfiles = [f for f in self._files if splitext(f)[1] == ".pdb"]
 
         if len(pfiles) > 1:
-            print "WARNING! {} has been used as default protein".format(join(base, "protein.pdb"))
+            print("WARNING! {} has been used as default protein".format(join(base, "protein.pdb")))
             pfiles = [p for p in self._files if f =="protein.pdb"]
 
         self.protein = Protein.from_file(join(self._base, pfiles[0]))

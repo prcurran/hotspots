@@ -398,6 +398,15 @@ class Grid(utilities.Grid):
         out = [Grid.super_grid(padding, g, out_g) for g in grid_list]
         return out
 
+    def inverse_single_grid(self, mask_dic):
+        """
+        from a single grid, uses mask_dic to return separated grids divide by interaction type
+        :param mask_dic: dict
+        :return: dict
+        """
+        sg = mask_dic["apolar"].common_boundaries(self)
+        return {probe: grid * (grid & sg) for probe, grid in mask_dic.items()}
+
     @staticmethod
     def get_single_grid(grd_dict, mask=True):
         """
@@ -447,7 +456,7 @@ class Grid(utilities.Grid):
         return (overlap / vol) * 100
 
     @staticmethod
-    def from_molecule(mol, padding=1, scaling=0.5):
+    def from_molecule(mol, scaling=1):
         """
         generate a molecule mask where gp within the vdw radius of the molecule heavy atoms are set to 1.0
         :param mol: `ccdc.molecule.Molecule`
@@ -455,13 +464,30 @@ class Grid(utilities.Grid):
         :param scaling: float
         :return: `hotspots.grid_extension.Grid`
         """
+        g = Grid.initalise_grid(coords=mol.atoms)
+        for a in mol.heavy_atoms:
+            g.set_sphere(point=a.coordinates,
+                         radius=a.vdw_radius * scaling,
+                         value=1,
+                         scaling='None')
+        return g > 0.1
+
+    @staticmethod
+    def initalise_grid(coords, padding=1):
+        """
+        creates a fresh grid using a list of coordinates to define the grid limits
+        :param coords: list
+        :param padding: int, extra spacing added to grid limits
+        :return:
+        """
         x = set()
         y = set()
         z = set()
-        for a in mol.atoms:
-            x.add(a.coordinates.x)
-            y.add(a.coordinates.y)
-            z.add(a.coordinates.z)
+        for c in coords:
+            x.add(c.coordinates.x)
+            y.add(c.coordinates.y)
+            z.add(c.coordinates.z)
+
         origin = Coordinates(x=round(min(x) - padding),
                              y=round(min(y) - padding),
                              z=round(min(z) - padding))
@@ -470,13 +496,7 @@ class Grid(utilities.Grid):
                                  y=round(max(y) + padding),
                                  z=round(max(z) + padding))
 
-        g = Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0, _grid=None)
-        for a in mol.heavy_atoms:
-            g.set_sphere(point=a.coordinates,
-                         radius=a.vdw_radius * scaling,
-                         value=1,
-                         scaling='None')
-        return g > 0.1
+        return Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0, _grid=None)
 
     @staticmethod
     def grow(inner, template, percentile=60):
@@ -486,7 +506,7 @@ class Grid(utilities.Grid):
         :param template:
         :return:
         """
-        expand = inner.max_value_of_neighbours() > 0.2
+        expand = inner.max_value_of_neighbours() > 0.1   # remove very small values
         outer = expand.__sub__(inner) * template
         threshold = np.percentile(a=outer.grid_values(threshold=1), q=int(percentile))
         return inner.__add__(outer > threshold)

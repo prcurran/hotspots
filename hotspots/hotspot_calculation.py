@@ -8,7 +8,6 @@ More information about the fragment hotspot maps method is available from:
 """
 from __future__ import print_function, division
 
-import collections
 import copy
 import multiprocessing
 import operator
@@ -19,7 +18,6 @@ import time
 from os import system, environ
 from os.path import join
 
-import nglview as nv
 import numpy as np
 import pkg_resources
 from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
@@ -31,7 +29,6 @@ from ccdc.utilities import PushDir
 from grid_extension import Grid
 from hotspot_pharmacophore import PharmacophoreModel
 from hotspot_utilities import Figures, Helper
-from ipywidgets import IntSlider, interact
 from scipy.stats import percentileofscore
 from tqdm import tqdm
 
@@ -59,7 +56,12 @@ class Buriedness(object):
             self.out_name = join(self.working_directory, "ghecom_out.pdb")
 
     def __init__(self, protein, out_grid, settings=None):
-        """"""
+        """
+        initialises buriedness calculation settings
+        :param protein: `ccdc.protein.Protein`
+        :param out_grid: `hotspots.grid_extension.Grid`
+        :param settings: `hotspots.hotspot_calculation.Buriedness.Settings`
+        """
 
         if settings is None:
             settings = self.Settings()
@@ -70,8 +72,7 @@ class Buriedness(object):
 
     def calculate_buriedness(self):
         """
-        runs ghecom in temporary directory
-
+        uses system call to execute cmd line buriedness calculation (using ghecom)
         :return: a :class: `GhecomResult` instance
         """
 
@@ -96,7 +97,7 @@ class Buriedness(object):
 
 class BuriednessResult(object):
     """
-    class to store a Ghecom result
+    class to handle the buriedness calculation result
     """
 
     def __init__(self, settings):
@@ -104,36 +105,14 @@ class BuriednessResult(object):
         if self.settings.out_grid:
             self.grid = self.settings.out_grid
         else:
-            self.grid = self._initalise_grid(padding=1)
+            self.grid = Grid.initalise_grid(self.settings.protein.atoms, padding=2)
         self.update_grid()
-
-    def _initalise_grid(self, padding=1):
-        """
-        install grid over protein to hold scores
-        :param padding: value of buffer added to coordinate extremities
-        :return: a `ccdc.utilities.Grid` instance
-        """
-
-        x = []
-        y = []
-        z = []
-
-        for atm in self.protein.atoms:
-            x.append(atm.coordinates.x)
-            y.append(atm.coordinates.y)
-            z.append(atm.coordinates.z)
-
-        bl = (min(x) - padding, min(y) - padding, min(z) - padding)
-        tr = (max(x) + padding, max(y) + padding, max(z) + padding)
-
-        return Grid(origin=bl, far_corner=tr, spacing=0.5)
 
     def update_grid(self):
         """
-        update initialised grid with ghecom values
+        write buriedness values to empty grid
         :return: None
         """
-
         lines = Helper.get_lines_from_file(self.settings.out_name)
         for line in lines:
             if line.startswith("HETATM"):
@@ -149,7 +128,6 @@ class _WeightedResult(object):
     """
     class to hold weighted grids
     """
-
     def __init__(self, identifier, grid):
         self.identifier = identifier
         self.grid = grid
@@ -768,6 +746,9 @@ class HotspotResults(object):
         :param out_dir:
         :return:
         """
+        import nglview as nv
+        from ipywidgets import IntSlider, interact
+
         color_dict = {"apolar": "yellow",
                       "donor": "blue",
                       "acceptor": "red",
@@ -1149,9 +1130,9 @@ class Hotspots(object):
                         self._cavities = obj
 
                     self._cavities = [obj]
-                elif isinstance(obj, Molecule):
+                elif isinstance(obj[0], Molecule):
                     self._cavities = [m.centre_of_geometry() for m in obj]
-                elif isinstance(obj, Cavity):
+                elif isinstance(obj[0], Cavity):
                     self._cavities = [Helper.cavity_centroid(c) for c in obj]
                 else:
                     print("WARNING! Failed to detected cavity, Atomic Hotspot detection to run on whole protein")
