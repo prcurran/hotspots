@@ -1,1 +1,1 @@
-include fragment_hotspot_maps/probes/*.mol2
+include hotspots/probes/*.mol2

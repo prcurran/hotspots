@@ -7,8 +7,10 @@ print find_packages()
 
 setup(
     name="hotspots",
-    authors="Chris Radoux, Peter Curran",
+    author="Chris Radoux, Peter Curran",
+    author_email="pcurran@ccdc.cam.ac.uk",
     version="0.1",
+    url="https://github.com/prcurran/fragment_hotspot_maps",
     packages=find_packages(),
     include_package_data=True,
     # scripts=['src/run_hotspot.py'],

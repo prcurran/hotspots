@@ -30,13 +30,13 @@ def main(argv=None):
     parser.add_argument('--outdir', default='.')
     args = parser.parse_args(argv)
 
-    zf_name = os.path.join(args.outdir, 'fragment-hotspot-maps' + version + '.zip')
+    zf_name = os.path.join(args.outdir, 'hotspots' + version + '_development' + '.zip')
     zf = zipfile.ZipFile(zf_name, mode='w')
     try:
         for example_file in itertools.chain(
-                glob.glob(os.path.join('hotspots', '*')),
-                glob.glob(os.path.join('hotspots','src',  '*')),
-                glob.glob(os.path.join('hotspots', 'probes'))):
+                glob.glob('setup.py'),
+                glob.glob(os.path.join('hotspots', '*.py')),
+                glob.glob(os.path.join('hotspots', 'probes', '*'))):
             zf.write(example_file, compress_type=compression)
     finally:
         print('Done')
