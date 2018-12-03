@@ -35,7 +35,7 @@ def main(argv=None):
     try:
         for example_file in itertools.chain(
                 glob.glob('setup.py'),
-				glob.glob('README.md'),
+                glob.glob('README.md'),
                 glob.glob(os.path.join('hotspots', '*.py')),
                 glob.glob(os.path.join('hotspots', 'probes', '*'))):
             zf.write(example_file, compress_type=compression)
