@@ -1,5 +1,9 @@
 numpy>=1.9
+<<<<<<< HEAD
 csd-python-api>=2.0
+=======
+csd-python-api>=2.0.0
+>>>>>>> c81c0afe8b8693c08709663e8506bf7a88046346
 matplotlib
 scipy
 sklearn

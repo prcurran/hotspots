@@ -7,8 +7,10 @@ print find_packages()
 
 setup(
     name="hotspots",
-    authors="Chris Radoux, Peter Curran",
+    author="Chris Radoux, Peter Curran",
+    author_email="pcurran@ccdc.cam.ac.uk",
     version="0.1",
+    url="https://github.com/prcurran/fragment_hotspot_maps",
     packages=find_packages(),
     include_package_data=True,
     # scripts=['src/run_hotspot.py'],
@@ -16,7 +18,7 @@ setup(
     long_description_content_type="text/markdown",
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
-    install_requires=['numpy>=1.9', 'csd-python-api>=2.0', 'matplotlib', 'scipy', 'sklearn', 'scikit-image', 'pandas',
+    install_requires=['numpy>=1.9', 'csd-python-api>=2.0.0', 'matplotlib', 'scipy', 'sklearn', 'scikit-image', 'pandas',
                       'futures', 'cython', 'tqdm', 'nglview'],
     package_data={
         # If any package contains *.txt or *.rst files, include them:

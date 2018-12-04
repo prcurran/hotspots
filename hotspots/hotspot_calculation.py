@@ -275,9 +275,6 @@ class _Scorer(object):
         elif isinstance(object, Molecule):
             self._scored_object = self.score_molecule()
 
-            values = [a.partial_charge for a in self.scored_object.heavy_atoms]
-            self._score = self._geometric_mean(values=values)
-
         elif isinstance(object, Cavity):
             self._scored_object = self.score_cavity()
 
@@ -290,10 +287,6 @@ class _Scorer(object):
     @property
     def scored_object(self):
         return self._scored_object
-
-    @property
-    def score(self):
-        return self._score
 
     def score_protein(self):
         """
@@ -415,12 +408,6 @@ class _Scorer(object):
         d = dict(zip(scores, ["donor", "acceptor"]))
         return d[max(d.keys())]
 
-
-    @staticmethod
-    def _geometric_mean(values):
-        '''Calculate geometric mean of scores'''
-        return reduce(operator.__mul__, values, 1.0) ** (1. / len(values))
-
     @staticmethod
     def _atom_type(atom):
         """
@@ -526,7 +513,7 @@ class HotspotResults(object):
                         for i in range(nx) for j in range(ny) for k in range(nz)
                         if self.grid.value(i, j, k) > 0]) / self.count
 
-    def score(self, obj=None, return_value=False, tolerance=2):
+    def score(self, obj=None, tolerance=2):
         """
         Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores
 
@@ -536,13 +523,8 @@ class HotspotResults(object):
 
         TODO: Complete this docstring
         """
-        scorer = _Scorer(self, obj, tolerance)
 
-        if return_value:
-            return scorer.score, scorer.scored_object
-
-        else:
-            return scorer.scored_object
+        return _Scorer(self, obj, tolerance).scored_object
 
     def get_selectivity_map(self, other):
         """
@@ -578,22 +560,32 @@ class HotspotResults(object):
         """
         return PharmacophoreModel.from_hotspot(self.protein, self.super_grids, identifier=identifier, cutoff=cutoff)
 
-    def get_histogram(self, fpath="histogram.png", plot=True):
+    def get_map_values(self):
         """
+        get the number zero grid points for the Fragment Hotspot Result
+        :return: dict of str(probe type) by a :class:`numpy.array` (non-zero grid point scores)
+        """
+        data = Figures.histogram(self, plot)
+        return data
+
+    def get_histogram(self, fpath="histogram.png"):
+        """
+<<<<<<< HEAD
         Returns a dictiona
         :param fpath: path to output file
         :param plot:
         :return: dict
 
         TODO: Complete docstring
+=======
+        get histogram of zero grid points for the Fragment Hotspot Result
+        :param fpath: path to output file
+        :return:
+>>>>>>> c81c0afe8b8693c08709663e8506bf7a88046346
         """
-        if plot:
-            data, plt = Figures.histogram(self, plot)
-            plt.savefig(fpath)
-            return data, plt
-        else:
-            data = Figures.histogram(self, plot)
-            return data
+        data, plt = Figures.histogram(self, plot)
+        plt.savefig(fpath)
+        return data, plt
 
     # def get_2D_diagram(self, ligand, fpath="diagram.png", title=False):
     #     """
