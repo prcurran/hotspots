@@ -383,7 +383,7 @@ class PharmacophoreModel(object):
     def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5, settings=None):
         """creates a pharmacophore model from hotspot results object"""
         settings = Settings()
-        feature_list = [PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
+        feature_list = [_PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
                         for probe, g in super_grids.items()
                         for island in g.islands(cutoff) if island.count_grid() >= 5]
 
@@ -398,13 +398,13 @@ class PharmacophoreModel(object):
         with open(fname) as f:
             file = f.read().split("FEATURE_LIBRARY_END")[1]
             lines = [l for l in file.split("""\n\n""") if l != ""]
-            feature_list = [f for f in [PharmacophoreFeature.from_crossminer(feature) for feature in lines] if f != None]
+            feature_list = [f for f in [_PharmacophoreFeature.from_crossminer(feature) for feature in lines] if f != None]
 
 
         return PharmacophoreModel(settings, identifier=identifier, features=feature_list, protein=protein)
 
 
-class PharmacophoreFeature(Helper):
+class _PharmacophoreFeature(Helper):
     """
 
     A class to construct pharmacophoric models based upon fragment hotspot maps.
@@ -466,7 +466,7 @@ class PharmacophoreFeature(Helper):
 
         feature_type = probe
         if probe == "apolar":
-            score, feature_coordinates = PharmacophoreFeature.get_centroid(grid)
+            score, feature_coordinates = _PharmacophoreFeature.get_centroid(grid)
             projected = False
             projected_coordinates = None
             vector = None
@@ -474,24 +474,24 @@ class PharmacophoreFeature(Helper):
         else:
             vector = None
             projected_coordinates = None
-            score, feature_coordinates = PharmacophoreFeature.get_maxima(grid)
+            score, feature_coordinates = _PharmacophoreFeature.get_maxima(grid)
             if probe == "donor" or probe == "acceptor":
 
                 projected = True
                 if protein:
-                    projected_coordinates = PharmacophoreFeature.get_projected_coordinates(feature_type,
-                                                                                           feature_coordinates,
-                                                                                           protein,
-                                                                                           settings)
+                    projected_coordinates = _PharmacophoreFeature.get_projected_coordinates(feature_type,
+                                                                                            feature_coordinates,
+                                                                                            protein,
+                                                                                            settings)
                 else:
                     projected_coordinates = None
                     if projected_coordinates:
-                        vector = PharmacophoreFeature.get_vector(projected_coordinates, feature_coordinates)
+                        vector = _PharmacophoreFeature.get_vector(projected_coordinates, feature_coordinates)
             else:
                 projected = False
 
-        return PharmacophoreFeature(projected, feature_type, feature_coordinates, projected_coordinates, score, vector,
-                                    settings)
+        return _PharmacophoreFeature(projected, feature_type, feature_coordinates, projected_coordinates, score, vector,
+                                     settings)
 
     @staticmethod
     def from_crossminer(feature_str):
@@ -538,8 +538,8 @@ class PharmacophoreFeature(Helper):
             else:
                 raise IOError("feature format not recognised")
 
-            return PharmacophoreFeature(projected, feature_type, feature_coordinates, projected_coordinates, score, vector,
-                                        settings)
+            return _PharmacophoreFeature(projected, feature_type, feature_coordinates, projected_coordinates, score, vector,
+                                         settings)
 
     @staticmethod
     def get_vector(projected_coordinates, feature_coordinates):

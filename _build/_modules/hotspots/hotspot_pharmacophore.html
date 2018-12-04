@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fragment_hotspot_maps.pharmacophore &mdash; Fragment Hotspot Maps 0.1 documentation</title>
+  <title>hotspots.hotspot_pharmacophore &mdash; Fragment Hotspot Maps 0.1 documentation</title>
   
 
   
@@ -135,7 +135,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>fragment_hotspot_maps.pharmacophore</li>
+      <li>hotspots.hotspot_pharmacophore</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -150,7 +150,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for fragment_hotspot_maps.pharmacophore</h1><div class="highlight"><pre>
+  <h1>Source code for hotspots.hotspot_pharmacophore</h1><div class="highlight"><pre>
 <span></span><span class="c1">#</span>
 <span class="c1"># This code is Copyright (C) 2015 The Cambridge Crystallographic Data Centre</span>
 <span class="c1"># (CCDC) of 12 Union Road, Cambridge CB2 1EZ, UK and a proprietary work of CCDC.</span>
@@ -167,37 +167,36 @@
 <span class="c1">#</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">The :mod:`fragment_hotspot_maps.pharmacophore` module contains classes for the</span>
+<span class="sd">The :mod:`hotspots.pharmacophore` module contains classes for the</span>
 <span class="sd">conversion of Grid objects to pharmacophore models.</span>
 
-<span class="sd">The main classes of the :mod:`fragment_hotspot_maps.pharmacophore` module are:</span>
+<span class="sd">The main classes of the :mod:`hotspots.pharmacophore` module are:</span>
 
-<span class="sd">- :class:`fragment_hotspot_maps.pharmacophore.PharmacophoreFeature`</span>
-<span class="sd">- :class:`fragment_hotspot_maps.pharmacophore.PharmacophoreModel`</span>
+<span class="sd">- :class:`hotspots.pharmacophore.PharmacophoreFeature`</span>
+<span class="sd">- :class:`hotspots.pharmacophore.PharmacophoreModel`</span>
 
 <span class="sd">TO DO:</span>
 <span class="sd">Could this be made into and extension of the ccdc.pharmacophore :mod:</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">collections</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
-<span class="kn">from</span> <span class="nn">template_strings</span> <span class="k">import</span> <span class="n">pymol_arrow</span><span class="p">,</span> <span class="n">pymol_imports</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ccdc</span> <span class="k">import</span> <span class="n">io</span>
-<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="k">import</span> <span class="n">Atom</span><span class="p">,</span> <span class="n">Molecule</span>
 <span class="kn">from</span> <span class="nn">ccdc.descriptors</span> <span class="k">import</span> <span class="n">GeometricDescriptors</span>
+<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="k">import</span> <span class="n">Atom</span><span class="p">,</span> <span class="n">Molecule</span>
 <span class="kn">from</span> <span class="nn">ccdc.pharmacophore</span> <span class="k">import</span> <span class="n">Pharmacophore</span>
-
-<span class="kn">from</span> <span class="nn">utilities</span> <span class="k">import</span> <span class="n">Utilities</span>
 <span class="kn">from</span> <span class="nn">grid_extension</span> <span class="k">import</span> <span class="n">Grid</span>
+<span class="kn">from</span> <span class="nn">template_strings</span> <span class="k">import</span> <span class="n">pymol_arrow</span><span class="p">,</span> <span class="n">pymol_imports</span>
+<span class="kn">from</span> <span class="nn">hotspot_utilities</span> <span class="k">import</span> <span class="n">Helper</span>
 
 <span class="n">Coordinates</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Coordinates&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">])</span>
 
 
-<div class="viewcode-block" id="Settings"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.Settings">[docs]</a><span class="k">class</span> <span class="nc">Settings</span><span class="p">():</span>
+<div class="viewcode-block" id="Settings"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.Settings">[docs]</a><span class="k">class</span> <span class="nc">Settings</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    settings for the PharmacophoreFeature class</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -216,7 +215,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">binding_site_radius</span> <span class="o">=</span> <span class="mi">12</span></div>
 
 
-<div class="viewcode-block" id="PharmacophoreModel"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreModel">[docs]</a><span class="k">class</span> <span class="nc">PharmacophoreModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="PharmacophoreModel"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel">[docs]</a><span class="k">class</span> <span class="nc">PharmacophoreModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class to wrap pharmacophore features and output in various formats</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -240,10 +239,10 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;list of `fragment_hotspot_maps.pharmacophore.PharmacophoreFeature` class instances&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;list of `hotspots.pharmacophore.PharmacophoreFeature` class instances&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_features</span>
 
-<div class="viewcode-block" id="PharmacophoreModel.rank_polar_features"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreModel.rank_polar_features">[docs]</a>    <span class="k">def</span> <span class="nf">rank_polar_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_num_features</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="PharmacophoreModel.rank_polar_features"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.rank_polar_features">[docs]</a>    <span class="k">def</span> <span class="nf">rank_polar_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_num_features</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        rank polar features, sort feature list</span>
 <span class="sd">        :return:</span>
@@ -258,7 +257,7 @@
             <span class="n">ordered_features</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span> <span class="k">for</span> <span class="n">score</span><span class="p">,</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">sorted_scores</span> <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">][:</span><span class="n">max_num_features</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">ordered_features</span></div>
 
-<div class="viewcode-block" id="PharmacophoreModel.get_pymol_pharmacophore"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreModel.get_pymol_pharmacophore">[docs]</a>    <span class="k">def</span> <span class="nf">get_pymol_pharmacophore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PharmacophoreModel.get_pymol_pharmacophore"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.get_pymol_pharmacophore">[docs]</a>    <span class="k">def</span> <span class="nf">get_pymol_pharmacophore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        :return:</span>
@@ -309,7 +308,7 @@
                      <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">cmd.group(&quot;Pharmacophore_</span><span class="si">{0}</span><span class="s1">&quot;, members=&quot;Arrows_</span><span class="si">{0}</span><span class="s1">&quot;)</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pymol_out</span></div>
 
-<div class="viewcode-block" id="PharmacophoreModel.as_grid"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreModel.as_grid">[docs]</a>    <span class="k">def</span> <span class="nf">as_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<div class="viewcode-block" id="PharmacophoreModel.as_grid"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.as_grid">[docs]</a>    <span class="k">def</span> <span class="nf">as_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns features as grid</span>
 <span class="sd">        :param tolerance:</span>
@@ -355,7 +354,7 @@
 
         <span class="k">return</span> <span class="n">prot</span>
 
-<div class="viewcode-block" id="PharmacophoreModel.get_crossminer_pharmacophore"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore">[docs]</a>    <span class="k">def</span> <span class="nf">get_crossminer_pharmacophore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PharmacophoreModel.get_crossminer_pharmacophore"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore">[docs]</a>    <span class="k">def</span> <span class="nf">get_crossminer_pharmacophore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        :return:</span>
@@ -411,7 +410,7 @@
         <span class="c1">#print len(model_features)</span>
         <span class="k">return</span> <span class="n">Pharmacophore</span><span class="o">.</span><span class="n">Query</span><span class="p">(</span><span class="n">model_features</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PharmacophoreModel.write"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreModel.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+<div class="viewcode-block" id="PharmacophoreModel.write"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        given a fname, will output Pharmacophore in detected format</span>
 <span class="sd">        :param fname: str, extensions support: &quot;.cm&quot;, &quot;.py&quot;, &quot;.json&quot;, &quot;.csv&quot;, &quot;.mol2&quot;</span>
@@ -533,17 +532,17 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;&quot;&quot;</span><span class="si">{}</span><span class="s2">&quot; output file type is not currently supported.&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">extension</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="PharmacophoreModel.from_hotspot"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreModel.from_hotspot">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="PharmacophoreModel.from_hotspot"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.from_hotspot">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_hotspot</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">super_grids</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s2">&quot;id_01&quot;</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;creates a pharmacophore model from hotspot results object&quot;&quot;&quot;</span>
         <span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
-        <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">PharmacophoreFeature</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="n">island</span><span class="p">,</span> <span class="n">probe</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+        <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="n">island</span><span class="p">,</span> <span class="n">probe</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">probe</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                         <span class="k">for</span> <span class="n">island</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">cutoff</span><span class="p">)</span> <span class="k">if</span> <span class="n">island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">PharmacophoreModel</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">feature_list</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="n">protein</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PharmacophoreModel.from_file"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreModel.from_file">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="PharmacophoreModel.from_file"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.from_file">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;creates a pharmacophore model from file (only .cm supported) &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">identifier</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
@@ -552,13 +551,13 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">file</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;FEATURE_LIBRARY_END&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\n\n</span><span class="s2">&quot;&quot;&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">l</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">]</span>
-            <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">[</span><span class="n">PharmacophoreFeature</span><span class="o">.</span><span class="n">from_crossminer</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span> <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span> <span class="k">if</span> <span class="n">f</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">]</span>
+            <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">[</span><span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">from_crossminer</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span> <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span> <span class="k">if</span> <span class="n">f</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">]</span>
 
 
         <span class="k">return</span> <span class="n">PharmacophoreModel</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">feature_list</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="n">protein</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="PharmacophoreFeature"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreFeature">[docs]</a><span class="k">class</span> <span class="nc">PharmacophoreFeature</span><span class="p">(</span><span class="n">Utilities</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">_PharmacophoreFeature</span><span class="p">(</span><span class="n">Helper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    A class to construct pharmacophoric models based upon fragment hotspot maps.</span>
@@ -609,7 +608,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vector</span>
 
 
-<div class="viewcode-block" id="PharmacophoreFeature.from_hotspot"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreFeature.from_hotspot">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_hotspot</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">probe</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
@@ -620,7 +619,7 @@
 
         <span class="n">feature_type</span> <span class="o">=</span> <span class="n">probe</span>
         <span class="k">if</span> <span class="n">probe</span> <span class="o">==</span> <span class="s2">&quot;apolar&quot;</span><span class="p">:</span>
-            <span class="n">score</span><span class="p">,</span> <span class="n">feature_coordinates</span> <span class="o">=</span> <span class="n">PharmacophoreFeature</span><span class="o">.</span><span class="n">get_centroid</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+            <span class="n">score</span><span class="p">,</span> <span class="n">feature_coordinates</span> <span class="o">=</span> <span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">get_centroid</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
             <span class="n">projected</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">vector</span> <span class="o">=</span> <span class="kc">None</span>
@@ -628,26 +627,26 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">vector</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">score</span><span class="p">,</span> <span class="n">feature_coordinates</span> <span class="o">=</span> <span class="n">PharmacophoreFeature</span><span class="o">.</span><span class="n">get_maxima</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+            <span class="n">score</span><span class="p">,</span> <span class="n">feature_coordinates</span> <span class="o">=</span> <span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">get_maxima</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">probe</span> <span class="o">==</span> <span class="s2">&quot;donor&quot;</span> <span class="ow">or</span> <span class="n">probe</span> <span class="o">==</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">:</span>
 
                 <span class="n">projected</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">if</span> <span class="n">protein</span><span class="p">:</span>
-                    <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="n">PharmacophoreFeature</span><span class="o">.</span><span class="n">get_projected_coordinates</span><span class="p">(</span><span class="n">feature_type</span><span class="p">,</span>
-                                                                                           <span class="n">feature_coordinates</span><span class="p">,</span>
-                                                                                           <span class="n">protein</span><span class="p">,</span>
-                                                                                           <span class="n">settings</span><span class="p">)</span>
+                    <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">get_projected_coordinates</span><span class="p">(</span><span class="n">feature_type</span><span class="p">,</span>
+                                                                                            <span class="n">feature_coordinates</span><span class="p">,</span>
+                                                                                            <span class="n">protein</span><span class="p">,</span>
+                                                                                            <span class="n">settings</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="k">if</span> <span class="n">projected_coordinates</span><span class="p">:</span>
-                        <span class="n">vector</span> <span class="o">=</span> <span class="n">PharmacophoreFeature</span><span class="o">.</span><span class="n">get_vector</span><span class="p">(</span><span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">)</span>
+                        <span class="n">vector</span> <span class="o">=</span> <span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">get_vector</span><span class="p">(</span><span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">projected</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">return</span> <span class="n">PharmacophoreFeature</span><span class="p">(</span><span class="n">projected</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span>
-                                    <span class="n">settings</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">_PharmacophoreFeature</span><span class="p">(</span><span class="n">projected</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span>
+                                     <span class="n">settings</span><span class="p">)</span>
 
-<div class="viewcode-block" id="PharmacophoreFeature.from_crossminer"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreFeature.from_crossminer">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_crossminer</span><span class="p">(</span><span class="n">feature_str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;generates a pharmacophore model from a crossminer file&quot;&quot;&quot;</span>
         <span class="n">cm_feature_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ring&quot;</span><span class="p">:</span> <span class="s2">&quot;apolar&quot;</span><span class="p">,</span>
@@ -692,10 +691,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;feature format not recognised&quot;</span><span class="p">)</span>
 
-            <span class="k">return</span> <span class="n">PharmacophoreFeature</span><span class="p">(</span><span class="n">projected</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span>
-                                        <span class="n">settings</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="n">_PharmacophoreFeature</span><span class="p">(</span><span class="n">projected</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span>
+                                         <span class="n">settings</span><span class="p">)</span>
 
-<div class="viewcode-block" id="PharmacophoreFeature.get_vector"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreFeature.get_vector">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_vector</span><span class="p">(</span><span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        generates vector to hydrogen bonding partner on a protein.</span>
@@ -703,9 +702,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">projected_coordinates</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">feature_coordinates</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
                            <span class="n">projected_coordinates</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">feature_coordinates</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
-                           <span class="n">projected_coordinates</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">feature_coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">)</span></div>
+                           <span class="n">projected_coordinates</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">feature_coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
 
-<div class="viewcode-block" id="PharmacophoreFeature.get_projected_coordinates"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreFeature.get_projected_coordinates">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_projected_coordinates</span><span class="p">(</span><span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        for a given polar feature, the nearest h-bonding partner on the protein is located.</span>
@@ -719,7 +718,7 @@
 
         <span class="n">near_atoms</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">atm</span> <span class="ow">in</span> <span class="n">atms</span><span class="p">:</span>
-            <span class="n">dist</span> <span class="o">=</span> <span class="n">Utilities</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">atm</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">atm</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">settings</span><span class="o">.</span><span class="n">max_hbond_dist</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">near_atoms</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                     <span class="n">near_atoms</span><span class="p">[</span><span class="n">dist</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atm</span><span class="p">)</span>
@@ -733,9 +732,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">closest</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">near_atoms</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">select</span> <span class="o">=</span> <span class="n">near_atoms</span><span class="p">[</span><span class="n">closest</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">select</span><span class="o">.</span><span class="n">coordinates</span></div>
+            <span class="k">return</span> <span class="n">select</span><span class="o">.</span><span class="n">coordinates</span>
 
-<div class="viewcode-block" id="PharmacophoreFeature.get_maxima"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreFeature.get_maxima">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_maxima</span><span class="p">(</span><span class="n">grid</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        given a grid will return the max point</span>
@@ -753,9 +752,9 @@
                                            <span class="nb">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)),</span>
                                            <span class="nb">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">))</span>
                                            <span class="p">)</span>
-            <span class="k">return</span> <span class="n">max_value</span><span class="p">,</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+            <span class="k">return</span> <span class="n">max_value</span><span class="p">,</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
-<div class="viewcode-block" id="PharmacophoreFeature.get_centroid"><a class="viewcode-back" href="../../pharmacophore_api.html#fragment_hotspot_maps.pharmacophore.PharmacophoreFeature.get_centroid">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_centroid</span><span class="p">(</span><span class="n">grid</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        given a grid will return the centre of mass(mass ==HS score) and the score at that point</span>
@@ -784,7 +783,7 @@
                                       <span class="p">)</span>
         <span class="n">score</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">value_at_point</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">score</span><span class="p">),</span> <span class="n">coords</span></div></div>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">score</span><span class="p">),</span> <span class="n">coords</span>
 </pre></div>
 
            </div>

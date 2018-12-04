@@ -169,12 +169,26 @@ extracted. For example, these grids can be used to generate pharmacophores.</p>
 </dl>
 <dl class="class">
 <dt id="hotspots.best_volume.Extractor">
-<em class="property">class </em><code class="descclassname">hotspots.best_volume.</code><code class="descname">Extractor</code><span class="sig-paren">(</span><em>hr</em>, <em>settings=None</em>, <em>mode='seed'</em>, <em>volume='125'</em>, <em>pharmacophores=True</em>, <em>superstar=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">hotspots.best_volume.</code><code class="descname">Extractor</code><span class="sig-paren">(</span><em>hr</em>, <em>settings=None</em>, <em>mode='seed'</em>, <em>volume='125'</em>, <em>pharmacophores=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class to handle the extraction of discrete, fragment size hotspots from the original maps</p>
 <dl class="class">
 <dt id="hotspots.best_volume.Extractor.Settings">
 <em class="property">class </em><code class="descname">Settings</code><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor.Settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default settings for hotspot extraction</p>
+<dl class="attribute">
+<dt id="hotspots.best_volume.Extractor.Settings.num_gp">
+<code class="descname">num_gp</code><a class="headerlink" href="#hotspots.best_volume.Extractor.Settings.num_gp" title="Permalink to this definition">¶</a></dt>
+<dd><p>number of grid point for a given volume
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hotspots.best_volume.Extractor.Settings.search_radius">
+<code class="descname">search_radius</code><a class="headerlink" href="#hotspots.best_volume.Extractor.Settings.search_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>describes search radius around a given seed
+:return:</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="method">
@@ -191,14 +205,6 @@ extracted. For example, these grids can be used to generate pharmacophores.</p>
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="hotspots.best_volume.Extractor.grid_post_process">
-<code class="descname">grid_post_process</code><span class="sig-paren">(</span><em>super_grids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor.grid_post_process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor.grid_post_process" title="Permalink to this definition">¶</a></dt>
-<dd><p>carry out post-processing of fragment hotspot maps</p>
-<p>Limit the size of polar islands. Keep top scores upto X grid points
-:return:</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -207,7 +213,7 @@ extracted. For example, these grids can be used to generate pharmacophores.</p>
 <dd><p>A class to handle the construction of indivdual hotspots</p>
 <dl class="class">
 <dt id="hotspots.best_volume.HotspotResults.Optimiser">
-<em class="property">class </em><code class="descname">Optimiser</code><span class="sig-paren">(</span><em>mask</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#HotspotResults.Optimiser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.HotspotResults.Optimiser" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descname">Optimiser</code><span class="sig-paren">(</span><em>mask</em>, <em>settings</em>, <em>peak=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#HotspotResults.Optimiser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.HotspotResults.Optimiser" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class to handle the optimisation operations</p>
 <dl class="method">
 <dt id="hotspots.best_volume.HotspotResults.Optimiser.optimize_island_threshold">

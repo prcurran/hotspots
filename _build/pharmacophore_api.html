@@ -154,135 +154,73 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-hotspots.pharmacophore">
-<span id="hotspot-pharmacophore-api"></span><h1>Hotspot Pharmacophore API<a class="headerlink" href="#module-hotspots.pharmacophore" title="Permalink to this headline">¶</a></h1>
-<p>The <a class="reference internal" href="#module-hotspots.pharmacophore" title="hotspots.pharmacophore"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.pharmacophore</span></code></a> module contains classes for the
+  <div class="section" id="module-hotspots.hotspot_pharmacophore">
+<span id="hotspot-pharmacophore-api"></span><h1>Hotspot Pharmacophore API<a class="headerlink" href="#module-hotspots.hotspot_pharmacophore" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.pharmacophore</span></code> module contains classes for the
 conversion of Grid objects to pharmacophore models.</p>
-<p>The main classes of the <a class="reference internal" href="#module-hotspots.pharmacophore" title="hotspots.pharmacophore"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.pharmacophore</span></code></a> module are:</p>
+<p>The main classes of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.pharmacophore</span></code> module are:</p>
 <ul class="simple">
-<li><a class="reference internal" href="#hotspots.pharmacophore.PharmacophoreFeature" title="hotspots.pharmacophore.PharmacophoreFeature"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.pharmacophore.PharmacophoreFeature</span></code></a></li>
-<li><a class="reference internal" href="#hotspots.pharmacophore.PharmacophoreModel" title="hotspots.pharmacophore.PharmacophoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.pharmacophore.PharmacophoreModel</span></code></a></li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.pharmacophore.PharmacophoreFeature</span></code></li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.pharmacophore.PharmacophoreModel</span></code></li>
 </ul>
 <p>TO DO:
 Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 <dl class="class">
-<dt id="hotspots.pharmacophore.Coordinates">
-<em class="property">class </em><code class="descclassname">hotspots.pharmacophore.</code><code class="descname">Coordinates</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="headerlink" href="#hotspots.pharmacophore.Coordinates" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.Coordinates">
+<em class="property">class </em><code class="descclassname">hotspots.hotspot_pharmacophore.</code><code class="descname">Coordinates</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="headerlink" href="#hotspots.hotspot_pharmacophore.Coordinates" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
-<dt id="hotspots.pharmacophore.Coordinates.x">
-<code class="descname">x</code><a class="headerlink" href="#hotspots.pharmacophore.Coordinates.x" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.Coordinates.x">
+<code class="descname">x</code><a class="headerlink" href="#hotspots.hotspot_pharmacophore.Coordinates.x" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="hotspots.pharmacophore.Coordinates.y">
-<code class="descname">y</code><a class="headerlink" href="#hotspots.pharmacophore.Coordinates.y" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.Coordinates.y">
+<code class="descname">y</code><a class="headerlink" href="#hotspots.hotspot_pharmacophore.Coordinates.y" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="hotspots.pharmacophore.Coordinates.z">
-<code class="descname">z</code><a class="headerlink" href="#hotspots.pharmacophore.Coordinates.z" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.Coordinates.z">
+<code class="descname">z</code><a class="headerlink" href="#hotspots.hotspot_pharmacophore.Coordinates.z" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="hotspots.pharmacophore.PharmacophoreFeature">
-<em class="property">class </em><code class="descclassname">hotspots.pharmacophore.</code><code class="descname">PharmacophoreFeature</code><span class="sig-paren">(</span><em>projected</em>, <em>feature_type</em>, <em>feature_coordinates</em>, <em>projected_coordinates</em>, <em>score</em>, <em>vector</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreFeature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreFeature" title="Permalink to this definition">¶</a></dt>
-<dd><p>A class to construct pharmacophoric models based upon fragment hotspot maps.
-This feature is designed to be used after fragment sized hotspots have been extracted.
-(Hotspot.extract_hotspots method)</p>
-<dl class="staticmethod">
-<dt id="hotspots.pharmacophore.PharmacophoreFeature.from_crossminer">
-<em class="property">static </em><code class="descname">from_crossminer</code><span class="sig-paren">(</span><em>feature_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreFeature.from_crossminer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreFeature.from_crossminer" title="Permalink to this definition">¶</a></dt>
-<dd><p>generates a pharmacophore model from a crossminer file</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="hotspots.pharmacophore.PharmacophoreFeature.from_hotspot">
-<em class="property">static </em><code class="descname">from_hotspot</code><span class="sig-paren">(</span><em>grid</em>, <em>probe</em>, <em>protein</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreFeature.from_hotspot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreFeature.from_hotspot" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>grid</strong> – </li>
-<li><strong>probe</strong> – </li>
-<li><strong>protein</strong> – </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="hotspots.pharmacophore.PharmacophoreFeature.get_centroid">
-<em class="property">static </em><code class="descname">get_centroid</code><span class="sig-paren">(</span><em>grid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreFeature.get_centroid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreFeature.get_centroid" title="Permalink to this definition">¶</a></dt>
-<dd><p>given a grid will return the centre of mass(mass ==HS score) and the score at that point
-:return: score, float, and coords, ccdc.molecule.Coordinate</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="hotspots.pharmacophore.PharmacophoreFeature.get_maxima">
-<em class="property">static </em><code class="descname">get_maxima</code><span class="sig-paren">(</span><em>grid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreFeature.get_maxima"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreFeature.get_maxima" title="Permalink to this definition">¶</a></dt>
-<dd><p>given a grid will return the max point
-:param grid:
-:return:</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="hotspots.pharmacophore.PharmacophoreFeature.get_projected_coordinates">
-<em class="property">static </em><code class="descname">get_projected_coordinates</code><span class="sig-paren">(</span><em>feature_type</em>, <em>feature_coordinates</em>, <em>protein</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreFeature.get_projected_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreFeature.get_projected_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>for a given polar feature, the nearest h-bonding partner on the protein is located.
-:param protein: a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.protein.Protein</span></code> instance
-:return: feature_coordinates for hydrogen-bonding partner</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="hotspots.pharmacophore.PharmacophoreFeature.get_vector">
-<em class="property">static </em><code class="descname">get_vector</code><span class="sig-paren">(</span><em>projected_coordinates</em>, <em>feature_coordinates</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreFeature.get_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreFeature.get_vector" title="Permalink to this definition">¶</a></dt>
-<dd><p>generates vector to hydrogen bonding partner on a protein.
-:return: Coordinates (named tuple)</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hotspots.pharmacophore.PharmacophoreModel">
-<em class="property">class </em><code class="descclassname">hotspots.pharmacophore.</code><code class="descname">PharmacophoreModel</code><span class="sig-paren">(</span><em>settings</em>, <em>identifier=None</em>, <em>features=None</em>, <em>protein=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreModel" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.PharmacophoreModel">
+<em class="property">class </em><code class="descclassname">hotspots.hotspot_pharmacophore.</code><code class="descname">PharmacophoreModel</code><span class="sig-paren">(</span><em>settings</em>, <em>identifier=None</em>, <em>features=None</em>, <em>protein=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_pharmacophore.html#PharmacophoreModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_pharmacophore.PharmacophoreModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class to wrap pharmacophore features and output in various formats</p>
 <dl class="method">
-<dt id="hotspots.pharmacophore.PharmacophoreModel.as_grid">
-<code class="descname">as_grid</code><span class="sig-paren">(</span><em>feature_type=None</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreModel.as_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreModel.as_grid" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.PharmacophoreModel.as_grid">
+<code class="descname">as_grid</code><span class="sig-paren">(</span><em>feature_type=None</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_pharmacophore.html#PharmacophoreModel.as_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_pharmacophore.PharmacophoreModel.as_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns features as grid
 :param tolerance:
 :return:</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="hotspots.pharmacophore.PharmacophoreModel.features">
-<code class="descname">features</code><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreModel.features" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.PharmacophoreModel.features">
+<code class="descname">features</code><a class="headerlink" href="#hotspots.hotspot_pharmacophore.PharmacophoreModel.features" title="Permalink to this definition">¶</a></dt>
 <dd><p>list of <cite>hotspots.pharmacophore.PharmacophoreFeature</cite> class instances</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="hotspots.pharmacophore.PharmacophoreModel.from_file">
-<em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>fname</em>, <em>protein=None</em>, <em>identifier=None</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreModel.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreModel.from_file" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.PharmacophoreModel.from_file">
+<em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>fname</em>, <em>protein=None</em>, <em>identifier=None</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_pharmacophore.html#PharmacophoreModel.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_pharmacophore.PharmacophoreModel.from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates a pharmacophore model from file (only .cm supported)</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="hotspots.pharmacophore.PharmacophoreModel.from_hotspot">
-<em class="property">static </em><code class="descname">from_hotspot</code><span class="sig-paren">(</span><em>protein</em>, <em>super_grids</em>, <em>identifier='id_01'</em>, <em>cutoff=5</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreModel.from_hotspot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreModel.from_hotspot" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.PharmacophoreModel.from_hotspot">
+<em class="property">static </em><code class="descname">from_hotspot</code><span class="sig-paren">(</span><em>protein</em>, <em>super_grids</em>, <em>identifier='id_01'</em>, <em>cutoff=5</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_pharmacophore.html#PharmacophoreModel.from_hotspot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_pharmacophore.PharmacophoreModel.from_hotspot" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates a pharmacophore model from hotspot results object</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="hotspots.pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore">
-<code class="descname">get_crossminer_pharmacophore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreModel.get_crossminer_pharmacophore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore">
+<code class="descname">get_crossminer_pharmacophore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_pharmacophore.html#PharmacophoreModel.get_crossminer_pharmacophore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -294,8 +232,8 @@ This feature is designed to be used after fragment sized hotspots have been extr
 </dd></dl>
 
 <dl class="method">
-<dt id="hotspots.pharmacophore.PharmacophoreModel.get_pymol_pharmacophore">
-<code class="descname">get_pymol_pharmacophore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreModel.get_pymol_pharmacophore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreModel.get_pymol_pharmacophore" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.PharmacophoreModel.get_pymol_pharmacophore">
+<code class="descname">get_pymol_pharmacophore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_pharmacophore.html#PharmacophoreModel.get_pymol_pharmacophore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_pharmacophore.PharmacophoreModel.get_pymol_pharmacophore" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -307,15 +245,15 @@ This feature is designed to be used after fragment sized hotspots have been extr
 </dd></dl>
 
 <dl class="method">
-<dt id="hotspots.pharmacophore.PharmacophoreModel.rank_polar_features">
-<code class="descname">rank_polar_features</code><span class="sig-paren">(</span><em>threshold=0</em>, <em>max_num_features=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreModel.rank_polar_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreModel.rank_polar_features" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.PharmacophoreModel.rank_polar_features">
+<code class="descname">rank_polar_features</code><span class="sig-paren">(</span><em>threshold=0</em>, <em>max_num_features=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_pharmacophore.html#PharmacophoreModel.rank_polar_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_pharmacophore.PharmacophoreModel.rank_polar_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>rank polar features, sort feature list
 :return:</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="hotspots.pharmacophore.PharmacophoreModel.write">
-<code class="descname">write</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/pharmacophore.html#PharmacophoreModel.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.PharmacophoreModel.write" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.PharmacophoreModel.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_pharmacophore.html#PharmacophoreModel.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_pharmacophore.PharmacophoreModel.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>given a fname, will output Pharmacophore in detected format
 :param fname: str, extensions support: “.cm”, “.py”, “.json”, “.csv”, “.mol2”
 :return:</p>
@@ -324,8 +262,8 @@ This feature is designed to be used after fragment sized hotspots have been extr
 </dd></dl>
 
 <dl class="class">
-<dt id="hotspots.pharmacophore.Settings">
-<em class="property">class </em><code class="descclassname">hotspots.pharmacophore.</code><code class="descname">Settings</code><a class="reference internal" href="_modules/hotspots/pharmacophore.html#Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.pharmacophore.Settings" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hotspot_pharmacophore.Settings">
+<em class="property">class </em><code class="descclassname">hotspots.hotspot_pharmacophore.</code><code class="descname">Settings</code><a class="reference internal" href="_modules/hotspots/hotspot_pharmacophore.html#Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_pharmacophore.Settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>settings for the PharmacophoreFeature class</p>
 </dd></dl>
 

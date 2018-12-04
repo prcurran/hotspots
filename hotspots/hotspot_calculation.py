@@ -33,7 +33,7 @@ from scipy.stats import percentileofscore
 from tqdm import tqdm
 
 
-class Buriedness(object):
+class _Buriedness(object):
     """
     class to handle ghecom run
     """
@@ -92,10 +92,10 @@ class Buriedness(object):
 
             system(cmd)
 
-        return BuriednessResult(self.settings)
+        return _BuriednessResult(self.settings)
 
 
-class BuriednessResult(object):
+class _BuriednessResult(object):
     """
     class to handle the buriedness calculation result
     """
@@ -465,7 +465,7 @@ class HotspotResults(object):
         if pharmacophore:
             self.pharmacophore = self.get_pharmacophore_model()
 
-    class HotspotFeature(object):
+    class _HotspotFeature(object):
         """
         class to hold polar islands above threshold "features"
         purpose: enables feature ranking
@@ -529,9 +529,12 @@ class HotspotResults(object):
     def score(self, obj=None, return_value=False, tolerance=2):
         """
         Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores
+
         :param obj:
         :param return_value:
         :return:
+
+        TODO: Complete this docstring
         """
         scorer = _Scorer(self, obj, tolerance)
 
@@ -542,14 +545,16 @@ class HotspotResults(object):
             return scorer.scored_object
 
     def get_selectivity_map(self, other):
-        '''
+        """
         Generate maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
-        by the binding site of interest prior to calculation of Fragment Hotspot Maps. High scoring regions of a map
-        represent areas of favourable interaction in the target binding site, not present in off target binding site
+        by the binding site of interest prior to calculation.
 
-        :param other: a :class:`fragment_hotspots.Hotspots.HotspotResults` instance
-        :return: a :class:`fragment_hotspots.Hotspots.HotspotResults` instance
-        '''
+        High scoring regions of a map represent areas of favourable interaction in the target binding site, not
+        present in off target binding site
+
+        :param other: a :class:`hotspots.hotspot_calculation.HotspotResults` instance
+        :return: a :class:`hotspots.hotspot_calculation.HotspotResults` instance
+        """
 
         selectivity_grids = {}
         for probe in self.super_grids.keys():
@@ -563,17 +568,24 @@ class HotspotResults(object):
 
     def get_pharmacophore_model(self, identifier="id_01", cutoff=5):
         """
-        method of hotspot results object(intended to be run after extracted HS) returns PharmacophoreModel
-        :return:
+        Generates a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance from peaks in the hotspot maps
+
+
+        :param (str) identifier: Identifier for displaying multiple models at once
+        :param (float) cutoff: The score cutoff used to identify islands in the maps. One peak will be identified per
+        island
+        :return: a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance
         """
         return PharmacophoreModel.from_hotspot(self.protein, self.super_grids, identifier=identifier, cutoff=cutoff)
 
     def get_histogram(self, fpath="histogram.png", plot=True):
         """
-        get histogram data
+        Returns a dictiona
         :param fpath: path to output file
         :param plot:
-        :return:
+        :return: dict
+
+        TODO: Complete docstring
         """
         if plot:
             data, plt = Figures.histogram(self, plot)
@@ -599,6 +611,7 @@ class HotspotResults(object):
         0 = False
         1 = True
         TODO: develop a more sophicated method to evaluate elaboration potential
+        TODO: Complete docstring
         :param large_cavities:
         :return:
         """
@@ -610,7 +623,7 @@ class HotspotResults(object):
         else:
             return 1
 
-    def get_superstar_profile(self, feature_radius=1.5, nthreads=6, features=None, best_volume=None):
+    def _get_superstar_profile(self, feature_radius=1.5, nthreads=6, features=None, best_volume=None):
         """
         EXPERIMENTAL
         :return:
@@ -696,7 +709,7 @@ class HotspotResults(object):
             if len(g.islands(threshold=threshold)) > 0:
                 for island in g.islands(threshold=threshold):
                     if (island > threshold).count_grid() > min_feature_gp and probe not in excluded:
-                        f.append(HotspotResults.HotspotFeature(probe, island))
+                        f.append(HotspotResults._HotspotFeature(probe, island))
         return f
 
     def _rank_features(self):
@@ -710,12 +723,12 @@ class HotspotResults(object):
             feature_by_score[key]._rank = int(i + 1)
 
     def extract_pocket(self, whole_residues=False):
-        '''
-        Create a :class:`ccdc.Protein` containing atoms or residues that have a score
+        """
+        Create a :class:`ccdc.Protein` containing atoms or residues that have a score > 0
 
-        :param whole_residues: bool, whether to include all residue atoms if only a subset have a score > 0
+        :param bool whole_residues: whether to include all residue atoms if only a subset have a score > 0
         :return: a :class:`ccdc.Protein` instance
-        '''
+        """
         prot_scores = self.score_protein()
         pocket = self.protein.copy()
         pocket.remove_hydrogens()
@@ -739,11 +752,11 @@ class HotspotResults(object):
                 pocket.remove_atoms(residue.atoms)
         return pocket
 
-    def ngl_widget(self, out_dir=None):
+    def _ngl_widget(self, out_dir=None):
         """
         jupyter notebook --NotebookApp.iopub_data_rate_limit=10000000000.0
         creates ngl widget from hotspot. For use in ipython notebooks
-        :param out_dir:
+        :param str out_dir:
         :return:
         """
         import nglview as nv
@@ -1254,8 +1267,8 @@ class Hotspots(object):
         if self.buriedness_method == 'ghecom':
             print("    method: Ghecom")
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
-            b = Buriedness(protein=self.protein,
-                           out_grid=out_grid)
+            b = _Buriedness(protein=self.protein,
+                            out_grid=out_grid)
             self.buriedness = b.calculate_buriedness().grid
         else:
             print("    method: LIGSITE")
@@ -1283,14 +1296,15 @@ class Hotspots(object):
         """
 
         :param protein: a :class:`ccdc.protein.Protein` instance
-        :param charged_probes: bool, if True include positive and negative probes
-        :param probe_size: int, size of probe in number of heavy atoms (3-8 atoms)
-        :param buriedness_method: str, either 'ghecom' or 'ligsite'
-        :param cavities: Coordinate or `ccdc.cavity.Cavity` or `ccdc.molecule.Molecule` or list,
-        algorithm run on parsed cavity
+        :param bool charged_probes: If True include positive and negative probes
+        :param int probe_size: Size of probe in number of heavy atoms (3-8 atoms)
+        :param str buriedness_method: Either 'ghecom' or 'ligsite'
+        :param cavities: Coordinate or :class:`ccdc.cavity.Cavity` or :class:`ccdc.molecule.Molecule` or list, algorithm
+        run on parsed cavity
         :param nprocesses: int, number of CPU's used
-        :param sampler_settings: a `hotspots.Hotspot._Sampler.Settings`, holds the sampler settings
-        :return:
+        :param sampler_settings: a :class:`hotspots.Hotspot._Sampler.Settings`, holds the sampler settings
+        :return: :class:`hotspots.hotspot_calculation._Sampler.Settings`
+
         """
 
         start = time.time()

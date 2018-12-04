@@ -1,5 +1,5 @@
 Hotspot Pharmacophore API
 ************************************************************************************************************************
-.. automodule:: hotspots.pharmacophore
+.. automodule:: hotspots.hotspot_pharmacophore
    :members:
 

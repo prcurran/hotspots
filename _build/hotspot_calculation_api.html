@@ -163,95 +163,21 @@
 dx.doi.org/10.1021/acs.jmedchem.5b01980</dd>
 </dl>
 <dl class="class">
-<dt id="hotspots.hotspot_calculation.Buriedness">
-<em class="property">class </em><code class="descclassname">hotspots.hotspot_calculation.</code><code class="descname">Buriedness</code><span class="sig-paren">(</span><em>protein</em>, <em>out_grid</em>, <em>ghecom_executable</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#Buriedness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.Buriedness" title="Permalink to this definition">¶</a></dt>
-<dd><p>class to handle ghecom run</p>
-<dl class="class">
-<dt id="hotspots.hotspot_calculation.Buriedness.Settings">
-<em class="property">class </em><code class="descname">Settings</code><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#Buriedness.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.Buriedness.Settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>settings for ghecom run</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hotspots.hotspot_calculation.Buriedness.calculate_buriedness">
-<code class="descname">calculate_buriedness</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#Buriedness.calculate_buriedness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.Buriedness.calculate_buriedness" title="Permalink to this definition">¶</a></dt>
-<dd><p>runs ghecom in temporary directory</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a :class: <cite>GhecomResult</cite> instance</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hotspots.hotspot_calculation.BuriednessResult">
-<em class="property">class </em><code class="descclassname">hotspots.hotspot_calculation.</code><code class="descname">BuriednessResult</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#BuriednessResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.BuriednessResult" title="Permalink to this definition">¶</a></dt>
-<dd><p>class to store a Ghecom result</p>
-<dl class="method">
-<dt id="hotspots.hotspot_calculation.BuriednessResult.update_grid">
-<code class="descname">update_grid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#BuriednessResult.update_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.BuriednessResult.update_grid" title="Permalink to this definition">¶</a></dt>
-<dd><p>update initialised grid with ghecom values
-:return: None</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="hotspots.hotspot_calculation.HotspotResults">
 <em class="property">class </em><code class="descclassname">hotspots.hotspot_calculation.</code><code class="descname">HotspotResults</code><span class="sig-paren">(</span><em>super_grids</em>, <em>protein</em>, <em>buriedness=None</em>, <em>pharmacophore=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Hotspot_results object is returned at the end of a Hotspots calculation. It contains functions for accessing
 and using the results.</p>
-<dl class="class">
-<dt id="hotspots.hotspot_calculation.HotspotResults.HotspotFeature">
-<em class="property">class </em><code class="descname">HotspotFeature</code><span class="sig-paren">(</span><em>feature_type</em>, <em>grid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.HotspotFeature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.HotspotFeature" title="Permalink to this definition">¶</a></dt>
-<dd><p>class to hold polar islands above threshold “features”
-purpose: enables feature ranking</p>
-<dl class="method">
-<dt id="hotspots.hotspot_calculation.HotspotResults.HotspotFeature.score_feature">
-<code class="descname">score_feature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.HotspotFeature.score_feature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.HotspotFeature.score_feature" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns
-:return:</p>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="method">
 <dt id="hotspots.hotspot_calculation.HotspotResults.extract_pocket">
 <code class="descname">extract_pocket</code><span class="sig-paren">(</span><em>whole_residues=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.extract_pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.extract_pocket" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.Protein</span></code> containing atoms or residues that have a score</p>
+<dd><p>Create a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.Protein</span></code> containing atoms or residues that have a score &gt; 0</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>whole_residues</strong> – bool, whether to include all residue atoms if only a subset have a score &gt; 0</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>whole_residues</strong> (<em>bool</em>) – whether to include all residue atoms if only a subset have a score &gt; 0</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.Protein</span></code> instance</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="hotspots.hotspot_calculation.HotspotResults.get_2D_diagram">
-<code class="descname">get_2D_diagram</code><span class="sig-paren">(</span><em>ligand</em>, <em>fpath='diagram.png'</em>, <em>title=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.get_2D_diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.get_2D_diagram" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ligand</strong> – </li>
-<li><strong>fpath</strong> – </li>
-<li><strong>title</strong> – </li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
-</td>
 </tr>
 </tbody>
 </table>
@@ -264,6 +190,7 @@ purpose: enables feature ranking</p>
 0 = False
 1 = True
 TODO: develop a more sophicated method to evaluate elaboration potential
+TODO: Complete docstring
 :param large_cavities:
 :return:</p>
 </dd></dl>
@@ -271,60 +198,72 @@ TODO: develop a more sophicated method to evaluate elaboration potential
 <dl class="method">
 <dt id="hotspots.hotspot_calculation.HotspotResults.get_histogram">
 <code class="descname">get_histogram</code><span class="sig-paren">(</span><em>fpath='histogram.png'</em>, <em>plot=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.get_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.get_histogram" title="Permalink to this definition">¶</a></dt>
-<dd><p>get histogram data
+<dd><p>Returns a dictiona
 :param fpath: path to output file
 :param plot:
-:return:</p>
+:return: dict</p>
+<p>TODO: Complete docstring</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="hotspots.hotspot_calculation.HotspotResults.get_pharmacophore_model">
 <code class="descname">get_pharmacophore_model</code><span class="sig-paren">(</span><em>identifier='id_01'</em>, <em>cutoff=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.get_pharmacophore_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.get_pharmacophore_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>method of hotspot results object(intended to be run after extracted HS) returns PharmacophoreModel
-:return:</p>
+<dd><p>Generates a <a class="reference internal" href="pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel" title="hotspots.hotspot_pharmacophore.PharmacophoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hotspot_pharmacophore.PharmacophoreModel</span></code></a> instance from peaks in the hotspot maps</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>identifier</strong> (<em>(</em><em>str</em><em>)</em>) – Identifier for displaying multiple models at once</li>
+<li><strong>cutoff</strong> (<em>(</em><em>float</em><em>)</em>) – The score cutoff used to identify islands in the maps. One peak will be identified per</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>island
+:return: a <a class="reference internal" href="pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel" title="hotspots.hotspot_pharmacophore.PharmacophoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hotspot_pharmacophore.PharmacophoreModel</span></code></a> instance</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="hotspots.hotspot_calculation.HotspotResults.get_selectivity_map">
 <code class="descname">get_selectivity_map</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.get_selectivity_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.get_selectivity_map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
-by the binding site of interest prior to calculation of Fragment Hotspot Maps. High scoring regions of a map
-represent areas of favourable interaction in the target binding site, not present in off target binding site</p>
+by the binding site of interest prior to calculation.</p>
+<p>High scoring regions of a map represent areas of favourable interaction in the target binding site, not
+present in off target binding site</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">fragment_hotspots.Hotspots.HotspotResults</span></code> instance</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> – a <a class="reference internal" href="#hotspots.hotspot_calculation.HotspotResults" title="hotspots.hotspot_calculation.HotspotResults"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hotspot_calculation.HotspotResults</span></code></a> instance</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a <code class="xref py py-class docutils literal notranslate"><span class="pre">fragment_hotspots.Hotspots.HotspotResults</span></code> instance</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a <a class="reference internal" href="#hotspots.hotspot_calculation.HotspotResults" title="hotspots.hotspot_calculation.HotspotResults"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hotspot_calculation.HotspotResults</span></code></a> instance</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="hotspots.hotspot_calculation.HotspotResults.get_superstar_profile">
-<code class="descname">get_superstar_profile</code><span class="sig-paren">(</span><em>feature_radius=1.5</em>, <em>nthreads=6</em>, <em>features=None</em>, <em>best_volume=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.get_superstar_profile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.get_superstar_profile" title="Permalink to this definition">¶</a></dt>
-<dd><p>EXPERIMENTAL
-:return:</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hotspots.hotspot_calculation.HotspotResults.ngl_widget">
-<code class="descname">ngl_widget</code><span class="sig-paren">(</span><em>out_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.ngl_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.ngl_widget" title="Permalink to this definition">¶</a></dt>
-<dd><p>jupyter notebook –NotebookApp.iopub_data_rate_limit=10000000000.0
-creates ngl widget from hotspot. For use in ipython notebooks
-:param out_dir:
-:return:</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="hotspots.hotspot_calculation.HotspotResults.score">
 <code class="descname">score</code><span class="sig-paren">(</span><em>obj=None</em>, <em>return_value=False</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.score" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores
-:param obj:
-:param return_value:
-:return:</p>
+<dd><p>Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>obj</strong> – </li>
+<li><strong>return_value</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>TODO: Complete this docstring</p>
 </dd></dl>
 
 </dd></dl>
@@ -335,27 +274,26 @@ creates ngl widget from hotspot. For use in ipython notebooks
 <dd><p>A class for running Fragment Hotspot Map calculations</p>
 <dl class="method">
 <dt id="hotspots.hotspot_calculation.Hotspots.from_protein">
-<code class="descname">from_protein</code><span class="sig-paren">(</span><em>protein</em>, <em>charged_probes=False</em>, <em>probe_size=7</em>, <em>ghecom_executable=None</em>, <em>cavity=None</em>, <em>nthreads=None</em>, <em>sampler_settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#Hotspots.from_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.Hotspots.from_protein" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object</p>
-<table class="docutils field-list" frame="void" rules="none">
+<code class="descname">from_protein</code><span class="sig-paren">(</span><em>protein</em>, <em>charged_probes=False</em>, <em>probe_size=7</em>, <em>buriedness_method='ghecom'</em>, <em>cavities=None</em>, <em>nprocesses=None</em>, <em>sampler_settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#Hotspots.from_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.Hotspots.from_protein" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>prot</strong> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.protein.Protein</span></code> instance</li>
-<li><strong>out_dir</strong> – required to store ins</li>
-<li><strong>charged_probes</strong> – bool, if True include positive and negative probes</li>
-<li><strong>binding_site_origin</strong> – binding_site_origin: a tuple of three floats, giving a coordinate within the binding site</li>
-<li><strong>probe_size</strong> – nt, size of probe in number of heavy atoms (3-8 atoms)</li>
-<li><strong>ghecom_executable</strong> – str, path to ghecom executeable, if None ligsite used</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>protein</strong> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.protein.Protein</span></code> instance</li>
+<li><strong>charged_probes</strong> (<em>bool</em>) – If True include positive and negative probes</li>
+<li><strong>probe_size</strong> (<em>int</em>) – Size of probe in number of heavy atoms (3-8 atoms)</li>
+<li><strong>buriedness_method</strong> (<em>str</em>) – Either ‘ghecom’ or ‘ligsite’</li>
+<li><strong>cavities</strong> – Coordinate or <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.cavity.Cavity</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.molecule.Molecule</span></code> or list, algorithm</li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.HotspotResults</span></code> instance</p>
 </td>
 </tr>
 </tbody>
 </table>
+<p>run on parsed cavity
+:param nprocesses: int, number of CPU’s used
+:param sampler_settings: a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.Hotspot._Sampler.Settings</span></code>, holds the sampler settings
+:return: <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hotspot_calculation._Sampler.Settings</span></code></p>
 </dd></dl>
 
 </dd></dl>
