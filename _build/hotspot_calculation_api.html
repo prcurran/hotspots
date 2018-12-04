@@ -197,12 +197,28 @@ TODO: Complete docstring
 
 <dl class="method">
 <dt id="hotspots.hotspot_calculation.HotspotResults.get_histogram">
-<code class="descname">get_histogram</code><span class="sig-paren">(</span><em>fpath='histogram.png'</em>, <em>plot=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.get_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.get_histogram" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a dictiona
+<code class="descname">get_histogram</code><span class="sig-paren">(</span><em>fpath='histogram.png'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.get_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.get_histogram" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</dt>
+<dd><p class="first">Returns a dictiona
 :param fpath: path to output file
 :param plot:
 :return: dict</p>
-<p>TODO: Complete docstring</p>
+<p class="last">TODO: Complete docstring</p>
+</dd>
+</dl>
+<blockquote>
+<div>get histogram of zero grid points for the Fragment Hotspot Result
+:param fpath: path to output file
+:return:</div></blockquote>
+<p>&gt;&gt;&gt;&gt;&gt;&gt;&gt; c81c0afe8b8693c08709663e8506bf7a88046346</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.hotspot_calculation.HotspotResults.get_map_values">
+<code class="descname">get_map_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.get_map_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.get_map_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the number zero grid points for the Fragment Hotspot Result
+:return: dict of str(probe type) by a <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.array</span></code> (non-zero grid point scores)</p>
 </dd></dl>
 
 <dl class="method">
@@ -246,7 +262,7 @@ present in off target binding site</p>
 
 <dl class="method">
 <dt id="hotspots.hotspot_calculation.HotspotResults.score">
-<code class="descname">score</code><span class="sig-paren">(</span><em>obj=None</em>, <em>return_value=False</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.score" title="Permalink to this definition">¶</a></dt>
+<code class="descname">score</code><span class="sig-paren">(</span><em>obj=None</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_calculation.html#HotspotResults.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_calculation.HotspotResults.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

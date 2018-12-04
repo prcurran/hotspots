@@ -428,9 +428,6 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_scored_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_molecule</span><span class="p">()</span>
 
-            <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">partial_charge</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scored_object</span><span class="o">.</span><span class="n">heavy_atoms</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_geometric_mean</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">)</span>
-
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">Cavity</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_scored_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_cavity</span><span class="p">()</span>
 
@@ -443,10 +440,6 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">scored_object</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scored_object</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_score</span>
 
     <span class="k">def</span> <span class="nf">score_protein</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -568,12 +561,6 @@
         <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;donor&quot;</span><span class="p">,</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">]))</span>
         <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
 
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_geometric_mean</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Calculate geometric mean of scores&#39;&#39;&#39;</span>
-        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
-
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_atom_type</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -679,7 +666,7 @@
                         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ny</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nz</span><span class="p">)</span>
                         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
 
-<div class="viewcode-block" id="HotspotResults.score"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<div class="viewcode-block" id="HotspotResults.score"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores</span>
 
@@ -689,13 +676,8 @@
 
 <span class="sd">        TODO: Complete this docstring</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">scorer</span> <span class="o">=</span> <span class="n">_Scorer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">return_value</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">scorer</span><span class="o">.</span><span class="n">score</span><span class="p">,</span> <span class="n">scorer</span><span class="o">.</span><span class="n">scored_object</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">scorer</span><span class="o">.</span><span class="n">scored_object</span></div>
+        <span class="k">return</span> <span class="n">_Scorer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">)</span><span class="o">.</span><span class="n">scored_object</span></div>
 
 <div class="viewcode-block" id="HotspotResults.get_selectivity_map"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_selectivity_map">[docs]</a>    <span class="k">def</span> <span class="nf">get_selectivity_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -731,22 +713,32 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">PharmacophoreModel</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="n">cutoff</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HotspotResults.get_histogram"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_histogram">[docs]</a>    <span class="k">def</span> <span class="nf">get_histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="s2">&quot;histogram.png&quot;</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="HotspotResults.get_map_values"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_map_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_map_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get the number zero grid points for the Fragment Hotspot Result</span>
+<span class="sd">        :return: dict of str(probe type) by a :class:`numpy.array` (non-zero grid point scores)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Figures</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="HotspotResults.get_histogram"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_histogram">[docs]</a>    <span class="k">def</span> <span class="nf">get_histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="s2">&quot;histogram.png&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span>
 <span class="sd">        Returns a dictiona</span>
 <span class="sd">        :param fpath: path to output file</span>
 <span class="sd">        :param plot:</span>
 <span class="sd">        :return: dict</span>
 
 <span class="sd">        TODO: Complete docstring</span>
+<span class="sd">=======</span>
+<span class="sd">        get histogram of zero grid points for the Fragment Hotspot Result</span>
+<span class="sd">        :param fpath: path to output file</span>
+<span class="sd">        :return:</span>
+<span class="sd">&gt;&gt;&gt;&gt;&gt;&gt;&gt; c81c0afe8b8693c08709663e8506bf7a88046346</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
-            <span class="n">data</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">Figures</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">plt</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">Figures</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">data</span></div>
+        <span class="n">data</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">Figures</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">plt</span></div>
 
     <span class="c1"># def get_2D_diagram(self, ligand, fpath=&quot;diagram.png&quot;, title=False):</span>
     <span class="c1">#     &quot;&quot;&quot;</span>
