@@ -42,7 +42,31 @@ from hs_utilities import Helper, Coordinates
 
 
 
+class _Settings():
+    """
+        :param float feature_boundary_cutoff: The map score cutoff used to generate islands
+        :param float max_hbond_dist: Furthest acceptable distance for a hydrogen bonding partner (from polar feature)
+        :param float radius: Sphere radius
+        :param bool vector_on: Include interaction vector
+        :param float transparency: Set transparency of sphere
+        :param bool excluded_volume:  PETE
+        :param float binding_site_radius: PETE
+    """
 
+    def __init__(self, feature_boundary_cutoff=5, max_hbond_dist=5, radius=1.0, vector_on=False, transparency=0.6,
+                 excluded_volume=True, binding_site_radius=12):
+
+        self.feature_boundary_cutoff = feature_boundary_cutoff
+        self.max_hbond_dist = max_hbond_dist
+        self.radius = radius  # set more intelligently
+        self.transparency = transparency
+        self.excluded_volume = excluded_volume
+        self.binding_site_radius = binding_site_radius
+
+        if vector_on:
+            self.vector_on = 1
+        else:
+            self.vector_on = 0
 
 class PharmacophoreModel(object):
     """
@@ -90,7 +114,7 @@ class PharmacophoreModel(object):
         :param _features:
         """
         self.identifier = identifier
-        self._features = features
+        self.features = features
 
         self.fname = None
         self.projected_dict = {"True": ["donor", "acceptor"], "False": ["negative", "positive", "apolar"]}
@@ -399,7 +423,8 @@ class PharmacophoreModel(object):
     @staticmethod
     def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5, settings=None):
         """creates a pharmacophore model from hotspot results object"""
-        settings = Settings()
+        if settings is None:
+            settings = _Settings()
         feature_list = [_PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
                         for probe, g in super_grids.items()
                         for island in g.islands(cutoff) if island.count_grid() >= 5]
@@ -421,6 +446,7 @@ class PharmacophoreModel(object):
         return PharmacophoreModel(settings, identifier=identifier, features=feature_list, protein=protein)
 
 
+
 class _PharmacophoreFeature(Helper):
     """
 
@@ -428,6 +454,8 @@ class _PharmacophoreFeature(Helper):
     This feature is designed to be used after fragment sized hotspots have been extracted.
     (Hotspot.extract_hotspots method)
     """
+
+
 
     def __init__(self, projected, feature_type, feature_coordinates, projected_coordinates, score, vector, settings):
         """
