@@ -96,27 +96,30 @@ class PharmacophoreModel(object):
         rank polar features, sort feature list
         :return:
         """
-        apolar = [feat for feat in self.features if feat.feature_type == "apolar"][0]
-
-        score_dic = {feat.score: feat for feat in self.features if feat.feature_type != "apolar"}
-        sorted_scores = sorted(score_dic.items(), key=lambda x: x[0], reverse=True)
-
         if force_apolar:
+            apolar_dict = {feat.score: feat for feat in self.features if feat.feature_type == "apolar"}
+            top_apolar = sorted(apolar_dict.items(), key=lambda x: x[0], reverse=True)[0]
+            apolar = apolar_dict[top_apolar[0]]
+
+            score_dic = {feat.score: feat for feat in self.features if feat.feature_type != "apolar"}
+            sorted_scores = sorted(score_dic.items(), key=lambda x: x[0], reverse=True)
             max_features -= 1
             if max_features > len(self.features):
                 ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold]
             else:
                 ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold][:max_features]
 
-            return ordered_features.append(apolar)
+            ordered_features.append(apolar)
 
         else:
+            score_dic = {feat.score: feat for feat in self.features}
+            sorted_scores = sorted(score_dic.items(), key=lambda x: x[0], reverse=True)
             if max_features > len(features):
                 ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold]
             else:
                 ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold][:max_features]
 
-            return ordered_features
+        self._features = ordered_features
 
     def _get_pymol_pharmacophore(self):
         """

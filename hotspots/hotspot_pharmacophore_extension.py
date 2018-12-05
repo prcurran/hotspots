@@ -26,8 +26,9 @@ class PharmacophoreModel(hotspot_pharmacophore.PharmacophoreModel):
 
         :return:
         """
+        temp = tempfile.mkdtemp()
         ref = PDBResult(pdb_code)
-        ref.download(out_dir, compressed=False)
+        ref.download(out_dir=temp, compressed=False)
 
         accession_id = PDBResult(pdb_code).protein.sub_units[0].accession_id
         results = PharmacophoreModel.run_query(accession_id)
@@ -40,7 +41,6 @@ class PharmacophoreModel(hotspot_pharmacophore.PharmacophoreModel):
         reps = [(l[0].structure_id, l[0].chemical_id) for l in cluster_dict.values()]
 
         targets = []
-        temp = tempfile.mkdtemp()
 
         for pdb, hetid in reps:
             r = PDBResult(identifier=pdb)
@@ -134,12 +134,12 @@ class PharmacophoreModel(hotspot_pharmacophore.PharmacophoreModel):
 
         :return:
         """
+        print("Aligning proteins to {}, chain {}...".format(reference.identifier, reference_chain))
         aligned_prots = []
         aligned_ligands = []
 
         reference = Protein.from_file(reference.fname)
         reference.add_hydrogens()
-        print("Aligning proteins to {}, chain {}...".format(reference.identifier, reference_chain))
 
         for t in tqdm(targets):
             prot = Protein.from_file(t.fname)
