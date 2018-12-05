@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="_static/logo2.png"/>
+  
   
   
 
@@ -28,7 +30,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Fragment Elaboration API" href="fragment_elaboration_api.html" /> 
+    <link rel="prev" title="Hotspot Pharmacophore API" href="pharmacophore_api.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -50,6 +52,9 @@
             <a href="index.html" class="icon icon-home"> Fragment Hotspot Maps
           
 
+          
+            
+            <img src="_static/logo2.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -87,7 +92,6 @@
 <li class="toctree-l1"><a class="reference internal" href="io_api.html">IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="best_volume_api.html">Best Volume API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_elaboration_api.html">Fragment Elaboration API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Hotspot Utilities API</a></li>
 </ul>
 
@@ -153,8 +157,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-hotspots.hotspot_utilities">
-<span id="hotspot-utilities-api"></span><h1>Hotspot Utilities API<a class="headerlink" href="#module-hotspots.hotspot_utilities" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-hotspots.hs_utilities">
+<span id="hotspot-utilities-api"></span><h1>Hotspot Utilities API<a class="headerlink" href="#module-hotspots.hs_utilities" title="Permalink to this headline">¶</a></h1>
 <p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.utilities</span></code> module contains classes to for
 general functionality.</p>
 <dl class="docutils">
@@ -162,64 +166,64 @@ general functionality.</p>
 <dd>-Utilities</dd>
 </dl>
 <dl class="class">
-<dt id="hotspots.hotspot_utilities.Coordinates">
-<em class="property">class </em><code class="descclassname">hotspots.hotspot_utilities.</code><code class="descname">Coordinates</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="headerlink" href="#hotspots.hotspot_utilities.Coordinates" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Coordinates">
+<em class="property">class </em><code class="descclassname">hotspots.hs_utilities.</code><code class="descname">Coordinates</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="headerlink" href="#hotspots.hs_utilities.Coordinates" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
-<dt id="hotspots.hotspot_utilities.Coordinates.x">
-<code class="descname">x</code><a class="headerlink" href="#hotspots.hotspot_utilities.Coordinates.x" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Coordinates.x">
+<code class="descname">x</code><a class="headerlink" href="#hotspots.hs_utilities.Coordinates.x" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="hotspots.hotspot_utilities.Coordinates.y">
-<code class="descname">y</code><a class="headerlink" href="#hotspots.hotspot_utilities.Coordinates.y" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Coordinates.y">
+<code class="descname">y</code><a class="headerlink" href="#hotspots.hs_utilities.Coordinates.y" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="hotspots.hotspot_utilities.Coordinates.z">
-<code class="descname">z</code><a class="headerlink" href="#hotspots.hotspot_utilities.Coordinates.z" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Coordinates.z">
+<code class="descname">z</code><a class="headerlink" href="#hotspots.hs_utilities.Coordinates.z" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="hotspots.hotspot_utilities.Figures">
-<em class="property">class </em><code class="descclassname">hotspots.hotspot_utilities.</code><code class="descname">Figures</code><a class="reference internal" href="_modules/hotspots/hotspot_utilities.html#Figures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_utilities.Figures" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Figures">
+<em class="property">class </em><code class="descclassname">hotspots.hs_utilities.</code><code class="descname">Figures</code><a class="reference internal" href="_modules/hotspots/hs_utilities.html#Figures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_utilities.Figures" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class to handle the generation of hotspot related figures</p>
 <p>TO DO: is there a better place for this to live?</p>
 <dl class="staticmethod">
-<dt id="hotspots.hotspot_utilities.Figures.histogram">
-<em class="property">static </em><code class="descname">histogram</code><span class="sig-paren">(</span><em>hr</em>, <em>plot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_utilities.html#Figures.histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_utilities.Figures.histogram" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Figures.histogram">
+<em class="property">static </em><code class="descname">histogram</code><span class="sig-paren">(</span><em>hr</em>, <em>plot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_utilities.html#Figures.histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_utilities.Figures.histogram" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates a histrogram from grid values</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="hotspots.hotspot_utilities.Helper">
-<em class="property">class </em><code class="descclassname">hotspots.hotspot_utilities.</code><code class="descname">Helper</code><a class="reference internal" href="_modules/hotspots/hotspot_utilities.html#Helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_utilities.Helper" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Helper">
+<em class="property">class </em><code class="descclassname">hotspots.hs_utilities.</code><code class="descname">Helper</code><a class="reference internal" href="_modules/hotspots/hs_utilities.html#Helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_utilities.Helper" title="Permalink to this definition">¶</a></dt>
 <dd><p>class providing utility functions</p>
 <dl class="staticmethod">
-<dt id="hotspots.hotspot_utilities.Helper.cavity_centroid">
-<em class="property">static </em><code class="descname">cavity_centroid</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_utilities.html#Helper.cavity_centroid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_utilities.Helper.cavity_centroid" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Helper.cavity_centroid">
+<em class="property">static </em><code class="descname">cavity_centroid</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_utilities.html#Helper.cavity_centroid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_utilities.Helper.cavity_centroid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the centroid of a cavity object
 :param cav:
 :return:</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="hotspots.hotspot_utilities.Helper.cavity_from_protein">
-<em class="property">static </em><code class="descname">cavity_from_protein</code><span class="sig-paren">(</span><em>prot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_utilities.html#Helper.cavity_from_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_utilities.Helper.cavity_from_protein" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Helper.cavity_from_protein">
+<em class="property">static </em><code class="descname">cavity_from_protein</code><span class="sig-paren">(</span><em>prot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_utilities.html#Helper.cavity_from_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_utilities.Helper.cavity_from_protein" title="Permalink to this definition">¶</a></dt>
 <dd><p>generates a cavities from prot.
 :param prot:
 :return:</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="hotspots.hotspot_utilities.Helper.get_distance">
-<em class="property">static </em><code class="descname">get_distance</code><span class="sig-paren">(</span><em>coords1</em>, <em>coords2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_utilities.html#Helper.get_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_utilities.Helper.get_distance" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Helper.get_distance">
+<em class="property">static </em><code class="descname">get_distance</code><span class="sig-paren">(</span><em>coords1</em>, <em>coords2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_utilities.html#Helper.get_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_utilities.Helper.get_distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>given two coordinates, calculates the distance</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -239,8 +243,8 @@ general functionality.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="hotspots.hotspot_utilities.Helper.get_lines_from_file">
-<em class="property">static </em><code class="descname">get_lines_from_file</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_utilities.html#Helper.get_lines_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_utilities.Helper.get_lines_from_file" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.Helper.get_lines_from_file">
+<em class="property">static </em><code class="descname">get_lines_from_file</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_utilities.html#Helper.get_lines_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_utilities.Helper.get_lines_from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>fetch lines from ghecom output</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -255,8 +259,8 @@ general functionality.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="hotspots.hotspot_utilities.hotspot_histograms">
-<code class="descclassname">hotspots.hotspot_utilities.</code><code class="descname">hotspot_histograms</code><span class="sig-paren">(</span><em>self</em>, <em>ligand=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_utilities.html#hotspot_histograms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_utilities.hotspot_histograms" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_utilities.hotspot_histograms">
+<code class="descclassname">hotspots.hs_utilities.</code><code class="descname">hotspot_histograms</code><span class="sig-paren">(</span><em>self</em>, <em>ligand=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_utilities.html#hotspot_histograms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_utilities.hotspot_histograms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Outputs histograms of hotspot score.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -281,7 +285,7 @@ general functionality.</p>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="fragment_elaboration_api.html" class="btn btn-neutral" title="Fragment Elaboration API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="pharmacophore_api.html" class="btn btn-neutral" title="Hotspot Pharmacophore API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

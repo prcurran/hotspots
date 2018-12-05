@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/logo2.png"/>
+  
   
   
 
@@ -50,6 +52,9 @@
           
 
           
+            
+            <img src="../../_static/logo2.png" class="logo" alt="Logo"/>
+          
           </a>
 
           
@@ -82,11 +87,11 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../hotspot_calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../io_api.html">IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../best_volume_api.html">Best Volume API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../fragment_elaboration_api.html">Fragment Elaboration API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
@@ -610,23 +615,23 @@
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hs_dir</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grids</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">HotspotResults</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                                  <span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span>
-                                  <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">_HotspotResults</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                                   <span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span>
+                                   <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">hrs</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="n">identifier</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grids</span><span class="p">(</span><span class="n">sub_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">identifier</span><span class="p">))</span>
-                <span class="k">return</span> <span class="n">HotspotResults</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                                      <span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span>
-                                      <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">_HotspotResults</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                                       <span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span>
+                                       <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hs_dir</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grids</span><span class="p">(</span><span class="n">sub_dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">)</span>
-                    <span class="n">hrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HotspotResults</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                                              <span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span>
-                                              <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">))</span>
+                    <span class="n">hrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_HotspotResults</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                                               <span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span>
+                                               <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">hrs</span></div></div>
 
 

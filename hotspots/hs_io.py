@@ -37,11 +37,11 @@ from ccdc import io
 import nglview as nv
 
 from grid_extension import Grid
-from hotspot_calculation import HotspotResults
+from calculation import Results
 from template_strings import pymol_imports, pymol_arrow, pymol_protein, pymol_grids, pymol_display_settings, \
     pymol_load_zip, pymol_labels, pymol_mesh
-from hotspot_utilities import Helper
-from hotspot_pharmacophore import PharmacophoreModel
+from hs_utilities import Helper
+from hs_pharmacophore import PharmacophoreModel
 
 
 class HotspotWriter(object):
@@ -312,9 +312,9 @@ class HotspotWriter(object):
                     "positive": 'H'}
 
         if isinstance(input, PharmacophoreModel):
-            interaction_types = [atom_dic[feat.feature_type] for feat in input.features]
-            coordinates = [feat.feature_coordinates for feat in input.features]
-            scores = [feat.score for feat in input.features]
+            interaction_types = [atom_dic[feat.feature_type] for feat in input._features]
+            coordinates = [feat.feature_coordinates for feat in input._features]
+            scores = [feat.score for feat in input._features]
 
         elif isinstance(input, dict):
             if not threshold:
@@ -457,23 +457,23 @@ class HotspotReader(object):
 
         if len(self.hs_dir) == 0:
             self.grid_dic, self.buriedness = self._get_grids()
-            return HotspotResults(protein=self.protein,
-                                  super_grids=self.grid_dic,
-                                  buriedness=self.buriedness)
+            return _HotspotResults(protein=self.protein,
+                                   super_grids=self.grid_dic,
+                                   buriedness=self.buriedness)
 
         else:
             hrs = []
             if identifier:
                 self.grid_dic, self.buriedness = self._get_grids(sub_dir=str(identifier))
-                return HotspotResults(protein=self.protein,
-                                      super_grids=self.grid_dic,
-                                      buriedness=self.buriedness)
+                return _HotspotResults(protein=self.protein,
+                                       super_grids=self.grid_dic,
+                                       buriedness=self.buriedness)
             else:
                 for dir in self.hs_dir:
                     self.grid_dic, self.buriedness = self._get_grids(sub_dir=dir)
-                    hrs.append(HotspotResults(protein=self.protein,
-                                              super_grids=self.grid_dic,
-                                              buriedness=self.buriedness))
+                    hrs.append(_HotspotResults(protein=self.protein,
+                                               super_grids=self.grid_dic,
+                                               buriedness=self.buriedness))
             return hrs
 
 

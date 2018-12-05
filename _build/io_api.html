@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="_static/logo2.png"/>
+  
   
   
 
@@ -52,6 +54,9 @@
           
 
           
+            
+            <img src="_static/logo2.png" class="logo" alt="Logo"/>
+          
           </a>
 
           
@@ -88,7 +93,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="best_volume_api.html">Best Volume API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_elaboration_api.html">Fragment Elaboration API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
@@ -154,8 +158,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-hotspots.hotspot_io">
-<span id="io-api"></span><h1>IO API<a class="headerlink" href="#module-hotspots.hotspot_io" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-hotspots.hs_io">
+<span id="io-api"></span><h1>IO API<a class="headerlink" href="#module-hotspots.hs_io" title="Permalink to this headline">¶</a></h1>
 <p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.io</span></code> module contains classes for the
 reading and writing of hotspots.</p>
 <p>The main classes of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.io</span></code> module are:</p>
@@ -165,12 +169,12 @@ reading and writing of hotspots.</p>
 </ul>
 <p>TO DO:</p>
 <dl class="class">
-<dt id="hotspots.hotspot_io.HotspotReader">
-<em class="property">class </em><code class="descclassname">hotspots.hotspot_io.</code><code class="descname">HotspotReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_io.html#HotspotReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_io.HotspotReader" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_io.HotspotReader">
+<em class="property">class </em><code class="descclassname">hotspots.hs_io.</code><code class="descname">HotspotReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotReader" title="Permalink to this definition">¶</a></dt>
 <dd><p>class to handle the reading of Hotspots</p>
 <dl class="method">
-<dt id="hotspots.hotspot_io.HotspotReader.read">
-<code class="descname">read</code><span class="sig-paren">(</span><em>identifier=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_io.html#HotspotReader.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_io.HotspotReader.read" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_io.HotspotReader.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>identifier=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotReader.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotReader.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates a hotspot result
 :return:</p>
 </dd></dl>
@@ -178,24 +182,24 @@ reading and writing of hotspots.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="hotspots.hotspot_io.HotspotWriter">
-<em class="property">class </em><code class="descclassname">hotspots.hotspot_io.</code><code class="descname">HotspotWriter</code><span class="sig-paren">(</span><em>path</em>, <em>visualisation='pymol'</em>, <em>grid_extension='.grd'</em>, <em>zip_results=False</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_io.html#HotspotWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_io.HotspotWriter" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_io.HotspotWriter">
+<em class="property">class </em><code class="descclassname">hotspots.hs_io.</code><code class="descname">HotspotWriter</code><span class="sig-paren">(</span><em>path</em>, <em>visualisation='pymol'</em>, <em>grid_extension='.grd'</em>, <em>zip_results=False</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotWriter" title="Permalink to this definition">¶</a></dt>
 <dd><p>class to handle the writing of Hotspots to file. And creation of visualisation scripts.</p>
 <dl class="class">
-<dt id="hotspots.hotspot_io.HotspotWriter.Settings">
-<em class="property">class </em><code class="descname">Settings</code><a class="reference internal" href="_modules/hotspots/hotspot_io.html#HotspotWriter.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_io.HotspotWriter.Settings" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_io.HotspotWriter.Settings">
+<em class="property">class </em><code class="descname">Settings</code><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotWriter.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotWriter.Settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>class to hold writer settings</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="hotspots.hotspot_io.HotspotWriter.write">
-<code class="descname">write</code><span class="sig-paren">(</span><em>hr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_io.html#HotspotWriter.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_io.HotspotWriter.write" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_io.HotspotWriter.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>hr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotWriter.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotWriter.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>hr result can be instance or list</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="hotspots.hotspot_io.HotspotWriter.zip_results">
-<code class="descname">zip_results</code><span class="sig-paren">(</span><em>archive_name</em>, <em>delete_directory=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hotspot_io.html#HotspotWriter.zip_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hotspot_io.HotspotWriter.zip_results" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_io.HotspotWriter.zip_results">
+<code class="descname">zip_results</code><span class="sig-paren">(</span><em>archive_name</em>, <em>delete_directory=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotWriter.zip_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotWriter.zip_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Zips the output directory created for this <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.HotspotResults</span></code> instance, and
 removes the directory by default. The zipped file can be loaded directly into a new
 <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.HotspotResults</span></code> instance using the

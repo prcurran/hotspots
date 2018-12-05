@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/logo2.png"/>
+  
   
   
 
@@ -50,6 +52,9 @@
           
 
           
+            
+            <img src="../../_static/logo2.png" class="logo" alt="Logo"/>
+          
           </a>
 
           
@@ -82,11 +87,11 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../hotspot_calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../io_api.html">IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../best_volume_api.html">Best Volume API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../fragment_elaboration_api.html">Fragment Elaboration API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
@@ -191,9 +196,7 @@
 <span class="kn">from</span> <span class="nn">ccdc.pharmacophore</span> <span class="k">import</span> <span class="n">Pharmacophore</span>
 <span class="kn">from</span> <span class="nn">grid_extension</span> <span class="k">import</span> <span class="n">Grid</span>
 <span class="kn">from</span> <span class="nn">template_strings</span> <span class="k">import</span> <span class="n">pymol_arrow</span><span class="p">,</span> <span class="n">pymol_imports</span>
-<span class="kn">from</span> <span class="nn">hotspot_utilities</span> <span class="k">import</span> <span class="n">Helper</span>
-
-<span class="n">Coordinates</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Coordinates&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">])</span>
+<span class="kn">from</span> <span class="nn">hotspot_utilities</span> <span class="k">import</span> <span class="n">Helper</span><span class="p">,</span> <span class="n">Coordinates</span>
 
 
 <div class="viewcode-block" id="Settings"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.Settings">[docs]</a><span class="k">class</span> <span class="nc">Settings</span><span class="p">():</span>
@@ -201,18 +204,35 @@
 <span class="sd">    settings for the PharmacophoreFeature class</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_boundary_cutoff</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">max_hbond_dist</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">radius</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">vector_on</span> <span class="o">=</span> <span class="kc">False</span> <span class="p">,</span><span class="n">transparency</span> <span class="o">=</span> <span class="mf">0.6</span><span class="p">,</span>
+                    <span class="n">excluded_volume</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">binding_site_radius</span> <span class="o">=</span> <span class="mi">12</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param float feature_boundary_cutoff: The map score cutoff used to generate islands</span>
+<span class="sd">        :param float max_hbond_dist: Furthest acceptable distance for a hydrogen bonding partner (from polar feature)</span>
+<span class="sd">        :param float radius: Sphere radius</span>
+<span class="sd">        :param bool vector_on: Include interaction vector</span>
+<span class="sd">        :param float transparency: Set transparency of sphere</span>
+<span class="sd">        :param bool excluded_volume:  PETE</span>
+<span class="sd">        :param float binding_site_radius: PETE</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        feature_boundary_cutoff is the value of the island cutoff used. (boundaries addressed in extract hotspot)</span>
 <span class="sd">        max_hbond_dist is the furtherest acceptable distance for a hydrogen bonding partner (from polar feature)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">feature_boundary_cutoff</span> <span class="o">=</span> <span class="mi">5</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_hbond_dist</span> <span class="o">=</span> <span class="mi">5</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="mf">1.0</span>    <span class="c1"># set more intelligently</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vector_on</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transparency</span> <span class="o">=</span> <span class="mf">0.6</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">excluded_volume</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">binding_site_radius</span> <span class="o">=</span> <span class="mi">12</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_boundary_cutoff</span> <span class="o">=</span> <span class="n">feature_boundary_cutoff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_hbond_dist</span> <span class="o">=</span> <span class="n">max_hbond_dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="n">radius</span>     <span class="c1"># set more intelligently</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transparency</span> <span class="o">=</span> <span class="n">transparency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">excluded_volume</span> <span class="o">=</span> <span class="n">excluded_volume</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binding_site_radius</span> <span class="o">=</span> <span class="n">binding_site_radius</span>
+
+        <span class="k">if</span> <span class="n">vector_on</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vector_on</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vector_on</span> <span class="o">=</span> <span class="mi">0</span></div>
 
 
 <div class="viewcode-block" id="PharmacophoreModel"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel">[docs]</a><span class="k">class</span> <span class="nc">PharmacophoreModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -221,6 +241,15 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param settings:</span>
+<span class="sd">        :param identifier:</span>
+<span class="sd">        :param features:</span>
+<span class="sd">        :param protein:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        identifier is useful for displaying multiple models at once</span>
 <span class="sd">        :param features:</span>

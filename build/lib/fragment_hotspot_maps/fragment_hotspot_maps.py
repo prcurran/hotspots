@@ -615,7 +615,7 @@ class _HotspotBuilder(_HotspotsHelper):
 
     def construct_hotspot(self):
         """
-        handles the assignment of polar features to apolar volumes
+        handles the assignment of polar _features to apolar volumes
 
         :return:
         """
@@ -1217,13 +1217,13 @@ class HotspotResults(_HotspotsHelper):
         Assign a score to each cavity feature, based on the feature's ideal interaction point
 
         :param cav: a :class:`ccdc.Cavity.cavity` instance
-        :return: a dictionary {score:[list of features], where each item in list of features is a tuple of (atom, feature, atom_type)
+        :return: a dictionary {score:[list of _features], where each item in list of _features is a tuple of (atom, feature, atom_type)
         '''
 
         '''Assigns a score to each cavity feature. Donor scores are assigned to polar hydrogens, rather than the heavy
-            atom. Returns a dictionary of {score:[features]}'''
+            atom. Returns a dictionary of {score:[_features]}'''
 
-        for feat in cav.features:
+        for feat in cav._features:
             atom_type_dict = {'pi': 'apolar', 'aromatic': 'apolar', 'aliphatic': 'apolar', 'donor': 'acceptor',
                               'acceptor': 'donor'}
             feat_coords = feat.coordinates
@@ -2249,7 +2249,7 @@ class Hotspots(_HotspotsHelper):
         y_coords = []
         z_coords = []
 
-        for feat in cav.features:
+        for feat in cav._features:
             feature_coords = feat.coordinates
             x_coords.append(feature_coords[0])
             y_coords.append(feature_coords[1])

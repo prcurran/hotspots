@@ -1,5 +1,5 @@
 Hotspot Utilities API
 ************************************************************************************************************************
-.. automodule:: hotspots.hotspot_utilities
+.. automodule:: hotspots.hs_utilities
    :members:
 

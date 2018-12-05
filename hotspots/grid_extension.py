@@ -1,7 +1,7 @@
 '''
 The main class of the :mod:`hotspots.grid_extension.Grid`.
 
-This is an internal extension of :class:`ccdc.grid.Grid` that adds in potential new features
+This is an internal extension of :class:`ccdc.grid.Grid` that adds in potential new _features
 for review and development. For example, gaussian smoothing function:
 
 .. code-block:: python
@@ -24,7 +24,7 @@ import operator
 
 import numpy as np
 from ccdc import utilities
-from hotspots.hotspot_utilities import Helper
+from hotspots.hs_utilities import Helper
 from scipy import ndimage
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])

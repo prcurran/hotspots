@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/logo2.png"/>
+  
   
   
 
@@ -50,6 +52,9 @@
           
 
           
+            
+            <img src="../../_static/logo2.png" class="logo" alt="Logo"/>
+          
           </a>
 
           
@@ -82,11 +87,11 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../hotspot_calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../io_api.html">IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../best_volume_api.html">Best Volume API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../fragment_elaboration_api.html">Fragment Elaboration API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
@@ -182,8 +187,11 @@
 <span class="kn">from</span> <span class="nn">grid_extension</span> <span class="k">import</span> <span class="n">Grid</span>
 <span class="kn">from</span> <span class="nn">hotspot_pharmacophore</span> <span class="k">import</span> <span class="n">PharmacophoreModel</span>
 <span class="kn">from</span> <span class="nn">hotspot_utilities</span> <span class="k">import</span> <span class="n">Figures</span><span class="p">,</span> <span class="n">Helper</span>
+<span class="c1">#from best_volume import Extractor</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">percentileofscore</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+
+
 
 
 <span class="k">class</span> <span class="nc">_Buriedness</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -584,6 +592,7 @@
             <span class="k">return</span> <span class="s2">&quot;apolar&quot;</span>
 
 
+
 <div class="viewcode-block" id="HotspotResults"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults">[docs]</a><span class="k">class</span> <span class="nc">HotspotResults</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Hotspot_results object is returned at the end of a Hotspots calculation. It contains functions for accessing</span>
@@ -666,6 +675,9 @@
                         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ny</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nz</span><span class="p">)</span>
                         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
 
+    <span class="k">def</span> <span class="nf">extract_volume</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
 <div class="viewcode-block" id="HotspotResults.score"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores</span>
@@ -706,9 +718,8 @@
 <span class="sd">        Generates a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance from peaks in the hotspot maps</span>
 
 
-<span class="sd">        :param (str) identifier: Identifier for displaying multiple models at once</span>
-<span class="sd">        :param (float) cutoff: The score cutoff used to identify islands in the maps. One peak will be identified per</span>
-<span class="sd">        island</span>
+<span class="sd">        :param str identifier: Identifier for displaying multiple models at once</span>
+<span class="sd">        :param float cutoff: The score cutoff used to identify islands in the maps. One peak will be identified per island</span>
 <span class="sd">        :return: a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">PharmacophoreModel</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="n">cutoff</span><span class="p">)</span></div>
@@ -723,18 +734,9 @@
 
 <div class="viewcode-block" id="HotspotResults.get_histogram"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_histogram">[docs]</a>    <span class="k">def</span> <span class="nf">get_histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="s2">&quot;histogram.png&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span>
-<span class="sd">        Returns a dictiona</span>
-<span class="sd">        :param fpath: path to output file</span>
-<span class="sd">        :param plot:</span>
-<span class="sd">        :return: dict</span>
-
-<span class="sd">        TODO: Complete docstring</span>
-<span class="sd">=======</span>
 <span class="sd">        get histogram of zero grid points for the Fragment Hotspot Result</span>
 <span class="sd">        :param fpath: path to output file</span>
 <span class="sd">        :return:</span>
-<span class="sd">&gt;&gt;&gt;&gt;&gt;&gt;&gt; c81c0afe8b8693c08709663e8506bf7a88046346</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">Figures</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
@@ -948,34 +950,47 @@
 <span class="sd">    A class for running Fragment Hotspot Map calculations</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nrotations</span> <span class="o">=</span> <span class="mi">3000</span><span class="p">,</span> <span class="n">apolar_translation_threshold</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> <span class="n">polar_translation_threshold</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
+                     <span class="n">polar_contributions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_probes</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            :param int nrotations: number of rotations (keep it below 10**6)</span>
+<span class="sd">            :param float apolar_translation_threshold: translate probe to grid points above this threshold. Give lower values for greater sampling. Default 15</span>
+<span class="sd">            :param float polar_translation_threshold: translate probe to grid points above this threshold. Give lower values for greater sampling. Default 15</span>
+<span class="sd">            :param bool polar_contributions: allow carbon atoms of probes with polar atoms to contribute to the apolar output map.</span>
+<span class="sd">            :param bool return_probes: Generate a sorted list of molecule objects, corresponding to probe poses</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">nrotations</span> <span class="o">=</span> <span class="n">nrotations</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apolar_translation_threshold</span> <span class="o">=</span> <span class="n">apolar_translation_threshold</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">polar_translation_threshold</span> <span class="o">=</span> <span class="n">polar_translation_threshold</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">polar_contributions</span> <span class="o">=</span> <span class="n">polar_contributions</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">return_probes</span> <span class="o">=</span> <span class="n">return_probes</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">_num_gp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            number of grid point for a given volume</span>
+<span class="sd">            :return:</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrotations</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+
+
     <span class="k">class</span> <span class="nc">_Sampler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Samples one or more grids with a probe molecule</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Settings for the sampler</span>
-<span class="sd">                nrotations:                   number of rotations (keep it below 10**6)</span>
-<span class="sd">                apolar_translation_threshold: translate probe to grid points above this threshold. Give lower values for</span>
-<span class="sd">                                              greater sampling. Default 15</span>
-<span class="sd">                polar_translation_threshold:  translate probe to grid points above this threshold. Give lower values for</span>
-<span class="sd">                                              greater sampling. Default 15</span>
-<span class="sd">                polar_contributions:          allow carbon atoms of probes with polar atoms to contribute to the apolar</span>
-<span class="sd">                                              output map.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
 
-            <span class="n">nrotations</span> <span class="o">=</span> <span class="mi">3000</span>
-            <span class="n">apolar_translation_threshold</span> <span class="o">=</span> <span class="mi">15</span>
-            <span class="n">polar_translation_threshold</span> <span class="o">=</span> <span class="mi">15</span>
-            <span class="n">polar_contributions</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">return_probes</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">grids</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Settings used to run fragment-hotspot-maps script</span>
 
-<span class="sd">            :param grids: list, list of :class: `ccdc.utilities.Grid` instances</span>
+<span class="sd">            :param grids: list, list of :class:`ccdc.utilities.Grid` instances</span>
 <span class="sd">            :param kw: &#39;settings&#39;</span>
 <span class="sd">            &quot;&quot;&quot;</span>
 
@@ -1211,7 +1226,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Sampler</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="n">settings</span>
 
@@ -1325,7 +1340,7 @@
 
     <span class="nd">@sampler_settings</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">sampler_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Sampler</span><span class="o">.</span><span class="n">Settings</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Settings</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sampler_settings</span> <span class="o">=</span> <span class="n">settings</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sampler_settings</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1437,18 +1452,17 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sampling complete</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Hotspots.from_protein"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.Hotspots.from_protein">[docs]</a>    <span class="k">def</span> <span class="nf">from_protein</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">charged_probes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">probe_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">buriedness_method</span><span class="o">=</span> <span class="s1">&#39;ghecom&#39;</span><span class="p">,</span>
-                     <span class="n">cavities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nprocesses</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sampler_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                     <span class="n">cavities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nprocesses</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        :param protein: a :class:`ccdc.protein.Protein` instance</span>
 <span class="sd">        :param bool charged_probes: If True include positive and negative probes</span>
 <span class="sd">        :param int probe_size: Size of probe in number of heavy atoms (3-8 atoms)</span>
 <span class="sd">        :param str buriedness_method: Either &#39;ghecom&#39; or &#39;ligsite&#39;</span>
-<span class="sd">        :param cavities: Coordinate or :class:`ccdc.cavity.Cavity` or :class:`ccdc.molecule.Molecule` or list, algorithm</span>
-<span class="sd">        run on parsed cavity</span>
+<span class="sd">        :param cavities: Coordinate or :class:`ccdc.cavity.Cavity` or :class:`ccdc.molecule.Molecule` or list, algorithm run on parsed cavity</span>
 <span class="sd">        :param nprocesses: int, number of CPU&#39;s used</span>
-<span class="sd">        :param sampler_settings: a :class:`hotspots.Hotspot._Sampler.Settings`, holds the sampler settings</span>
-<span class="sd">        :return: :class:`hotspots.hotspot_calculation._Sampler.Settings`</span>
+<span class="sd">        :param settings: a :class:`hotspots.hotspot_calculation.Hotspots.Settings`, holds the sampler settings</span>
+<span class="sd">        :return: :class:`hotspots.hotspot_calculation.HotspotResults` instance</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1459,7 +1473,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">buriedness_method</span> <span class="o">=</span> <span class="n">buriedness_method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cavities</span> <span class="o">=</span> <span class="n">cavities</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nprocesses</span> <span class="o">=</span> <span class="n">nprocesses</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="n">sampler_settings</span>
+        <span class="k">if</span> <span class="n">settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="n">settings</span>
+
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_calc_hotspots</span><span class="p">()</span>     <span class="c1"># return probes = False by default</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_grids</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
@@ -1467,8 +1485,8 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Runtime = </span><span class="si">{}</span><span class="s2">seconds&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">HotspotResults</span><span class="p">(</span><span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="p">,</span>
-                              <span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                              <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span></div></div>
+                               <span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                               <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

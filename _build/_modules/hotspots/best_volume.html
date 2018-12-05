@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/logo2.png"/>
+  
   
   
 
@@ -50,6 +52,9 @@
           
 
           
+            
+            <img src="../../_static/logo2.png" class="logo" alt="Logo"/>
+          
           </a>
 
           
@@ -82,11 +87,11 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../hotspot_calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../io_api.html">IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../best_volume_api.html">Best Volume API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../fragment_elaboration_api.html">Fragment Elaboration API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
@@ -167,7 +172,7 @@
 <span class="c1">#</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="sd">The :mod:`hotspots.extraction` module contains classes to extract</span>
+<span class="sd">The :mod:`hotspots.best_volume` module contains classes to extract</span>
 <span class="sd">valuable information from the calculated Fragment Hotspot Maps.</span>
 
 <span class="sd">The main fields can be broken due using a fixed volume or fixed score mode.</span>
@@ -176,28 +181,28 @@
 <span class="sd">extracted. For example, these grids can be used to generate pharmacophores.</span>
 
 <span class="sd">The main classes of the :mod:`hotspots.best_volume` module are:</span>
-<span class="sd">    -HotspotFeatures</span>
-<span class="sd">    -ExtractHotspot</span>
-<span class="sd">    -HotspotCreator</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    -Extractor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span>
 
-<span class="kn">import</span> <span class="nn">hotspot_calculation</span> <span class="c1"># import HotspotResults, _RunSuperstar</span>
+<span class="kn">import</span> <span class="nn">calculation</span>  <span class="c1"># import HotspotResults, _RunSuperstar</span>
 <span class="kn">from</span> <span class="nn">grid_extension</span> <span class="k">import</span> <span class="n">Grid</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">optimize</span>
 <span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">feature</span>
-<span class="kn">from</span> <span class="nn">hotspot_utilities</span> <span class="k">import</span> <span class="n">Helper</span>
+<span class="kn">from</span> <span class="nn">hs_utilities</span> <span class="k">import</span> <span class="n">Helper</span>
 
 
-<div class="viewcode-block" id="HotspotResults"><a class="viewcode-back" href="../../best_volume_api.html#hotspots.best_volume.HotspotResults">[docs]</a><span class="k">class</span> <span class="nc">HotspotResults</span><span class="p">(</span><span class="n">hotspot_calculation</span><span class="o">.</span><span class="n">HotspotResults</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">_Results</span><span class="p">(</span><span class="n">calculation</span><span class="o">.</span><span class="n">Results</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class to handle the construction of indivdual hotspots</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="HotspotResults.Optimiser"><a class="viewcode-back" href="../../best_volume_api.html#hotspots.best_volume.HotspotResults.Optimiser">[docs]</a>    <span class="k">class</span> <span class="nc">Optimiser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">class</span> <span class="nc">Optimiser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A class to handle the optimisation operations</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">peak</span> <span class="o">=</span> <span class="n">peak</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span>
@@ -214,12 +219,12 @@
             <span class="k">if</span> <span class="n">island</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="mi">999999</span>
             <span class="n">points</span> <span class="o">=</span> <span class="p">(</span><span class="n">island</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span>
-            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">num_gp</span> <span class="o">-</span> <span class="n">points</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span> <span class="o">-</span> <span class="n">points</span><span class="p">)</span>
             <span class="c1"># if self.peak:</span>
-            <span class="c1">#     padding = self.settings.padding_factor * self.settings.num_gp</span>
-            <span class="c1">#     return abs((self.settings.num_gp + padding) - points)</span>
+            <span class="c1">#     padding = self.settings.padding_factor * self.settings._num_gp</span>
+            <span class="c1">#     return abs((self.settings._num_gp + padding) - points)</span>
             <span class="c1"># else:</span>
-            <span class="c1">#     return abs(self.settings.num_gp - points)</span>
+            <span class="c1">#     return abs(self.settings._num_gp - points)</span>
 
         <span class="k">def</span> <span class="nf">_count_grid_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
@@ -229,7 +234,7 @@
 <span class="sd">            :return: int</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="n">points</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top_island</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span>
-            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">num_gp</span> <span class="o">-</span> <span class="n">points</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span> <span class="o">-</span> <span class="n">points</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">_reselect_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
@@ -243,7 +248,7 @@
 
             <span class="k">return</span> <span class="n">new_threshold</span><span class="p">,</span> <span class="n">best_island</span>
 
-<div class="viewcode-block" id="HotspotResults.Optimiser.optimize_island_threshold"><a class="viewcode-back" href="../../best_volume_api.html#hotspots.best_volume.HotspotResults.Optimiser.optimize_island_threshold">[docs]</a>        <span class="k">def</span> <span class="nf">optimize_island_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">optimize_island_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Takes the input mask and finds the island threshold which returns the desired volume</span>
 <span class="sd">            :return:</span>
@@ -252,19 +257,18 @@
             <span class="n">best_island</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">get_best_island</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">peak</span><span class="p">)</span>
             <span class="n">best_island</span> <span class="o">=</span> <span class="p">(</span><span class="n">best_island</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span> <span class="o">*</span> <span class="n">best_island</span>
 
-            <span class="k">if</span> <span class="n">best_island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">num_gp</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">best_island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">:</span>
                 <span class="n">threshold</span> <span class="o">+=</span> <span class="mf">0.01</span>
                 <span class="n">best_island</span> <span class="o">=</span> <span class="p">(</span><span class="n">best_island</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span> <span class="o">*</span> <span class="n">best_island</span>
 
             <span class="c1"># new_threshold, best_island = self._reselect_points(threshold=threshold)</span>
-            <span class="c1"># if (self.settings.num_gp * 0.85) &lt; best_island.count_grid() &lt; (self.settings.num_gp * 1.15):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;target = </span><span class="si">{}</span><span class="s2">, actual = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">num_gp</span><span class="p">,</span> <span class="n">best_island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()))</span>
-            <span class="k">return</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">best_island</span></div></div>
+            <span class="c1"># if (self.settings._num_gp * 0.85) &lt; best_island.count_grid() &lt; (self.settings._num_gp * 1.15):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;target = </span><span class="si">{}</span><span class="s2">, actual = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">,</span> <span class="n">best_island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()))</span>
+            <span class="k">return</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">best_island</span>
             <span class="c1"># else:</span>
             <span class="c1">#     return None, None</span>
 
-
-<div class="viewcode-block" id="HotspotResults.from_hotspot"><a class="viewcode-back" href="../../best_volume_api.html#hotspots.best_volume.HotspotResults.from_hotspot">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_hotspot</span><span class="p">(</span><span class="n">single_grid</span><span class="p">,</span> <span class="n">mask_dic</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">prot</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        create a Extracted Hotspot object from HotspotResult object</span>
@@ -277,27 +281,27 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">seed</span><span class="p">:</span>
             <span class="n">sphere</span> <span class="o">=</span> <span class="n">single_grid</span><span class="o">.</span><span class="n">copy_and_clear</span><span class="p">()</span>
-            <span class="n">sphere</span><span class="o">.</span><span class="n">set_sphere</span><span class="p">(</span><span class="n">point</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">search_radius</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scaling</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
+            <span class="n">sphere</span><span class="o">.</span><span class="n">set_sphere</span><span class="p">(</span><span class="n">point</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">_search_radius</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scaling</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
             <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">sphere</span> <span class="o">&amp;</span> <span class="n">single_grid</span><span class="p">)</span> <span class="o">*</span> <span class="n">single_grid</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">mask</span> <span class="o">=</span> <span class="n">single_grid</span>
 
-        <span class="n">optimiser</span> <span class="o">=</span> <span class="n">HotspotResults</span><span class="o">.</span><span class="n">Optimiser</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+        <span class="n">optimiser</span> <span class="o">=</span> <span class="n">_Results</span><span class="o">.</span><span class="n">Optimiser</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
         <span class="n">threshold</span><span class="p">,</span> <span class="n">best_island</span> <span class="o">=</span> <span class="n">optimiser</span><span class="o">.</span><span class="n">optimize_island_threshold</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">best_island</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">location</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="n">HotspotResults</span><span class="o">.</span><span class="n">get_interaction_type</span><span class="p">(</span><span class="n">mask_dic</span><span class="p">,</span> <span class="n">best_island</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
-            <span class="n">grd_dict</span> <span class="o">=</span> <span class="n">HotspotResults</span><span class="o">.</span><span class="n">get_grid_dict</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+            <span class="n">location</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="n">_Results</span><span class="o">.</span><span class="n">get_interaction_type</span><span class="p">(</span><span class="n">mask_dic</span><span class="p">,</span> <span class="n">best_island</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+            <span class="n">grd_dict</span> <span class="o">=</span> <span class="n">_Results</span><span class="o">.</span><span class="n">get_grid_dict</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
 
-            <span class="n">hr</span> <span class="o">=</span> <span class="n">HotspotResults</span><span class="p">(</span><span class="n">super_grids</span><span class="o">=</span><span class="n">grd_dict</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="n">prot</span><span class="p">)</span>
+            <span class="n">hr</span> <span class="o">=</span> <span class="n">_Results</span><span class="p">(</span><span class="n">super_grids</span><span class="o">=</span><span class="n">grd_dict</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="n">prot</span><span class="p">)</span>
             <span class="n">hr</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
             <span class="n">hr</span><span class="o">.</span><span class="n">best_island</span> <span class="o">=</span> <span class="n">best_island</span>
             <span class="n">hr</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">location</span>
             <span class="n">hr</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="n">features</span>
             <span class="n">hr</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="n">hr</span><span class="o">.</span><span class="n">score</span><span class="p">()</span>
             <span class="n">hr</span><span class="o">.</span><span class="n">rank</span> <span class="o">=</span> <span class="n">hr</span><span class="o">.</span><span class="n">_rank_features</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">hr</span></div>
+            <span class="k">return</span> <span class="n">hr</span>
 
-<div class="viewcode-block" id="HotspotResults.get_interaction_type"><a class="viewcode-back" href="../../best_volume_api.html#hotspots.best_volume.HotspotResults.get_interaction_type">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_interaction_type</span><span class="p">(</span><span class="n">mask_dic</span><span class="p">,</span> <span class="n">best_island</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        seperates single grid into grid by interaction type</span>
@@ -306,15 +310,15 @@
         <span class="n">common_best_island</span> <span class="o">=</span> <span class="n">mask_dic</span><span class="p">[</span><span class="s2">&quot;apolar&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">common_boundaries</span><span class="p">(</span><span class="n">best_island</span><span class="p">)</span>
         <span class="n">features_in_vol</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">g</span> <span class="o">*</span> <span class="p">(</span><span class="n">g</span> <span class="o">&amp;</span> <span class="n">common_best_island</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">mask_dic</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="n">location</span> <span class="o">=</span> <span class="n">features_in_vol</span><span class="p">[</span><span class="s2">&quot;apolar&quot;</span><span class="p">]</span>
-        <span class="n">features</span> <span class="o">=</span> <span class="n">HotspotResults</span><span class="o">.</span><span class="n">_get_features</span><span class="p">(</span><span class="n">interaction_dict</span><span class="o">=</span><span class="n">features_in_vol</span><span class="p">,</span>
-                                                <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
-                                                <span class="n">min_feature_gp</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">min_feature_gp</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">location</span><span class="p">,</span> <span class="n">features</span></div>
+        <span class="n">features</span> <span class="o">=</span> <span class="n">_Results</span><span class="o">.</span><span class="n">_get_features</span><span class="p">(</span><span class="n">interaction_dict</span><span class="o">=</span><span class="n">features_in_vol</span><span class="p">,</span>
+                                          <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+                                          <span class="n">min_feature_gp</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">min_feature_gp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">location</span><span class="p">,</span> <span class="n">features</span>
 
-<div class="viewcode-block" id="HotspotResults.get_grid_dict"><a class="viewcode-back" href="../../best_volume_api.html#hotspots.best_volume.HotspotResults.get_grid_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_grid_dict</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates super grid dict from location and features</span>
+<span class="sd">        Creates super grid dict from location and _features</span>
 <span class="sd">        :param location:</span>
 <span class="sd">        :param features:</span>
 <span class="sd">        :param settings:</span>
@@ -338,9 +342,8 @@
 
             <span class="n">grid_dic</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">probe</span><span class="p">:</span> <span class="n">Grid</span><span class="o">.</span><span class="n">super_grid</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">grids</span><span class="p">)})</span>
 
-        <span class="k">return</span> <span class="n">grid_dic</span></div></div>
+        <span class="k">return</span> <span class="n">grid_dic</span>
 
-        
     <span class="c1"># def get_superstar_result(self, superstar_results):</span>
     <span class="c1">#     &quot;&quot;&quot;</span>
     <span class="c1">#     finds the overlap between the extracted hotspot and the superstar results</span>
@@ -373,7 +376,7 @@
     <span class="c1">#     this is stored as an HotspotFeature attribute (superstar profile)</span>
     <span class="c1">#     :return:</span>
     <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     for feat in self.features:</span>
+    <span class="c1">#     for feat in self._features:</span>
     <span class="c1">#         super_profile = []</span>
     <span class="c1">#</span>
     <span class="c1">#         for result in self.superstar_results:</span>
@@ -393,15 +396,78 @@
 
 <div class="viewcode-block" id="Extractor"><a class="viewcode-back" href="../../best_volume_api.html#hotspots.best_volume.Extractor">[docs]</a><span class="k">class</span> <span class="nc">Extractor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A class to handle the extraction of discrete, fragment size hotspots from the original maps</span>
+<span class="sd">    A class to handle the extraction of discrete volumes from the highest scoring regions of the hotspot maps.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Extractor.Settings"><a class="viewcode-back" href="../../best_volume_api.html#hotspots.best_volume.Extractor.Settings">[docs]</a>    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Default settings for hotspot extraction</span>
+
+<span class="sd">        :param float volume:</span>
+<span class="sd">        :param float cutoff:</span>
+<span class="sd">        :param str mode:</span>
+<span class="sd">        :param int padding_factor:</span>
+<span class="sd">        :param float spacing:</span>
+<span class="sd">        :param int min_feature_gp:</span>
+<span class="sd">        :param int max_features:</span>
+<span class="sd">        :param float min_distance:</span>
+<span class="sd">        :param int island_max_size:</span>
+<span class="sd">        :param float sigma:</span>
+<span class="sd">        :param float drug_volume:</span>
+<span class="sd">        :param int buriedness_value:</span>
+<span class="sd">        :param bool fragments:</span>
+<span class="sd">        :param bool lead:</span>
+<span class="sd">        :param bool pharmacophore:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="n">padding_factor</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                     <span class="n">min_feature_gp</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_distance</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">island_max_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+                     <span class="n">drug_volume</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">buriedness_value</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">fragments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lead</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pharmacophore</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="n">volume</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span> <span class="o">=</span> <span class="n">cutoff</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding_factor</span> <span class="o">=</span> <span class="n">padding_factor</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spacing</span> <span class="o">=</span> <span class="n">spacing</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_feature_gp</span> <span class="o">=</span> <span class="n">min_feature_gp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_features</span> <span class="o">=</span> <span class="n">max_features</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_distance</span> <span class="o">=</span> <span class="n">min_distance</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">island_max_size</span> <span class="o">=</span> <span class="n">island_max_size</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drug_volume</span> <span class="o">=</span> <span class="n">drug_volume</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">buriedness_value</span> <span class="o">=</span> <span class="n">buriedness_value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fragments</span> <span class="o">=</span> <span class="n">fragments</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lead</span> <span class="o">=</span> <span class="n">lead</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="n">pharmacophore</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">_num_gp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            number of grid point for a given volume</span>
+<span class="sd">            :return:</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">spacing</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">_search_radius</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            describes search radius around a given seed</span>
+<span class="sd">            :return:</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="nb">round</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">s</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hr</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="s2">&quot;125&quot;</span><span class="p">,</span> <span class="n">pharmacophores</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="sd">        :param hr:</span>
-<span class="sd">        :param out_dir:</span>
-<span class="sd">        :param settings:</span>
+<span class="sd">        :param hr: An :class:`hotspots.HotspotResults` instance</span>
+<span class="sd">        :param settings: An :class:`hotspots.Extractor.Settings` instance</span>
+<span class="sd">        :param str mode: Options are &quot;seed&quot; or &quot;global&quot;. Seed will aim to find multiple volumes, grown from suitable seed points, and works best for locating multiple hotspots in a single pocket. Global can be used to select the best target volume across the entire protein.</span>
+<span class="sd">        :param float volume: Target volume for extractor. The extracted volume may differ slightly from the target volume</span>
+<span class="sd">        :param bool pharmacophores: Whether to generate a pharmacophore model</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initialise Extractor&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span> <span class="o">=</span> <span class="n">hr</span>
@@ -436,7 +502,7 @@
         <span class="c1"># enable extraction to run in seeded or global modes</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;seed&quot;</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    Mode: &#39;seed&#39;&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_peaks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_peaks</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_peaks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_peaks</span><span class="p">()</span>
 
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;global&quot;</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    Mode: &#39;global&#39;&quot;</span><span class="p">)</span>
@@ -456,52 +522,6 @@
         <span class="c1"># generate pharmacophores</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">get_pharmacophores</span><span class="p">()</span>
-
-<div class="viewcode-block" id="Extractor.Settings"><a class="viewcode-back" href="../../best_volume_api.html#hotspots.best_volume.Extractor.Settings">[docs]</a>    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Default settings for hotspot extraction</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="mi">150</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span> <span class="o">=</span> <span class="mi">14</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;seed&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">padding_factor</span> <span class="o">=</span> <span class="mi">0</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">spacing</span> <span class="o">=</span> <span class="mf">0.5</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">min_feature_gp</span> <span class="o">=</span> <span class="mi">5</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">max_features</span> <span class="o">=</span> <span class="mi">10</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">min_distance</span> <span class="o">=</span> <span class="mi">6</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">island_max_size</span> <span class="o">=</span> <span class="mi">100</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="mf">0.3</span>
-
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">drug_volume</span> <span class="o">=</span> <span class="mi">300</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">buriedness_value</span> <span class="o">=</span> <span class="mi">4</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">fragments</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">lead</span> <span class="o">=</span> <span class="kc">None</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="kc">True</span>
-
-        <span class="nd">@property</span>
-        <span class="k">def</span> <span class="nf">num_gp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            number of grid point for a given volume</span>
-<span class="sd">            :return:</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">spacing</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
-
-        <span class="nd">@property</span>
-        <span class="k">def</span> <span class="nf">search_radius</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            describes search radius around a given seed</span>
-<span class="sd">            :return:</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="mi">3</span>
-            <span class="n">s</span> <span class="o">+=</span> <span class="nb">round</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">s</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">single_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -547,7 +567,7 @@
     <span class="c1">#</span>
     <span class="c1">#     return super_grids</span>
 
-<div class="viewcode-block" id="Extractor.get_peaks"><a class="viewcode-back" href="../../best_volume_api.html#hotspots.best_volume.Extractor.get_peaks">[docs]</a>    <span class="k">def</span> <span class="nf">get_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        find peak coordinates in apolar maps, used as seeds to find top volumes</span>
 <span class="sd">        :return:</span>
@@ -563,20 +583,20 @@
                 <span class="k">if</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">peak_by_value</span><span class="p">:</span>
                     <span class="n">peak_by_value</span><span class="p">[</span><span class="n">val</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">peak</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">peak_by_value</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">val</span><span class="p">:[(</span><span class="n">peak</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">2</span><span class="p">])]})</span>
+                    <span class="n">peak_by_value</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">val</span><span class="p">:</span> <span class="p">[(</span><span class="n">peak</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">2</span><span class="p">])]})</span>
 
         <span class="n">average_peaks</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">peak_by_value</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">peak_by_value</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span>
             <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">peak_by_value</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span>
             <span class="n">z</span> <span class="o">=</span> <span class="p">[</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">peak_by_value</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span>
-            <span class="n">average_peaks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">apolar</span><span class="o">.</span><span class="n">indices_to_point</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span>
-                                                         <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span>
-                                                         <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
+            <span class="n">average_peaks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">apolar</span><span class="o">.</span><span class="n">indices_to_point</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span>
+                                                         <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span>
+                                                         <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
 
                                                          <span class="p">)</span>
                                  <span class="p">)</span>
-        <span class="k">return</span> <span class="n">average_peaks</span></div>
+        <span class="k">return</span> <span class="n">average_peaks</span>
 
     <span class="k">def</span> <span class="nf">_get_extracted_hotspots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -587,11 +607,11 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;seed&quot;</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">peak</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">peak</span><span class="p">)</span>
-                <span class="n">e</span> <span class="o">=</span> <span class="n">HotspotResults</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="p">,</span>
-                                                <span class="bp">self</span><span class="o">.</span><span class="n">masked_dic</span><span class="p">,</span>
-                                                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
-                                                <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                                                <span class="n">seed</span><span class="o">=</span><span class="n">peak</span><span class="p">)</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">_Results</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">masked_dic</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                                          <span class="n">seed</span><span class="o">=</span><span class="n">peak</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">e</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">threshold</span> <span class="o">&gt;</span> <span class="mi">12</span><span class="p">:</span>
@@ -599,11 +619,11 @@
                         <span class="n">extracted_hotspots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">e</span> <span class="o">=</span> <span class="n">HotspotResults</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="p">,</span>
-                                            <span class="bp">self</span><span class="o">.</span><span class="n">masked_dic</span><span class="p">,</span>
-                                            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
-                                            <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                                            <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">_Results</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="p">,</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">masked_dic</span><span class="p">,</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                                      <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
             <span class="n">extracted_hotspots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
@@ -659,7 +679,7 @@
 <span class="sd">        write out information to aid debugging: valid modes:</span>
 <span class="sd">            -peaks:</span>
 <span class="sd">            -locations: spheres and islands at apolar peak locations</span>
-<span class="sd">            -features: islands and probes at feature point locations</span>
+<span class="sd">            -_features: islands and probes at feature point locations</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;peaks&quot;</span><span class="p">:</span>
@@ -695,15 +715,13 @@
 <span class="s2">for n in range(nh):</span>
 <span class="s2">    cmd.group(&#39;hotspot_</span><span class="si">%s</span><span class="s2">&#39;%(n), members= &#39;surface_apolar_</span><span class="si">%s</span><span class="s2">&#39;%(n))</span>
 <span class="s2">    cmd.group(&#39;hotspot_</span><span class="si">%s</span><span class="s2">&#39;%(n), members= &#39;apolar_</span><span class="si">%s</span><span class="s2">&#39;%(n))&quot;&quot;&quot;</span> \
-            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span><span class="p">),</span> <span class="n">thresholds</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span><span class="p">),</span> <span class="n">thresholds</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">out_dir</span><span class="p">),</span> <span class="s2">&quot;best_islands.py&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pymol_file</span><span class="p">:</span>
                 <span class="n">pymol_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pymol_out</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;mode not supported&quot;</span><span class="p">)</span></div>
-
-
 </pre></div>
 
            </div>

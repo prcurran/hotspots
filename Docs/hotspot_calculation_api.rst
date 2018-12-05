@@ -1,5 +1,5 @@
 Hotspot Calculation API
 ************************************************************************************************************************
-.. automodule:: hotspots.hotspot_calculation
+.. automodule:: hotspots.calculation
    :members:
 

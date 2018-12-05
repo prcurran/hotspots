@@ -38,39 +38,56 @@ from ccdc.molecule import Atom, Molecule
 from ccdc.pharmacophore import Pharmacophore
 from grid_extension import Grid
 from template_strings import pymol_arrow, pymol_imports
-from hotspot_utilities import Helper
-
-Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
+from hs_utilities import Helper, Coordinates
 
 
-class Settings():
-    """
-    settings for the PharmacophoreFeature class
-    """
 
-    def __init__(self):
-        """
-        feature_boundary_cutoff is the value of the island cutoff used. (boundaries addressed in extract hotspot)
-        max_hbond_dist is the furtherest acceptable distance for a hydrogen bonding partner (from polar feature)
-        """
-        self.feature_boundary_cutoff = 5
-        self.max_hbond_dist = 5
-        self.radius = 1.0    # set more intelligently
-        self.vector_on = 0
-        self.transparency = 0.6
-        self.excluded_volume = True
-        self.binding_site_radius = 12
 
 
 class PharmacophoreModel(object):
     """
-    A class to wrap pharmacophore features and output in various formats
+    A class to wrap pharmacophore _features and output in various formats
     """
+
+    class Settings():
+        """
+            :param float feature_boundary_cutoff: The map score cutoff used to generate islands
+            :param float max_hbond_dist: Furthest acceptable distance for a hydrogen bonding partner (from polar feature)
+            :param float radius: Sphere radius
+            :param bool vector_on: Include interaction vector
+            :param float transparency: Set transparency of sphere
+            :param bool excluded_volume:  PETE
+            :param float binding_site_radius: PETE
+        """
+
+        def __init__(self, feature_boundary_cutoff=5, max_hbond_dist=5, radius=1.0, vector_on=False, transparency=0.6,
+                     excluded_volume=True, binding_site_radius=12):
+
+            self.feature_boundary_cutoff = feature_boundary_cutoff
+            self.max_hbond_dist = max_hbond_dist
+            self.radius = radius  # set more intelligently
+            self.transparency = transparency
+            self.excluded_volume = excluded_volume
+            self.binding_site_radius = binding_site_radius
+
+            if vector_on:
+                self.vector_on = 1
+            else:
+                self.vector_on = 0
 
     def __init__(self, settings, identifier=None, features=None, protein=None):
         """
+
+        :param settings: a :class:`hotspots.hs_pharmacophore.PharmacophoreModel.Settings` instance
+        :param str identifier: Identifier, useful for displaying multiple models at once
+        :param features: PETE
+        :param protein: a :class:`ccdc.protein.Protein` instance
+        """
+
+
+        """
         identifier is useful for displaying multiple models at once
-        :param features:
+        :param _features:
         """
         self.identifier = identifier
         self._features = features
@@ -80,22 +97,22 @@ class PharmacophoreModel(object):
 
         self.protein = protein
         if settings == None:
-            self.settings = Settings()
+            self.settings = self.Settings()
         else:
             self.settings = settings
 
     @property
-    def features(self):
+    def _features(self):
         """list of `hotspots.pharmacophore.PharmacophoreFeature` class instances"""
         return self._features
 
     def rank_polar_features(self, threshold=0, max_num_features=None):
         """
-        rank polar features, sort feature list
+        rank polar _features, sort feature list
         :return:
         """
-        apolar = [feat for feat in self.features if feat.feature_type == "apolar"][0]
-        score_dic = {feat.score: feat for feat in self.features if feat.feature_type != "apolar"}
+        apolar = [feat for feat in self._features if feat.feature_type == "apolar"][0]
+        score_dic = {feat.score: feat for feat in self._features if feat.feature_type != "apolar"}
         sorted_scores = sorted(score_dic.items(), key=lambda x: x[0], reverse=True)
 
         if max_num_features is None:
@@ -121,7 +138,7 @@ class PharmacophoreModel(object):
                        'donor': 'blue red',
                        'apolar': 'yellow'}
         i = 0
-        for feature in self.features:
+        for feature in self._features:
             if feature.feature_type in self.projected_dict["True"] and feature.projected_coordinates is not None:
                 i += 1
                 arrow = 'cluster_dict["{7}_arrows"] += cgo_arrow([{0},{1},{2}], [{3},{4},{5}], color="{6}", name="Arrows_{7}_{8}")\n' \
@@ -157,15 +174,15 @@ class PharmacophoreModel(object):
 
     def as_grid(self, feature_type=None, tolerance=2):
         """
-        returns features as grid
+        returns _features as grid
         :param tolerance:
         :return:
         """
         if feature_type == None:
-            filtered_features = self.features
+            filtered_features = self._features
 
         else:
-            filtered_features = [feat for feat in self.features if feat.feature_type == feature_type]
+            filtered_features = [feat for feat in self._features if feat.feature_type == feature_type]
 
         x = [feat.feature_coordinates.x for feat in filtered_features]
         y = [feat.feature_coordinates.y for feat in filtered_features]
@@ -184,7 +201,7 @@ class PharmacophoreModel(object):
 
         :return:
         """
-        centroid = [feat.feature_coordinates for feat in self.features if feat.feature_type == "apolar"][0]
+        centroid = [feat.feature_coordinates for feat in self._features if feat.feature_type == "apolar"][0]
         prot = self.protein
 
         bs = prot.BindingSiteFromPoint(protein=self.protein,
@@ -219,7 +236,7 @@ class PharmacophoreModel(object):
                                if fd.identifier in supported_features.keys()}
 
         model_features = []
-        for feat in self.features:
+        for feat in self._features:
             if feat.feature_type == "negative" or feat.feature_type == "positive":
                 print "Charged feature not currently supported in CrossMiner: Its on the TODO list"
 
@@ -266,7 +283,7 @@ class PharmacophoreModel(object):
         extension = splitext(fname)[1]
 
         if extension == ".cm":
-            print "WARNING! Charged features not currently supported in CrossMiner!"
+            print "WARNING! Charged _features not currently supported in CrossMiner!"
             pharmacophore = self.get_crossminer_pharmacophore()
             pharmacophore.write(fname)
 
@@ -277,7 +294,7 @@ class PharmacophoreModel(object):
                        'projected_x, projected_y, projected_z, ' \
                        'vector_x, vector_y, vector_z'
 
-                for feature in self.features:
+                for feature in self._features:
                     line += "{0},{1},{2},{3},{4},{5}".format(self.identifier,
                                                             feature.feature_type,
                                                             feature.feature_coordinates.x,
@@ -320,7 +337,7 @@ class PharmacophoreModel(object):
                                    'positive': 'PositiveIon'
                                    }
 
-                for feat in self.features:
+                for feat in self._features:
                     if feat.vector:
                         point = {"name": interaction_dic[feat.feature_type],
                                  "hasvec": True,
@@ -368,7 +385,7 @@ class PharmacophoreModel(object):
                                 atomic_number=14,
                                 coordinates=feat.feature_coordinates,
                                 label = str(feat.score))
-                           for feat in self.features]
+                           for feat in self._features]
 
             for a in  pseudo_atms:
                 mol.add_atom(a)

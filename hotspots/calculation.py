@@ -27,8 +27,9 @@ from ccdc.molecule import Molecule, Coordinates
 from ccdc.protein import Protein
 from ccdc.utilities import PushDir
 from grid_extension import Grid
-from hotspot_pharmacophore import PharmacophoreModel
-from hotspot_utilities import Figures, Helper
+from hs_pharmacophore import PharmacophoreModel
+from hs_utilities import Figures, Helper
+# from best_volume import Extractor
 from scipy.stats import percentileofscore
 from tqdm import tqdm
 
@@ -77,7 +78,6 @@ class _Buriedness(object):
         """
 
         with PushDir(self.settings.working_directory):
-
             if self.settings.protein is not None:
                 with MoleculeWriter('protein.pdb') as writer:
                     writer.write(self.settings.protein)
@@ -128,6 +128,7 @@ class _WeightedResult(object):
     """
     class to hold weighted grids
     """
+
     def __init__(self, identifier, grid):
         self.identifier = identifier
         self.grid = grid
@@ -264,6 +265,7 @@ class _SampleGrid(object):
 
 class _Scorer(object):
     """a class to handle the annotation of objects with Fragment Hotspot Scores"""
+
     def __init__(self, hotspot_result, object, tolerance):
         self.hotspot_result = hotspot_result
         self.object = object
@@ -301,7 +303,7 @@ class _Scorer(object):
         interaction_pairs = {"acceptor": "donor",
                              "donor": "acceptor",
                              "pi": "apolar",
-                             "aliphatic":"apolar",
+                             "aliphatic": "apolar",
                              "aromatic": "apolar",
                              "apolar": "apolar",
                              "donor_acceptor": "doneptor",
@@ -310,7 +312,7 @@ class _Scorer(object):
         cavities = Helper.cavity_from_protein(self.hotspot_result.protein)
         for cavity in cavities:
 
-            for feature in cavity.features:
+            for feature in cavity._features:
                 grid_type = interaction_pairs[feature.type]
 
                 if feature.type == "aliphatic" or feature.type == "aromatic":
@@ -345,7 +347,7 @@ class _Scorer(object):
         return mol
 
     def score_cavity(self):
-        # TODO: return scored cavity features, the score protein function should be enough tbh
+        # TODO: return scored cavity _features, the score protein function should be enough tbh
         return 0
 
     def score_hotspot(self, threshold=5, percentile=50):
@@ -431,7 +433,7 @@ class _Scorer(object):
             return "apolar"
 
 
-class HotspotResults(object):
+class Results(object):
     """
     A Hotspot_results object is returned at the end of a Hotspots calculation. It contains functions for accessing
     and using the results.
@@ -454,7 +456,7 @@ class HotspotResults(object):
 
     class _HotspotFeature(object):
         """
-        class to hold polar islands above threshold "features"
+        class to hold polar islands above threshold "_features"
         purpose: enables feature ranking
         """
 
@@ -513,6 +515,9 @@ class HotspotResults(object):
                         for i in range(nx) for j in range(ny) for k in range(nz)
                         if self.grid.value(i, j, k) > 0]) / self.count
 
+    def extract_volume(self):
+        pass
+
     def score(self, obj=None, tolerance=2):
         """
         Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores
@@ -545,7 +550,7 @@ class HotspotResults(object):
             og1, og2 = self._common_grid(g1, g2)
             sele = og1 - og2
             selectivity_grids[probe] = sele
-        hr = Hotspots.HotspotResults(selectivity_grids, self.protein, self.fname, None, None, self.out_dir)
+        hr = Runner.HotspotResults(selectivity_grids, self.protein, self.fname, None, None, self.out_dir)
         return hr
 
     def get_pharmacophore_model(self, identifier="id_01", cutoff=5):
@@ -553,9 +558,8 @@ class HotspotResults(object):
         Generates a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance from peaks in the hotspot maps
 
 
-        :param (str) identifier: Identifier for displaying multiple models at once
-        :param (float) cutoff: The score cutoff used to identify islands in the maps. One peak will be identified per
-        island
+        :param str identifier: Identifier for displaying multiple models at once
+        :param float cutoff: The score cutoff used to identify islands in the maps. One peak will be identified per island
         :return: a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance
         """
         return PharmacophoreModel.from_hotspot(self.protein, self.super_grids, identifier=identifier, cutoff=cutoff)
@@ -570,18 +574,9 @@ class HotspotResults(object):
 
     def get_histogram(self, fpath="histogram.png"):
         """
-<<<<<<< HEAD
-        Returns a dictiona
-        :param fpath: path to output file
-        :param plot:
-        :return: dict
-
-        TODO: Complete docstring
-=======
         get histogram of zero grid points for the Fragment Hotspot Result
         :param fpath: path to output file
         :return:
->>>>>>> c81c0afe8b8693c08709663e8506bf7a88046346
         """
         data, plt = Figures.histogram(self, plot)
         plt.savefig(fpath)
@@ -667,7 +662,7 @@ class HotspotResults(object):
                 feat_id.append(i)
                 ss_id.append(r.identifier)
 
-                ss_dict = {Helper.get_distance(feat.feature_coordinates, island.centroid()) :island
+                ss_dict = {Helper.get_distance(feat.feature_coordinates, island.centroid()): island
                            for island in r.grid.islands(threshold=1)
                            if Helper.get_distance(feat.feature_coordinates, island.centroid()) < 1}
 
@@ -678,9 +673,8 @@ class HotspotResults(object):
                     shortest = sorted([f[0] for f in ss_dict.items()], reverse=False)[0]
                     g = ss_dict[shortest]
 
-
                 feat.superstar_results.append(AtomicHotspotResult(identifier=r.identifier,
-                                                                  grid= g,
+                                                                  grid=g,
                                                                   buriedness=None)
                                               )
 
@@ -701,12 +695,12 @@ class HotspotResults(object):
             if len(g.islands(threshold=threshold)) > 0:
                 for island in g.islands(threshold=threshold):
                     if (island > threshold).count_grid() > min_feature_gp and probe not in excluded:
-                        f.append(HotspotResults._HotspotFeature(probe, island))
+                        f.append(Results._HotspotFeature(probe, island))
         return f
 
     def _rank_features(self):
         """
-        rank features based upon feature score (TO DO: modify score if required)
+        rank _features based upon feature score (TO DO: modify score if required)
         :return:
         """
         feature_by_score = {feat.score: feat for feat in self.features}
@@ -790,39 +784,46 @@ class HotspotResults(object):
         return view
 
 
-class Hotspots(object):
+class Runner(object):
     """
     A class for running Fragment Hotspot Map calculations
     """
+
+    class Settings(object):
+        """
+        :param int nrotations: number of rotations (keep it below 10**6)
+        :param float apolar_translation_threshold: translate probe to grid points above this threshold. Give lower values for greater sampling. Default 15
+        :param float polar_translation_threshold: translate probe to grid points above this threshold. Give lower values for greater sampling. Default 15
+        :param bool polar_contributions: allow carbon atoms of probes with polar atoms to contribute to the apolar output map.
+        :param bool return_probes: Generate a sorted list of molecule objects, corresponding to probe poses
+        """
+
+        def __init__(self, nrotations=3000, apolar_translation_threshold=15, polar_translation_threshold=15,
+                     polar_contributions=False, return_probes=False):
+            self.nrotations = nrotations
+            self.apolar_translation_threshold = apolar_translation_threshold
+            self.polar_translation_threshold = polar_translation_threshold
+            self.polar_contributions = polar_contributions
+            self.return_probes = return_probes
+
+        @property
+        def _num_gp(self):
+            """
+            number of grid point for a given volume
+            :return:
+            """
+            return int(float(500) / self.nrotations ** 3)
 
     class _Sampler(object):
         """
         Samples one or more grids with a probe molecule
         """
 
-        class Settings(object):
-            """
-            Settings for the sampler
-                nrotations:                   number of rotations (keep it below 10**6)
-                apolar_translation_threshold: translate probe to grid points above this threshold. Give lower values for
-                                              greater sampling. Default 15
-                polar_translation_threshold:  translate probe to grid points above this threshold. Give lower values for
-                                              greater sampling. Default 15
-                polar_contributions:          allow carbon atoms of probes with polar atoms to contribute to the apolar
-                                              output map.
-            """
-
-            nrotations = 3000
-            apolar_translation_threshold = 15
-            polar_translation_threshold = 15
-            polar_contributions = False
-            return_probes = False
-
         def __init__(self, *grids, **kw):
             """
             Settings used to run fragment-hotspot-maps script
 
-            :param grids: list, list of :class: `ccdc.utilities.Grid` instances
+            :param grids: list, list of :class:`ccdc.utilities.Grid` instances
             :param kw: 'settings'
             """
 
@@ -991,7 +992,7 @@ class Hotspots(object):
             active_coords_dic = {
                 g.name: [a.coordinates for a in g._active_atoms]
                 for g in self.grids
-                }
+            }
 
             return active_coords_dic
 
@@ -1008,7 +1009,7 @@ class Hotspots(object):
             molecule.remove_hydrogens()
             quaternions = self.generate_rand_quaternions()
 
-            print("\n    nRotations:", len(quaternions), "nTranslations:" , len(translate_points), "probename:", probe)
+            print("\n    nRotations:", len(quaternions), "nTranslations:", len(translate_points), "probename:", probe)
 
             for g in self.grids:
                 g.set_molecule(molecule, True)
@@ -1058,7 +1059,7 @@ class Hotspots(object):
         self.super_grids = {}
 
         if settings is None:
-            self.sampler_settings = self._Sampler.Settings()
+            self.sampler_settings = self.Settings()
         else:
             self.sampler_settings = settings
 
@@ -1090,7 +1091,7 @@ class Hotspots(object):
 
     @probe_size.setter
     def probe_size(self, size):
-        if size in range(3,8):
+        if size in range(3, 8):
             self._probe_size = size
         else:
             raise ValueError("Probe size must be an integer between 3-7")
@@ -1172,7 +1173,7 @@ class Hotspots(object):
 
     @sampler_settings.setter
     def sampler_settings(self, settings):
-        if isinstance(settings, self._Sampler.Settings):
+        if isinstance(settings, self.Settings):
             self._sampler_settings = settings
         else:
             self._sampler_settings = None
@@ -1180,7 +1181,7 @@ class Hotspots(object):
     def _get_weighted_maps(self):
         """
         weight superstar output by burriedness
-        :return: a list of :class: `WeightedResult` instances
+        :return: a list of :class:`WeightedResult` instances
         """
         results = []
         for s in self.superstar_grids:
@@ -1242,9 +1243,9 @@ class Hotspots(object):
         """
         print("Start atomic hotspot detection")
         a = AtomicHotspot()
-        a.settings.atomic_probes = {"apolar" : "AROMATIC CH CARBON",
-                                    "donor" : "UNCHARGED NH NITROGEN",
-                                    "acceptor" : "CARBONYL OXYGEN"}
+        a.settings.atomic_probes = {"apolar": "AROMATIC CH CARBON",
+                                    "donor": "UNCHARGED NH NITROGEN",
+                                    "acceptor": "CARBONYL OXYGEN"}
         if self.charged_probes:
             a.settings.atomic_probes = {"negative": "CARBOXYLATE OXYGEN", "positive": "CHARGED NH NITROGEN"}
 
@@ -1283,19 +1284,18 @@ class Hotspots(object):
 
         print("Sampling complete\n")
 
-    def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method= 'ghecom',
-                     cavities=None, nprocesses=None, sampler_settings=None):
+    def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method='ghecom',
+                     cavities=None, nprocesses=None, settings=None):
         """
 
         :param protein: a :class:`ccdc.protein.Protein` instance
         :param bool charged_probes: If True include positive and negative probes
         :param int probe_size: Size of probe in number of heavy atoms (3-8 atoms)
         :param str buriedness_method: Either 'ghecom' or 'ligsite'
-        :param cavities: Coordinate or :class:`ccdc.cavity.Cavity` or :class:`ccdc.molecule.Molecule` or list, algorithm
-        run on parsed cavity
+        :param cavities: Coordinate or :class:`ccdc.cavity.Cavity` or :class:`ccdc.molecule.Molecule` or list, algorithm run on parsed cavity
         :param nprocesses: int, number of CPU's used
-        :param sampler_settings: a :class:`hotspots.Hotspot._Sampler.Settings`, holds the sampler settings
-        :return: :class:`hotspots.hotspot_calculation._Sampler.Settings`
+        :param settings: a :class:`hotspots.calculation.Runner.Settings`, holds the sampler settings
+        :return: :class:`hotspots.calculation.Results` instance
 
         """
 
@@ -1306,13 +1306,16 @@ class Hotspots(object):
         self.buriedness_method = buriedness_method
         self.cavities = cavities
         self.nprocesses = nprocesses
-        self.sampler_settings = sampler_settings
+        if settings is None:
+            self.sampler_settings = self.Settings()
+        else:
+            self.sampler_settings = settings
 
-        self._calc_hotspots()     # return probes = False by default
+        self._calc_hotspots()  # return probes = False by default
         self.super_grids = {p: g[0] for p, g in self.out_grids.items()}
 
         print("Runtime = {}seconds".format(time.time() - start))
 
-        return HotspotResults(super_grids=self.super_grids,
-                              protein=self.protein,
-                              buriedness=self.buriedness)
+        return Results(super_grids=self.super_grids,
+                       protein=self.protein,
+                       buriedness=self.buriedness)
