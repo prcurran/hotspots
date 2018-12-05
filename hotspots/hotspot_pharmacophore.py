@@ -29,7 +29,8 @@ import collections
 import csv
 import json
 import re
-from os.path import basename, splitext
+import tempfile
+from os.path import basename, splitext, join
 
 import numpy as np
 from ccdc import io
@@ -37,7 +38,7 @@ from ccdc.descriptors import GeometricDescriptors
 from ccdc.molecule import Atom, Molecule
 from ccdc.pharmacophore import Pharmacophore
 from grid_extension import Grid
-from template_strings import pymol_arrow, pymol_imports
+from template_strings import pymol_arrow, pymol_imports, crossminer_features
 from hotspot_utilities import Helper
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
@@ -79,6 +80,7 @@ class PharmacophoreModel(object):
         self.projected_dict = {"True": ["donor", "acceptor"], "False": ["negative", "positive", "apolar"]}
 
         self.protein = protein
+
         if settings == None:
             self.settings = Settings()
         else:
@@ -89,27 +91,41 @@ class PharmacophoreModel(object):
         """list of `hotspots.pharmacophore.PharmacophoreFeature` class instances"""
         return self._features
 
-    def rank_polar_features(self, threshold=0, max_num_features=None):
+    def rank_features(self, max_features=4, feature_threshold=0, force_apolar=True):
         """
         rank polar features, sort feature list
         :return:
         """
         apolar = [feat for feat in self.features if feat.feature_type == "apolar"][0]
+
         score_dic = {feat.score: feat for feat in self.features if feat.feature_type != "apolar"}
         sorted_scores = sorted(score_dic.items(), key=lambda x: x[0], reverse=True)
 
-        if max_num_features is None:
-            ordered_features = [feat for score, feat in sorted_scores if score > threshold]
-        else:
-            ordered_features = [feat for score, feat in sorted_scores if score > threshold][:max_num_features]
-        return ordered_features
+        if force_apolar:
+            max_features -= 1
+            if max_features > len(self.features):
+                ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold]
+            else:
+                ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold][:max_features]
 
-    def get_pymol_pharmacophore(self):
+            return ordered_features.append(apolar)
+
+        else:
+            if max_features > len(features):
+                ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold]
+            else:
+                ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold][:max_features]
+
+            return ordered_features
+
+    def _get_pymol_pharmacophore(self):
         """
 
         :return:
         """
-        pymol_out = """cluster_dict = {{"{0}":[], "{0}_arrows":[]}}""".format(self.identifier)
+        pymol_out = """
+cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
+""".format(self.identifier)
         sphere_dict = {'acceptor': '[COLOR, 1.00, 0.00, 0.00]',
                        'donor': '[COLOR, 0.00, 0.00, 1.00]',
                        'apolar': '[COLOR, 1.00, 1.000, 0.000]',
@@ -121,6 +137,7 @@ class PharmacophoreModel(object):
                        'donor': 'blue red',
                        'apolar': 'yellow'}
         i = 0
+
         for feature in self.features:
             if feature.feature_type in self.projected_dict["True"] and feature.projected_coordinates is not None:
                 i += 1
@@ -155,7 +172,7 @@ class PharmacophoreModel(object):
                      '\ncmd.group("Pharmacophore_{0}", members="Arrows_{0}")\n'.format(self.identifier)
         return pymol_out
 
-    def as_grid(self, feature_type=None, tolerance=2):
+    def _as_grid(self, feature_type=None, tolerance=2):
         """
         returns features as grid
         :param tolerance:
@@ -201,7 +218,7 @@ class PharmacophoreModel(object):
 
         return prot
 
-    def get_crossminer_pharmacophore(self):
+    def _get_crossminer_pharmacophore(self):
         """
 
         :return:
@@ -236,7 +253,7 @@ class PharmacophoreModel(object):
                 model_features.append(p)
 
         if self.settings.excluded_volume:
-            if self.protein == None:
+            if not self.protein:
                 print "Pharmacophore Model must have protein to calculate excluded volume"
             else:
                 bs = self._get_binding_site_residues()
@@ -254,7 +271,7 @@ class PharmacophoreModel(object):
                     centre = mol.centre_of_geometry()
                     ev = Pharmacophore.ExcludedVolume(GeometricDescriptors.Sphere(centre, 2))
                     model_features.append(ev)
-        #print len(model_features)
+
         return Pharmacophore.Query(model_features)
 
     def write(self, fname):
@@ -267,7 +284,7 @@ class PharmacophoreModel(object):
 
         if extension == ".cm":
             print "WARNING! Charged features not currently supported in CrossMiner!"
-            pharmacophore = self.get_crossminer_pharmacophore()
+            pharmacophore = self._get_crossminer_pharmacophore()
             pharmacophore.write(fname)
 
         elif extension == ".csv":
@@ -306,7 +323,7 @@ class PharmacophoreModel(object):
             with open(fname, "wb") as pymol_file:
                 pymol_out = pymol_imports()
                 pymol_out += pymol_arrow()
-                lines = self.get_pymol_pharmacophore()
+                lines = self._get_pymol_pharmacophore()
                 pymol_out += lines
                 pymol_file.write(pymol_out)
 
@@ -367,7 +384,7 @@ class PharmacophoreModel(object):
             pseudo_atms = [Atom(atomic_symbol=atom_dic[feat.feature_type],
                                 atomic_number=14,
                                 coordinates=feat.feature_coordinates,
-                                label = str(feat.score))
+                                label=str(feat.score))
                            for feat in self.features]
 
             for a in  pseudo_atms:
@@ -376,22 +393,32 @@ class PharmacophoreModel(object):
             with io.MoleculeWriter(fname) as w:
                 w.write(mol)
 
+        elif extension == ".grd":
+            g = self._as_grid()
+            g.write(fname)
+
         else:
             raise TypeError("""""{}" output file type is not currently supported.""".format(extension))
 
     @staticmethod
     def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5, settings=None):
         """creates a pharmacophore model from hotspot results object"""
-        settings = Settings()
+        if not settings:
+            settings = Settings()
         feature_list = [_PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
                         for probe, g in super_grids.items()
                         for island in g.islands(cutoff) if island.count_grid() >= 5]
 
-        return PharmacophoreModel(settings, identifier=identifier, features=feature_list, protein=protein)
+        return PharmacophoreModel(settings,
+                                  identifier=identifier,
+                                  features=feature_list,
+                                  protein=protein)
 
     @staticmethod
     def from_file(fname, protein=None, identifier=None, settings=None):
         """creates a pharmacophore model from file (only .cm supported) """
+        if not settings:
+            settings = Settings()
         if identifier == None:
             identifier = basename(fname).split(".")[0]
 
@@ -401,7 +428,87 @@ class PharmacophoreModel(object):
             feature_list = [f for f in [_PharmacophoreFeature.from_crossminer(feature) for feature in lines] if f != None]
 
 
-        return PharmacophoreModel(settings, identifier=identifier, features=feature_list, protein=protein)
+        return PharmacophoreModel(settings,
+                                  identifier=identifier,
+                                  features=feature_list,
+                                  protein=protein)
+
+    @staticmethod
+    def from_ligands(ligands, identifier="gold_standard", protein=None, settings=None):
+        """
+
+        :param ligands:
+        :return:
+        """
+        cm_dict = crossminer_features()
+
+        if not settings:
+            settings = Settings()
+
+        if isinstance(ligands[0], Molecule):
+            temp = tempfile.mkdtemp()
+
+            with io.MoleculeWriter(join(temp, "ligs.mol2")) as w:
+                for l in ligands:
+                    w.write(l)
+            ligands = list(io.CrystalReader(join(temp, "ligs.mol2")))
+
+        Pharmacophore.read_feature_definitions()
+        feature_definitions = [fd for fd in Pharmacophore.feature_definitions.values() if
+                               fd.identifier != 'exit_vector' and
+                               fd.identifier != 'heavy_atom' and
+                               fd.identifier != 'hydrophobe']
+
+        features = []
+        for fd in feature_definitions:
+            detected = [fd.detect_features(ligand) for ligand in ligands]
+            all_feats = [f for l in detected for f in l]
+
+            if not all_feats:
+                    continue
+
+            minx = min(f.spheres[0].centre.x() for f in all_feats)
+            miny = min(f.spheres[0].centre.y() for f in all_feats)
+            minz = min(f.spheres[0].centre.z() for f in all_feats)
+            maxx = max(f.spheres[0].centre.x() for f in all_feats)
+            maxy = max(f.spheres[0].centre.y() for f in all_feats)
+            maxz = max(f.spheres[0].centre.z() for f in all_feats)
+
+            g = Grid((minx-1., miny-1., minz-1.), (maxx+1, maxy+1, maxz+1), 0.2)
+
+            spheres = []
+            for f in all_feats:
+                if f.spheres[0] in spheres:
+                    g.set_sphere(f.spheres[0].centre, f.spheres[0].radius, 0)
+                else:
+                    spheres.append(f.spheres[0])
+                    g.set_sphere(f.spheres[0].centre, f.spheres[0].radius, 1)
+
+            peaks = g.get_peaks(min_distance=8)
+
+            for p in peaks:
+                coords = Coordinates(p[0], p[1], p[2])
+                projected_coordinates = None
+                if cm_dict[fd.identifier] == "donor" or cm_dict[fd.identifier] == "acceptor":
+                    if protein:
+                        projected_coordinates = _PharmacophoreFeature.get_projected_coordinates(cm_dict[fd.identifier],
+                                                                                                coords,
+                                                                                                protein,
+                                                                                                settings)
+                features.append(_PharmacophoreFeature(projected=None,
+                                                      feature_type=cm_dict[fd.identifier],
+                                                      feature_coordinates=coords,
+                                                      projected_coordinates=projected_coordinates,
+                                                      score=g.value_at_coordinate(p, position=False),
+                                                      vector=None,
+                                                      settings=settings
+                                                      )
+                                )
+
+        return PharmacophoreModel(settings,
+                                  identifier=identifier,
+                                  features=features,
+                                  protein=protein)
 
 
 class _PharmacophoreFeature(Helper):
