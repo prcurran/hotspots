@@ -13,15 +13,15 @@ from sklearn.metrics import silhouette_score
 from ccdc import io
 from tqdm import tqdm
 
-from hotspots import hotspot_pharmacophore
+from hotspots import hs_pharmacophore
 
-class PharmacophoreModel(hotspot_pharmacophore.PharmacophoreModel):
+class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
     """
     a class to handle the the generation of diverse set of ligands
     """
 
     @staticmethod
-    def from_pdb(pdb_code, chain, out_dir=None):
+    def from_pdb(pdb_code, chain, out_dir=None, representatives=None):
         """
 
         :return:
@@ -30,15 +30,31 @@ class PharmacophoreModel(hotspot_pharmacophore.PharmacophoreModel):
         ref = PDBResult(pdb_code)
         ref.download(out_dir=temp, compressed=False)
 
-        accession_id = PDBResult(pdb_code).protein.sub_units[0].accession_id
-        results = PharmacophoreModel.run_query(accession_id)
-        ligands = PharmacophoreModel.get_ligands(results)
+        if representatives:
+            print("Reading representative PDB codes ...")
+            reps = []
+            f = open(representatives, "r")
+            entries = f.read().splitlines()
+            for entry in entries:
+                pdb_code, hetid = entry.split(",")
+                reps.append((pdb_code, hetid))
+            print(reps)
 
-        k = int(round(len(ligands) / 10))
-        if k < 2:
-            k = 2
-        cluster_dict = PharmacophoreModel.cluster_ligands(n=k, ligands=ligands)
-        reps = [(l[0].structure_id, l[0].chemical_id) for l in cluster_dict.values()]
+        else:
+            accession_id = PDBResult(pdb_code).protein.sub_units[0].accession_id
+            results = PharmacophoreModel.run_query(accession_id)
+            ligands = PharmacophoreModel.get_ligands(results)
+
+            k = int(round(len(ligands) / 10))
+            if k < 2:
+                k = 2
+            cluster_dict = PharmacophoreModel.cluster_ligands(n=k, ligands=ligands)
+            reps = [(l[0].structure_id, l[0].chemical_id) for l in cluster_dict.values()]
+
+        if out_dir:
+            with open(os.path.join(out_dir, "representatives.dat"), "w") as f:
+                for r in reps:
+                    f.write("{},{}\n".format(r[0], r[1]))
 
         targets = []
 

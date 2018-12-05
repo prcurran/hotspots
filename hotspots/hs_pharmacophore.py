@@ -40,7 +40,7 @@ from ccdc.pharmacophore import Pharmacophore
 from grid_extension import Grid
 
 from template_strings import pymol_arrow, pymol_imports, crossminer_features
-from hotspot_utilities import Helpery
+from hs_utilities import Helper
 
 
 class PharmacophoreModel(object):
