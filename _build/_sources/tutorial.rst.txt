@@ -62,25 +62,28 @@ visualise the output. ::
     w = hs_io.HotspotWriter(out_dir, grid_extension=".grd", zip_results=True)
     w.write(results)
 
+
 -------
 Reading
 -------
 
-If you need to revisit the results of a previous calculation, you can load the `out.zip` archive directly into a
+If you want to revisit the results of a previous calculation, you can load the `out.zip` archive directly into a
 :class:`hotspots.calculation.results` instance::
 
     from hotspots import hs_io
 
     results = hs_io.HotspotReader('results/pdb1/out.zip').read()
 
-
 ****************
 Using the Output
 ****************
 
+While Fragment Hotspot Maps provide a useful visual guide, the grid-based data can be used
+
 =======
 Scoring
 =======
+
 
 ---------------
 Small molecules

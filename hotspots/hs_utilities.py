@@ -88,7 +88,7 @@ class Helper(object):
         :return:
         """
         if isinstance(obj, Cavity):
-            features = [f.coordinates for f in obj._features]
+            features = [f.coordinates for f in obj.features]
 
         else:
             features = obj.surface_points

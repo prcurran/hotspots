@@ -97,7 +97,12 @@ class _Results(calculation.Results):
             """
             threshold = optimize.fminbound(self._count_island_points, 0, 30, xtol=0.025)
             best_island = self.mask.get_best_island(threshold=threshold, mode='score', peak=self.peak)
-            best_island = (best_island > threshold) * best_island
+
+            # If threshold is close to zero, keep all grid points
+            try:
+                best_island = (best_island > threshold) * best_island
+            except TypeError:
+                best_island = self.mask
 
             if best_island.count_grid() > self.settings._num_gp:
                 threshold += 0.01
@@ -130,6 +135,8 @@ class _Results(calculation.Results):
 
         optimiser = _Results.Optimiser(mask=mask, settings=settings, peak=seed)
         threshold, best_island = optimiser.optimize_island_threshold()
+
+        print("oooh",threshold)
         if best_island is not None:
             location, features = _Results.get_interaction_type(mask_dic, best_island, threshold, settings)
             grd_dict = _Results.get_grid_dict(location, features, settings)
@@ -447,6 +454,7 @@ class Extractor(object):
         """
         extracted_hotspots = []
         if self.settings.mode == "seed":
+            print(self.peaks)
             for peak in self.peaks:
                 print(peak)
                 e = _Results.from_hotspot(self.single_grid,
@@ -455,10 +463,10 @@ class Extractor(object):
                                           self.hotspot_result.protein,
                                           seed=peak)
 
-                if e:
-                    if e.threshold > 12:
-                        print(e.threshold)
-                        extracted_hotspots.append(e)
+                # if e:
+                #     if e.threshold > 0:
+                print(e.threshold)
+                extracted_hotspots.append(e)
 
         else:
             e = _Results.from_hotspot(self.single_grid,
