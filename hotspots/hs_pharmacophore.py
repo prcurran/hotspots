@@ -37,10 +37,11 @@ from ccdc import io
 from ccdc.descriptors import GeometricDescriptors
 from ccdc.molecule import Atom, Molecule
 from ccdc.pharmacophore import Pharmacophore
-from grid_extension import Grid
+from grid_extension import Grid, Coordinates
 
 from template_strings import pymol_arrow, pymol_imports, crossminer_features
 from hs_utilities import Helper
+
 
 
 class PharmacophoreModel(object):
@@ -96,7 +97,7 @@ class PharmacophoreModel(object):
             self.settings = settings
 
     @property
-    def _features(self):
+    def features(self):
         """list of `hotspots.pharmacophore.PharmacophoreFeature` class instances"""
         return self._features
 
@@ -272,7 +273,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
                 for residue in bs.residues:
                     mol = None
-                    mol = Molecule(identifier = "temp_residue")
+                    mol = Molecule(identifier="temp_residue")
 
                     # for a in residue.backbone_atoms:
                     #     ev = Pharmacophore.ExcludedVolume(GeometricDescriptors.Sphere(a.coordinates, 2))
@@ -417,7 +418,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
     def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5, settings=None):
         """creates a pharmacophore model from hotspot results object"""
         if not settings:
-            settings = Settings()
+            settings = PharmacophoreModel.Settings()
         feature_list = [_PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
                         for probe, g in super_grids.items()
                         for island in g.islands(cutoff) if island.count_grid() >= 5]
@@ -431,7 +432,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
     def from_file(fname, protein=None, identifier=None, settings=None):
         """creates a pharmacophore model from file (only .cm supported) """
         if not settings:
-            settings = Settings()
+            settings = PharmacophoreModel.Settings()
         if identifier == None:
             identifier = basename(fname).split(".")[0]
 
@@ -456,7 +457,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         cm_dict = crossminer_features()
 
         if not settings:
-            settings = Settings()
+            settings = PharmacophoreModel.Settings()
 
         if isinstance(ligands[0], Molecule):
             temp = tempfile.mkdtemp()
@@ -630,7 +631,7 @@ class _PharmacophoreFeature(Helper):
                            }
 
         vector = None
-        settings = Settings()
+        settings = PharmacophoreModel.Settings()
 
         feat = re.search(r"""PHARMACOPHORE_FEATURE (.+?)\n""", feature_str)
         if feat.group(1) == "excluded_volume":

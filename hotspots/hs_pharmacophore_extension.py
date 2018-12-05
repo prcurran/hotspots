@@ -45,14 +45,14 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
             results = PharmacophoreModel.run_query(accession_id)
             ligands = PharmacophoreModel.get_ligands(results)
 
-            k = int(round(len(ligands) / 10))
+            k = int(round(len(ligands) / 5))
             if k < 2:
                 k = 2
             cluster_dict = PharmacophoreModel.cluster_ligands(n=k, ligands=ligands)
             reps = [(l[0].structure_id, l[0].chemical_id) for l in cluster_dict.values()]
 
         if out_dir:
-            with open(os.path.join(out_dir, "representatives.dat"), "w") as f:
+            with open(os.path.join(os.path.dirname(os.path.dirname(out_dir)), "representatives.dat"), "w") as f:
                 for r in reps:
                     f.write("{},{}\n".format(r[0], r[1]))
 
@@ -112,10 +112,13 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
 
         for entry in results:
             for l in entry.filtered_ligands:
-                l.rdmol = Chem.MolFromSmiles(l.smiles)
-                l.rdmol.SetProp("_Name", str(entry.identifier + "/" + l.chemical_id))
-                l.fingerprint = MACCSkeys.GenMACCSKeys(l.rdmol)
-                ligs.append(l)
+                try:
+                    l.rdmol = Chem.MolFromSmiles(l.smiles)
+                    l.rdmol.SetProp("_Name", str(entry.identifier + "/" + l.chemical_id))
+                    l.fingerprint = MACCSkeys.GenMACCSKeys(l.rdmol)
+                    ligs.append(l)
+                except AttributeError:
+                    continue
         return ligs
 
     @staticmethod
