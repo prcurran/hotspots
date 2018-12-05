@@ -1,5 +1,21 @@
 from os.path import join
 
+
+def crossminer_features():
+    """"""
+    return {"ring": "apolar",
+            "ring_planar_projected": "apolar",
+            "ring_non_planar": "apolar",
+            "hydrophobic": "apolar",
+            "donor_ch_projected": "donor",
+            "donor_projected": "donor",
+            "donor": "donor",
+            "acceptor_projected": "acceptor",
+            "acceptor": "acceptor",
+            "negative": "",
+            "positive": ""}
+
+
 def superstar_ins(jobname, probename, settings):
     ss_str = '''JOBNAME {0}
 PROBENAME {1}

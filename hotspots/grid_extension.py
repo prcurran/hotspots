@@ -26,8 +26,11 @@ import numpy as np
 from ccdc import utilities
 from hotspots.hs_utilities import Helper
 from scipy import ndimage
+from skimage import feature
+
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
+
 
 class Grid(utilities.Grid):
     """
@@ -510,6 +513,35 @@ class Grid(utilities.Grid):
         outer = expand.__sub__(inner) * template
         threshold = np.percentile(a=outer.grid_values(threshold=1), q=int(percentile))
         return inner.__add__(outer > threshold)
+
+    def get_peaks(self, min_distance=6, cutoff=2):
+        """
+        find peak coordinates in grid
+        :return:
+        """
+        peaks = feature.peak_local_max(self.get_array(),
+                                       min_distance=min_distance,
+                                       threshold_abs=cutoff)
+        peak_by_value = {}
+        for peak in peaks:
+            val = self.value(int(peak[0]), int(peak[1]), int(peak[2]))
+            if val > cutoff:
+                if val in peak_by_value:
+                    peak_by_value[val].append((peak[0], peak[1], peak[2]))
+                else:
+                    peak_by_value.update({val: [(peak[0], peak[1], peak[2])]})
+
+        average_peaks = []
+        for key in peak_by_value.keys():
+            x = [point[0] for point in peak_by_value[key]]
+            y = [point[1] for point in peak_by_value[key]]
+            z = [point[2] for point in peak_by_value[key]]
+            average_peaks.append(self.indices_to_point(int(sum(x) / len(x)),
+                                                       int(sum(y) / len(y)),
+                                                       int(sum(z) / len(z))
+                                                       )
+                                 )
+        return average_peaks
 
     def value_at_coordinate(self, coordinates, tolerance=1, position=True):
         """
