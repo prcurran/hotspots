@@ -38,18 +38,17 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
             for entry in entries:
                 pdb_code, hetid = entry.split(",")
                 reps.append((pdb_code, hetid))
-            print(reps)
 
         else:
             accession_id = PDBResult(pdb_code).protein.sub_units[0].accession_id
             results = PharmacophoreModel.run_query(accession_id)
             ligands = PharmacophoreModel.get_ligands(results)
-
+            print(len(ligands))
             k = int(round(len(ligands) / 5))
             if k < 2:
                 k = 2
             cluster_dict = PharmacophoreModel.cluster_ligands(n=k, ligands=ligands)
-            reps = [(l[0].structure_id, l[0].chemical_id) for l in cluster_dict.values()]
+            reps = [(l[0].structure_id, l[0].chemical_id) for l in cluster_dict.values() if len(l) != 0]
 
         if out_dir:
             with open(os.path.join(os.path.dirname(os.path.dirname(out_dir)), "representatives.dat"), "w") as f:
@@ -95,10 +94,10 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
                                      'refine.ls_d_res_high.min': '0',
                                      'refine.ls_d_res_high.max': '2.5'},
                    conjunction='and')
-
-        q.add_term(query_type="NoModResQuery",
-                   query_parameters={"hasModifiedResidues": 'no'},
-                   conjunction='and')
+        #
+        # q.add_term(query_type="NoModResQuery",
+        #            query_parameters={"hasModifiedResidues": 'no'},
+        #            conjunction='and')
 
         return PDB.search(q.query)
 
@@ -109,14 +108,16 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
         :return:
         """
         ligs = []
-
+        uniques = []
         for entry in results:
             for l in entry.filtered_ligands:
                 try:
                     l.rdmol = Chem.MolFromSmiles(l.smiles)
                     l.rdmol.SetProp("_Name", str(entry.identifier + "/" + l.chemical_id))
                     l.fingerprint = MACCSkeys.GenMACCSKeys(l.rdmol)
-                    ligs.append(l)
+                    if l.chemical_id not in uniques:
+                        ligs.append(l)
+                        uniques.append(l.chemical_id)
                 except AttributeError:
                     continue
         return ligs
@@ -170,11 +171,13 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
                                                          molecule=l,
                                                          distance=6)
                     chain = bs.residues[0].identifier.split(":")[0]
-
                     break
 
                 else:
                     continue
+            if not chain:
+                print("\n        {} failed! No chain detected".format(t.identifier))
+                break
             try:
                 binding_site_superposition = Protein.ChainSuperposition()
                 (bs_rmsd, bs_transformation) = binding_site_superposition.superpose(reference[reference_chain],
@@ -182,7 +185,8 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
                 aligned_prots.append(prot)
                 for lig in prot.ligands:
                     if str(t.clustered_ligand) == str(lig.identifier.split(":")[1][0:3]):
-                        aligned_ligands.append(lig)
+                        if chain == str(lig.identifier.split(":")[0]):
+                            aligned_ligands.append(lig)
             except IndexError:
                 print("\n        {} failed!".format(t.identifier))
                 continue

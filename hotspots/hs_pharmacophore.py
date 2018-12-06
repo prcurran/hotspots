@@ -30,7 +30,7 @@ import csv
 import json
 import re
 import tempfile
-from os.path import basename, splitext, join
+from os.path import basename, splitext, join, dirname
 
 import numpy as np
 from ccdc import io
@@ -39,7 +39,7 @@ from ccdc.molecule import Atom, Molecule
 from ccdc.pharmacophore import Pharmacophore
 from grid_extension import Grid, Coordinates
 
-from template_strings import pymol_arrow, pymol_imports, crossminer_features
+from template_strings import pymol_arrow, pymol_imports, crossminer_features, pymol_labels
 from hs_utilities import Helper
 
 
@@ -183,6 +183,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         pymol_out += '\ncmd.set("transparency", 0.2,"Features_{0}")' \
                      '\ncmd.group("Pharmacophore_{0}", members="Features_{0}")' \
                      '\ncmd.group("Pharmacophore_{0}", members="Arrows_{0}")\n'.format(self.identifier)
+
         return pymol_out
 
     def _as_grid(self, feature_type=None, tolerance=2):
@@ -454,7 +455,11 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         :param ligands:
         :return:
         """
-        cm_dict = crossminer_features()
+        cm_dic = crossminer_features()
+        blank_grd = Grid.initalise_grid([a.coordinates for l in ligands for a in l.atoms])
+        feature_dic = {"apolar": blank_grd.copy(),
+                       "acceptor": blank_grd.copy(),
+                       "donor": blank_grd.copy()}
 
         if not settings:
             settings = PharmacophoreModel.Settings()
@@ -471,9 +476,12 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         feature_definitions = [fd for fd in Pharmacophore.feature_definitions.values() if
                                fd.identifier != 'exit_vector' and
                                fd.identifier != 'heavy_atom' and
-                               fd.identifier != 'hydrophobe']
+                               fd.identifier != 'hydrophobe' and
+                               fd.identifier != 'fluorine' and
+                               fd.identifier != 'chlorine' and
+                               fd.identifier != 'iodine' and
+                               fd.identifier != 'halogen']
 
-        features = []
         for fd in feature_definitions:
             detected = [fd.detect_features(ligand) for ligand in ligands]
             all_feats = [f for l in detected for f in l]
@@ -481,39 +489,28 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             if not all_feats:
                     continue
 
-            minx = min(f.spheres[0].centre.x() for f in all_feats)
-            miny = min(f.spheres[0].centre.y() for f in all_feats)
-            minz = min(f.spheres[0].centre.z() for f in all_feats)
-            maxx = max(f.spheres[0].centre.x() for f in all_feats)
-            maxy = max(f.spheres[0].centre.y() for f in all_feats)
-            maxz = max(f.spheres[0].centre.z() for f in all_feats)
-
-            g = Grid((minx-1., miny-1., minz-1.), (maxx+1, maxy+1, maxz+1), 0.2)
-
-            spheres = []
+            print all_feats
             for f in all_feats:
-                if f.spheres[0] in spheres:
-                    g.set_sphere(f.spheres[0].centre, f.spheres[0].radius, 0)
-                else:
-                    spheres.append(f.spheres[0])
-                    g.set_sphere(f.spheres[0].centre, f.spheres[0].radius, 1)
+                feature_dic[cm_dic[fd.identifier]].set_sphere(f.spheres[0].centre, f.spheres[0].radius, 1)
 
-            peaks = g.get_peaks(min_distance=8)
-
+        features = []
+        for feat, feature_grd in feature_dic.items():
+            peaks = feature_grd.get_peaks(min_distance=4, cutoff=1)
+            print peaks
             for p in peaks:
                 coords = Coordinates(p[0], p[1], p[2])
                 projected_coordinates = None
-                if cm_dict[fd.identifier] == "donor" or cm_dict[fd.identifier] == "acceptor":
+                if feat == "donor" or feat == "acceptor":
                     if protein:
-                        projected_coordinates = _PharmacophoreFeature.get_projected_coordinates(cm_dict[fd.identifier],
+                        projected_coordinates = _PharmacophoreFeature.get_projected_coordinates(feat,
                                                                                                 coords,
                                                                                                 protein,
                                                                                                 settings)
                 features.append(_PharmacophoreFeature(projected=None,
-                                                      feature_type=cm_dict[fd.identifier],
+                                                      feature_type=feat,
                                                       feature_coordinates=coords,
                                                       projected_coordinates=projected_coordinates,
-                                                      score=g.value_at_coordinate(p, position=False),
+                                                      score=feature_grd.value_at_coordinate(coords, position=False),
                                                       vector=None,
                                                       settings=settings
                                                       )

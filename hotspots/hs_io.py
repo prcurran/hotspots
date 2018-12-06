@@ -203,7 +203,7 @@ class HotspotWriter(object):
         with io.MoleculeWriter(out) as writer:
             writer.write(prot)
 
-    def _write_pharmacophore(self, pharmacophore, label=None):
+    def _write_pharmacophore(self, pharmacophore):
         """
         writes pharmacophore to output directory
         :param pharmacophore:
@@ -219,9 +219,9 @@ class HotspotWriter(object):
                     as writer:
                 writer.write(label)
 
-    def _write_ngl(self):
-        view = nv.NGLWidget()
-        return 0
+    # def _write_ngl(self):
+    #     view = nv.NGLWidget()
+    #     return 0
 
     def _write_pymol(self, hr, zipped=False):
         """
@@ -247,7 +247,6 @@ class HotspotWriter(object):
 
         else:
             pymol_out += self._get_pymol_hotspot(hr)
-
 
         pymol_out += pymol_display_settings(self.settings)
 
@@ -279,12 +278,13 @@ class HotspotWriter(object):
         pymol_out += pymol_grids(i, self.settings)
 
         if h.pharmacophore:
-            pymol_out += h.pharmacophore.get_pymol_pharmacophore()
-
-            if i is not None:
+            if i:
                 f = join(str(i), "label_threshold_{}.mol2".format(h.pharmacophore.identifier))
             else:
                 f = "label_threshold_{}.mol2".format(h.pharmacophore.identifier)
+
+            pymol_out += h.pharmacophore.get_pymol_pharmacophore(f)
+
             pymol_out += pymol_labels(fname=f,
                                       objname="label_threshold_{}".format(h.pharmacophore.identifier))
 
