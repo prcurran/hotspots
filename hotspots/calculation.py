@@ -569,7 +569,7 @@ class Results(object):
         get the number zero grid points for the Fragment Hotspot Result
         :return: dict of str(probe type) by a :class:`numpy.array` (non-zero grid point scores)
         """
-        data = Figures.histogram(self, plot)
+        data = Figures.histogram(self, False)
         return data
 
     def get_histogram(self, fpath="histogram.png"):
