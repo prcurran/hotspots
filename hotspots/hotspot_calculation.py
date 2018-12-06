@@ -523,13 +523,73 @@ class HotspotResults(object):
 
         return _Scorer(self, obj, tolerance).scored_object
 
-    def get_selectivity_map(self, other):
+    def filter_map(self, g1, g2, tol):
+        """
+        Sets 2 grids to the same size and coordinate frames. Points that are zero in one grid but sampled in the other are
+        set to the mean of their nonzero neighbours.
+        :param tol: int, how many grid points away to consider scores from
+        :param g1: ccdc.utilities.Grid
+        :param g2: ccdc.utilities.Grid
+        :return: ccdc.utilities.Grid
+        """
+
+        def filter_point(x, y, z):
+            loc_arr = np.array(
+                [g[x + i][y + j][z + k] for i in range(-tol, tol + 1) for j in range(-tol, tol + 1) for k in
+                 range(-tol, tol + 1)])
+            if loc_arr[loc_arr > 0].size != 0:
+                print(np.mean(loc_arr[loc_arr > 0]))
+                new_grid[x][y][z] = np.mean(loc_arr[loc_arr > 0])
+
+        vfilter_point = np.vectorize(filter_point)
+        com_bound_box = g1.bounding_box
+        com_spacing = g1.spacing
+
+        arr1 = g1.get_array()
+        arr2 = g2.get_array()
+
+        b_arr1 = np.copy(arr1)
+        b_arr2 = np.copy(arr2)
+
+        b_arr1[b_arr1 > 0] = 1.0
+        b_arr2[b_arr2 > 0] = -1.0
+
+        diff_arr = b_arr1 + b_arr2
+
+        unmatch1 = np.where(diff_arr == 1)
+        unmatch2 = np.where(diff_arr == -1)
+
+        g = arr1
+        new_grid = np.copy(arr1)
+        vfilter_point(unmatch2[0], unmatch2[1], unmatch2[2])
+        f_arr1 = np.copy(new_grid)
+
+        g = arr2
+        new_grid = np.copy(arr2)
+        vfilter_point(unmatch1[0], unmatch1[1], unmatch1[2])
+        f_arr2 = np.copy(new_grid)
+
+        sel_arr = f_arr1 - f_arr2
+        sel_arr[sel_arr < 0] = 0
+        sel_map = Grid(origin=com_bound_box[0], far_corner=com_bound_box[1], spacing=com_spacing, _grid=None)
+
+        idxs = sel_arr.nonzero()
+        vals = sel_arr[idxs]
+
+        as_triads = zip(*idxs)
+        for (i, j, k), v in zip(as_triads, vals):
+            sel_map._grid.set_value(int(i), int(j), int(k), v)
+
+        return sel_map
+
+    def get_selectivity_map(self, other, tol):
         '''
         Generate maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
         by the binding site of interest prior to calculation of Fragment Hotspot Maps. High scoring regions of a map
         represent areas of favourable interaction in the target binding site, not present in off target binding site
 
         :param other: a :class:`fragment_hotspots.Hotspots.HotspotResults` instance
+        :param tol: int, how many grid points away to pull scored from
         :return: a :class:`fragment_hotspots.Hotspots.HotspotResults` instance
         '''
 
@@ -538,10 +598,37 @@ class HotspotResults(object):
             g1 = self.super_grids[probe]
             g2 = other.super_grids[probe]
             og1, og2 = self._common_grid(g1, g2)
-            sele = og1 - og2
+            sele = self.filter_map(og1, og2, tol)
             selectivity_grids[probe] = sele
         hr = Hotspots.HotspotResults(selectivity_grids, self.protein, self.fname, None, None, self.out_dir)
         return hr
+	
+
+    def from_grid_ensembles(self, res_list, prot_name, charged=False):
+        """
+
+        :param res_list: list of Hotspot.Results
+        :param prot_name: str
+        :param out_dir: str
+        :return: HotspotResults
+        """
+        from grid_ensemble import GridEnsemble
+
+        if charged:
+            probe_list = ["acceptor", "apolar", "donor", "positive", "negative"]
+        else:
+            probe_list = ["acceptor", "apolar", "donor"]
+
+        grid_dic = {}
+
+        for p in probe_list:
+            grid_list_p = [r.super_grids[p] for r in res_list]
+            ens = GridEnsemble()
+            grid_dic[p] = ens.from_grid_list(grid_list_p, self.out_dir, prot_name, p)
+
+        hr = Hotspots.HotspotResults(grid_dic, self.protein, self.fname, None, None, self.out_dir)
+        return hr
+
 
     def get_pharmacophore_model(self, identifier="id_01", cutoff=5):
         """
