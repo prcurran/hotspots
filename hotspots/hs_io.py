@@ -282,58 +282,6 @@ class HotspotWriter(Helper):
 
         return pymol_out
 
-    # def _get_label(self, input, threshold=None):
-    #     """
-    #
-    #     :param input:
-    #     :return:
-    #     """
-    #     min_size_dict = {"apolar": 40,
-    #                      "donor": 15,
-    #                      "acceptor": 15,
-    #                      "negative": 15,
-    #                      "positive": 15}
-    #
-    #     atom_dic = {"apolar": 'C',
-    #                 "donor": 'N',
-    #                 "acceptor": 'O',
-    #                 "negative": 'S',
-    #                 "positive": 'H'}
-    #
-    #     if isinstance(input, PharmacophoreModel):
-    #         interaction_types = [atom_dic[feat.feature_type] for feat in input._features]
-    #         coordinates = [feat.feature_coordinates for feat in input._features]
-    #         scores = [feat.score for feat in input._features]
-    #
-    #     elif isinstance(input, dict):
-    #         if not threshold:
-    #             pass
-    #         else:
-    #             interaction_types = []
-    #             coordinates = []
-    #             scores = []
-    #             for p, g in input.items():
-    #                 for island in g.islands(threshold=threshold):
-    #                     if island.count_grid() > min_size_dict[p]:
-    #                         interaction_types.append(atom_dic[p])
-    #                         coordinates.append(island.centroid())
-    #                         scores.append(island.grid_score(threshold=threshold, percentile=50))
-    #
-    #     else:
-    #         print("object not supported")
-    #
-    #     mol = Molecule(identifier = "pharmacophore_model")
-    #
-    #     pseudo_atms = [Atom(atomic_symbol=interaction_types[i],
-    #                         atomic_number=14,
-    #                         coordinates=coordinates[i],
-    #                         label=str(scores[i]))
-    #                    for i in range(len(interaction_types))]
-    #
-    #     for a in pseudo_atms:
-    #         mol.add_atom(a)
-    #     return mol
-
     def zip_results(self, archive_name, delete_directory=True):
         """
         Zips the output directory created for this :class:`hotspots.HotspotResults` instance, and
