@@ -305,7 +305,7 @@ class Extractor(object):
             :return:
             """
             s = 3
-            s += round((int(self.volume) / 100))
+            s += round((int(self.volume) / 50))
             print(s)
             return s
 

@@ -108,7 +108,7 @@ class PharmacophoreModel(object):
         :param protein: a :class:`ccdc.protein.Protein` instance
         """
         self.identifier = identifier
-        self.features = features
+        self._features = features
 
         self.fname = None
         self.projected_dict = {"True": ["donor", "acceptor"], "False": ["negative", "positive", "apolar"]}
