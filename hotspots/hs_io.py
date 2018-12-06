@@ -44,7 +44,7 @@ from hs_utilities import Helper
 from hs_pharmacophore import PharmacophoreModel
 
 
-class HotspotWriter(object):
+class HotspotWriter(Helper):
     """
     class to handle the writing of Hotspots to file. And creation of visualisation scripts.
     """
@@ -181,7 +181,7 @@ class HotspotWriter(object):
             mesh.write(join(self.out_dir, "mesh{}".format(self.settings.grid_extension)))
 
         if self.settings.grid_labels:
-            labels = {"label_threshold_{}.mol2".format(threshold): self._get_label(grid_dict, threshold=threshold)
+            labels = {"label_threshold_{}.mol2".format(threshold): self.get_label(grid_dict, threshold=threshold)
                       for threshold in self.settings.isosurface_threshold}
 
             for fname, label in labels.items():
@@ -213,15 +213,10 @@ class HotspotWriter(object):
         for o in out:
             pharmacophore.write(o)
 
-        if self.settings.pharmacophore_labels:
-            label = self._get_label(pharmacophore)
-            with io.MoleculeWriter(join(self.out_dir, "label_threshold_{}.mol2".format(pharmacophore.identifier))) \
-                    as writer:
-                writer.write(label)
-
-    # def _write_ngl(self):
-    #     view = nv.NGLWidget()
-    #     return 0
+        label = self.get_label(pharmacophore)
+        with io.MoleculeWriter(join(self.out_dir, "label_threshold_{}.mol2".format(pharmacophore.identifier))) \
+                as writer:
+            writer.write(label)
 
     def _write_pymol(self, hr, zipped=False):
         """
@@ -283,67 +278,61 @@ class HotspotWriter(object):
             else:
                 f = "label_threshold_{}.mol2".format(h.pharmacophore.identifier)
 
-            pymol_out += h.pharmacophore.get_pymol_pharmacophore(f)
-
-            pymol_out += pymol_labels(fname=f,
-                                      objname="label_threshold_{}".format(h.pharmacophore.identifier))
-
-            pymol_out += """\ncmd.group('Pharmacophore_{0}', members= 'label_threshold_{0}')\n"""\
-                .format(h.pharmacophore.identifier)
+            pymol_out += h.pharmacophore._get_pymol_pharmacophore(lfile=f)
 
         return pymol_out
 
-    def _get_label(self, input, threshold=None):
-        """
-
-        :param input:
-        :return:
-        """
-        min_size_dict = {"apolar": 40,
-                         "donor": 15,
-                         "acceptor": 15,
-                         "negative": 15,
-                         "positive": 15}
-
-        atom_dic = {"apolar": 'C',
-                    "donor": 'N',
-                    "acceptor": 'O',
-                    "negative": 'S',
-                    "positive": 'H'}
-
-        if isinstance(input, PharmacophoreModel):
-            interaction_types = [atom_dic[feat.feature_type] for feat in input._features]
-            coordinates = [feat.feature_coordinates for feat in input._features]
-            scores = [feat.score for feat in input._features]
-
-        elif isinstance(input, dict):
-            if not threshold:
-                pass
-            else:
-                interaction_types = []
-                coordinates = []
-                scores = []
-                for p, g in input.items():
-                    for island in g.islands(threshold=threshold):
-                        if island.count_grid() > min_size_dict[p]:
-                            interaction_types.append(atom_dic[p])
-                            coordinates.append(island.centroid())
-                            scores.append(island.grid_score(threshold=threshold, percentile=50))
-
-        else:
-            print("object not supported")
-
-        mol = Molecule(identifier = "pharmacophore_model")
-
-        pseudo_atms = [Atom(atomic_symbol=interaction_types[i],
-                            atomic_number=14,
-                            coordinates=coordinates[i],
-                            label=str(scores[i]))
-                       for i in range(len(interaction_types))]
-
-        for a in pseudo_atms:
-            mol.add_atom(a)
-        return mol
+    # def _get_label(self, input, threshold=None):
+    #     """
+    #
+    #     :param input:
+    #     :return:
+    #     """
+    #     min_size_dict = {"apolar": 40,
+    #                      "donor": 15,
+    #                      "acceptor": 15,
+    #                      "negative": 15,
+    #                      "positive": 15}
+    #
+    #     atom_dic = {"apolar": 'C',
+    #                 "donor": 'N',
+    #                 "acceptor": 'O',
+    #                 "negative": 'S',
+    #                 "positive": 'H'}
+    #
+    #     if isinstance(input, PharmacophoreModel):
+    #         interaction_types = [atom_dic[feat.feature_type] for feat in input._features]
+    #         coordinates = [feat.feature_coordinates for feat in input._features]
+    #         scores = [feat.score for feat in input._features]
+    #
+    #     elif isinstance(input, dict):
+    #         if not threshold:
+    #             pass
+    #         else:
+    #             interaction_types = []
+    #             coordinates = []
+    #             scores = []
+    #             for p, g in input.items():
+    #                 for island in g.islands(threshold=threshold):
+    #                     if island.count_grid() > min_size_dict[p]:
+    #                         interaction_types.append(atom_dic[p])
+    #                         coordinates.append(island.centroid())
+    #                         scores.append(island.grid_score(threshold=threshold, percentile=50))
+    #
+    #     else:
+    #         print("object not supported")
+    #
+    #     mol = Molecule(identifier = "pharmacophore_model")
+    #
+    #     pseudo_atms = [Atom(atomic_symbol=interaction_types[i],
+    #                         atomic_number=14,
+    #                         coordinates=coordinates[i],
+    #                         label=str(scores[i]))
+    #                    for i in range(len(interaction_types))]
+    #
+    #     for a in pseudo_atms:
+    #         mol.add_atom(a)
+    #     return mol
 
     def zip_results(self, archive_name, delete_directory=True):
         """
@@ -390,7 +379,7 @@ class HotspotReader(object):
         pfiles = [f for f in self._files if splitext(f)[1] == ".pdb"]
 
         if len(pfiles) > 1:
-            print("WARNING! {} has been used as default protein".format(join(base, "protein.pdb")))
+            print("WARNING! {} has been used as default protein".format(join(self._base, "protein.pdb")))
             pfiles = [p for p in self._files if f =="protein.pdb"]
 
         self.protein = Protein.from_file(join(self._base, pfiles[0]))
@@ -457,23 +446,23 @@ class HotspotReader(object):
 
         if len(self.hs_dir) == 0:
             self.grid_dic, self.buriedness = self._get_grids()
-            return _HotspotResults(protein=self.protein,
-                                   super_grids=self.grid_dic,
-                                   buriedness=self.buriedness)
+            return Results(protein=self.protein,
+                           super_grids=self.grid_dic,
+                           buriedness=self.buriedness)
 
         else:
             hrs = []
             if identifier:
                 self.grid_dic, self.buriedness = self._get_grids(sub_dir=str(identifier))
-                return _HotspotResults(protein=self.protein,
-                                       super_grids=self.grid_dic,
-                                       buriedness=self.buriedness)
+                return Results(protein=self.protein,
+                               super_grids=self.grid_dic,
+                               buriedness=self.buriedness)
             else:
                 for dir in self.hs_dir:
                     self.grid_dic, self.buriedness = self._get_grids(sub_dir=dir)
-                    hrs.append(_HotspotResults(protein=self.protein,
-                                               super_grids=self.grid_dic,
-                                               buriedness=self.buriedness))
+                    hrs.append(Results(protein=self.protein,
+                                       super_grids=self.grid_dic,
+                                       buriedness=self.buriedness))
             return hrs
 
 

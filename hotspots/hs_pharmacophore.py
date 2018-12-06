@@ -43,8 +43,7 @@ from template_strings import pymol_arrow, pymol_imports, crossminer_features, py
 from hs_utilities import Helper
 
 
-
-class PharmacophoreModel(object):
+class PharmacophoreModel(Helper):
     """
     A class to wrap pharmacophore _features and output in various formats
     """
@@ -131,7 +130,7 @@ class PharmacophoreModel(object):
 
         self._features = ordered_features
 
-    def _get_pymol_pharmacophore(self):
+    def _get_pymol_pharmacophore(self, lfile):
         """
 
         :return:
@@ -183,6 +182,11 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         pymol_out += '\ncmd.set("transparency", 0.2,"Features_{0}")' \
                      '\ncmd.group("Pharmacophore_{0}", members="Features_{0}")' \
                      '\ncmd.group("Pharmacophore_{0}", members="Arrows_{0}")\n'.format(self.identifier)
+
+        pymol_out += pymol_labels(fname=lfile,
+                                  objname="label_threshold_{}".format(self.identifier))
+
+        pymol_out += """\ncmd.group('Pharmacophore_{0}', members= 'label_threshold_{0}')\n""".format(self.identifier)
 
         return pymol_out
 
@@ -336,11 +340,17 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
         elif extension == ".py":
             with open(fname, "wb") as pymol_file:
+                lfile = "label_threshold_{}.mol2".format(self.identifier)
+
                 pymol_out = pymol_imports()
                 pymol_out += pymol_arrow()
-                lines = self._get_pymol_pharmacophore()
+                lines = self._get_pymol_pharmacophore(lfile)
                 pymol_out += lines
                 pymol_file.write(pymol_out)
+
+            label = self.get_label(self)
+            with io.MoleculeWriter(join(dirname(fname),lfile)) as writer:
+                writer.write(label)
 
         elif extension == ".json":
             with open(fname, "w") as pharmit_file:
