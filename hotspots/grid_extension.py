@@ -487,9 +487,9 @@ class Grid(utilities.Grid):
         y = set()
         z = set()
         for c in coords:
-            x.add(c.coordinates.x)
-            y.add(c.coordinates.y)
-            z.add(c.coordinates.z)
+            x.add(c.x)
+            y.add(c.y)
+            z.add(c.z)
 
         origin = Coordinates(x=round(min(x) - padding),
                              y=round(min(y) - padding),
