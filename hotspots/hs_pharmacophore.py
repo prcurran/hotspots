@@ -42,20 +42,6 @@ from grid_extension import Grid, Coordinates
 from template_strings import pymol_arrow, pymol_imports, crossminer_features, pymol_labels
 from hs_utilities import Helper
 
-class _Settings():
-    """
-        :param float feature_boundary_cutoff: The map score cutoff used to generate islands
-        :param float max_hbond_dist: Furthest acceptable distance for a hydrogen bonding partner (from polar feature)
-        :param float radius: Sphere radius
-        :param bool vector_on: Include interaction vector
-        :param float transparency: Set transparency of sphere
-        :param bool excluded_volume:  PETE
-        :param float binding_site_radius: PETE
-    """
-
-    def __init__(self, feature_boundary_cutoff=5, max_hbond_dist=5, radius=1.0, vector_on=False, transparency=0.6,
-                 excluded_volume=True, binding_site_radius=12):
-
 
 class PharmacophoreModel(Helper):
 
