@@ -273,7 +273,9 @@ class HotspotWriter(Helper):
         pymol_out += pymol_grids(i, self.settings)
 
         if h.pharmacophore:
+
             if i:
+
                 f = join(str(i), "label_threshold_{}.mol2".format(h.pharmacophore.identifier))
             else:
                 f = "label_threshold_{}.mol2".format(h.pharmacophore.identifier)
