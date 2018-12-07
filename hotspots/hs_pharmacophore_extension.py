@@ -7,7 +7,9 @@ import numpy as np
 from ccdc.protein import Protein
 from pdb_python_api import Query, PDB, PDBResult
 from rdkit import Chem, DataStructs
-from rdkit.Chem import MACCSkeys
+# from rdkit.Chem import MACCSkey, AllChem, Draw
+from rdkit.Chem import MACCSkeys, AllChem
+
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from ccdc import io
@@ -19,6 +21,27 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
     """
     a class to handle the the generation of diverse set of ligands
     """
+
+    @staticmethod
+    def _img(ligands, out_dir, fname="ligands.png"):
+        out = []
+        for l in ligands:
+            lig = l.rdmol
+            lig.SetProp("_Name", str(l.structure_id + "/" + l.chemical_id))
+            out.append(lig)
+
+        img = Draw.MolsToGridImage(mols=out,
+                                   molsPerRow=10,
+                                   subImgSize=(200, 200),
+                                   legends=[o.GetProp("_Name") for o in out])
+
+        img.save(os.path.join(out_dir, fname))
+
+    @staticmethod
+    def _to_file(ligands, out_dir, fname="ligands.dat"):
+        with open(os.path.join(out_dir, fname), "w") as f:
+            for l in ligands:
+                f.write("{},{},{}\n".format(l.structure_id, l.chemical_id, l.smiles))
 
     @staticmethod
     def from_pdb(pdb_code, chain, out_dir=None, representatives=None):
@@ -35,31 +58,39 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
             reps = []
             f = open(representatives, "r")
             entries = f.read().splitlines()
+
             for entry in entries:
-                pdb_code, hetid = entry.split(",")
+                pdb_code, hetid, smiles = entry.split(",")
                 reps.append((pdb_code, hetid))
 
         else:
             accession_id = PDBResult(pdb_code).protein.sub_units[0].accession_id
             results = PharmacophoreModel.run_query(accession_id)
             ligands = PharmacophoreModel.get_ligands(results)
-            print(len(ligands))
+
+            top = os.path.dirname(os.path.dirname(out_dir))
+            PharmacophoreModel._to_file(ligands, top, fname="all_ligands.dat")
+
             k = int(round(len(ligands) / 5))
             if k < 2:
                 k = 2
-            cluster_dict = PharmacophoreModel.cluster_ligands(n=k, ligands=ligands)
-            reps = [(l[0].structure_id, l[0].chemical_id) for l in cluster_dict.values() if len(l) != 0]
-
-        if out_dir:
-            with open(os.path.join(os.path.dirname(os.path.dirname(out_dir)), "representatives.dat"), "w") as f:
-                for r in reps:
-                    f.write("{},{}\n".format(r[0], r[1]))
+            cluster_dict, s = PharmacophoreModel.cluster_ligands(n=k, ligands=ligands)
+            reps = [l[0] for l in cluster_dict.values() if len(l) != 0]
 
         targets = []
 
-        for pdb, hetid in reps:
-            r = PDBResult(identifier=pdb)
-            r.clustered_ligand = hetid
+        for rep in reps:
+            try:
+                r = PDBResult(identifier=rep.structure_id)
+                r.clustered_ligand = rep.chemical_id
+
+            except:
+                try:
+                    r = PDBResult(identifier=rep[0])
+                    r.clustered_ligand = rep[1]
+                except:
+                    raise AttributeError
+
             r.download(out_dir=temp, compressed=False)
             targets.append(r)
 
@@ -67,12 +98,20 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
                                                            reference_chain=chain,
                                                            targets=targets)
 
+        try:
+            with open(os.path.join(top, "silhouette.dat"), "w") as sfile:
+                sfile.write("{}".format(s))
+            PharmacophoreModel._to_file(reps, top, fname="representatives.dat")
+
+        except:
+            pass
+
         if out_dir:
             with io.MoleculeWriter(os.path.join(out_dir, "aligned_mols.mol2")) as w:
                 for l in ligands:
                     w.write(l)
 
-        return PharmacophoreModel.from_ligands(ligands, temp)
+        return PharmacophoreModel.from_ligands(ligands)
 
     @staticmethod
     def run_query(accession_id):
@@ -140,13 +179,11 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
         labels = kmeans_model.labels_
         s = silhouette_score(sim, labels, metric='euclidean')
 
-        print("Silhouette, closer to 1 the better", s)
-
         for i, ident in enumerate(kmeans_model.labels_):
             ligands[i].cluster_id = ident
             cluster_dict[int(ident)].append(ligands[i])
 
-        return cluster_dict
+        return cluster_dict, s
 
     @staticmethod
     def align_proteins(reference, reference_chain, targets):
@@ -167,10 +204,13 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
             prot.add_hydrogens()
             for l in prot.ligands:
                 if str(t.clustered_ligand) == str(l.identifier.split(":")[1][0:3]):
-                    bs = Protein.BindingSiteFromMolecule(protein=prot,
-                                                         molecule=l,
-                                                         distance=6)
-                    chain = bs.residues[0].identifier.split(":")[0]
+                    try:
+                        bs = Protein.BindingSiteFromMolecule(protein=prot,
+                                                             molecule=l,
+                                                             distance=6)
+                        chain = bs.residues[0].identifier.split(":")[0]
+                    except:
+                        break
                     break
 
                 else:

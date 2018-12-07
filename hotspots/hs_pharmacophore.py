@@ -488,6 +488,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                fd.identifier != 'heavy_atom' and
                                fd.identifier != 'hydrophobe' and
                                fd.identifier != 'fluorine' and
+                               fd.identifier != 'bromine' and
                                fd.identifier != 'chlorine' and
                                fd.identifier != 'iodine' and
                                fd.identifier != 'halogen']
@@ -499,14 +500,12 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             if not all_feats:
                     continue
 
-            print all_feats
             for f in all_feats:
                 feature_dic[cm_dic[fd.identifier]].set_sphere(f.spheres[0].centre, f.spheres[0].radius, 1)
 
         features = []
         for feat, feature_grd in feature_dic.items():
             peaks = feature_grd.get_peaks(min_distance=4, cutoff=1)
-            print peaks
             for p in peaks:
                 coords = Coordinates(p[0], p[1], p[2])
                 projected_coordinates = None
