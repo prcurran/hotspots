@@ -459,7 +459,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                   protein=protein)
 
     @staticmethod
-    def from_ligands(ligands, identifier="gold_standard", protein=None, settings=None):
+    def from_ligands(ligands, identifier, protein=None, settings=None):
         """
 
         :param ligands:
@@ -499,14 +499,12 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             if not all_feats:
                     continue
 
-            print all_feats
             for f in all_feats:
                 feature_dic[cm_dic[fd.identifier]].set_sphere(f.spheres[0].centre, f.spheres[0].radius, 1)
 
         features = []
         for feat, feature_grd in feature_dic.items():
             peaks = feature_grd.get_peaks(min_distance=4, cutoff=1)
-            print peaks
             for p in peaks:
                 coords = Coordinates(p[0], p[1], p[2])
                 projected_coordinates = None

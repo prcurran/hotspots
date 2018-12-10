@@ -145,21 +145,7 @@ class AtomicHotspot(object):
             self.settings = self.Settings()
 
         else:
-            settings = settings
-
-    # @staticmethod
-    # def _run_job(args):
-    #     """
-    #     runs atomic hotspot(superstar) job (paralyzable)
-    #     :param args:
-    #     :return:
-    #     """
-    #     cmd, jobname, superstar_env, temp_dir = args
-    #     env = environ.copy()
-    #     env.update(superstar_env)
-    #     with PushDir(temp_dir):
-    #         subprocess.call(cmd, shell=sys.platform != 'win32', env=env)
-    #     return AtomicHotspotResult.find(temp_dir=temp_dir, jobname=jobname)
+            self.settings = settings
 
     def _get_cmd(self, protein, cavity_origin, out=None):
         """
@@ -188,7 +174,8 @@ class AtomicHotspot(object):
                 instruction.write("{}.ins".format(jobname))
         return cmds
 
-    def _merge_cavities(self, results):
+    @staticmethod
+    def _merge_cavities(results):
         """
         atomic hotspot results for the same atomic probe but different cavities are combined onto a single grid
         :param results:
@@ -210,7 +197,6 @@ class AtomicHotspot(object):
 
             b_dict = {"buriedness_{}".format(i): g.buriedness for i, g in enumerate(atomic_results)}
             b = Grid.get_single_grid(b_dict, mask=False)
-
 
             merged_results.append(AtomicHotspotResult(identifier=identifier,
                                                       grid=g,
@@ -266,7 +252,7 @@ class AtomicHotspot(object):
         if nthreads:
             with futures.ProcessPoolExecutor(max_workers=nthreads) as executor:
                 for t, j in executor.map(_run_job, inputs):
-                    results.append(AtomicHotspotResult.find(temp_dir=t, jobname=j) )
+                    results.append(AtomicHotspotResult.find(temp_dir=t, jobname=j))
 
         else:
             for input in inputs:
