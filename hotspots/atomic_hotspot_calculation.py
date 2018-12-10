@@ -75,7 +75,7 @@ class AtomicHotspot(object):
                 superstar_env = dict()
             else:
                 if sys.platform == 'win32':
-					base = dirname(base)
+                    base = dirname(base)
                     merc = glob.glob(join(base, 'Mercury*'))
                     if len(merc):
                         merc = merc[0]
