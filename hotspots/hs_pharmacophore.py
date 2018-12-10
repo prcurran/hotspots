@@ -44,6 +44,7 @@ from hs_utilities import Helper
 
 
 class PharmacophoreModel(Helper):
+
     """
     A class to wrap pharmacophore _features and output in various formats
     """
@@ -428,8 +429,10 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
     @staticmethod
     def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5, settings=None):
         """creates a pharmacophore model from hotspot results object"""
+
         if not settings:
             settings = PharmacophoreModel.Settings()
+
         feature_list = [_PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
                         for probe, g in super_grids.items()
                         for island in g.islands(cutoff) if island.count_grid() >= 5]
@@ -530,6 +533,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                   protein=protein)
 
 
+
 class _PharmacophoreFeature(Helper):
     """
 
@@ -537,6 +541,8 @@ class _PharmacophoreFeature(Helper):
     This feature is designed to be used after fragment sized hotspots have been extracted.
     (Hotspot.extract_hotspots method)
     """
+
+
 
     def __init__(self, projected, feature_type, feature_coordinates, projected_coordinates, score, vector, settings):
         """

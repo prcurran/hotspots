@@ -103,8 +103,8 @@ html_static_path = ['_build/html/_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'FragmentHotspotMapsdoc'
-html_logo='_build/html/_static/logo2.png'
-html_favicon='_build/html/_static/logo2.png'
+html_logo='_build/html/_static/logo_test.png'
+html_favicon='_build/html/_static/logo_test.png'
 
 
 # -- Options for LaTeX output ---------------------------------------------

@@ -569,7 +569,7 @@ class Results(object):
         get the number zero grid points for the Fragment Hotspot Result
         :return: dict of str(probe type) by a :class:`numpy.array` (non-zero grid point scores)
         """
-        data = Figures.histogram(self, plot)
+        data = Figures.histogram(self, False)
         return data
 
     def get_histogram(self, fpath="histogram.png"):
@@ -1028,31 +1028,33 @@ class Runner(object):
                                    for i in xrange(0, len(priority_atom_coordinates))]
 
                     score = self.sample_pose(translation, active_coordinates_dic, probe)
+                    if score < 1:
+                        continue
                     self.update_out_grids(score, active_coordinates_dic, translation)
 
-                    if self.settings.return_probes:
-                        high_scoring_probes = {}
-                        if score < 5:
-                            continue
-                        if score > 14:
-                            m = molecule.copy()
-                            m.translate(translation)
-                            m.identifier = "{}".format(score)
-
-                            try:
-                                high_scoring_probes[score].append(m)
-                            except KeyError:
-                                high_scoring_probes[score] = [m]
-
-            if self.settings.return_probes:
-                sampled_probes = []
-                for key in sorted(high_scoring_probes.iterkeys(), reverse=True):
-                    sampled_probes.extend(high_scoring_probes[key])
-
-                if len(sampled_probes) > 10000:
-                    return sampled_probes[:10000]
-                else:
-                    return sampled_probes
+            #         if self.settings.return_probes:
+            #             high_scoring_probes = {}
+            #             if score < 5:
+            #                 continue
+            #             if score > 14:
+            #                 m = molecule.copy()
+            #                 m.translate(translation)
+            #                 m.identifier = "{}".format(score)
+            #
+            #                 try:
+            #                     high_scoring_probes[score].append(m)
+            #                 except KeyError:
+            #                     high_scoring_probes[score] = [m]
+            #
+            # if self.settings.return_probes:
+            #     sampled_probes = []
+            #     for key in sorted(high_scoring_probes.iterkeys(), reverse=True):
+            #         sampled_probes.extend(high_scoring_probes[key])
+            #
+            #     if len(sampled_probes) > 10000:
+            #         return sampled_probes[:10000]
+            #     else:
+            #         return sampled_probes
 
     def __init__(self, settings=None):
         self.out_grids = {}
