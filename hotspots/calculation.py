@@ -312,7 +312,7 @@ class _Scorer(object):
         cavities = Helper.cavity_from_protein(self.hotspot_result.protein)
         for cavity in cavities:
 
-            for feature in cavity._features:
+            for feature in cavity.features:
                 grid_type = interaction_pairs[feature.type]
 
                 if feature.type == "aliphatic" or feature.type == "aromatic":
@@ -1187,7 +1187,7 @@ class Runner(object):
         """
         results = []
         for s in self.superstar_grids:
-            g, b = Grid.common_grid([s.grid, s.buriedness], padding=1)
+            g, b = Grid.common_grid([s.grid, self.buriedness], padding=1)
             weighted_grid = g * b
             results.append(_WeightedResult(s.identifier, weighted_grid))
 
@@ -1265,6 +1265,7 @@ class Runner(object):
             b = _Buriedness(protein=self.protein,
                             out_grid=out_grid)
             self.buriedness = b.calculate_buriedness().grid
+            self.buriedness.write("/home/pcurran/b.grd")
         else:
             print("    method: LIGSITE")
             self.buriedness = Grid.get_single_grid(grd_dict={s.identifier: s.buriedness for s in self.superstar_grids},
