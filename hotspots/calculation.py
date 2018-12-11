@@ -1032,29 +1032,29 @@ class Runner(object):
                         continue
                     self.update_out_grids(score, active_coordinates_dic, translation)
 
-            #         if self.settings.return_probes:
-            #             high_scoring_probes = {}
-            #             if score < 5:
-            #                 continue
-            #             if score > 14:
-            #                 m = molecule.copy()
-            #                 m.translate(translation)
-            #                 m.identifier = "{}".format(score)
-            #
-            #                 try:
-            #                     high_scoring_probes[score].append(m)
-            #                 except KeyError:
-            #                     high_scoring_probes[score] = [m]
-            #
-            # if self.settings.return_probes:
-            #     sampled_probes = []
-            #     for key in sorted(high_scoring_probes.iterkeys(), reverse=True):
-            #         sampled_probes.extend(high_scoring_probes[key])
-            #
-            #     if len(sampled_probes) > 10000:
-            #         return sampled_probes[:10000]
-            #     else:
-            #         return sampled_probes
+                    if self.settings.return_probes:
+                        high_scoring_probes = {}
+                        if score < 5:
+                            continue
+                        if score > 14:
+                            m = molecule.copy()
+                            m.translate(translation)
+                            m.identifier = "{}".format(score)
+
+                            try:
+                                high_scoring_probes[score].append(m)
+                            except KeyError:
+                                high_scoring_probes[score] = [m]
+
+            if self.settings.return_probes:
+                sampled_probes = []
+                for key in sorted(high_scoring_probes.iterkeys(), reverse=True):
+                    sampled_probes.extend(high_scoring_probes[key])
+
+                if len(sampled_probes) > 10000:
+                    return sampled_probes[:10000]
+                else:
+                    return sampled_probes
 
     def __init__(self, settings=None):
         self.out_grids = {}
