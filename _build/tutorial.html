@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Tutorial &mdash; Fragment Hotspot Maps 0.1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/logo_test.png"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Hotspot Calculation API" href="hotspot_calculation_api.html" />
+    <link rel="prev" title="Welcome to the Hotspot API’s documentation!" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Fragment Hotspot Maps
+          
+
+          
+            
+            <img src="_static/logo_test.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-a-calculation">Running a Calculation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#protein-preparation">Protein Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#calculating-fragment-hotspot-maps">Calculating Fragment Hotspot Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reading-and-writing-hotspots">Reading and Writing Hotspots</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#writing">Writing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reading">Reading</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-output">Using the Output</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scoring">Scoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#small-molecules">Small molecules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#proteins">Proteins</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-pharmacophores">Creating Pharmacophores</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extracting-hotspots-and-drug-like-volumes">Extracting Hotspots and Drug-like Volumes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#global">Global</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#seed">Seed</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hotspot_calculation_api.html">Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io_api.html">IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="best_volume_api.html">Best Volume API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities_api.html">Hotspot Utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Fragment Hotspot Maps</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Tutorial</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<p>This section will introduce the main functionality of the Hotspots API</p>
+<div class="section" id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="running-a-calculation">
+<h2>Running a Calculation<a class="headerlink" href="#running-a-calculation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="protein-preparation">
+<h3>Protein Preparation<a class="headerlink" href="#protein-preparation" title="Permalink to this headline">¶</a></h3>
+<p>The first step is to make sure your protein is correctly prepared for the calculation. The structures should be
+protonated with small molecules and waters removed. Any waters or small molecules left in the structure will be included
+in the calculation.</p>
+<p>This can be done with the CSD Python API:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ccdc</span> <span class="k">import</span> <span class="n">Protein</span>
+
+<span class="n">prot</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">prot</span><span class="o">.</span><span class="n">remove_all_waters</span><span class="p">()</span>
+<span class="n">prot</span><span class="o">.</span><span class="n">add_hydrogens</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">prot</span><span class="o">.</span><span class="n">ligands</span><span class="p">:</span>
+     <span class="n">prot</span><span class="o">.</span><span class="n">remove_ligand</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="calculating-fragment-hotspot-maps">
+<h3>Calculating Fragment Hotspot Maps<a class="headerlink" href="#calculating-fragment-hotspot-maps" title="Permalink to this headline">¶</a></h3>
+<p>Once the protein is prepared, the <a class="reference internal" href="hotspot_calculation_api.html#hotspots.calculation.Runner" title="hotspots.calculation.Runner"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.Runner</span></code></a> object can be used to perform the calculation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
+
+<span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">Runner</span><span class="o">.</span><span class="n">from_protein</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reading-and-writing-hotspots">
+<h3>Reading and Writing Hotspots<a class="headerlink" href="#reading-and-writing-hotspots" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="writing">
+<h4>Writing<a class="headerlink" href="#writing" title="Permalink to this headline">¶</a></h4>
+<p>The <a class="reference internal" href="io_api.html#module-hotspots.hs_io" title="hotspots.hs_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.hs_io</span></code></a> module handles the reading and writing of both <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.results</span></code>
+and <code class="xref py py-class docutils literal notranslate"><span class="pre">hotsptots.best_volume.Extractor</span></code> objects. The output <cite>.grd</cite> files can become quite large, but are highly
+compressible, therefore the results are written to a <cite>.zip</cite> archive by default, along with a PyMOL run script to
+visualise the output.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots</span> <span class="k">import</span> <span class="n">hs_io</span>
+
+<span class="n">out_dir</span> <span class="o">=</span> <span class="s2">&quot;results/pdb1&quot;</span>
+
+<span class="c1"># Creates &quot;results/pdb1/out.zip&quot;</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">hs_io</span><span class="o">.</span><span class="n">HotspotWriter</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">grid_extension</span><span class="o">=</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="n">zip_results</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reading">
+<h4>Reading<a class="headerlink" href="#reading" title="Permalink to this headline">¶</a></h4>
+<p>If you want to revisit the results of a previous calculation, you can load the <cite>out.zip</cite> archive directly into a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.results</span></code> instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots</span> <span class="k">import</span> <span class="n">hs_io</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">hs_io</span><span class="o">.</span><span class="n">HotspotReader</span><span class="p">(</span><span class="s1">&#39;results/pdb1/out.zip&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="using-the-output">
+<h2>Using the Output<a class="headerlink" href="#using-the-output" title="Permalink to this headline">¶</a></h2>
+<p>While Fragment Hotspot Maps provide a useful visual guide, the grid-based data can be used</p>
+<div class="section" id="scoring">
+<h3>Scoring<a class="headerlink" href="#scoring" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="small-molecules">
+<h4>Small molecules<a class="headerlink" href="#small-molecules" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="proteins">
+<h4>Proteins<a class="headerlink" href="#proteins" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+<div class="section" id="creating-pharmacophores">
+<h3>Creating Pharmacophores<a class="headerlink" href="#creating-pharmacophores" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="extracting-hotspots-and-drug-like-volumes">
+<h3>Extracting Hotspots and Drug-like Volumes<a class="headerlink" href="#extracting-hotspots-and-drug-like-volumes" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="global">
+<h4>Global<a class="headerlink" href="#global" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="seed">
+<h4>Seed<a class="headerlink" href="#seed" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="hotspot_calculation_api.html" class="btn btn-neutral float-right" title="Hotspot Calculation API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to the Hotspot API’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Chris Radoux and Peter Curran
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

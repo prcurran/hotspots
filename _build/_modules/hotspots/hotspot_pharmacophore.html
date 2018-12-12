@@ -1,0 +1,866 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>hotspots.hotspot_pharmacophore &mdash; Fragment Hotspot Maps 0.1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/logo_test.png"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fragment Hotspot Maps
+          
+
+          
+            
+            <img src="../../_static/logo_test.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hotspot_calculation_api.html">Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../io_api.html">IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_volume_api.html">Best Volume API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities_api.html">Hotspot Utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fragment Hotspot Maps</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>hotspots.hotspot_pharmacophore</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for hotspots.hotspot_pharmacophore</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># This code is Copyright (C) 2015 The Cambridge Crystallographic Data Centre</span>
+<span class="c1"># (CCDC) of 12 Union Road, Cambridge CB2 1EZ, UK and a proprietary work of CCDC.</span>
+<span class="c1"># This code may not be used, reproduced, translated, modified, disassembled or</span>
+<span class="c1"># copied, except in accordance with a valid licence agreement with CCDC and may</span>
+<span class="c1"># not be disclosed or redistributed in any form, either in whole or in part, to</span>
+<span class="c1"># any third party. All copies of this code made in accordance with a valid</span>
+<span class="c1"># licence agreement as referred to above must contain this copyright notice.</span>
+<span class="c1">#</span>
+<span class="c1"># No representations, warranties, or liabilities are expressed or implied in the</span>
+<span class="c1"># supply of this code by CCDC, its servants or agents, except where such</span>
+<span class="c1"># exclusion or limitation is prohibited, void or unenforceable under governing</span>
+<span class="c1"># law.</span>
+<span class="c1">#</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The :mod:`hotspots.pharmacophore` module contains classes for the</span>
+<span class="sd">conversion of Grid objects to pharmacophore models.</span>
+
+<span class="sd">The main classes of the :mod:`hotspots.pharmacophore` module are:</span>
+
+<span class="sd">- :class:`hotspots.pharmacophore.PharmacophoreFeature`</span>
+<span class="sd">- :class:`hotspots.pharmacophore.PharmacophoreModel`</span>
+
+<span class="sd">TO DO:</span>
+<span class="sd">Could this be made into and extension of the ccdc.pharmacophore :mod:</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ccdc</span> <span class="k">import</span> <span class="n">io</span>
+<span class="kn">from</span> <span class="nn">ccdc.descriptors</span> <span class="k">import</span> <span class="n">GeometricDescriptors</span>
+<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="k">import</span> <span class="n">Atom</span><span class="p">,</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">ccdc.pharmacophore</span> <span class="k">import</span> <span class="n">Pharmacophore</span>
+<span class="kn">from</span> <span class="nn">grid_extension</span> <span class="k">import</span> <span class="n">Grid</span>
+<span class="kn">from</span> <span class="nn">template_strings</span> <span class="k">import</span> <span class="n">pymol_arrow</span><span class="p">,</span> <span class="n">pymol_imports</span>
+<span class="kn">from</span> <span class="nn">hotspot_utilities</span> <span class="k">import</span> <span class="n">Helper</span><span class="p">,</span> <span class="n">Coordinates</span>
+
+
+<div class="viewcode-block" id="Settings"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.Settings">[docs]</a><span class="k">class</span> <span class="nc">Settings</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    settings for the PharmacophoreFeature class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_boundary_cutoff</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">max_hbond_dist</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">radius</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">vector_on</span> <span class="o">=</span> <span class="kc">False</span> <span class="p">,</span><span class="n">transparency</span> <span class="o">=</span> <span class="mf">0.6</span><span class="p">,</span>
+                    <span class="n">excluded_volume</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">binding_site_radius</span> <span class="o">=</span> <span class="mi">12</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param float feature_boundary_cutoff: The map score cutoff used to generate islands</span>
+<span class="sd">        :param float max_hbond_dist: Furthest acceptable distance for a hydrogen bonding partner (from polar feature)</span>
+<span class="sd">        :param float radius: Sphere radius</span>
+<span class="sd">        :param bool vector_on: Include interaction vector</span>
+<span class="sd">        :param float transparency: Set transparency of sphere</span>
+<span class="sd">        :param bool excluded_volume:  PETE</span>
+<span class="sd">        :param float binding_site_radius: PETE</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        feature_boundary_cutoff is the value of the island cutoff used. (boundaries addressed in extract hotspot)</span>
+<span class="sd">        max_hbond_dist is the furtherest acceptable distance for a hydrogen bonding partner (from polar feature)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_boundary_cutoff</span> <span class="o">=</span> <span class="n">feature_boundary_cutoff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_hbond_dist</span> <span class="o">=</span> <span class="n">max_hbond_dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="n">radius</span>     <span class="c1"># set more intelligently</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transparency</span> <span class="o">=</span> <span class="n">transparency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">excluded_volume</span> <span class="o">=</span> <span class="n">excluded_volume</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binding_site_radius</span> <span class="o">=</span> <span class="n">binding_site_radius</span>
+
+        <span class="k">if</span> <span class="n">vector_on</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vector_on</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vector_on</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="PharmacophoreModel"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel">[docs]</a><span class="k">class</span> <span class="nc">PharmacophoreModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to wrap pharmacophore features and output in various formats</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param settings:</span>
+<span class="sd">        :param identifier:</span>
+<span class="sd">        :param features:</span>
+<span class="sd">        :param protein:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        identifier is useful for displaying multiple models at once</span>
+<span class="sd">        :param features:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">identifier</span> <span class="o">=</span> <span class="n">identifier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_features</span> <span class="o">=</span> <span class="n">features</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">projected_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;True&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;donor&quot;</span><span class="p">,</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">],</span> <span class="s2">&quot;False&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;negative&quot;</span><span class="p">,</span> <span class="s2">&quot;positive&quot;</span><span class="p">,</span> <span class="s2">&quot;apolar&quot;</span><span class="p">]}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="o">=</span> <span class="n">protein</span>
+        <span class="k">if</span> <span class="n">settings</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;list of `hotspots.pharmacophore.PharmacophoreFeature` class instances&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_features</span>
+
+<div class="viewcode-block" id="PharmacophoreModel.rank_polar_features"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.rank_polar_features">[docs]</a>    <span class="k">def</span> <span class="nf">rank_polar_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_num_features</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        rank polar features, sort feature list</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">apolar</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span> <span class="o">==</span> <span class="s2">&quot;apolar&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">score_dic</span> <span class="o">=</span> <span class="p">{</span><span class="n">feat</span><span class="o">.</span><span class="n">score</span><span class="p">:</span> <span class="n">feat</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span> <span class="o">!=</span> <span class="s2">&quot;apolar&quot;</span><span class="p">}</span>
+        <span class="n">sorted_scores</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">score_dic</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">max_num_features</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ordered_features</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span> <span class="k">for</span> <span class="n">score</span><span class="p">,</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">sorted_scores</span> <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ordered_features</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span> <span class="k">for</span> <span class="n">score</span><span class="p">,</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">sorted_scores</span> <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">][:</span><span class="n">max_num_features</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ordered_features</span></div>
+
+<div class="viewcode-block" id="PharmacophoreModel.get_pymol_pharmacophore"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.get_pymol_pharmacophore">[docs]</a>    <span class="k">def</span> <span class="nf">get_pymol_pharmacophore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pymol_out</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;cluster_dict = {{&quot;</span><span class="si">{0}</span><span class="s2">&quot;:[], &quot;</span><span class="si">{0}</span><span class="s2">_arrows&quot;:[]}}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
+        <span class="n">sphere_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;acceptor&#39;</span><span class="p">:</span> <span class="s1">&#39;[COLOR, 1.00, 0.00, 0.00]&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;donor&#39;</span><span class="p">:</span> <span class="s1">&#39;[COLOR, 0.00, 0.00, 1.00]&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;apolar&#39;</span><span class="p">:</span> <span class="s1">&#39;[COLOR, 1.00, 1.000, 0.000]&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;surface&#39;</span><span class="p">:</span> <span class="s1">&#39;[COLOR, 0.5, 0.5, 0.5]&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;positive&#39;</span><span class="p">:</span> <span class="s1">&#39;[COLOR, 0.0, 1.0, 1.0]&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;negative&#39;</span><span class="p">:</span> <span class="s1">&#39;[COLOR, 0.6, 0.1, 0.6]&#39;</span>
+                       <span class="p">}</span>
+        <span class="n">colour_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;acceptor&#39;</span><span class="p">:</span> <span class="s1">&#39;red blue&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;donor&#39;</span><span class="p">:</span> <span class="s1">&#39;blue red&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;apolar&#39;</span><span class="p">:</span> <span class="s1">&#39;yellow&#39;</span><span class="p">}</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">feature</span><span class="o">.</span><span class="n">feature_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">projected_dict</span><span class="p">[</span><span class="s2">&quot;True&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">feature</span><span class="o">.</span><span class="n">projected_coordinates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">arrow</span> <span class="o">=</span> <span class="s1">&#39;cluster_dict[&quot;</span><span class="si">{7}</span><span class="s1">_arrows&quot;] += cgo_arrow([</span><span class="si">{0}</span><span class="s1">,</span><span class="si">{1}</span><span class="s1">,</span><span class="si">{2}</span><span class="s1">], [</span><span class="si">{3}</span><span class="s1">,</span><span class="si">{4}</span><span class="s1">,</span><span class="si">{5}</span><span class="s1">], color=&quot;</span><span class="si">{6}</span><span class="s1">&quot;, name=&quot;Arrows_</span><span class="si">{7}</span><span class="s1">_</span><span class="si">{8}</span><span class="s1">&quot;)</span><span class="se">\n</span><span class="s1">&#39;</span> \
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">feature</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                            <span class="n">feature</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                            <span class="n">feature</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                            <span class="n">feature</span><span class="o">.</span><span class="n">projected_coordinates</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                            <span class="n">feature</span><span class="o">.</span><span class="n">projected_coordinates</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                            <span class="n">feature</span><span class="o">.</span><span class="n">projected_coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                            <span class="n">colour_dict</span><span class="p">[</span><span class="n">feature</span><span class="o">.</span><span class="n">feature_type</span><span class="p">],</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">identifier</span><span class="p">,</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">arrow</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+            <span class="n">sphere</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> + [ALPHA, </span><span class="si">{1}</span><span class="s1">] + [SPHERE, float(</span><span class="si">{2}</span><span class="s1">), float(</span><span class="si">{3}</span><span class="s1">), float(</span><span class="si">{4}</span><span class="s1">), float(</span><span class="si">{5}</span><span class="s1">)]</span><span class="se">\n</span><span class="s1">&#39;</span> \
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sphere_dict</span><span class="p">[</span><span class="n">feature</span><span class="o">.</span><span class="n">feature_type</span><span class="p">],</span>
+                        <span class="n">feature</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">transparency</span><span class="p">,</span>
+                        <span class="n">feature</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                        <span class="n">feature</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                        <span class="n">feature</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                        <span class="n">feature</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
+
+            <span class="n">pymol_out</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">cluster_dict[&quot;</span><span class="si">{0}</span><span class="s1">&quot;] += </span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">identifier</span><span class="p">,</span> <span class="n">sphere</span><span class="p">)</span>
+            <span class="n">pymol_out</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">arrow</span><span class="p">)</span>
+
+        <span class="n">pymol_out</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">cmd.load_cgo(cluster_dict[&quot;</span><span class="si">{0}</span><span class="s1">&quot;], &quot;Features_</span><span class="si">{0}</span><span class="s1">&quot;, 1)&#39;</span> \
+                     <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">cmd.load_cgo(cluster_dict[&quot;</span><span class="si">{0}</span><span class="s1">_arrows&quot;], &quot;Arrows_</span><span class="si">{0}</span><span class="s1">&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
+        <span class="n">pymol_out</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">cmd.set(&quot;transparency&quot;, 0.2,&quot;Features_</span><span class="si">{0}</span><span class="s1">&quot;)&#39;</span> \
+                     <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">cmd.group(&quot;Pharmacophore_</span><span class="si">{0}</span><span class="s1">&quot;, members=&quot;Features_</span><span class="si">{0}</span><span class="s1">&quot;)&#39;</span> \
+                     <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">cmd.group(&quot;Pharmacophore_</span><span class="si">{0}</span><span class="s1">&quot;, members=&quot;Arrows_</span><span class="si">{0}</span><span class="s1">&quot;)</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pymol_out</span></div>
+
+<div class="viewcode-block" id="PharmacophoreModel.as_grid"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.as_grid">[docs]</a>    <span class="k">def</span> <span class="nf">as_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns features as grid</span>
+<span class="sd">        :param tolerance:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">feature_type</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filtered_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filtered_features</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span> <span class="o">==</span> <span class="n">feature_type</span><span class="p">]</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">filtered_features</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">y</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">filtered_features</span><span class="p">]</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">z</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">filtered_features</span><span class="p">]</span>
+
+        <span class="n">origin</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">tolerance</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="n">tolerance</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">-</span> <span class="n">tolerance</span><span class="p">]</span>
+        <span class="n">far_corner</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">tolerance</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">tolerance</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">+</span> <span class="n">tolerance</span><span class="p">]</span>
+        <span class="n">grd</span> <span class="o">=</span> <span class="n">Grid</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="n">origin</span><span class="p">,</span> <span class="n">far_corner</span><span class="o">=</span><span class="n">far_corner</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">_grid</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">filtered_features</span><span class="p">:</span>
+            <span class="n">grd</span><span class="o">.</span><span class="n">set_sphere</span><span class="p">(</span><span class="n">point</span><span class="o">=</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">scaling</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">grd</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_binding_site_residues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">centroid</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span> <span class="o">==</span> <span class="s2">&quot;apolar&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">prot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protein</span>
+
+        <span class="n">bs</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">BindingSiteFromPoint</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                                       <span class="n">origin</span><span class="o">=</span><span class="n">centroid</span><span class="p">,</span>
+                                       <span class="n">distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">binding_site_radius</span><span class="p">)</span>
+
+        <span class="c1">#print &quot;bs&quot;, len(bs.residues)</span>
+
+        <span class="n">bs_residues</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">bs</span><span class="o">.</span><span class="n">residues</span><span class="p">]</span>
+        <span class="n">protein_residues</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prot</span><span class="o">.</span><span class="n">residues</span><span class="p">]</span>
+        <span class="n">deletes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">protein_residues</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">bs_residues</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">delete</span> <span class="ow">in</span> <span class="n">deletes</span><span class="p">:</span>
+            <span class="n">prot</span><span class="o">.</span><span class="n">remove_residue</span><span class="p">(</span><span class="n">delete</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">prot</span>
+
+<div class="viewcode-block" id="PharmacophoreModel.get_crossminer_pharmacophore"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore">[docs]</a>    <span class="k">def</span> <span class="nf">get_crossminer_pharmacophore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: UPDATE WITH CHARGED FEATURES</span>
+        <span class="n">supported_features</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;acceptor_projected&quot;</span><span class="p">:</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;donor_projected&quot;</span><span class="p">:</span> <span class="s2">&quot;donor&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;ring&quot;</span><span class="p">:</span> <span class="s2">&quot;apolar&quot;</span><span class="p">}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">Pharmacophore</span><span class="o">.</span><span class="n">read_feature_definitions</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;CrossMiner must be installed&quot;</span><span class="p">)</span>
+
+        <span class="n">feature_definitions</span> <span class="o">=</span> <span class="p">{</span><span class="n">supported_features</span><span class="p">[</span><span class="n">fd</span><span class="o">.</span><span class="n">identifier</span><span class="p">]:</span> <span class="n">fd</span> <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">Pharmacophore</span><span class="o">.</span><span class="n">feature_definitions</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                               <span class="k">if</span> <span class="n">fd</span><span class="o">.</span><span class="n">identifier</span> <span class="ow">in</span> <span class="n">supported_features</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+
+        <span class="n">model_features</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span> <span class="o">==</span> <span class="s2">&quot;negative&quot;</span> <span class="ow">or</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span> <span class="o">==</span> <span class="s2">&quot;positive&quot;</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;Charged feature not currently supported in CrossMiner: Its on the TODO list&quot;</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sphere</span> <span class="o">=</span> <span class="n">GeometricDescriptors</span><span class="o">.</span><span class="n">Sphere</span><span class="p">(</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">projected_coordinates</span><span class="p">:</span>
+                    <span class="n">projected</span> <span class="o">=</span> <span class="n">GeometricDescriptors</span><span class="o">.</span><span class="n">Sphere</span><span class="p">(</span><span class="n">feat</span><span class="o">.</span><span class="n">projected_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="n">Pharmacophore</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">feature_definitions</span><span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span><span class="p">],</span> <span class="o">*</span><span class="p">[</span><span class="n">sphere</span><span class="p">,</span> <span class="n">projected</span><span class="p">])</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="n">Pharmacophore</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">feature_definitions</span><span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span><span class="p">],</span> <span class="n">sphere</span><span class="p">)</span>
+
+                <span class="n">model_features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">excluded_volume</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;Pharmacophore Model must have protein to calculate excluded volume&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_binding_site_residues</span><span class="p">()</span>
+
+                <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">bs</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">identifier</span> <span class="o">=</span> <span class="s2">&quot;temp_residue&quot;</span><span class="p">)</span>
+
+                    <span class="c1"># for a in residue.backbone_atoms:</span>
+                    <span class="c1">#     ev = Pharmacophore.ExcludedVolume(GeometricDescriptors.Sphere(a.coordinates, 2))</span>
+                    <span class="c1">#     model_features.append(ev)</span>
+                    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">residue</span><span class="o">.</span><span class="n">backbone_atoms</span><span class="p">:</span>
+                        <span class="n">mol</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+                    <span class="n">centre</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">centre_of_geometry</span><span class="p">()</span>
+                    <span class="n">ev</span> <span class="o">=</span> <span class="n">Pharmacophore</span><span class="o">.</span><span class="n">ExcludedVolume</span><span class="p">(</span><span class="n">GeometricDescriptors</span><span class="o">.</span><span class="n">Sphere</span><span class="p">(</span><span class="n">centre</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+                    <span class="n">model_features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span>
+        <span class="c1">#print len(model_features)</span>
+        <span class="k">return</span> <span class="n">Pharmacophore</span><span class="o">.</span><span class="n">Query</span><span class="p">(</span><span class="n">model_features</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PharmacophoreModel.write"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        given a fname, will output Pharmacophore in detected format</span>
+<span class="sd">        :param fname: str, extensions support: &quot;.cm&quot;, &quot;.py&quot;, &quot;.json&quot;, &quot;.csv&quot;, &quot;.mol2&quot;</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.cm&quot;</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;WARNING! Charged features not currently supported in CrossMiner!&quot;</span>
+            <span class="n">pharmacophore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_crossminer_pharmacophore</span><span class="p">()</span>
+            <span class="n">pharmacophore</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.csv&quot;</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+                <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">csv_file</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Identifier, Feature_type, x, y, z, score, &#39;</span> \
+                       <span class="s1">&#39;projected_x, projected_y, projected_z, &#39;</span> \
+                       <span class="s1">&#39;vector_x, vector_y, vector_z&#39;</span>
+
+                <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+                    <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">,</span><span class="si">{1}</span><span class="s2">,</span><span class="si">{2}</span><span class="s2">,</span><span class="si">{3}</span><span class="s2">,</span><span class="si">{4}</span><span class="s2">,</span><span class="si">{5}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">identifier</span><span class="p">,</span>
+                                                            <span class="n">feature</span><span class="o">.</span><span class="n">feature_type</span><span class="p">,</span>
+                                                            <span class="n">feature</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                                                            <span class="n">feature</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                                                            <span class="n">feature</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                                                            <span class="n">feature</span><span class="o">.</span><span class="n">score</span>
+                                                            <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">feature</span><span class="o">.</span><span class="n">projected_coordinates</span><span class="p">:</span>
+                        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;,</span><span class="si">{0}</span><span class="s2">,</span><span class="si">{1}</span><span class="s2">,</span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">feature</span><span class="o">.</span><span class="n">projected_coordinates</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                                                      <span class="n">feature</span><span class="o">.</span><span class="n">projected_coordinates</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                                                      <span class="n">feature</span><span class="o">.</span><span class="n">projected_coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;,0,0,0&quot;</span>
+
+                    <span class="k">if</span> <span class="n">feature</span><span class="o">.</span><span class="n">vector</span><span class="p">:</span>
+                        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;,</span><span class="si">{0}</span><span class="s2">,</span><span class="si">{1}</span><span class="s2">,</span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">feature</span><span class="o">.</span><span class="n">vector</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                                                      <span class="n">feature</span><span class="o">.</span><span class="n">vector</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                                                      <span class="n">feature</span><span class="o">.</span><span class="n">vector</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;,0,0,0&quot;</span>
+
+                    <span class="n">l</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+                    <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.py&quot;</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pymol_file</span><span class="p">:</span>
+                <span class="n">pymol_out</span> <span class="o">=</span> <span class="n">pymol_imports</span><span class="p">()</span>
+                <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_arrow</span><span class="p">()</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pymol_pharmacophore</span><span class="p">()</span>
+                <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">lines</span>
+                <span class="n">pymol_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pymol_out</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.json&quot;</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pharmit_file</span><span class="p">:</span>
+                <span class="n">pts</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">interaction_dic</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;apolar&#39;</span><span class="p">:</span> <span class="s1">&#39;Hydrophobic&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;donor&#39;</span><span class="p">:</span> <span class="s1">&#39;HydrogenDonor&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;acceptor&#39;</span><span class="p">:</span> <span class="s1">&#39;HydrogenAcceptor&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;negative&#39;</span><span class="p">:</span> <span class="s1">&#39;NegativeIon&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;positive&#39;</span><span class="p">:</span> <span class="s1">&#39;PositiveIon&#39;</span>
+                                   <span class="p">}</span>
+
+                <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">vector</span><span class="p">:</span>
+                        <span class="n">point</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">interaction_dic</span><span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span><span class="p">],</span>
+                                 <span class="s2">&quot;hasvec&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                                 <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                                 <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                                 <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                                 <span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span>
+                                 <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                                 <span class="s2">&quot;vector_on&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">vector_on</span><span class="p">,</span>
+                                 <span class="s2">&quot;svector&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">vector</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                                             <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">vector</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                                             <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">vector</span><span class="o">.</span><span class="n">z</span><span class="p">},</span>
+                                 <span class="s2">&quot;minsize&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;maxsize&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;selected&quot;</span><span class="p">:</span> <span class="kc">False</span>
+                                 <span class="p">}</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">point</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">interaction_dic</span><span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span><span class="p">],</span>
+                                 <span class="s2">&quot;hasvec&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                                 <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                                 <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                                 <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                                 <span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span>
+                                 <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                                 <span class="s2">&quot;vector_on&quot;</span><span class="p">:</span> <span class="n">feat</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">vector_on</span><span class="p">,</span>
+                                 <span class="s2">&quot;svector&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                             <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                             <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+                                 <span class="s2">&quot;minsize&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;maxsize&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;selected&quot;</span><span class="p">:</span> <span class="kc">False</span>
+                                 <span class="p">}</span>
+                    <span class="n">pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+                <span class="n">pharmit_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;points&quot;</span><span class="p">:</span> <span class="n">pts</span><span class="p">}))</span>
+
+        <span class="k">elif</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.mol2&quot;</span><span class="p">:</span>
+            <span class="n">mol</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">identifier</span> <span class="o">=</span> <span class="s2">&quot;pharmacophore_model&quot;</span><span class="p">)</span>
+            <span class="n">atom_dic</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apolar&quot;</span><span class="p">:</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span>
+                        <span class="s2">&quot;donor&quot;</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+                        <span class="s2">&quot;acceptor&quot;</span><span class="p">:</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span>
+                        <span class="s2">&quot;negative&quot;</span><span class="p">:</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span>
+                        <span class="s2">&quot;positve&quot;</span><span class="p">:</span> <span class="s1">&#39;H&#39;</span><span class="p">}</span>
+
+            <span class="n">pseudo_atms</span> <span class="o">=</span> <span class="p">[</span><span class="n">Atom</span><span class="p">(</span><span class="n">atomic_symbol</span><span class="o">=</span><span class="n">atom_dic</span><span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span><span class="p">],</span>
+                                <span class="n">atomic_number</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+                                <span class="n">coordinates</span><span class="o">=</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="p">,</span>
+                                <span class="n">label</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">feat</span><span class="o">.</span><span class="n">score</span><span class="p">))</span>
+                           <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span>  <span class="n">pseudo_atms</span><span class="p">:</span>
+                <span class="n">mol</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">MoleculeWriter</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;&quot;&quot;</span><span class="si">{}</span><span class="s2">&quot; output file type is not currently supported.&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">extension</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="PharmacophoreModel.from_hotspot"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.from_hotspot">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_hotspot</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">super_grids</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s2">&quot;id_01&quot;</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;creates a pharmacophore model from hotspot results object&quot;&quot;&quot;</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+        <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="n">island</span><span class="p">,</span> <span class="n">probe</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">probe</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                        <span class="k">for</span> <span class="n">island</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">cutoff</span><span class="p">)</span> <span class="k">if</span> <span class="n">island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">PharmacophoreModel</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">feature_list</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="n">protein</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PharmacophoreModel.from_file"><a class="viewcode-back" href="../../pharmacophore_api.html#hotspots.hotspot_pharmacophore.PharmacophoreModel.from_file">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;creates a pharmacophore model from file (only .cm supported) &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">identifier</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">identifier</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;FEATURE_LIBRARY_END&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\n\n</span><span class="s2">&quot;&quot;&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">l</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">]</span>
+            <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">[</span><span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">from_crossminer</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span> <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span> <span class="k">if</span> <span class="n">f</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">]</span>
+
+
+        <span class="k">return</span> <span class="n">PharmacophoreModel</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">feature_list</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="n">protein</span><span class="p">)</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">_PharmacophoreFeature</span><span class="p">(</span><span class="n">Helper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    A class to construct pharmacophoric models based upon fragment hotspot maps.</span>
+<span class="sd">    This feature is designed to be used after fragment sized hotspots have been extracted.</span>
+<span class="sd">    (Hotspot.extract_hotspots method)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">projected</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        new __init__ allows flexibility of pharmacophore generation</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_projected</span> <span class="o">=</span> <span class="n">projected</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_feature_type</span> <span class="o">=</span> <span class="n">feature_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_feature_coordinates</span> <span class="o">=</span> <span class="n">feature_coordinates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_projected_coordinates</span> <span class="o">=</span> <span class="n">projected_coordinates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_score</span> <span class="o">=</span> <span class="n">score</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vector</span> <span class="o">=</span> <span class="n">vector</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
+
+        <span class="k">if</span> <span class="n">feature_type</span> <span class="o">==</span> <span class="s2">&quot;donor&quot;</span> <span class="ow">or</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">vector_on</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">projected</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_projected</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">feature_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feature_type</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">feature_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feature_coordinates</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">projected_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_projected_coordinates</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_score</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vector</span>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_hotspot</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">probe</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param grid:</span>
+<span class="sd">        :param probe:</span>
+<span class="sd">        :param protein:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">feature_type</span> <span class="o">=</span> <span class="n">probe</span>
+        <span class="k">if</span> <span class="n">probe</span> <span class="o">==</span> <span class="s2">&quot;apolar&quot;</span><span class="p">:</span>
+            <span class="n">score</span><span class="p">,</span> <span class="n">feature_coordinates</span> <span class="o">=</span> <span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">get_centroid</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+            <span class="n">projected</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">vector</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vector</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">score</span><span class="p">,</span> <span class="n">feature_coordinates</span> <span class="o">=</span> <span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">get_maxima</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">probe</span> <span class="o">==</span> <span class="s2">&quot;donor&quot;</span> <span class="ow">or</span> <span class="n">probe</span> <span class="o">==</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">:</span>
+
+                <span class="n">projected</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">protein</span><span class="p">:</span>
+                    <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">get_projected_coordinates</span><span class="p">(</span><span class="n">feature_type</span><span class="p">,</span>
+                                                                                            <span class="n">feature_coordinates</span><span class="p">,</span>
+                                                                                            <span class="n">protein</span><span class="p">,</span>
+                                                                                            <span class="n">settings</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">projected_coordinates</span><span class="p">:</span>
+                        <span class="n">vector</span> <span class="o">=</span> <span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">get_vector</span><span class="p">(</span><span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">projected</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">_PharmacophoreFeature</span><span class="p">(</span><span class="n">projected</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span>
+                                     <span class="n">settings</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_crossminer</span><span class="p">(</span><span class="n">feature_str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;generates a pharmacophore model from a crossminer file&quot;&quot;&quot;</span>
+        <span class="n">cm_feature_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ring&quot;</span><span class="p">:</span> <span class="s2">&quot;apolar&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;ring_planar_projected&quot;</span><span class="p">:</span> <span class="s2">&quot;apolar&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;ring_non_planar&quot;</span><span class="p">:</span> <span class="s2">&quot;apolar&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;hydrophobic&quot;</span><span class="p">:</span> <span class="s2">&quot;apolar&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;donor_ch_projected&quot;</span><span class="p">:</span> <span class="s2">&quot;donor&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;donor_projected&quot;</span><span class="p">:</span> <span class="s2">&quot;donor&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;donor&quot;</span><span class="p">:</span> <span class="s2">&quot;donor&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;acceptor_projected&quot;</span><span class="p">:</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;acceptor&quot;</span><span class="p">:</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;negative&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;positive&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                           <span class="p">}</span>
+
+        <span class="n">vector</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+
+        <span class="n">feat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&quot;&quot;PHARMACOPHORE_FEATURE (.+?)\n&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">feature_str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;excluded_volume&quot;</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">feature_type</span> <span class="o">=</span>  <span class="n">cm_feature_dict</span><span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+
+            <span class="n">spher</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;PHARMACOPHORE_SPHERE (.+?)</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">feature_str</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spher</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">coords</span> <span class="o">=</span> <span class="n">spher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="n">feature_coordinates</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                <span class="n">projected</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">score</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">spher</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">coords</span> <span class="o">=</span> <span class="n">spher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="n">proj</span> <span class="o">=</span>  <span class="n">spher</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="n">feature_coordinates</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                <span class="n">projected</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">projected_coordinates</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">proj</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">proj</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">proj</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                <span class="n">score</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;feature format not recognised&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">_PharmacophoreFeature</span><span class="p">(</span><span class="n">projected</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span>
+                                         <span class="n">settings</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_vector</span><span class="p">(</span><span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        generates vector to hydrogen bonding partner on a protein.</span>
+<span class="sd">        :return: Coordinates (named tuple)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">projected_coordinates</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">feature_coordinates</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                           <span class="n">projected_coordinates</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">feature_coordinates</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                           <span class="n">projected_coordinates</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">feature_coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_projected_coordinates</span><span class="p">(</span><span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        for a given polar feature, the nearest h-bonding partner on the protein is located.</span>
+<span class="sd">        :param protein: a :class:`ccdc.protein.Protein` instance</span>
+<span class="sd">        :return: feature_coordinates for hydrogen-bonding partner</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">feature_type</span> <span class="o">==</span> <span class="s1">&#39;donor&#39;</span><span class="p">:</span>
+            <span class="n">atms</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">atoms</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">is_acceptor</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">atms</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">atoms</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">is_donor</span><span class="p">]</span>
+
+        <span class="n">near_atoms</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">atm</span> <span class="ow">in</span> <span class="n">atms</span><span class="p">:</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">atm</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">settings</span><span class="o">.</span><span class="n">max_hbond_dist</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">near_atoms</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">near_atoms</span><span class="p">[</span><span class="n">dist</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atm</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">near_atoms</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">dist</span><span class="p">:[</span><span class="n">atm</span><span class="p">]})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">near_atoms</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">closest</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">near_atoms</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">select</span> <span class="o">=</span> <span class="n">near_atoms</span><span class="p">[</span><span class="n">closest</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">select</span><span class="o">.</span><span class="n">coordinates</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_maxima</span><span class="p">(</span><span class="n">grid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        given a grid will return the max point</span>
+<span class="sd">        :param grid:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">max_value</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">extrema</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">indices_at_value</span><span class="p">(</span><span class="n">max_value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">indices_to_point</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">max_value</span><span class="p">,</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">indices_to_point</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)),</span>
+                                           <span class="nb">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)),</span>
+                                           <span class="nb">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">))</span>
+                                           <span class="p">)</span>
+            <span class="k">return</span> <span class="n">max_value</span><span class="p">,</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_centroid</span><span class="p">(</span><span class="n">grid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        given a grid will return the centre of mass(mass ==HS score) and the score at that point</span>
+<span class="sd">        :return: score, float, and coords, ccdc.molecule.Coordinate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">weighted_x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">weighted_y</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">weighted_z</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_mass</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">nsteps</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nx</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ny</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nz</span><span class="p">):</span>
+                    <span class="n">grid_val</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">indices_to_point</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="n">weighted_x</span> <span class="o">+=</span> <span class="n">grid_val</span> <span class="o">*</span> <span class="n">x</span>
+                    <span class="n">weighted_y</span> <span class="o">+=</span> <span class="n">grid_val</span> <span class="o">*</span> <span class="n">y</span>
+                    <span class="n">weighted_z</span> <span class="o">+=</span> <span class="n">grid_val</span> <span class="o">*</span> <span class="n">z</span>
+                    <span class="n">total_mass</span> <span class="o">+=</span> <span class="n">grid_val</span>
+
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">weighted_x</span><span class="p">,</span> <span class="n">total_mass</span><span class="p">),</span>
+                                      <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">weighted_y</span><span class="p">,</span> <span class="n">total_mass</span><span class="p">),</span>
+                                      <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">weighted_z</span><span class="p">,</span> <span class="n">total_mass</span><span class="p">)</span>
+                                      <span class="p">)</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">value_at_point</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">score</span><span class="p">),</span> <span class="n">coords</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Chris Radoux and Peter Curran
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

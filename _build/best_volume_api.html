@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="_static/logo_test.png"/>
+  
   
   
 
@@ -52,6 +54,9 @@
           
 
           
+            
+            <img src="_static/logo_test.png" class="logo" alt="Logo"/>
+          
           </a>
 
           
@@ -84,11 +89,11 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hotspot_calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io_api.html">IO API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Best Volume API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_elaboration_api.html">Fragment Elaboration API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
@@ -156,94 +161,54 @@
             
   <div class="section" id="module-hotspots.best_volume">
 <span id="best-volume-api"></span><h1>Best Volume API<a class="headerlink" href="#module-hotspots.best_volume" title="Permalink to this headline">¶</a></h1>
-<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.extraction</span></code> module contains classes to extract
+<p>The <a class="reference internal" href="#module-hotspots.best_volume" title="hotspots.best_volume"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.best_volume</span></code></a> module contains classes to extract
 valuable information from the calculated Fragment Hotspot Maps.</p>
 <p>The main fields can be broken due using a fixed volume or fixed score mode.</p>
 <p>This approach enables a ranking of ligand sized cavity descriptions to be
 extracted. For example, these grids can be used to generate pharmacophores.</p>
 <dl class="docutils">
 <dt>The main classes of the <a class="reference internal" href="#module-hotspots.best_volume" title="hotspots.best_volume"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.best_volume</span></code></a> module are:</dt>
-<dd>-HotspotFeatures
--ExtractHotspot
--HotspotCreator</dd>
+<dd>-Extractor</dd>
 </dl>
 <dl class="class">
 <dt id="hotspots.best_volume.Extractor">
-<em class="property">class </em><code class="descclassname">hotspots.best_volume.</code><code class="descname">Extractor</code><span class="sig-paren">(</span><em>hr</em>, <em>settings=None</em>, <em>mode='seed'</em>, <em>volume='125'</em>, <em>pharmacophores=True</em>, <em>superstar=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor" title="Permalink to this definition">¶</a></dt>
-<dd><p>A class to handle the extraction of discrete, fragment size hotspots from the original maps</p>
+<em class="property">class </em><code class="descclassname">hotspots.best_volume.</code><code class="descname">Extractor</code><span class="sig-paren">(</span><em>hr</em>, <em>settings=None</em>, <em>mode='seed'</em>, <em>volume='125'</em>, <em>pharmacophores=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to handle the extraction of discrete volumes from the highest scoring regions of the hotspot maps.</p>
 <dl class="class">
 <dt id="hotspots.best_volume.Extractor.Settings">
-<em class="property">class </em><code class="descname">Settings</code><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor.Settings" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descname">Settings</code><span class="sig-paren">(</span><em>volume=150</em>, <em>cutoff=14</em>, <em>mode='seed'</em>, <em>padding_factor=0</em>, <em>spacing=0.5</em>, <em>min_feature_gp=5</em>, <em>max_features=10</em>, <em>min_distance=6</em>, <em>island_max_size=100</em>, <em>sigma=0.3</em>, <em>drug_volume=300</em>, <em>buriedness_value=4</em>, <em>fragments=None</em>, <em>lead=None</em>, <em>pharmacophore=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor.Settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default settings for hotspot extraction</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hotspots.best_volume.Extractor.get_peaks">
-<code class="descname">get_peaks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor.get_peaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor.get_peaks" title="Permalink to this definition">¶</a></dt>
-<dd><p>find peak coordinates in apolar maps, used as seeds to find top volumes
-:return:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>volume</strong> (<em>float</em>) – </li>
+<li><strong>cutoff</strong> (<em>float</em>) – </li>
+<li><strong>mode</strong> (<em>str</em>) – </li>
+<li><strong>padding_factor</strong> (<em>int</em>) – </li>
+<li><strong>spacing</strong> (<em>float</em>) – </li>
+<li><strong>min_feature_gp</strong> (<em>int</em>) – </li>
+<li><strong>max_features</strong> (<em>int</em>) – </li>
+<li><strong>min_distance</strong> (<em>float</em>) – </li>
+<li><strong>island_max_size</strong> (<em>int</em>) – </li>
+<li><strong>sigma</strong> (<em>float</em>) – </li>
+<li><strong>drug_volume</strong> (<em>float</em>) – </li>
+<li><strong>buriedness_value</strong> (<em>int</em>) – </li>
+<li><strong>fragments</strong> (<em>bool</em>) – </li>
+<li><strong>lead</strong> (<em>bool</em>) – </li>
+<li><strong>pharmacophore</strong> (<em>bool</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="hotspots.best_volume.Extractor.get_pharmacophores">
 <code class="descname">get_pharmacophores</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor.get_pharmacophores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor.get_pharmacophores" title="Permalink to this definition">¶</a></dt>
 <dd><p>generates a pharmacophore model, stores as attribute of hotspot result
-:return:</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hotspots.best_volume.Extractor.grid_post_process">
-<code class="descname">grid_post_process</code><span class="sig-paren">(</span><em>super_grids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#Extractor.grid_post_process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.Extractor.grid_post_process" title="Permalink to this definition">¶</a></dt>
-<dd><p>carry out post-processing of fragment hotspot maps</p>
-<p>Limit the size of polar islands. Keep top scores upto X grid points
-:return:</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="hotspots.best_volume.HotspotResults">
-<em class="property">class </em><code class="descclassname">hotspots.best_volume.</code><code class="descname">HotspotResults</code><span class="sig-paren">(</span><em>super_grids</em>, <em>protein</em>, <em>buriedness=None</em>, <em>pharmacophore=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#HotspotResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.HotspotResults" title="Permalink to this definition">¶</a></dt>
-<dd><p>A class to handle the construction of indivdual hotspots</p>
-<dl class="class">
-<dt id="hotspots.best_volume.HotspotResults.Optimiser">
-<em class="property">class </em><code class="descname">Optimiser</code><span class="sig-paren">(</span><em>mask</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#HotspotResults.Optimiser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.HotspotResults.Optimiser" title="Permalink to this definition">¶</a></dt>
-<dd><p>A class to handle the optimisation operations</p>
-<dl class="method">
-<dt id="hotspots.best_volume.HotspotResults.Optimiser.optimize_island_threshold">
-<code class="descname">optimize_island_threshold</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#HotspotResults.Optimiser.optimize_island_threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.HotspotResults.Optimiser.optimize_island_threshold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Takes the input mask and finds the island threshold which returns the desired volume
-:return:</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="hotspots.best_volume.HotspotResults.from_hotspot">
-<em class="property">static </em><code class="descname">from_hotspot</code><span class="sig-paren">(</span><em>single_grid</em>, <em>mask_dic</em>, <em>settings</em>, <em>prot</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#HotspotResults.from_hotspot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.HotspotResults.from_hotspot" title="Permalink to this definition">¶</a></dt>
-<dd><p>create a Extracted Hotspot object from HotspotResult object
-:param single_grid:
-:param mask_dic:
-:param settings:
-:param prot:
-:param seed:
-:return:</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="hotspots.best_volume.HotspotResults.get_grid_dict">
-<em class="property">static </em><code class="descname">get_grid_dict</code><span class="sig-paren">(</span><em>location</em>, <em>features</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#HotspotResults.get_grid_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.HotspotResults.get_grid_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates super grid dict from location and features
-:param location:
-:param features:
-:param settings:
-:return:</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="hotspots.best_volume.HotspotResults.get_interaction_type">
-<em class="property">static </em><code class="descname">get_interaction_type</code><span class="sig-paren">(</span><em>mask_dic</em>, <em>best_island</em>, <em>threshold</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/best_volume.html#HotspotResults.get_interaction_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.best_volume.HotspotResults.get_interaction_type" title="Permalink to this definition">¶</a></dt>
-<dd><p>seperates single grid into grid by interaction type
 :return:</p>
 </dd></dl>
 

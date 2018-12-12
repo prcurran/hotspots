@@ -14,6 +14,8 @@
 
   
   
+    <link rel="shortcut icon" href="_static/logo_test.png"/>
+  
   
   
 
@@ -51,6 +53,9 @@
           
 
           
+            
+            <img src="_static/logo_test.png" class="logo" alt="Logo"/>
+          
           </a>
 
           
@@ -83,11 +88,11 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hotspot_calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io_api.html">IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="best_volume_api.html">Best Volume API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_elaboration_api.html">Fragment Elaboration API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
@@ -156,18 +161,14 @@
 
 <div class="genindex-jumpbox">
  <a href="#A"><strong>A</strong></a>
- | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
- | <a href="#N"><strong>N</strong></a>
- | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
- | <a href="#U"><strong>U</strong></a>
  | <a href="#W"><strong>W</strong></a>
  | <a href="#X"><strong>X</strong></a>
  | <a href="#Y"><strong>Y</strong></a>
@@ -177,21 +178,7 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreModel.as_grid">as_grid() (hotspots.pharmacophore.PharmacophoreModel method)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="B">B</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.Buriedness">Buriedness (class in hotspots.hotspot_calculation)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.Buriedness.Settings">Buriedness.Settings (class in hotspots.hotspot_calculation)</a>
-</li>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.BuriednessResult">BuriednessResult (class in hotspots.hotspot_calculation)</a>
+      <li><a href="pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.as_grid">as_grid() (hotspots.hs_pharmacophore.PharmacophoreModel method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -199,27 +186,21 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.Buriedness.calculate_buriedness">calculate_buriedness() (hotspots.hotspot_calculation.Buriedness method)</a>
-</li>
-      <li><a href="utilities_api.html#hotspots.utilities.Utilities.cavity_centroid">cavity_centroid() (hotspots.utilities.Utilities static method)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Helper.cavity_centroid">cavity_centroid() (hotspots.hs_utilities.Helper static method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="utilities_api.html#hotspots.utilities.Utilities.cavity_from_protein">cavity_from_protein() (hotspots.utilities.Utilities static method)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Helper.cavity_from_protein">cavity_from_protein() (hotspots.hs_utilities.Helper static method)</a>
 </li>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.Coordinates">Coordinates (class in hotspots.pharmacophore)</a>
-
-      <ul>
-        <li><a href="utilities_api.html#hotspots.utilities.Coordinates">(class in hotspots.utilities)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Coordinates">Coordinates (class in hotspots.hs_utilities)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.extract_pocket">extract_pocket() (hotspots.hotspot_calculation.HotspotResults method)</a>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Results.extract_pocket">extract_pocket() (hotspots.calculation.Results method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -233,25 +214,15 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreModel.features">features (hotspots.pharmacophore.PharmacophoreModel attribute)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Figures">Figures (class in hotspots.hs_utilities)</a>
 </li>
-      <li><a href="utilities_api.html#hotspots.utilities.Figures">Figures (class in hotspots.utilities)</a>
-</li>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreFeature.from_crossminer">from_crossminer() (hotspots.pharmacophore.PharmacophoreFeature static method)</a>
-</li>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreModel.from_file">from_file() (hotspots.pharmacophore.PharmacophoreModel static method)</a>
+      <li><a href="pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.from_file">from_file() (hotspots.hs_pharmacophore.PharmacophoreModel static method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="best_volume_api.html#hotspots.best_volume.HotspotResults.from_hotspot">from_hotspot() (hotspots.best_volume.HotspotResults static method)</a>
-
-      <ul>
-        <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreFeature.from_hotspot">(hotspots.pharmacophore.PharmacophoreFeature static method)</a>
+      <li><a href="pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.from_hotspot">from_hotspot() (hotspots.hs_pharmacophore.PharmacophoreModel static method)</a>
 </li>
-        <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreModel.from_hotspot">(hotspots.pharmacophore.PharmacophoreModel static method)</a>
-</li>
-      </ul></li>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.Hotspots.from_protein">from_protein() (hotspots.hotspot_calculation.Hotspots method)</a>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Runner.from_protein">from_protein() (hotspots.calculation.Runner method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -259,45 +230,27 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_2D_diagram">get_2D_diagram() (hotspots.hotspot_calculation.HotspotResults method)</a>
+      <li><a href="pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore">get_crossminer_pharmacophore() (hotspots.hs_pharmacophore.PharmacophoreModel method)</a>
 </li>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreFeature.get_centroid">get_centroid() (hotspots.pharmacophore.PharmacophoreFeature static method)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Helper.get_distance">get_distance() (hotspots.hs_utilities.Helper static method)</a>
 </li>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore">get_crossminer_pharmacophore() (hotspots.pharmacophore.PharmacophoreModel method)</a>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Results.get_elaboration_potential">get_elaboration_potential() (hotspots.calculation.Results method)</a>
 </li>
-      <li><a href="utilities_api.html#hotspots.utilities.Utilities.get_distance">get_distance() (hotspots.utilities.Utilities static method)</a>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Results.get_histogram">get_histogram() (hotspots.calculation.Results method)</a>
 </li>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_elaboration_potential">get_elaboration_potential() (hotspots.hotspot_calculation.HotspotResults method)</a>
-</li>
-      <li><a href="best_volume_api.html#hotspots.best_volume.HotspotResults.get_grid_dict">get_grid_dict() (hotspots.best_volume.HotspotResults static method)</a>
-</li>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_histogram">get_histogram() (hotspots.hotspot_calculation.HotspotResults method)</a>
-</li>
-      <li><a href="best_volume_api.html#hotspots.best_volume.HotspotResults.get_interaction_type">get_interaction_type() (hotspots.best_volume.HotspotResults static method)</a>
-</li>
-      <li><a href="utilities_api.html#hotspots.utilities.Utilities.get_lines_from_file">get_lines_from_file() (hotspots.utilities.Utilities static method)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Helper.get_lines_from_file">get_lines_from_file() (hotspots.hs_utilities.Helper static method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreFeature.get_maxima">get_maxima() (hotspots.pharmacophore.PharmacophoreFeature static method)</a>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Results.get_map_values">get_map_values() (hotspots.calculation.Results method)</a>
 </li>
-      <li><a href="best_volume_api.html#hotspots.best_volume.Extractor.get_peaks">get_peaks() (hotspots.best_volume.Extractor method)</a>
-</li>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_pharmacophore_model">get_pharmacophore_model() (hotspots.hotspot_calculation.HotspotResults method)</a>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Results.get_pharmacophore_model">get_pharmacophore_model() (hotspots.calculation.Results method)</a>
 </li>
       <li><a href="best_volume_api.html#hotspots.best_volume.Extractor.get_pharmacophores">get_pharmacophores() (hotspots.best_volume.Extractor method)</a>
 </li>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreFeature.get_projected_coordinates">get_projected_coordinates() (hotspots.pharmacophore.PharmacophoreFeature static method)</a>
+      <li><a href="pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.get_pymol_pharmacophore">get_pymol_pharmacophore() (hotspots.hs_pharmacophore.PharmacophoreModel method)</a>
 </li>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreModel.get_pymol_pharmacophore">get_pymol_pharmacophore() (hotspots.pharmacophore.PharmacophoreModel method)</a>
-</li>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_selectivity_map">get_selectivity_map() (hotspots.hotspot_calculation.HotspotResults method)</a>
-</li>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_superstar_profile">get_superstar_profile() (hotspots.hotspot_calculation.HotspotResults method)</a>
-</li>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreFeature.get_vector">get_vector() (hotspots.pharmacophore.PharmacophoreFeature static method)</a>
-</li>
-      <li><a href="best_volume_api.html#hotspots.best_volume.Extractor.grid_post_process">grid_post_process() (hotspots.best_volume.Extractor method)</a>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Results.get_selectivity_map">get_selectivity_map() (hotspots.calculation.Results method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -305,53 +258,29 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="utilities_api.html#hotspots.utilities.Figures.histogram">histogram() (hotspots.utilities.Figures static method)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Helper">Helper (class in hotspots.hs_utilities)</a>
 </li>
-      <li><a href="io_api.html#hotspots.io.HotspotReader">HotspotReader (class in hotspots.io)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Figures.histogram">histogram() (hotspots.hs_utilities.Figures static method)</a>
 </li>
-      <li><a href="best_volume_api.html#hotspots.best_volume.HotspotResults">HotspotResults (class in hotspots.best_volume)</a>
-
-      <ul>
-        <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults">(class in hotspots.hotspot_calculation)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.hotspot_histograms">hotspot_histograms() (in module hotspots.hs_utilities)</a>
 </li>
-      </ul></li>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.HotspotFeature">HotspotResults.HotspotFeature (class in hotspots.hotspot_calculation)</a>
+      <li><a href="io_api.html#hotspots.hs_io.HotspotReader">HotspotReader (class in hotspots.hs_io)</a>
 </li>
-      <li><a href="best_volume_api.html#hotspots.best_volume.HotspotResults.Optimiser">HotspotResults.Optimiser (class in hotspots.best_volume)</a>
-</li>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.Hotspots">Hotspots (class in hotspots.hotspot_calculation)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="best_volume_api.html#module-hotspots.best_volume">hotspots.best_volume (module)</a>
 </li>
-      <li><a href="hotspot_calculation_api.html#module-hotspots.hotspot_calculation">hotspots.hotspot_calculation (module)</a>
-</li>
-      <li><a href="io_api.html#module-hotspots.io">hotspots.io (module)</a>
-</li>
-      <li><a href="pharmacophore_api.html#module-hotspots.pharmacophore">hotspots.pharmacophore (module)</a>
-</li>
-      <li><a href="utilities_api.html#module-hotspots.utilities">hotspots.utilities (module)</a>
-</li>
-      <li><a href="io_api.html#hotspots.io.HotspotWriter">HotspotWriter (class in hotspots.io)</a>
-</li>
-      <li><a href="io_api.html#hotspots.io.HotspotWriter.Settings">HotspotWriter.Settings (class in hotspots.io)</a>
-</li>
   </ul></td>
-</tr></table>
-
-<h2 id="N">N</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.ngl_widget">ngl_widget() (hotspots.hotspot_calculation.HotspotResults method)</a>
+      <li><a href="hotspot_calculation_api.html#module-hotspots.calculation">hotspots.calculation (module)</a>
 </li>
-  </ul></td>
-</tr></table>
-
-<h2 id="O">O</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="best_volume_api.html#hotspots.best_volume.HotspotResults.Optimiser.optimize_island_threshold">optimize_island_threshold() (hotspots.best_volume.HotspotResults.Optimiser method)</a>
+      <li><a href="io_api.html#module-hotspots.hs_io">hotspots.hs_io (module)</a>
+</li>
+      <li><a href="pharmacophore_api.html#module-hotspots.hs_pharmacophore">hotspots.hs_pharmacophore (module)</a>
+</li>
+      <li><a href="utilities_api.html#module-hotspots.hs_utilities">hotspots.hs_utilities (module)</a>
+</li>
+      <li><a href="io_api.html#hotspots.hs_io.HotspotWriter">HotspotWriter (class in hotspots.hs_io)</a>
+</li>
+      <li><a href="io_api.html#hotspots.hs_io.HotspotWriter.Settings">HotspotWriter.Settings (class in hotspots.hs_io)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -359,11 +288,11 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreFeature">PharmacophoreFeature (class in hotspots.pharmacophore)</a>
+      <li><a href="pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel">PharmacophoreModel (class in hotspots.hs_pharmacophore)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreModel">PharmacophoreModel (class in hotspots.pharmacophore)</a>
+      <li><a href="pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.Settings">PharmacophoreModel.Settings (class in hotspots.hs_pharmacophore)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -371,11 +300,17 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreModel.rank_polar_features">rank_polar_features() (hotspots.pharmacophore.PharmacophoreModel method)</a>
+      <li><a href="pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.rank_polar_features">rank_polar_features() (hotspots.hs_pharmacophore.PharmacophoreModel method)</a>
+</li>
+      <li><a href="io_api.html#hotspots.hs_io.HotspotReader.read">read() (hotspots.hs_io.HotspotReader method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="io_api.html#hotspots.io.HotspotReader.read">read() (hotspots.io.HotspotReader method)</a>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Results">Results (class in hotspots.calculation)</a>
+</li>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Runner">Runner (class in hotspots.calculation)</a>
+</li>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Runner.Settings">Runner.Settings (class in hotspots.calculation)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -383,25 +318,7 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.score">score() (hotspots.hotspot_calculation.HotspotResults method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.HotspotFeature.score_feature">score_feature() (hotspots.hotspot_calculation.HotspotResults.HotspotFeature method)</a>
-</li>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.Settings">Settings (class in hotspots.pharmacophore)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="U">U</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="hotspot_calculation_api.html#hotspots.hotspot_calculation.BuriednessResult.update_grid">update_grid() (hotspots.hotspot_calculation.BuriednessResult method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="utilities_api.html#hotspots.utilities.Utilities">Utilities (class in hotspots.utilities)</a>
+      <li><a href="hotspot_calculation_api.html#hotspots.calculation.Results.score">score() (hotspots.calculation.Results method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -409,10 +326,10 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="io_api.html#hotspots.io.HotspotWriter.write">write() (hotspots.io.HotspotWriter method)</a>
+      <li><a href="io_api.html#hotspots.hs_io.HotspotWriter.write">write() (hotspots.hs_io.HotspotWriter method)</a>
 
       <ul>
-        <li><a href="pharmacophore_api.html#hotspots.pharmacophore.PharmacophoreModel.write">(hotspots.pharmacophore.PharmacophoreModel method)</a>
+        <li><a href="pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.write">(hotspots.hs_pharmacophore.PharmacophoreModel method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -421,39 +338,27 @@
 <h2 id="X">X</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.Coordinates.x">x (hotspots.pharmacophore.Coordinates attribute)</a>
-
-      <ul>
-        <li><a href="utilities_api.html#hotspots.utilities.Coordinates.x">(hotspots.utilities.Coordinates attribute)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Coordinates.x">x (hotspots.hs_utilities.Coordinates attribute)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="Y">Y</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.Coordinates.y">y (hotspots.pharmacophore.Coordinates attribute)</a>
-
-      <ul>
-        <li><a href="utilities_api.html#hotspots.utilities.Coordinates.y">(hotspots.utilities.Coordinates attribute)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Coordinates.y">y (hotspots.hs_utilities.Coordinates attribute)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="Z">Z</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pharmacophore_api.html#hotspots.pharmacophore.Coordinates.z">z (hotspots.pharmacophore.Coordinates attribute)</a>
-
-      <ul>
-        <li><a href="utilities_api.html#hotspots.utilities.Coordinates.z">(hotspots.utilities.Coordinates attribute)</a>
+      <li><a href="utilities_api.html#hotspots.hs_utilities.Coordinates.z">z (hotspots.hs_utilities.Coordinates attribute)</a>
 </li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="io_api.html#hotspots.io.HotspotWriter.zip_results">zip_results() (hotspots.io.HotspotWriter method)</a>
+      <li><a href="io_api.html#hotspots.hs_io.HotspotWriter.zip_results">zip_results() (hotspots.hs_io.HotspotWriter method)</a>
 </li>
   </ul></td>
 </tr></table>

@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/logo_test.png"/>
+  
   
   
 
@@ -50,6 +52,9 @@
           
 
           
+            
+            <img src="../../_static/logo_test.png" class="logo" alt="Logo"/>
+          
           </a>
 
           
@@ -82,11 +87,11 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../hotspot_calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../io_api.html">IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../best_volume_api.html">Best Volume API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../fragment_elaboration_api.html">Fragment Elaboration API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
@@ -161,50 +166,40 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
 
-<span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">system</span><span class="p">,</span> <span class="n">environ</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+<span class="kn">from</span> <span class="nn">atomic_hotspot_calculation</span> <span class="k">import</span> <span class="n">AtomicHotspot</span><span class="p">,</span> <span class="n">AtomicHotspotResult</span>
+<span class="kn">from</span> <span class="nn">ccdc.cavity</span> <span class="k">import</span> <span class="n">Cavity</span>
+<span class="kn">from</span> <span class="nn">ccdc.io</span> <span class="k">import</span> <span class="n">MoleculeWriter</span><span class="p">,</span> <span class="n">MoleculeReader</span>
+<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="k">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Coordinates</span>
+<span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
+<span class="kn">from</span> <span class="nn">ccdc.utilities</span> <span class="k">import</span> <span class="n">PushDir</span>
+<span class="kn">from</span> <span class="nn">grid_extension</span> <span class="k">import</span> <span class="n">Grid</span>
+<span class="kn">from</span> <span class="nn">hotspot_pharmacophore</span> <span class="k">import</span> <span class="n">PharmacophoreModel</span>
+<span class="kn">from</span> <span class="nn">hotspot_utilities</span> <span class="k">import</span> <span class="n">Figures</span><span class="p">,</span> <span class="n">Helper</span>
+<span class="c1">#from best_volume import Extractor</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">percentileofscore</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">splitext</span>
-<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">environ</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">getcwd</span><span class="p">,</span> <span class="n">mkdir</span><span class="p">,</span> <span class="n">chdir</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">listdir</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">glob</span>
-<span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">import</span> <span class="nn">zipfile</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">from</span> <span class="nn">concurrent</span> <span class="k">import</span> <span class="n">futures</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">percentileofscore</span>
-<span class="kn">from</span> <span class="nn">ccdc.io</span> <span class="k">import</span> <span class="n">csd_directory</span><span class="p">,</span> <span class="n">MoleculeWriter</span><span class="p">,</span> <span class="n">MoleculeReader</span>
-<span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
-<span class="kn">from</span> <span class="nn">ccdc.cavity</span> <span class="k">import</span> <span class="n">Cavity</span>
-<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="k">import</span> <span class="n">Molecule</span>
-<span class="kn">from</span> <span class="nn">ccdc.utilities</span> <span class="k">import</span> <span class="n">PushDir</span>
-<span class="kn">import</span> <span class="nn">nglview</span> <span class="k">as</span> <span class="nn">nv</span>
-<span class="kn">from</span> <span class="nn">ipywidgets</span> <span class="k">import</span> <span class="n">IntSlider</span><span class="p">,</span> <span class="n">interact</span>
-
-<span class="kn">import</span> <span class="nn">pkg_resources</span>
-
-<span class="kn">from</span> <span class="nn">grid_extension</span> <span class="k">import</span> <span class="n">Grid</span>
-<span class="kn">from</span> <span class="nn">atomic_hotspot_calculation</span> <span class="k">import</span> <span class="n">AtomicHotspot</span><span class="p">,</span> <span class="n">AtomicHotspotResult</span>
-<span class="kn">from</span> <span class="nn">template_strings</span> <span class="k">import</span> <span class="n">colourmap</span><span class="p">,</span> <span class="n">superstar_ins</span>
-<span class="kn">from</span> <span class="nn">pharmacophore</span> <span class="k">import</span> <span class="n">PharmacophoreModel</span>
-<span class="kn">from</span> <span class="nn">utilities</span> <span class="k">import</span> <span class="n">Figures</span><span class="p">,</span> <span class="n">Utilities</span>
 
 
-<div class="viewcode-block" id="Buriedness"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.Buriedness">[docs]</a><span class="k">class</span> <span class="nc">Buriedness</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<span class="k">class</span> <span class="nc">_Buriedness</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    class to handle ghecom run</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Buriedness.Settings"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.Buriedness.Settings">[docs]</a>    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        settings for ghecom run</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -219,12 +214,14 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;M&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">in_name</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="s2">&quot;protein.pdb&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="s2">&quot;ghecom_out.pdb&quot;</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="s2">&quot;ghecom_out.pdb&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">out_grid</span><span class="p">,</span> <span class="n">ghecom_executable</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">out_grid</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">        :param kw: settings for ghecom run</span>
+<span class="sd">        initialises buriedness calculation settings</span>
+<span class="sd">        :param protein: `ccdc.protein.Protein`</span>
+<span class="sd">        :param out_grid: `hotspots.grid_extension.Grid`</span>
+<span class="sd">        :param settings: `hotspots.hotspot_calculation.Buriedness.Settings`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -233,36 +230,35 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">protein</span> <span class="o">=</span> <span class="n">protein</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">out_grid</span> <span class="o">=</span> <span class="n">out_grid</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ghecom_executable</span> <span class="o">=</span> <span class="n">ghecom_executable</span>
 
-<div class="viewcode-block" id="Buriedness.calculate_buriedness"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.Buriedness.calculate_buriedness">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_buriedness</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">calculate_buriedness</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        runs ghecom in temporary directory</span>
-
+<span class="sd">        uses system call to execute cmd line buriedness calculation (using ghecom)</span>
 <span class="sd">        :return: a :class: `GhecomResult` instance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">with</span> <span class="n">PushDir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">working_directory</span><span class="p">):</span>
+
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">protein</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">MoleculeWriter</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
                     <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
 
-            <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/ghecom </span><span class="si">{}</span><span class="s2"> -M </span><span class="si">{}</span><span class="s2"> -gw </span><span class="si">{}</span><span class="s2"> -rli </span><span class="si">{}</span><span class="s2"> -rlx </span><span class="si">{}</span><span class="s2"> -opoc </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">ghecom_executable</span><span class="p">,</span>
-                                                                              <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">in_name</span><span class="p">,</span>
-                                                                              <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span>
-                                                                              <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grid_spacing</span><span class="p">,</span>
-                                                                              <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">radius_min_large_sphere</span><span class="p">,</span>
-                                                                              <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">radius_max_large_sphere</span><span class="p">,</span>
-                                                                              <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">out_name</span><span class="p">)</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> -M </span><span class="si">{}</span><span class="s2"> -gw </span><span class="si">{}</span><span class="s2"> -rli </span><span class="si">{}</span><span class="s2"> -rlx </span><span class="si">{}</span><span class="s2"> -opoc </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;GHECOM_EXE&#39;</span><span class="p">],</span>
+                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">in_name</span><span class="p">,</span>
+                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span>
+                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grid_spacing</span><span class="p">,</span>
+                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">radius_min_large_sphere</span><span class="p">,</span>
+                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">radius_max_large_sphere</span><span class="p">,</span>
+                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">out_name</span><span class="p">)</span>
 
             <span class="n">system</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">BuriednessResult</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">_BuriednessResult</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="BuriednessResult"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.BuriednessResult">[docs]</a><span class="k">class</span> <span class="nc">BuriednessResult</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">_BuriednessResult</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    class to store a Ghecom result</span>
+<span class="sd">    class to handle the buriedness calculation result</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
@@ -270,39 +266,15 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">out_grid</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">out_grid</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initalise_grid</span><span class="p">(</span><span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">initalise_grid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">protein</span><span class="o">.</span><span class="n">atoms</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_grid</span><span class="p">()</span>
 
-
-    <span class="c1"># TODO use property setters</span>
-    <span class="k">def</span> <span class="nf">_initalise_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        install grid over protein to hold scores</span>
-<span class="sd">        :param padding: value of buffer added to coordinate extremities</span>
-<span class="sd">        :return: a `ccdc.utilities.Grid` instance</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">x</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="k">for</span> <span class="n">atm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
-            <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atm</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
-            <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atm</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
-            <span class="n">z</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atm</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
-
-        <span class="n">bl</span> <span class="o">=</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">padding</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="n">padding</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">-</span> <span class="n">padding</span><span class="p">)</span>
-        <span class="n">tr</span> <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">padding</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">padding</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">+</span> <span class="n">padding</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">Grid</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="n">bl</span><span class="p">,</span> <span class="n">far_corner</span><span class="o">=</span><span class="n">tr</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-
-<div class="viewcode-block" id="BuriednessResult.update_grid"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.BuriednessResult.update_grid">[docs]</a>    <span class="k">def</span> <span class="nf">update_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        update initialised grid with ghecom values</span>
+<span class="sd">        write buriedness values to empty grid</span>
 <span class="sd">        :return: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">lines</span> <span class="o">=</span> <span class="n">Utilities</span><span class="o">.</span><span class="n">get_lines_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">out_name</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_lines_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">out_name</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;HETATM&quot;</span><span class="p">):</span>
                 <span class="n">coordinates</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">31</span><span class="p">:</span><span class="mi">38</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">39</span><span class="p">:</span><span class="mi">46</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">47</span><span class="p">:</span><span class="mi">54</span><span class="p">]))</span>
@@ -310,14 +282,13 @@
                 <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">point_to_indices</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">nsteps</span>
                 <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">x</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">y</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">z</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="mf">9.5</span> <span class="o">-</span> <span class="n">rinacc</span><span class="p">)</span></div></div>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="mf">9.5</span> <span class="o">-</span> <span class="n">rinacc</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">_WeightedResult</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    class to hold weighted grids</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">grid</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">identifier</span> <span class="o">=</span> <span class="n">identifier</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">grid</span>
@@ -465,9 +436,6 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_scored_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_molecule</span><span class="p">()</span>
 
-            <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">partial_charge</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scored_object</span><span class="o">.</span><span class="n">heavy_atoms</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_geometric_mean</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">)</span>
-
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">Cavity</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_scored_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_cavity</span><span class="p">()</span>
 
@@ -480,10 +448,6 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">scored_object</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scored_object</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_score</span>
 
     <span class="k">def</span> <span class="nf">score_protein</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -504,14 +468,14 @@
                              <span class="s2">&quot;donor_acceptor&quot;</span><span class="p">:</span> <span class="s2">&quot;doneptor&quot;</span><span class="p">,</span>
                              <span class="s2">&quot;dummy&quot;</span><span class="p">:</span> <span class="s2">&quot;dummy&quot;</span><span class="p">}</span>
 
-        <span class="n">cavities</span> <span class="o">=</span> <span class="n">Utilities</span><span class="o">.</span><span class="n">cavity_from_protein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+        <span class="n">cavities</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">cavity_from_protein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">cavity</span> <span class="ow">in</span> <span class="n">cavities</span><span class="p">:</span>
 
             <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">cavity</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
                 <span class="n">grid_type</span> <span class="o">=</span> <span class="n">interaction_pairs</span><span class="p">[</span><span class="n">feature</span><span class="o">.</span><span class="n">type</span><span class="p">]</span>
 
                 <span class="k">if</span> <span class="n">feature</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;aliphatic&quot;</span> <span class="ow">or</span> <span class="n">feature</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;aromatic&quot;</span><span class="p">:</span>
-                    <span class="n">coordinates</span> <span class="o">=</span> <span class="n">Utilities</span><span class="o">.</span><span class="n">cavity_centroid</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
+                    <span class="n">coordinates</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">cavity_centroid</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
 
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">v</span> <span class="o">=</span> <span class="n">feature</span><span class="o">.</span><span class="n">protein_vector</span>
@@ -582,9 +546,8 @@
 
         <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
             <span class="n">atom_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atom_type</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
-            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">coordinates</span>
             <span class="k">if</span> <span class="n">atom_type</span> <span class="o">==</span> <span class="s2">&quot;doneptor&quot;</span><span class="p">:</span>
-                <span class="n">atom_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doneptor_grid</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">grid_type</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">atom_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doneptor_grid</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
             <span class="n">atom</span><span class="o">.</span><span class="n">partial_charge</span> <span class="o">=</span> <span class="n">percentileofscore</span><span class="p">(</span><span class="n">adict</span><span class="p">[</span><span class="n">atom_type</span><span class="p">],</span> <span class="n">atom</span><span class="o">.</span><span class="n">partial_charge</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">mol</span>
@@ -605,12 +568,6 @@
                   <span class="p">]</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;donor&quot;</span><span class="p">,</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">]))</span>
         <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
-
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_geometric_mean</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Calculate geometric mean of scores&#39;&#39;&#39;</span>
-        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_atom_type</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
@@ -635,6 +592,7 @@
             <span class="k">return</span> <span class="s2">&quot;apolar&quot;</span>
 
 
+
 <div class="viewcode-block" id="HotspotResults"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults">[docs]</a><span class="k">class</span> <span class="nc">HotspotResults</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Hotspot_results object is returned at the end of a Hotspots calculation. It contains functions for accessing</span>
@@ -656,7 +614,7 @@
         <span class="k">if</span> <span class="n">pharmacophore</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pharmacophore_model</span><span class="p">()</span>
 
-<div class="viewcode-block" id="HotspotResults.HotspotFeature"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.HotspotFeature">[docs]</a>    <span class="k">class</span> <span class="nc">HotspotFeature</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">_HotspotFeature</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        class to hold polar islands above threshold &quot;features&quot;</span>
 <span class="sd">        purpose: enables feature ranking</span>
@@ -706,7 +664,7 @@
         <span class="k">def</span> <span class="nf">rank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span>
 
-<div class="viewcode-block" id="HotspotResults.HotspotFeature.score_feature"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.HotspotFeature.score_feature">[docs]</a>        <span class="k">def</span> <span class="nf">score_feature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">score_feature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            returns</span>
 <span class="sd">            :return:</span>
@@ -715,32 +673,35 @@
 
             <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ny</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nz</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span></div></div>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
 
-<div class="viewcode-block" id="HotspotResults.score"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">extract_volume</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="HotspotResults.score"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores</span>
+
 <span class="sd">        :param obj:</span>
 <span class="sd">        :param return_value:</span>
 <span class="sd">        :return:</span>
+
+<span class="sd">        TODO: Complete this docstring</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">scorer</span> <span class="o">=</span> <span class="n">_Scorer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">return_value</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">scorer</span><span class="o">.</span><span class="n">score</span><span class="p">,</span> <span class="n">scorer</span><span class="o">.</span><span class="n">scored_object</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">scorer</span><span class="o">.</span><span class="n">scored_object</span></div>
+        <span class="k">return</span> <span class="n">_Scorer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">)</span><span class="o">.</span><span class="n">scored_object</span></div>
 
 <div class="viewcode-block" id="HotspotResults.get_selectivity_map"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_selectivity_map">[docs]</a>    <span class="k">def</span> <span class="nf">get_selectivity_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned</span>
-<span class="sd">        by the binding site of interest prior to calculation of Fragment Hotspot Maps. High scoring regions of a map</span>
-<span class="sd">        represent areas of favourable interaction in the target binding site, not present in off target binding site</span>
+<span class="sd">        by the binding site of interest prior to calculation.</span>
 
-<span class="sd">        :param other: a :class:`fragment_hotspots.Hotspots.HotspotResults` instance</span>
-<span class="sd">        :return: a :class:`fragment_hotspots.Hotspots.HotspotResults` instance</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        High scoring regions of a map represent areas of favourable interaction in the target binding site, not</span>
+<span class="sd">        present in off target binding site</span>
+
+<span class="sd">        :param other: a :class:`hotspots.hotspot_calculation.HotspotResults` instance</span>
+<span class="sd">        :return: a :class:`hotspots.hotspot_calculation.HotspotResults` instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">selectivity_grids</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">probe</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -754,35 +715,42 @@
 
 <div class="viewcode-block" id="HotspotResults.get_pharmacophore_model"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_pharmacophore_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_pharmacophore_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s2">&quot;id_01&quot;</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        method of hotspot results object(intended to be run after extracted HS) returns PharmacophoreModel</span>
-<span class="sd">        :return:</span>
+<span class="sd">        Generates a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance from peaks in the hotspot maps</span>
+
+
+<span class="sd">        :param str identifier: Identifier for displaying multiple models at once</span>
+<span class="sd">        :param float cutoff: The score cutoff used to identify islands in the maps. One peak will be identified per island</span>
+<span class="sd">        :return: a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">PharmacophoreModel</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="n">cutoff</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HotspotResults.get_histogram"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_histogram">[docs]</a>    <span class="k">def</span> <span class="nf">get_histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="s2">&quot;histogram.png&quot;</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="HotspotResults.get_map_values"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_map_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_map_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        get histogram data</span>
+<span class="sd">        get the number zero grid points for the Fragment Hotspot Result</span>
+<span class="sd">        :return: dict of str(probe type) by a :class:`numpy.array` (non-zero grid point scores)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Figures</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="HotspotResults.get_histogram"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_histogram">[docs]</a>    <span class="k">def</span> <span class="nf">get_histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="s2">&quot;histogram.png&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get histogram of zero grid points for the Fragment Hotspot Result</span>
 <span class="sd">        :param fpath: path to output file</span>
-<span class="sd">        :param plot:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
-            <span class="n">data</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">Figures</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">plt</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">Figures</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">data</span></div>
+        <span class="n">data</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">Figures</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">plt</span></div>
 
-<div class="viewcode-block" id="HotspotResults.get_2D_diagram"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_2D_diagram">[docs]</a>    <span class="k">def</span> <span class="nf">get_2D_diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ligand</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="s2">&quot;diagram.png&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">        :param ligand:</span>
-<span class="sd">        :param fpath:</span>
-<span class="sd">        :param title:</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Figures</span><span class="o">.</span><span class="n">_2D_diagram</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="n">ligand</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;diagram.png&quot;</span><span class="p">)</span></div>
+    <span class="c1"># def get_2D_diagram(self, ligand, fpath=&quot;diagram.png&quot;, title=False):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#</span>
+    <span class="c1">#     :param ligand:</span>
+    <span class="c1">#     :param fpath:</span>
+    <span class="c1">#     :param title:</span>
+    <span class="c1">#     :return:</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Figures._2D_diagram(hr, ligand, title=False, output=&quot;diagram.png&quot;)</span>
 
 <div class="viewcode-block" id="HotspotResults.get_elaboration_potential"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_elaboration_potential">[docs]</a>    <span class="k">def</span> <span class="nf">get_elaboration_potential</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">large_cavities</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -790,6 +758,7 @@
 <span class="sd">        0 = False</span>
 <span class="sd">        1 = True</span>
 <span class="sd">        TODO: develop a more sophicated method to evaluate elaboration potential</span>
+<span class="sd">        TODO: Complete docstring</span>
 <span class="sd">        :param large_cavities:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -801,7 +770,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">1</span></div>
 
-<div class="viewcode-block" id="HotspotResults.get_superstar_profile"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.get_superstar_profile">[docs]</a>    <span class="k">def</span> <span class="nf">get_superstar_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_radius</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">nthreads</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_volume</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_superstar_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_radius</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">nthreads</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_volume</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        EXPERIMENTAL</span>
 <span class="sd">        :return:</span>
@@ -853,9 +822,9 @@
                 <span class="n">feat_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
                 <span class="n">ss_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
 
-                <span class="n">ss_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">Utilities</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">island</span><span class="o">.</span><span class="n">centroid</span><span class="p">())</span> <span class="p">:</span><span class="n">island</span>
+                <span class="n">ss_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">Helper</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">island</span><span class="o">.</span><span class="n">centroid</span><span class="p">())</span> <span class="p">:</span><span class="n">island</span>
                            <span class="k">for</span> <span class="n">island</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                           <span class="k">if</span> <span class="n">Utilities</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">island</span><span class="o">.</span><span class="n">centroid</span><span class="p">())</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">}</span>
+                           <span class="k">if</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">island</span><span class="o">.</span><span class="n">centroid</span><span class="p">())</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">}</span>
 
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ss_dict</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">g</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">copy_and_clear</span><span class="p">()</span>
@@ -872,7 +841,7 @@
 
                 <span class="n">score</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">grid_score</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">50</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;feature_id&quot;</span><span class="p">:</span> <span class="n">feat_id</span><span class="p">,</span> <span class="s2">&quot;interaction&quot;</span><span class="p">:</span> <span class="n">ss_id</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="n">score</span><span class="p">})</span></div>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;feature_id&quot;</span><span class="p">:</span> <span class="n">feat_id</span><span class="p">,</span> <span class="s2">&quot;interaction&quot;</span><span class="p">:</span> <span class="n">ss_id</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="n">score</span><span class="p">})</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_get_features</span><span class="p">(</span><span class="n">interaction_dict</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">min_feature_gp</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">excluded</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;apolar&quot;</span><span class="p">]):</span>
@@ -887,7 +856,7 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">island</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">):</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">island</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">min_feature_gp</span> <span class="ow">and</span> <span class="n">probe</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">excluded</span><span class="p">:</span>
-                        <span class="n">f</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HotspotResults</span><span class="o">.</span><span class="n">HotspotFeature</span><span class="p">(</span><span class="n">probe</span><span class="p">,</span> <span class="n">island</span><span class="p">))</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HotspotResults</span><span class="o">.</span><span class="n">_HotspotFeature</span><span class="p">(</span><span class="n">probe</span><span class="p">,</span> <span class="n">island</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">f</span>
 
     <span class="k">def</span> <span class="nf">_rank_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -900,14 +869,13 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">score</span><span class="p">):</span>
             <span class="n">feature_by_score</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">_rank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
-
 <div class="viewcode-block" id="HotspotResults.extract_pocket"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.extract_pocket">[docs]</a>    <span class="k">def</span> <span class="nf">extract_pocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">whole_residues</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Create a :class:`ccdc.Protein` containing atoms or residues that have a score</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a :class:`ccdc.Protein` containing atoms or residues that have a score &gt; 0</span>
 
-<span class="sd">        :param whole_residues: bool, whether to include all residue atoms if only a subset have a score &gt; 0</span>
+<span class="sd">        :param bool whole_residues: whether to include all residue atoms if only a subset have a score &gt; 0</span>
 <span class="sd">        :return: a :class:`ccdc.Protein` instance</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">prot_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_protein</span><span class="p">()</span>
         <span class="n">pocket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">pocket</span><span class="o">.</span><span class="n">remove_hydrogens</span><span class="p">()</span>
@@ -931,20 +899,23 @@
                 <span class="n">pocket</span><span class="o">.</span><span class="n">remove_atoms</span><span class="p">(</span><span class="n">residue</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pocket</span></div>
 
-<div class="viewcode-block" id="HotspotResults.ngl_widget"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.HotspotResults.ngl_widget">[docs]</a>    <span class="k">def</span> <span class="nf">ngl_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_ngl_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        jupyter notebook --NotebookApp.iopub_data_rate_limit=10000000000.0</span>
 <span class="sd">        creates ngl widget from hotspot. For use in ipython notebooks</span>
-<span class="sd">        :param out_dir:</span>
+<span class="sd">        :param str out_dir:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">nglview</span> <span class="k">as</span> <span class="nn">nv</span>
+        <span class="kn">from</span> <span class="nn">ipywidgets</span> <span class="k">import</span> <span class="n">IntSlider</span><span class="p">,</span> <span class="n">interact</span>
+
         <span class="n">color_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apolar&quot;</span><span class="p">:</span> <span class="s2">&quot;yellow&quot;</span><span class="p">,</span>
                       <span class="s2">&quot;donor&quot;</span><span class="p">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span>
                       <span class="s2">&quot;acceptor&quot;</span><span class="p">:</span> <span class="s2">&quot;red&quot;</span><span class="p">,</span>
                       <span class="s2">&quot;negative&quot;</span><span class="p">:</span> <span class="s2">&quot;magenta&quot;</span><span class="p">,</span>
                       <span class="s2">&quot;positive&quot;</span><span class="p">:</span> <span class="s2">&quot;cyan&quot;</span><span class="p">}</span>
         <span class="k">if</span> <span class="n">out_dir</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">Utilities</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
 
@@ -971,41 +942,55 @@
             <span class="n">view</span><span class="o">.</span><span class="n">update_representation</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">isolevel</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">isoleveltype</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
             <span class="n">view</span><span class="o">.</span><span class="n">update_representation</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">isolevel</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">isoleveltype</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">view</span></div></div>
+        <span class="k">return</span> <span class="n">view</span></div>
+
 
 <div class="viewcode-block" id="Hotspots"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.Hotspots">[docs]</a><span class="k">class</span> <span class="nc">Hotspots</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class for running Fragment Hotspot Map calculations</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nrotations</span> <span class="o">=</span> <span class="mi">3000</span><span class="p">,</span> <span class="n">apolar_translation_threshold</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> <span class="n">polar_translation_threshold</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
+                     <span class="n">polar_contributions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_probes</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            :param int nrotations: number of rotations (keep it below 10**6)</span>
+<span class="sd">            :param float apolar_translation_threshold: translate probe to grid points above this threshold. Give lower values for greater sampling. Default 15</span>
+<span class="sd">            :param float polar_translation_threshold: translate probe to grid points above this threshold. Give lower values for greater sampling. Default 15</span>
+<span class="sd">            :param bool polar_contributions: allow carbon atoms of probes with polar atoms to contribute to the apolar output map.</span>
+<span class="sd">            :param bool return_probes: Generate a sorted list of molecule objects, corresponding to probe poses</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">nrotations</span> <span class="o">=</span> <span class="n">nrotations</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apolar_translation_threshold</span> <span class="o">=</span> <span class="n">apolar_translation_threshold</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">polar_translation_threshold</span> <span class="o">=</span> <span class="n">polar_translation_threshold</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">polar_contributions</span> <span class="o">=</span> <span class="n">polar_contributions</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">return_probes</span> <span class="o">=</span> <span class="n">return_probes</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">_num_gp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            number of grid point for a given volume</span>
+<span class="sd">            :return:</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrotations</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+
+
     <span class="k">class</span> <span class="nc">_Sampler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Samples one or more grids with a probe molecule</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Settings for the sampler</span>
-<span class="sd">                nrotations:                   number of rotations (keep it below 10**6)</span>
-<span class="sd">                apolar_translation_threshold: translate probe to grid points above this threshold. Give lower values for</span>
-<span class="sd">                                              greater sampling. Default 15</span>
-<span class="sd">                polar_translation_threshold:  translate probe to grid points above this threshold. Give lower values for</span>
-<span class="sd">                                              greater sampling. Default 15</span>
-<span class="sd">                polar_contributions:          allow carbon atoms of probes with polar atoms to contribute to the apolar</span>
-<span class="sd">                                              output map.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
 
-            <span class="n">nrotations</span> <span class="o">=</span> <span class="mi">3000</span>
-            <span class="n">apolar_translation_threshold</span> <span class="o">=</span> <span class="mi">15</span>
-            <span class="n">polar_translation_threshold</span> <span class="o">=</span> <span class="mi">15</span>
-            <span class="n">polar_contributions</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">return_probes</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">grids</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Settings used to run fragment-hotspot-maps script</span>
 
-<span class="sd">            :param grids: list, list of :class: `ccdc.utilities.Grid` instances</span>
+<span class="sd">            :param grids: list, list of :class:`ccdc.utilities.Grid` instances</span>
 <span class="sd">            :param kw: &#39;settings&#39;</span>
 <span class="sd">            &quot;&quot;&quot;</span>
 
@@ -1033,11 +1018,11 @@
             <span class="n">atom_by_distance</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">polar_atoms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">polar_atoms</span><span class="p">:</span>
-                    <span class="n">d</span> <span class="o">=</span> <span class="n">Utilities</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
                     <span class="n">atom_by_distance</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">molecule</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
-                    <span class="n">d</span> <span class="o">=</span> <span class="n">Utilities</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
                     <span class="n">atom_by_distance</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
 
             <span class="n">greatest_distance</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">atom_by_distance</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
@@ -1178,7 +1163,7 @@
 
             <span class="k">return</span> <span class="n">active_coords_dic</span>
 
-        <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecule</span><span class="p">,</span> <span class="n">probe</span><span class="p">,</span> <span class="n">return_probes</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecule</span><span class="p">,</span> <span class="n">probe</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Sample the grids according to the settings</span>
 
@@ -1186,7 +1171,6 @@
 <span class="sd">            :param probe: str, interaction type, (donor, acceptor, negative, positive, apolar)</span>
 <span class="sd">            :return:</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">high_scoring_probes</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">priority_atom</span><span class="p">,</span> <span class="n">priority_atom_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_priority_atom</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
             <span class="n">translate_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_translation_points</span><span class="p">(</span><span class="n">priority_atom_type</span><span class="p">)</span>
             <span class="n">molecule</span><span class="o">.</span><span class="n">remove_hydrogens</span><span class="p">()</span>
@@ -1214,6 +1198,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">update_out_grids</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">active_coordinates_dic</span><span class="p">,</span> <span class="n">translation</span><span class="p">)</span>
 
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">return_probes</span><span class="p">:</span>
+                        <span class="n">high_scoring_probes</span> <span class="o">=</span> <span class="p">{}</span>
                         <span class="k">if</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
                             <span class="k">continue</span>
                         <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="mi">14</span><span class="p">:</span>
@@ -1225,7 +1210,6 @@
                                 <span class="n">high_scoring_probes</span><span class="p">[</span><span class="n">score</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
                             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                                 <span class="n">high_scoring_probes</span><span class="p">[</span><span class="n">score</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">]</span>
-
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">return_probes</span><span class="p">:</span>
                 <span class="n">sampled_probes</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1241,35 +1225,131 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">out_grids</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">superstar_grids</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weighted_grids</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sampled_probes</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">probe_size</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">charged_probes</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">wrk_dir</span> <span class="o">=</span> <span class="kc">None</span>
-
         <span class="k">if</span> <span class="n">settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Sampler</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="n">settings</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">protein</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protein</span>
+
+    <span class="nd">@protein</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">protein</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prot</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prot</span><span class="p">,</span> <span class="n">Protein</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_protein</span> <span class="o">=</span> <span class="n">prot</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;`ccdc.protein.Protein` must be supplied. Hint: Use Protein.from_file()&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">charged_probes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_charged_probes</span>
+
+    <span class="nd">@charged_probes</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">charged_probes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">option</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_charged_probes</span> <span class="o">=</span> <span class="n">option</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expecting a bool, got </span><span class="si">{}</span><span class="s2"> instead&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">option</span><span class="p">)))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">probe_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_probe_size</span>
+
+    <span class="nd">@probe_size</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">probe_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">8</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_probe_size</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Probe size must be an integer between 3-7&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">buriedness_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buriedness_method</span>
+
+    <span class="nd">@buriedness_method</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">buriedness_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;ghecom&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;linux&#39;</span> <span class="ow">or</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;linux2&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;GHECOM_EXE&#39;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_buriedness_method</span> <span class="o">=</span> <span class="n">method</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">EnvironmentError</span><span class="p">(</span><span class="s2">&quot;Must set Ghecom environment variable&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Ghecom is only supported on linux&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;ligsite&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;linux&#39;</span> <span class="ow">or</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;linux2&#39;</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;RECOMMENDATION: you have chosen LIGSITE as buriedness method, ghecom is recommended&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_buriedness_method</span> <span class="o">=</span> <span class="n">method</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Buriedness method must be &#39;ghecom&#39; (default) or &#39;ligsite&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cavities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span>
+
+    <span class="nd">@cavities</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">cavities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Coordinates</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">x</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">x</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span> <span class="o">=</span> <span class="n">obj</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Molecule</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">centre_of_geometry</span><span class="p">()</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cavity</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span> <span class="o">=</span> <span class="p">[</span><span class="n">Helper</span><span class="o">.</span><span class="n">cavity_centroid</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING! Failed to detected cavity, Atomic Hotspot detection to run on whole protein&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">centre_of_geometry</span><span class="p">()]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Cavity</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span> <span class="o">=</span> <span class="p">[</span><span class="n">Helper</span><span class="o">.</span><span class="n">cavity_centroid</span><span class="p">(</span><span class="n">obj</span><span class="p">)]</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING! Failed to detected cavity, Atomic Hotspot detection to run on whole protein&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cavities</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nprocesses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nprocesses</span>
+
+    <span class="nd">@nprocesses</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">nprocesses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">())):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nprocesses</span> <span class="o">=</span> <span class="n">num</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;CPU count = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sampler_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampler_settings</span>
+
+    <span class="nd">@sampler_settings</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">sampler_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Settings</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sampler_settings</span> <span class="o">=</span> <span class="n">settings</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sampler_settings</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_get_weighted_maps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        weight superstar output by burriedness</span>
 <span class="sd">        :return: a list of :class: `WeightedResult` instances</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ghecom_executable</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ghecom</span><span class="o">.</span><span class="n">grid</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">get_single_grid</span><span class="p">(</span><span class="n">grd_dict</span><span class="o">=</span><span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">identifier</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">buriedness</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">superstar_grids</span><span class="p">},</span>
-                                                   <span class="n">mask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
         <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">superstar_grids</span><span class="p">:</span>
             <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">common_grid</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">buriedness</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -1311,7 +1391,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">mol</span> <span class="o">=</span> <span class="n">MoleculeReader</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">probe_path</span><span class="p">,</span> <span class="s2">&quot;rotate-</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">_flat.mol2&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">probe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_size</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="n">probes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">probe</span><span class="o">=</span><span class="n">probe</span><span class="p">,</span> <span class="n">return_probes</span><span class="o">=</span><span class="n">return_probes</span><span class="p">)</span>
+        <span class="n">probes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">probe</span><span class="o">=</span><span class="n">probe</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">pg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">probe_grids</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">pg</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">probe</span><span class="p">:</span>
@@ -1330,26 +1410,31 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Start atomic hotspot detection&quot;</span><span class="p">)</span>
         <span class="n">a</span> <span class="o">=</span> <span class="n">AtomicHotspot</span><span class="p">()</span>
+        <span class="n">a</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">atomic_probes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apolar&quot;</span> <span class="p">:</span> <span class="s2">&quot;AROMATIC CH CARBON&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;donor&quot;</span> <span class="p">:</span> <span class="s2">&quot;UNCHARGED NH NITROGEN&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;acceptor&quot;</span> <span class="p">:</span> <span class="s2">&quot;CARBONYL OXYGEN&quot;</span><span class="p">}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">charged_probes</span><span class="p">:</span>
             <span class="n">a</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">atomic_probes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;negative&quot;</span><span class="p">:</span> <span class="s2">&quot;CARBOXYLATE OXYGEN&quot;</span><span class="p">,</span> <span class="s2">&quot;positive&quot;</span><span class="p">:</span> <span class="s2">&quot;CHARGED NH NITROGEN&quot;</span><span class="p">}</span>
 
         <span class="n">probe_types</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">atomic_probes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">superstar_grids</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                                           <span class="n">nthreads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span><span class="p">,</span>
-                                           <span class="n">cavity_origins</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cavity</span><span class="p">)</span>
+                                           <span class="n">nthreads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nprocesses</span><span class="p">,</span>
+                                           <span class="n">cavity_origins</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cavities</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Atomic hotspot detection complete</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Start buriedness calcualtion&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ghecom_executable</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">buriedness_method</span> <span class="o">==</span> <span class="s1">&#39;ghecom&#39;</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    method: Ghecom&quot;</span><span class="p">)</span>
-            <span class="n">out_grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">superstar_grids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ligsite</span><span class="o">.</span><span class="n">copy_and_clear</span><span class="p">()</span> <span class="c1"># fix</span>
-            <span class="n">b</span> <span class="o">=</span> <span class="n">Buriedness</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                           <span class="n">out_grid</span><span class="o">=</span><span class="n">out_grid</span><span class="p">,</span>
-                           <span class="n">ghecom_executable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ghecom_executable</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ghecom</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">calculate_buriedness</span><span class="p">()</span>
+            <span class="n">out_grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">superstar_grids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">buriedness</span><span class="o">.</span><span class="n">copy_and_clear</span><span class="p">()</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">_Buriedness</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                            <span class="n">out_grid</span><span class="o">=</span><span class="n">out_grid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">calculate_buriedness</span><span class="p">()</span><span class="o">.</span><span class="n">grid</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    method: LIGSITE&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">get_single_grid</span><span class="p">(</span><span class="n">grd_dict</span><span class="o">=</span><span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">identifier</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">buriedness</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">superstar_grids</span><span class="p">},</span>
+                                                   <span class="n">mask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">weighted_grids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_weighted_maps</span><span class="p">()</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Buriedness calcualtion complete</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1366,34 +1451,42 @@
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sampling complete</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Hotspots.from_protein"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.Hotspots.from_protein">[docs]</a>    <span class="k">def</span> <span class="nf">from_protein</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">charged_probes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">probe_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">ghecom_executable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                     <span class="n">cavity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nthreads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sampler_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Hotspots.from_protein"><a class="viewcode-back" href="../../hotspot_calculation_api.html#hotspots.hotspot_calculation.Hotspots.from_protein">[docs]</a>    <span class="k">def</span> <span class="nf">from_protein</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">charged_probes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">probe_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">buriedness_method</span><span class="o">=</span> <span class="s1">&#39;ghecom&#39;</span><span class="p">,</span>
+                     <span class="n">cavities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nprocesses</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calculate Fragment Hotspot Maps from a ccdc.protein.Protein object</span>
 
-<span class="sd">        :param prot: a :class:`ccdc.protein.Protein` instance</span>
-<span class="sd">        :param out_dir: required to store ins</span>
-<span class="sd">        :param charged_probes: bool, if True include positive and negative probes</span>
-<span class="sd">        :param binding_site_origin: binding_site_origin: a tuple of three floats, giving a coordinate within the binding site</span>
-<span class="sd">        :param probe_size: nt, size of probe in number of heavy atoms (3-8 atoms)</span>
-<span class="sd">        :param ghecom_executable: str, path to ghecom executeable, if None ligsite used</span>
-<span class="sd">        :return: a :class:`hotspots.HotspotResults` instance</span>
+<span class="sd">        :param protein: a :class:`ccdc.protein.Protein` instance</span>
+<span class="sd">        :param bool charged_probes: If True include positive and negative probes</span>
+<span class="sd">        :param int probe_size: Size of probe in number of heavy atoms (3-8 atoms)</span>
+<span class="sd">        :param str buriedness_method: Either &#39;ghecom&#39; or &#39;ligsite&#39;</span>
+<span class="sd">        :param cavities: Coordinate or :class:`ccdc.cavity.Cavity` or :class:`ccdc.molecule.Molecule` or list, algorithm run on parsed cavity</span>
+<span class="sd">        :param nprocesses: int, number of CPU&#39;s used</span>
+<span class="sd">        :param settings: a :class:`hotspots.hotspot_calculation.Hotspots.Settings`, holds the sampler settings</span>
+<span class="sd">        :return: :class:`hotspots.hotspot_calculation.HotspotResults` instance</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="o">=</span> <span class="n">protein</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">charged_probes</span> <span class="o">=</span> <span class="n">charged_probes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">probe_size</span> <span class="o">=</span> <span class="n">probe_size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ghecom_executable</span> <span class="o">=</span> <span class="n">ghecom_executable</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span> <span class="o">=</span> <span class="n">nthreads</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="n">sampler_settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buriedness_method</span> <span class="o">=</span> <span class="n">buriedness_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cavities</span> <span class="o">=</span> <span class="n">cavities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nprocesses</span> <span class="o">=</span> <span class="n">nprocesses</span>
+        <span class="k">if</span> <span class="n">settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sampler_settings</span> <span class="o">=</span> <span class="n">settings</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">cavity</span> <span class="o">=</span> <span class="p">[</span><span class="n">Utilities</span><span class="o">.</span><span class="n">cavity_centroid</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cavity</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_calc_hotspots</span><span class="p">()</span>     <span class="c1"># return probes = False by default</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_grids</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Runtime = </span><span class="si">{}</span><span class="s2">seconds&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">HotspotResults</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampled_probes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">HotspotResults</span><span class="p">(</span><span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="p">,</span>
+                               <span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                               <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

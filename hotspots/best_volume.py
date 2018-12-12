@@ -96,6 +96,8 @@ class _Results(calculation.Results):
             :return:
             """
             threshold = optimize.fminbound(self._count_island_points, 0, 30, xtol=0.025)
+            if threshold >28:
+                threshold = 1
             best_island = self.mask.get_best_island(threshold=threshold, mode='score', peak=self.peak)
 
             # If threshold is close to zero, keep all grid points

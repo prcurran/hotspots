@@ -1,5 +1,5 @@
 numpy>=1.9
-csd-python-api>=2.0
+csd-python-api>=2.0.0
 matplotlib
 scipy
 sklearn
