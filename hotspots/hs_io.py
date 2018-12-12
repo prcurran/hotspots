@@ -412,8 +412,3 @@ class HotspotReader(object):
                                        super_grids=self.grid_dic,
                                        buriedness=self.buriedness))
             return hrs
-
-
-
-
-
