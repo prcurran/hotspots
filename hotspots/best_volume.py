@@ -14,7 +14,7 @@
 #
 """
 
-The :mod:`hotspots.extraction` module contains classes to extract
+The :mod:`hotspots.best_volume` module contains classes to extract
 valuable information from the calculated Fragment Hotspot Maps.
 
 The main fields can be broken due using a fixed volume or fixed score mode.
@@ -23,28 +23,28 @@ This approach enables a ranking of ligand sized cavity descriptions to be
 extracted. For example, these grids can be used to generate pharmacophores.
 
 The main classes of the :mod:`hotspots.best_volume` module are:
-    -HotspotFeatures
-    -ExtractHotspot
-    -HotspotCreator
-"""
+    -Extractor
+    """
 from __future__ import print_function, division
 from os.path import join, dirname
 
-import hotspot_calculation # import HotspotResults, _RunSuperstar
+import calculation  # import HotspotResults, _RunSuperstar
 from grid_extension import Grid
 from scipy import optimize
 from skimage import feature
-from hotspot_utilities import Helper
+from hs_utilities import Helper
 
 
-class HotspotResults(hotspot_calculation.HotspotResults):
+class _Results(calculation.Results):
     """
     A class to handle the construction of indivdual hotspots
     """
+
     class Optimiser(object):
         """
         A class to handle the optimisation operations
         """
+
         def __init__(self, mask, settings, peak=None):
             self.peak = peak
             self.mask = mask
@@ -61,12 +61,12 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             if island is None:
                 return 999999
             points = (island > threshold).count_grid()
-            return abs(self.settings.num_gp - points)
+            return abs(self.settings._num_gp - points)
             # if self.peak:
-            #     padding = self.settings.padding_factor * self.settings.num_gp
-            #     return abs((self.settings.num_gp + padding) - points)
+            #     padding = self.settings.padding_factor * self.settings._num_gp
+            #     return abs((self.settings._num_gp + padding) - points)
             # else:
-            #     return abs(self.settings.num_gp - points)
+            #     return abs(self.settings._num_gp - points)
 
         def _count_grid_points(self, threshold):
             """
@@ -76,7 +76,7 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             :return: int
             """
             points = (self.top_island > threshold).count_grid()
-            return abs(self.settings.num_gp - points)
+            return abs(self.settings._num_gp - points)
 
         def _reselect_points(self, threshold):
             """
@@ -97,19 +97,23 @@ class HotspotResults(hotspot_calculation.HotspotResults):
             """
             threshold = optimize.fminbound(self._count_island_points, 0, 30, xtol=0.025)
             best_island = self.mask.get_best_island(threshold=threshold, mode='score', peak=self.peak)
-            best_island = (best_island > threshold) * best_island
 
-            if best_island.count_grid() > self.settings.num_gp:
+            # If threshold is close to zero, keep all grid points
+            try:
+                best_island = (best_island > threshold) * best_island
+            except TypeError:
+                best_island = self.mask
+
+            if best_island.count_grid() > self.settings._num_gp:
                 threshold += 0.01
                 best_island = (best_island > threshold) * best_island
 
             # new_threshold, best_island = self._reselect_points(threshold=threshold)
-            # if (self.settings.num_gp * 0.85) < best_island.count_grid() < (self.settings.num_gp * 1.15):
-            print("target = {}, actual = {}".format(self.settings.num_gp, best_island.count_grid()))
+            # if (self.settings._num_gp * 0.85) < best_island.count_grid() < (self.settings._num_gp * 1.15):
+            print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
             return threshold, best_island
             # else:
             #     return None, None
-
 
     @staticmethod
     def from_hotspot(single_grid, mask_dic, settings, prot, seed=None):
@@ -124,18 +128,20 @@ class HotspotResults(hotspot_calculation.HotspotResults):
         """
         if seed:
             sphere = single_grid.copy_and_clear()
-            sphere.set_sphere(point=seed, radius=settings.search_radius, value=1, scaling='None')
+            sphere.set_sphere(point=seed, radius=settings._search_radius, value=1, scaling='None')
             mask = (sphere & single_grid) * single_grid
         else:
             mask = single_grid
 
-        optimiser = HotspotResults.Optimiser(mask=mask, settings=settings, peak=seed)
+        optimiser = _Results.Optimiser(mask=mask, settings=settings, peak=seed)
         threshold, best_island = optimiser.optimize_island_threshold()
-        if best_island is not None:
-            location, features = HotspotResults.get_interaction_type(mask_dic, best_island, threshold, settings)
-            grd_dict = HotspotResults.get_grid_dict(location, features, settings)
 
-            hr = HotspotResults(super_grids=grd_dict, protein=prot)
+        print("oooh",threshold)
+        if best_island is not None:
+            location, features = _Results.get_interaction_type(mask_dic, best_island, threshold, settings)
+            grd_dict = _Results.get_grid_dict(location, features, settings)
+
+            hr = _Results(super_grids=grd_dict, protein=prot)
             hr.threshold = threshold
             hr.best_island = best_island
             hr.location = location
@@ -153,15 +159,15 @@ class HotspotResults(hotspot_calculation.HotspotResults):
         common_best_island = mask_dic["apolar"].common_boundaries(best_island)
         features_in_vol = {p: g * (g & common_best_island) for p, g in mask_dic.items()}
         location = features_in_vol["apolar"]
-        features = HotspotResults._get_features(interaction_dict=features_in_vol,
-                                                threshold=threshold,
-                                                min_feature_gp=settings.min_feature_gp)
+        features = _Results._get_features(interaction_dict=features_in_vol,
+                                          threshold=threshold,
+                                          min_feature_gp=settings.min_feature_gp)
         return location, features
 
     @staticmethod
     def get_grid_dict(location, features, settings):
         """
-        Creates super grid dict from location and features
+        Creates super grid dict from location and _features
         :param location:
         :param features:
         :param settings:
@@ -187,7 +193,6 @@ class HotspotResults(hotspot_calculation.HotspotResults):
 
         return grid_dic
 
-        
     # def get_superstar_result(self, superstar_results):
     #     """
     #     finds the overlap between the extracted hotspot and the superstar results
@@ -220,7 +225,7 @@ class HotspotResults(hotspot_calculation.HotspotResults):
     #     this is stored as an HotspotFeature attribute (superstar profile)
     #     :return:
     #     """
-    #     for feat in self.features:
+    #     for feat in self._features:
     #         super_profile = []
     #
     #         for result in self.superstar_results:
@@ -240,15 +245,78 @@ class HotspotResults(hotspot_calculation.HotspotResults):
 
 class Extractor(object):
     """
-    A class to handle the extraction of discrete, fragment size hotspots from the original maps
+    A class to handle the extraction of discrete volumes from the highest scoring regions of the hotspot maps.
     """
+
+    class Settings(object):
+        """
+        Default settings for hotspot extraction
+
+        :param float volume:
+        :param float cutoff:
+        :param str mode:
+        :param int padding_factor:
+        :param float spacing:
+        :param int min_feature_gp:
+        :param int max_features:
+        :param float min_distance:
+        :param int island_max_size:
+        :param float sigma:
+        :param float drug_volume:
+        :param int buriedness_value:
+        :param bool fragments:
+        :param bool lead:
+        :param bool pharmacophore:
+        """
+
+        def __init__(self, volume=150, cutoff=14, mode="seed", padding_factor=0, spacing=0.5,
+                     min_feature_gp=5, max_features=10, min_distance=6, island_max_size=100, sigma=0.3,
+                     drug_volume=300, buriedness_value=4, fragments=None, lead=None, pharmacophore=True):
+
+
+            self.volume = volume
+            self.cutoff = cutoff
+            self.mode = mode
+            self.padding_factor = padding_factor
+            self.spacing = spacing
+            self.min_feature_gp = min_feature_gp
+            self.max_features = max_features
+            self.min_distance = min_distance
+            self.island_max_size = island_max_size
+            self.sigma = sigma
+            self.drug_volume = drug_volume
+            self.buriedness_value = buriedness_value
+            self.fragments = fragments
+            self.lead = lead
+            self.pharmacophore = pharmacophore
+
+        @property
+        def _num_gp(self):
+            """
+            number of grid point for a given volume
+            :return:
+            """
+            return int(float(self.volume) / self.spacing ** 3)
+
+        @property
+        def _search_radius(self):
+            """
+            describes search radius around a given seed
+            :return:
+            """
+            s = 3
+            s += round((int(self.volume) / 50))
+            print(s)
+            return s
 
     def __init__(self, hr, settings=None, mode="seed", volume="125", pharmacophores=True):
         """
 
-        :param hr:
-        :param out_dir:
-        :param settings:
+        :param hr: An :class:`hotspots.HotspotResults` instance
+        :param settings: An :class:`hotspots.Extractor.Settings` instance
+        :param str mode: Options are "seed" or "global". Seed will aim to find multiple volumes, grown from suitable seed points, and works best for locating multiple hotspots in a single pocket. Global can be used to select the best target volume across the entire protein.
+        :param float volume: Target volume for extractor. The extracted volume may differ slightly from the target volume
+        :param bool pharmacophores: Whether to generate a pharmacophore model
         """
         print("Initialise Extractor")
         self.hotspot_result = hr
@@ -283,7 +351,7 @@ class Extractor(object):
         # enable extraction to run in seeded or global modes
         if self.settings.mode == "seed":
             print("    Mode: 'seed'")
-            self._peaks = self.get_peaks()
+            self._peaks = self._get_peaks()
 
         elif self.settings.mode == "global":
             print("    Mode: 'global'")
@@ -303,52 +371,6 @@ class Extractor(object):
         # generate pharmacophores
         if self.settings.pharmacophore:
             self.get_pharmacophores()
-
-    class Settings(object):
-        """
-        Default settings for hotspot extraction
-        """
-
-        def __init__(self):
-            self.volume = 150
-            self.cutoff = 14
-            self.mode = "seed"
-            self.padding_factor = 0
-
-            self.spacing = 0.5
-
-            self.min_feature_gp = 5
-            self.max_features = 10
-            self.min_distance = 6
-            self.island_max_size = 100
-            self.sigma = 0.3
-
-
-            self.drug_volume = 300
-            self.buriedness_value = 4
-            self.fragments = None
-            self.lead = None
-
-            self.pharmacophore = True
-
-        @property
-        def num_gp(self):
-            """
-            number of grid point for a given volume
-            :return:
-            """
-            return int(float(self.volume) / self.spacing ** 3)
-
-        @property
-        def search_radius(self):
-            """
-            describes search radius around a given seed
-            :return:
-            """
-            s = 3
-            s += round((int(self.volume) / 100))
-            print(s)
-            return s
 
     @property
     def single_grid(self):
@@ -394,7 +416,7 @@ class Extractor(object):
     #
     #     return super_grids
 
-    def get_peaks(self):
+    def _get_peaks(self):
         """
         find peak coordinates in apolar maps, used as seeds to find top volumes
         :return:
@@ -410,16 +432,16 @@ class Extractor(object):
                 if val in peak_by_value:
                     peak_by_value[val].append((peak[0], peak[1], peak[2]))
                 else:
-                    peak_by_value.update({val:[(peak[0], peak[1], peak[2])]})
+                    peak_by_value.update({val: [(peak[0], peak[1], peak[2])]})
 
         average_peaks = []
         for key in peak_by_value.keys():
             x = [point[0] for point in peak_by_value[key]]
             y = [point[1] for point in peak_by_value[key]]
             z = [point[2] for point in peak_by_value[key]]
-            average_peaks.append(apolar.indices_to_point(int(sum(x)/len(x)),
-                                                         int(sum(y)/len(y)),
-                                                         int(sum(z)/len(z))
+            average_peaks.append(apolar.indices_to_point(int(sum(x) / len(x)),
+                                                         int(sum(y) / len(y)),
+                                                         int(sum(z) / len(z))
 
                                                          )
                                  )
@@ -432,25 +454,26 @@ class Extractor(object):
         """
         extracted_hotspots = []
         if self.settings.mode == "seed":
+            print(self.peaks)
             for peak in self.peaks:
                 print(peak)
-                e = HotspotResults.from_hotspot(self.single_grid,
-                                                self.masked_dic,
-                                                self.settings,
-                                                self.hotspot_result.protein,
-                                                seed=peak)
+                e = _Results.from_hotspot(self.single_grid,
+                                          self.masked_dic,
+                                          self.settings,
+                                          self.hotspot_result.protein,
+                                          seed=peak)
 
-                if e:
-                    if e.threshold > 12:
-                        print(e.threshold)
-                        extracted_hotspots.append(e)
+                # if e:
+                #     if e.threshold > 0:
+                print(e.threshold)
+                extracted_hotspots.append(e)
 
         else:
-            e = HotspotResults.from_hotspot(self.single_grid,
-                                            self.masked_dic,
-                                            self.settings,
-                                            self.hotspot_result.protein,
-                                            seed=None)
+            e = _Results.from_hotspot(self.single_grid,
+                                      self.masked_dic,
+                                      self.settings,
+                                      self.hotspot_result.protein,
+                                      seed=None)
 
             extracted_hotspots.append(e)
 
@@ -506,7 +529,7 @@ class Extractor(object):
         write out information to aid debugging: valid modes:
             -peaks:
             -locations: spheres and islands at apolar peak locations
-            -features: islands and probes at feature point locations
+            -_features: islands and probes at feature point locations
         """
 
         if mode == "peaks":
@@ -542,12 +565,10 @@ for n in range(nh):
 for n in range(nh):
     cmd.group('hotspot_%s'%(n), members= 'surface_apolar_%s'%(n))
     cmd.group('hotspot_%s'%(n), members= 'apolar_%s'%(n))""" \
-            .format(len(self.extracted_hotspots), thresholds)
+                .format(len(self.extracted_hotspots), thresholds)
 
             with open(join(dirname(out_dir), "best_islands.py"), "w") as pymol_file:
                 pymol_file.write(pymol_out)
 
         else:
             raise IOError("mode not supported")
-
-
