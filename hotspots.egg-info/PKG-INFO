@@ -1,4 +1,4 @@
-Metadata-Version: 1.0
+Metadata-Version: 2.1
 Name: hotspots
 Version: 0.1
 Summary: UNKNOWN
@@ -38,3 +38,4 @@ Description: # Welcome to the fragment-hotspot-maps wiki!
         ***
         
 Platform: UNKNOWN
+Description-Content-Type: text/markdown

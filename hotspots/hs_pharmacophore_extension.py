@@ -44,7 +44,7 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
                 f.write("{},{},{}\n".format(l.structure_id, l.chemical_id, l.smiles))
 
     @staticmethod
-    def from_pdb(pdb_code, chain, out_dir=None, representatives=None):
+    def from_pdb(pdb_code, chain, out_dir=None, representatives=None, identifier="gold_standard"):
         """
 
         :return:
@@ -111,7 +111,8 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
                 for l in ligands:
                     w.write(l)
 
-        return PharmacophoreModel.from_ligands(ligands)
+        return PharmacophoreModel.from_ligands(ligands=ligands,
+                                               identifier=identifier)
 
     @staticmethod
     def run_query(accession_id):

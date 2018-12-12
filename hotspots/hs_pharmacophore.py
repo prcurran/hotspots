@@ -75,7 +75,7 @@ class PharmacophoreModel(Helper):
             else:
                 self.vector_on = 0
 
-    def __init__(self, settings, identifier=None, features=None, protein=None):
+    def __init__(self, settings, identifier=None, features=None, protein=None, dic=None):
         """
 
         :param settings: a :class:`hotspots.hs_pharmacophore.PharmacophoreModel.Settings` instance
@@ -95,6 +95,8 @@ class PharmacophoreModel(Helper):
             self.settings = self.Settings()
         else:
             self.settings = settings
+
+        self.dic = dic
 
     @property
     def features(self):
@@ -190,6 +192,10 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         pymol_out += """\ncmd.group('Pharmacophore_{0}', members= 'label_threshold_{0}')\n""".format(self.identifier)
 
         return pymol_out
+
+    def _create_result(self, protein):
+        """"""
+        temp = tempfile.mkdtemp()
 
     def _as_grid(self, feature_type=None, tolerance=2):
         """
@@ -462,7 +468,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                   protein=protein)
 
     @staticmethod
-    def from_ligands(ligands, identifier="gold_standard", protein=None, settings=None):
+    def from_ligands(ligands, identifier, protein=None, settings=None):
         """
 
         :param ligands:
@@ -531,7 +537,8 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         return PharmacophoreModel(settings,
                                   identifier=identifier,
                                   features=features,
-                                  protein=protein)
+                                  protein=protein,
+                                  dic=feature_dic)
 
 
 
