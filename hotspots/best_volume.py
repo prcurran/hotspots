@@ -145,7 +145,7 @@ class _Results(calculation.Results):
 
             hr = _Results(super_grids=grd_dict, protein=prot)
             hr.threshold = threshold
-            hr.best_island = best_island
+            hr.best_island = best_island.minimal()
             hr.location = location
             hr.features = features
             hr.score = hr.score()
@@ -164,28 +164,34 @@ class _Results(calculation.Results):
         :return:
         """
 
-        single_grid.write('test.grd')
+        #single_grid.write('test.grd')
         inner = single_grid.copy_and_clear()
-        inner.set_sphere(point=seed, radius=2, value=20, scaling='None')
+        inner.set_sphere(point=seed, radius=1, value=20, scaling='None')
         #mask = (sphere & single_grid) * single_grid
 
         #optimiser = _Results.Optimiser(mask=mask, settings=settings, peak=seed)
         #threshold, best_island = optimiser.optimize_island_threshold()
         num_gp = inner.count_grid()
         while num_gp < settings._num_gp:
-            print('Target', settings._num_gp)
-            print('Before',num_gp)
+
             grown = Grid.grow(inner, single_grid)
             diff = grown > inner
-            if diff.count_grid() < 100:
+            if diff.count_grid() < 10:
                 break
             inner = grown
             num_gp = inner.count_grid()
-            print('After', num_gp)
+            print(num_gp, 'out of', settings._num_gp)
 
 
-        best_island = inner
-        threshold = inner.grid_values().min()
+        tmp_best_island = inner*single_grid
+        g_vals = tmp_best_island.grid_values()
+        g_vals[::-1].sort()
+        try:
+            threshold = g_vals[settings._num_gp]
+        except IndexError:
+            threshold = g_vals.min()
+
+        best_island = grown
 
         print("oooh",threshold)
         if best_island is not None:
@@ -194,7 +200,7 @@ class _Results(calculation.Results):
 
             hr = _Results(super_grids=grd_dict, protein=prot)
             hr.threshold = threshold
-            hr.best_island = best_island
+            hr.best_island = best_island.minimal()
             hr.location = location
             hr.features = features
             hr.score = hr.score()
@@ -404,7 +410,7 @@ class Extractor(object):
             print("    Mode: 'seed'")
             self._peaks = self._get_peaks()
 
-        if self.settings.mode == "grow":
+        elif self.settings.mode == "grow":
             print("    Mode: 'grow'")
             self._peaks = self._get_peaks()
 
@@ -537,7 +543,7 @@ class Extractor(object):
                 #     if e.threshold > 0:
                 print(e.threshold)
                 extracted_hotspots.append(e)
-                break
+
 
         else:
             e = _Results.from_hotspot(self.single_grid,
