@@ -612,11 +612,13 @@ class _GridEnsemble(object):
         :param grid_list: list of 'hotspots.grid_extension.Grid' objects
         :return: list of 'hotspots.grid_extension.Grid' objects
         """
-        print("Making array grid")
+        print("Making array grid {} {}".format(self.prot_name, self.probe))
         common_grids = Grid.common_grid(grid_list)
+        
+        
         assert (len(set([c.bounding_box for c in common_grids])) == 1), "Common grids don't have same frames"
-        self.spacing = common_grids[0].spacing
-        assert (common_grids[0].spacing == 0.5), "Grid spacing not 0.5"
+        self.spacing = grid_list[0].spacing
+        # assert (common_grids[0].spacing == 0.5), "Grid spacing not 0.5"
         self.tup_max_length = len(grid_list)
         self.common_grid_origin = common_grids[0].bounding_box[0]
         self.common_grid_far_corner = common_grids[0].bounding_box[1]
@@ -663,7 +665,60 @@ class _GridEnsemble(object):
 
         self.results_array = results_array
         self.nonzeros = self.results_array.nonzero()
+        
+    def get_alternative_results_array(self,grid_list):
+        """"
+        Return to old way of making the array due to bad allocs with Grid.common_grid() method
+        """
+        # Find bounding box of smallest grid that fits all the grids
+        dimensions = np.array([g.bounding_box for g in grid_list])
 
+        self.common_grid_origin = tuple(np.min(dimensions[:, 0, :], axis=0))
+        self.common_grid_far_corner = tuple(np.max(dimensions[:, 1, :], axis=0))
+        
+        origins = dimensions[:, 0, :]
+        far_corners = dimensions[:, 1, :]
+        if self.spacing:
+            rec_spacing = 1 / self.spacing
+        else:
+            rec_spacing = 2
+            
+        origin_diff = (origins - self.common_grid_origin)*rec_spacing
+        
+        if (origins == origins[0]).all() and (far_corners == far_corners[0]).all():
+            print("Grids have same dimensions")
+            self.common_grid_nsteps = grid_list[0].nsteps
+            self._get_results_array(grid_list)
+        
+            
+        else:
+            comm_grid = Grid(origin=self.common_grid_origin,
+                             far_corner=self.common_grid_far_corner, 
+                             spacing=0.5,
+                             _grid = None)
+            self.common_grid_nsteps = comm_grid.nsteps
+                                                       
+            results_array = np.zeros(self.common_grid_nsteps, dtype=tuple)
+            assert len(origin_diff) == len(grid_list)
+           
+            for i in range(len(origin_diff)):
+                g = grid_list[i]
+                diff = origin_diff[i]
+                d_x, d_y, d_z = diff
+                nx, ny, nz = g.nsteps
+                for x in range(nx):
+                    for y in range(ny):
+                        for z in range(nz):
+                            if g.value(x, y, z) != 0:
+                                if isinstance(results_array[x+ int(d_x)][y + int(d_y)][z + int(d_z)], tuple):
+                                    results_array[x+ int(d_x)][y + int(d_y)][z + int(d_z)] += (g.value(x, y, z),)
+                                else:
+                                    results_array[x+ int(d_x)][y + int(d_y)][z + int(d_z)] = (g.value(x, y, z),)
+
+            self.results_array = results_array
+            self.nonzeros = self.results_array.nonzero()
+                
+                
     #### Functions for analysing ensemble data #####
 
     def get_gridpoint_means(self):
@@ -772,7 +827,7 @@ class _GridEnsemble(object):
         """
         grid = Grid(origin=self.common_grid_origin,
                     far_corner=self.common_grid_far_corner,
-                    spacing= self.spacing,
+                    spacing= 0.5,
                     default=0.0,
                     _grid=None)
 
@@ -847,8 +902,9 @@ class _GridEnsemble(object):
         self.prot_name = prot_name
         self.probe = probe_name
 
-        common_grids = self._common_grids_from_paths()
-        self._get_results_array(common_grids)
+        #common_grids = self._common_grids_from_paths()
+        grid_list = [Grid.from_file(p) for p in self.paths_list]
+        self.get_alternative_results_array(grid_list)
 
         return self.output_grid(mode, save=True)
 
@@ -864,9 +920,12 @@ class _GridEnsemble(object):
         self.out_dir = out_dir
         self.prot_name = prot_name
         self.probe = probe_name
+        print("Making ensemble {} {}".format(self.prot_name, self.probe))
 
-        common_grids = self._common_grids_from_grid_list(grid_list)
-        self._get_results_array(common_grids)
+        #common_grids = self._common_grids_from_grid_list(grid_list)
+        #self._get_results_array(common_grids)
+        self.get_alternative_results_array(grid_list)
+        print(self.common_grid_origin, self.common_grid_far_corner)
 
         return self.output_grid(mode, save=False)
 

@@ -533,12 +533,13 @@ class Results(object):
 
     def _filter_map(self, g1, g2, tol):
         """
-        Sets 2 grids to the same size and coordinate frames. Points that are zero in one grid but sampled in the other are
+        Takes 2 grids of the same size and coordinate frames. Points that are 
+        zero in one grid but sampled in the other are
         set to the mean of their nonzero neighbours.
         :param tol: int, how many grid points away to consider scores from
-        :param g1: ccdc.utilities.Grid
-        :param g2: ccdc.utilities.Grid
-        :return: ccdc.utilities.Grid
+        :param g1: a :class: "ccdc.utilities.Grid" instance
+        :param g2: a :class: "ccdc.utilities.Grid" instance
+        :return: a :class: "ccdc.utilities.Grid" instance
         """
 
         def filter_point(x, y, z):
@@ -546,7 +547,7 @@ class Results(object):
                 [g[x + i][y + j][z + k] for i in range(-tol, tol + 1) for j in range(-tol, tol + 1) for k in
                  range(-tol, tol + 1)])
             if loc_arr[loc_arr > 0].size != 0:
-                print(np.mean(loc_arr[loc_arr > 0]))
+                #print(np.mean(loc_arr[loc_arr > 0]))
                 new_grid[x][y][z] = np.mean(loc_arr[loc_arr > 0])
 
         vfilter_point = np.vectorize(filter_point)
@@ -590,7 +591,7 @@ class Results(object):
 
         return sel_map
 
-    def get_selectivity_map(self, other):
+    def get_selectivity_map(self, other, tolerance):
         """
         Generate maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
         by the binding site of interest prior to calculation.
@@ -599,6 +600,7 @@ class Results(object):
         present in off target binding site
 
         :param other: a :class:`hotspots.hotspot_calculation.HotspotResults` instance
+        :param tolerance: <int>, how many grid points away to apply filter to
         :return: a :class:`hotspots.hotspot_calculation.HotspotResults` instance
         """
 
@@ -606,14 +608,14 @@ class Results(object):
         for probe in self.super_grids.keys():
             g1 = self.super_grids[probe]
             g2 = other.super_grids[probe]
-            og1, og2 = Grid._common_grid(g1, g2)
-            sele = og1 - og2
+            og1, og2 = Grid.common_grid([g1, g2])
+            sele = self._filter_map(og1, og2, tolerance)
             selectivity_grids[probe] = sele
         hr = Results(selectivity_grids, self.protein, None, None)
         return hr
 
-
-    def from_grid_ensembles(self, res_list, prot_name, charged=False):
+    @staticmethod
+    def from_grid_ensembles(res_list, prot_name, charged=False):
         """
 
         :param res_list: list of Hotspot.Results
@@ -629,11 +631,11 @@ class Results(object):
         grid_dic = {}
 
         for p in probe_list:
-            grid_list_p = [r.super_grids[p] for r in res_list]
+            grid_list_p = [r.super_grids[p].minimal() for r in res_list]
             ens = _GridEnsemble()
             grid_dic[p] = ens.from_grid_list(grid_list_p, getcwd(), prot_name, p)
 
-        hr = Results(grid_dic, protein=self.protein)
+        hr = Results(grid_dic, protein=res_list[0].protein)
         return hr
 
     def get_pharmacophore_model(self, identifier="id_01", cutoff=5):
