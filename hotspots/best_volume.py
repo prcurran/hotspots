@@ -164,7 +164,7 @@ class _Results(calculation.Results):
         :return:
         """
 
-        #single_grid.write('test.grd')
+
         inner = single_grid.copy_and_clear()
         inner.set_sphere(point=seed, radius=1, value=20, scaling='None')
         #mask = (sphere & single_grid) * single_grid
@@ -393,6 +393,8 @@ class Extractor(object):
 
         # else:
         hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
+
+        hr.super_grids.update({probe: g.minimal() for probe, g in hr.super_grids.items()})
 
         try:
             hr.super_grids["negative"] = hr.super_grids["negative"].deduplicate(hr.super_grids["acceptor"],
