@@ -447,9 +447,9 @@ class Grid(utilities.Grid):
         blank = Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0, _grid=None)
 
         if mask:
-            return mask_dic, reduce(operator.add, mask_dic.values(), blank)
+            return mask_dic, reduce(operator.add, mask_dic.values(), blank).minimal()
         else:
-            return reduce(operator.add, mask_dic.values(), blank)
+            return reduce(operator.add, mask_dic.values(), blank).minimal()
 
     def percentage_overlap(self, other):
         """
@@ -506,17 +506,20 @@ class Grid(utilities.Grid):
         return Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0, _grid=None)
 
     @staticmethod
-    def grow(inner, template, percentile=60):
+    def grow(inner, template, percentile= 80):
         """
         experimental
         Dilates grid to the points in the top percentile of the template
         :param template:
         :return:
         """
-        expand = inner.max_value_of_neighbours() > 0.1   # remove very small values
-        outer = expand.__sub__(inner) * template
+        expand = inner.max_value_of_neighbours().max_value_of_neighbours() > 0.1   # remove very small values
+        outer = expand.__mul__(-inner) * template
+        #test = expand*template
         threshold = np.percentile(a=outer.grid_values(threshold=1), q=int(percentile))
+
         return inner.__add__(outer > threshold)
+        #return template * ( > threshold)
 
     def get_peaks(self, min_distance=6, cutoff=2):
         """

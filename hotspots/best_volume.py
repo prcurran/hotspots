@@ -145,7 +145,62 @@ class _Results(calculation.Results):
 
             hr = _Results(super_grids=grd_dict, protein=prot)
             hr.threshold = threshold
-            hr.best_island = best_island
+            hr.best_island = best_island.minimal()
+            hr.location = location
+            hr.features = features
+            hr.score = hr.score()
+            hr.rank = hr._rank_features()
+            return hr
+
+    @staticmethod
+    def grow_from_seed( single_grid, mask_dic, settings, prot, seed=None):
+        """
+        create a Extracted Hotspot object from HotspotResult object
+        :param single_grid:
+        :param mask_dic:
+        :param settings:
+        :param prot:
+        :param seed:
+        :return:
+        """
+
+        #single_grid.write('test.grd')
+        inner = single_grid.copy_and_clear()
+        inner.set_sphere(point=seed, radius=1, value=20, scaling='None')
+        #mask = (sphere & single_grid) * single_grid
+
+        #optimiser = _Results.Optimiser(mask=mask, settings=settings, peak=seed)
+        #threshold, best_island = optimiser.optimize_island_threshold()
+        num_gp = inner.count_grid()
+        while num_gp < settings._num_gp:
+
+            grown = Grid.grow(inner, single_grid)
+            diff = grown > inner
+            if diff.count_grid() < 10:
+                break
+            inner = grown
+            num_gp = inner.count_grid()
+            print(num_gp, 'out of', settings._num_gp)
+
+
+        tmp_best_island = inner*single_grid
+        g_vals = tmp_best_island.grid_values()
+        g_vals[::-1].sort()
+        try:
+            threshold = g_vals[settings._num_gp]
+        except IndexError:
+            threshold = g_vals.min()
+
+        best_island = grown
+
+        print("oooh",threshold)
+        if best_island is not None:
+            location, features = _Results.get_interaction_type(mask_dic, best_island, threshold, settings)
+            grd_dict = _Results.get_grid_dict(location, features, settings)
+
+            hr = _Results(super_grids=grd_dict, protein=prot)
+            hr.threshold = threshold
+            hr.best_island = best_island.minimal()
             hr.location = location
             hr.features = features
             hr.score = hr.score()
@@ -308,7 +363,7 @@ class Extractor(object):
             """
             s = 3
             s += round((int(self.volume) / 50))
-            print(s)
+            print('search_radius',s)
             return s
 
     def __init__(self, hr, settings=None, mode="seed", volume="125", pharmacophores=True):
@@ -353,6 +408,10 @@ class Extractor(object):
         # enable extraction to run in seeded or global modes
         if self.settings.mode == "seed":
             print("    Mode: 'seed'")
+            self._peaks = self._get_peaks()
+
+        elif self.settings.mode == "grow":
+            print("    Mode: 'grow'")
             self._peaks = self._get_peaks()
 
         elif self.settings.mode == "global":
@@ -469,6 +528,22 @@ class Extractor(object):
                 #     if e.threshold > 0:
                 print(e.threshold)
                 extracted_hotspots.append(e)
+
+        elif self.settings.mode == "grow":
+            print(self.peaks)
+            for peak in self.peaks:
+                print(peak)
+                e = _Results.grow_from_seed(self.single_grid,
+                                          self.masked_dic,
+                                          self.settings,
+                                          self.hotspot_result.protein,
+                                          seed=peak)
+
+                # if e:
+                #     if e.threshold > 0:
+                print(e.threshold)
+                extracted_hotspots.append(e)
+
 
         else:
             e = _Results.from_hotspot(self.single_grid,

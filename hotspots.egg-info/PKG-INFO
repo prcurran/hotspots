@@ -1,4 +1,4 @@
-Metadata-Version: 1.0
+Metadata-Version: 2.1
 Name: hotspots
 Version: 0.1
 Summary: UNKNOWN
@@ -6,7 +6,6 @@ Home-page: https://github.com/prcurran/fragment_hotspot_maps
 Author: Chris Radoux, Peter Curran
 Author-email: pcurran@ccdc.cam.ac.uk
 License: UNKNOWN
-Description-Content-Type: text/markdown
 Description: # Welcome to the fragment-hotspot-maps wiki!
         
         
@@ -39,3 +38,4 @@ Description: # Welcome to the fragment-hotspot-maps wiki!
         ***
         
 Platform: UNKNOWN
+Description-Content-Type: text/markdown
