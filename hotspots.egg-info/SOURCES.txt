@@ -15,6 +15,7 @@ hotspots/template_strings.py
 hotspots.egg-info/PKG-INFO
 hotspots.egg-info/SOURCES.txt
 hotspots.egg-info/dependency_links.txt
+hotspots.egg-info/pbr.json
 hotspots.egg-info/requires.txt
 hotspots.egg-info/top_level.txt
 hotspots/probes/rotate-acceptor_3_3d.mol2
