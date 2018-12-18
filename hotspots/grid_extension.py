@@ -36,6 +36,25 @@ class Grid(utilities.Grid):
     """
     Initialisation handled in the main class
     """
+    def grid_value_by_coordinates(self, threshold=1):
+        """
+        returns a dictionary of grid point values by coordinates
+        :param threshold:
+        :return:
+        """
+        dic = {}
+        nx, ny, nz = self.nsteps
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    if self.value(i, j, k) > threshold:
+                        try:
+                            dic[self.value(i, j, k)].append(self.indices_to_point(i, j, k))
+                        except:
+                            dic.update({self.value(i, j, k): [self.indices_to_point(i, j, k)]})
+
+        return dic
+
     def grid_values(self, threshold=0):
         """"""
         array = self.get_array()
