@@ -46,7 +46,7 @@ class AtomicHotspot(object):
         def __init__(self):
             self.database = 'CSD'
             self.mapbackgroundvalue = 1
-            self.boxborder = 2
+            self.boxborder = 10
             self.minpropensity = 1
             self.superstar_sigma = 0.5
             self.superstar_executable, self.superstar_env = self._set_environment_variables()
