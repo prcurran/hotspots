@@ -796,15 +796,17 @@ class Runner(object):
         :param float polar_translation_threshold: translate probe to grid points above this threshold. Give lower values for greater sampling. Default 15
         :param bool polar_contributions: allow carbon atoms of probes with polar atoms to contribute to the apolar output map.
         :param bool return_probes: Generate a sorted list of molecule objects, corresponding to probe poses
+        :param bool sphere_maps: When setting the probe score on the output maps, set it for a sphere (radius 1.5) instead of a single point.
         """
 
         def __init__(self, nrotations=3000, apolar_translation_threshold=15, polar_translation_threshold=15,
-                     polar_contributions=False, return_probes=False):
+                     polar_contributions=False, return_probes=False, sphere_maps = False):
             self.nrotations = nrotations
             self.apolar_translation_threshold = apolar_translation_threshold
             self.polar_translation_threshold = polar_translation_threshold
             self.polar_contributions = polar_contributions
             self.return_probes = return_probes
+            self.sphere_maps = sphere_maps
 
         @property
         def _num_gp(self):
@@ -980,8 +982,15 @@ class Runner(object):
                 if len(actives) == 0:
                     continue
                 for a in actives:
-                    i, j, k = pg.grid.point_to_indices(pg.add_coordinates(a, trans))
-                    pg.grid.set_value(i, j, k, max(score, pg.grid.value(i, j, k)))
+                    coords = pg.add_coordinates(a, trans)
+                    i, j, k = pg.grid.point_to_indices(coords)
+                    orig_value = pg.grid.value(i, j, k)
+                    #
+                    if self.settings.sphere_maps:
+                        if score > orig_value:
+                            pg.grid.set_sphere(coords, 1.5, score-orig_value)
+                    else:
+                        pg.grid.set_value(i, j, k, max(score, orig_value))
 
         def get_active_coordinates(self):
             """
