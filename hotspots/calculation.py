@@ -328,7 +328,8 @@ class _Scorer(object):
                     score = self._score_atom_type(grid_type, coordinates)
                     prot.atoms[feature.atom.index].partial_charge = score
                 else:
-                    print("WARNING: no atom")
+                    #print("WARNING: no atom")
+                    continue
 
         return prot
 

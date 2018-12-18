@@ -1,8 +1,8 @@
 *.pyc
-fragment_hotspot_maps.egg-info
 .idea
 .idea/*
 *.egg-info
 hotspots0.1.zip
 dist
 hotspots.egg-info
+hotspots.egg-info/*
