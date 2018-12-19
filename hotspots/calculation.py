@@ -15,7 +15,7 @@ import random
 import sys
 import tempfile
 import time
-from os import system, environ
+from os import system, environ, getcwd
 from os.path import join
 
 import numpy as np
@@ -26,7 +26,7 @@ from ccdc.io import MoleculeWriter, MoleculeReader
 from ccdc.molecule import Molecule, Coordinates
 from ccdc.protein import Protein
 from ccdc.utilities import PushDir
-from grid_extension import Grid
+from grid_extension import Grid, _GridEnsemble
 from hs_pharmacophore import PharmacophoreModel
 from hs_utilities import Figures, Helper
 # from best_volume import Extractor
@@ -532,7 +532,67 @@ class Results(object):
 
         return _Scorer(self, obj, tolerance).scored_object
 
-    def get_selectivity_map(self, other):
+    def _filter_map(self, g1, g2, tol):
+        """
+        Takes 2 grids of the same size and coordinate frames. Points that are
+        zero in one grid but sampled in the other are
+        set to the mean of their nonzero neighbours.
+        :param tol: int, how many grid points away to consider scores from
+        :param g1: a :class: "ccdc.utilities.Grid" instance
+        :param g2: a :class: "ccdc.utilities.Grid" instance
+        :return: a :class: "ccdc.utilities.Grid" instance
+        """
+
+        def filter_point(x, y, z):
+            loc_arr = np.array(
+                [g[x + i][y + j][z + k] for i in range(-tol, tol + 1) for j in range(-tol, tol + 1) for k in
+                 range(-tol, tol + 1)])
+            if loc_arr[loc_arr > 0].size != 0:
+                #print(np.mean(loc_arr[loc_arr > 0]))
+                new_grid[x][y][z] = np.mean(loc_arr[loc_arr > 0])
+
+        vfilter_point = np.vectorize(filter_point)
+        com_bound_box = g1.bounding_box
+        com_spacing = g1.spacing
+
+        arr1 = g1.get_array()
+        arr2 = g2.get_array()
+
+        b_arr1 = np.copy(arr1)
+        b_arr2 = np.copy(arr2)
+
+        b_arr1[b_arr1 > 0] = 1.0
+        b_arr2[b_arr2 > 0] = -1.0
+
+        diff_arr = b_arr1 + b_arr2
+
+        unmatch1 = np.where(diff_arr == 1)
+        unmatch2 = np.where(diff_arr == -1)
+
+        g = arr1
+        new_grid = np.copy(arr1)
+        vfilter_point(unmatch2[0], unmatch2[1], unmatch2[2])
+        f_arr1 = np.copy(new_grid)
+
+        g = arr2
+        new_grid = np.copy(arr2)
+        vfilter_point(unmatch1[0], unmatch1[1], unmatch1[2])
+        f_arr2 = np.copy(new_grid)
+
+        sel_arr = f_arr1 - f_arr2
+        sel_arr[sel_arr < 0] = 0
+        sel_map = Grid(origin=com_bound_box[0], far_corner=com_bound_box[1], spacing=com_spacing, _grid=None)
+
+        idxs = sel_arr.nonzero()
+        vals = sel_arr[idxs]
+
+        as_triads = zip(*idxs)
+        for (i, j, k), v in zip(as_triads, vals):
+            sel_map._grid.set_value(int(i), int(j), int(k), v)
+
+        return sel_map
+
+    def get_selectivity_map(self, other, tolerance):
         """
         Generate maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
         by the binding site of interest prior to calculation.
@@ -541,6 +601,7 @@ class Results(object):
         present in off target binding site
 
         :param other: a :class:`hotspots.hotspot_calculation.HotspotResults` instance
+        :param tolerance: <int>, how many grid points away to apply filter to
         :return: a :class:`hotspots.hotspot_calculation.HotspotResults` instance
         """
 
@@ -548,11 +609,36 @@ class Results(object):
         for probe in self.super_grids.keys():
             g1 = self.super_grids[probe]
             g2 = other.super_grids[probe]
-            og1, og2 = self._common_grid(g1, g2)
-            sele = og1 - og2
+            og1, og2 = Grid.common_grid([g1, g2])
+            sele = self._filter_map(og1, og2, tolerance)
             selectivity_grids[probe] = sele
-        hr = Runner.HotspotResults(selectivity_grids, self.protein, self.fname, None, None, self.out_dir)
+        hr = Results(selectivity_grids, self.protein, None, None)
         return hr
+
+    @staticmethod
+    def from_grid_ensembles(res_list, prot_name, charged=False):
+        """
+
+        :param res_list: list of Hotspot.Results
+        :param prot_name: str
+        :param out_dir: str
+        :return: HotspotResults
+        """
+        if charged:
+            probe_list = ["acceptor", "apolar", "donor", "positive", "negative"]
+        else:
+            probe_list = ["acceptor", "apolar", "donor"]
+
+        grid_dic = {}
+
+        for p in probe_list:
+            grid_list_p = [r.super_grids[p].minimal() for r in res_list]
+            ens = _GridEnsemble()
+            grid_dic[p] = ens.from_grid_list(grid_list_p, getcwd(), prot_name, p)
+
+        hr = Results(grid_dic, protein=res_list[0].protein)
+        return hr
+
 
     def get_pharmacophore_model(self, identifier="id_01", cutoff=5):
         """
