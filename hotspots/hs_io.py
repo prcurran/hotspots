@@ -37,7 +37,7 @@ from ccdc import io
 import nglview as nv
 
 from grid_extension import Grid
-from calculation import Results
+from hotspots.hs_result import Results
 from template_strings import pymol_imports, pymol_arrow, pymol_protein, pymol_grids, pymol_display_settings, \
     pymol_load_zip, pymol_labels, pymol_mesh
 from hs_utilities import Helper

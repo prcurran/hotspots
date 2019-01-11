@@ -33,10 +33,11 @@ from grid_extension import Grid
 from scipy import optimize
 from skimage import feature
 from hs_utilities import Helper
+from hs_result import Results
 import numpy as np
 
 
-class _Results(calculation.Results):
+class _Results(Results):
     """
     A class to handle the construction of indivdual hotspots
     """
@@ -144,7 +145,6 @@ class _Results(calculation.Results):
         optimiser = _Results.Optimiser(mask=mask, settings=settings, peak=seed)
         threshold, best_island = optimiser.optimize_island_threshold()
 
-        print("oooh",threshold)
         if best_island is not None:
             location, features = _Results.get_interaction_type(mask_dic, best_island, threshold, settings)
             grd_dict = _Results.get_grid_dict(location, features, settings)
@@ -199,7 +199,6 @@ class _Results(calculation.Results):
 
         best_island = grown
 
-        print("oooh",threshold)
         if best_island is not None:
             location, features = _Results.get_interaction_type(mask_dic, best_island, threshold, settings)
             grd_dict = _Results.get_grid_dict(location, features, settings)
