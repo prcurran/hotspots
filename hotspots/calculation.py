@@ -1077,6 +1077,7 @@ class Runner(object):
     def __init__(self, settings=None):
         self.out_grids = {}
         self.super_grids = {}
+        self.buriedness = None
 
         if settings is None:
             self.sampler_settings = self.Settings()
@@ -1277,14 +1278,13 @@ class Runner(object):
         print("Atomic hotspot detection complete\n")
 
         print("Start buriedness calcualtion")
-        if self.buriedness_method == 'ghecom':
+        if self.buriedness_method.lower() == 'ghecom' and self.buriedness is None:
             print("    method: Ghecom")
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
             b = _Buriedness(protein=self.protein,
                             out_grid=out_grid)
             self.buriedness = b.calculate_buriedness().grid
-            self.buriedness.write("/home/pcurran/b.grd")
-        else:
+        elif self.buriedness_method.lower() == 'ligsite' and self.buriedness is None:
             print("    method: LIGSITE")
             self.buriedness = Grid.get_single_grid(grd_dict={s.identifier: s.buriedness for s in self.superstar_grids},
                                                    mask=False)
