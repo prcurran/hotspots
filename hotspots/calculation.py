@@ -29,9 +29,9 @@ from ccdc.utilities import PushDir
 from grid_extension import Grid
 from hs_pharmacophore import PharmacophoreModel
 from hs_utilities import Figures, Helper
-# from best_volume import Extractor
 from scipy.stats import percentileofscore
 from tqdm import tqdm
+from pdb_python_api import PDBResult
 
 
 class _Buriedness(object):
@@ -1305,8 +1305,18 @@ class Runner(object):
 
         print("Sampling complete\n")
 
+    def prepare_protein(self):
+        """
+        default protein preparation settings on the protein
+        :return:
+        """
+        self.protein.remove_all_waters()
+        for lig in self.protein.ligands:
+            self.protein.remove_ligand(lig.identifier)
+        self.protein.remove_all_metals()
+
     def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method='ghecom',
-                     cavities=None, nprocesses=None, settings=None):
+                     cavities=None, nprocesses=1, settings=None):
         """
 
         :param protein: a :class:`ccdc.protein.Protein` instance
@@ -1337,6 +1347,36 @@ class Runner(object):
 
         print("Runtime = {}seconds".format(time.time() - start))
 
+        return Results(super_grids=self.super_grids,
+                       protein=self.protein,
+                       buriedness=self.buriedness)
+
+    def from_pdb(self, pdb_code, charged_probes=False, probe_size=7, buriedness_method='ligsite', nprocesses=1,
+                 settings=None):
+        """
+
+        :param pdb_code:
+        :return:
+        """
+        tmp = tempfile.mkdtemp()
+        PDBResult(identifier=pdb_code).download(out_dir=tmp)
+
+        fname = join(tmp, "{}.pdb".format(pdb_code))
+        self.protein = Protein.from_file(fname)
+        self.prepare_protein()
+        self.charged_probes = charged_probes
+        self.probe_size = probe_size
+        self.buriedness_method = buriedness_method
+        self.cavities = Cavity.from_pdb_file(fname)
+        self.nprocesses = nprocesses
+
+        if settings is None:
+            self.sampler_settings = self.Settings()
+        else:
+            self.sampler_settings = settings
+
+        self._calc_hotspots()
+        self.super_grids = {p: g[0] for p, g in self.out_grids.items()}
         return Results(super_grids=self.super_grids,
                        protein=self.protein,
                        buriedness=self.buriedness)
