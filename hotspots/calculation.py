@@ -56,7 +56,7 @@ class _Buriedness(object):
             self.in_name = join(self.working_directory, "protein.pdb")
             self.out_name = join(self.working_directory, "ghecom_out.pdb")
 
-    def __init__(self, protein, out_grid, settings=None):
+    def __init__(self, protein, out_grid=None, settings=None):
         """
         initialises buriedness calculation settings
         :param protein: `ccdc.protein.Protein`
@@ -105,7 +105,8 @@ class _BuriednessResult(object):
         if self.settings.out_grid:
             self.grid = self.settings.out_grid
         else:
-            self.grid = Grid.initalise_grid(self.settings.protein.atoms, padding=2)
+            self.grid = Grid.initalise_grid([atom.coordinates for atom in self.settings.protein.atoms],
+                                            padding=2)
         self.update_grid()
 
     def update_grid(self):
@@ -298,7 +299,7 @@ class _Scorer(object):
         """
         # TODO: enable cavities to be generated from Protein objects
         #
-        prot = copy.copy(self.object)
+        prot = self.object
         h_bond_distance = 2.0
         interaction_pairs = {"acceptor": "donor",
                              "donor": "acceptor",
@@ -309,7 +310,7 @@ class _Scorer(object):
                              "donor_acceptor": "doneptor",
                              "dummy": "dummy"}
 
-        cavities = Helper.cavity_from_protein(self.hotspot_result.protein)
+        cavities = Helper.cavity_from_protein(self.object)
         for cavity in cavities:
 
             for feature in cavity.features:
@@ -327,8 +328,14 @@ class _Scorer(object):
                 if feature.atom:
                     score = self._score_atom_type(grid_type, coordinates)
                     prot.atoms[feature.atom.index].partial_charge = score
+                    a = [a.index for a in prot.atoms[feature.atom.index].neighbours
+                         if int(a.atomic_number) == 1]
+
+                    if len(a) > 0:
+                        for atm in a:
+                            prot.atoms[atm].partial_charge = score
+
                 else:
-                    #print("WARNING: no atom")
                     continue
 
         return prot
@@ -471,7 +478,7 @@ class Results(object):
             self._grid = grid
             self._feature_coordinates = grid.centroid()
             self._count = (grid > 0).count_grid()
-            self._score = self.score_feature()
+            self._score_value = self.score_feature()
 
             # set these
             self._rank = None
@@ -498,8 +505,8 @@ class Results(object):
             return self._count
 
         @property
-        def score(self):
-            return self._score
+        def score_value(self):
+            return self._score_value
 
         @property
         def rank(self):
@@ -704,7 +711,7 @@ class Results(object):
         rank _features based upon feature score (TO DO: modify score if required)
         :return:
         """
-        feature_by_score = {feat.score: feat for feat in self.features}
+        feature_by_score = {feat.score_value: feat for feat in self.features}
         score = sorted([f[0] for f in feature_by_score.items()], reverse=True)
         for i, key in enumerate(score):
             feature_by_score[key]._rank = int(i + 1)
@@ -722,19 +729,20 @@ class Results(object):
         for residue in pocket.residues:
             keep_residue = False
             for atom in residue.atoms:
-                # if atom.atomic_number == 1:
-                #     continue
                 a_id = "{0}/{1}/{2}".format(residue.chain_identifier, residue.identifier.split(':')[1][3:],
                                             atom.label)
                 atom_type = self._get_atom_type(atom)
+
                 if atom_type == 'doneptor':
                     score = max([prot_scores[a_id]['donor'], prot_scores[a_id]['acceptor']])
                 else:
                     score = prot_scores[a_id][atom_type]
+
                 if score > 0:
                     keep_residue = True
                 elif score == 0 and not whole_residues:
                     pocket.remove_atom(atom)
+
             if whole_residues and not keep_residue:
                 pocket.remove_atoms(residue.atoms)
         return pocket

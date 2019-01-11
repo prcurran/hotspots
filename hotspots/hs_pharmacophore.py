@@ -109,11 +109,11 @@ class PharmacophoreModel(Helper):
         :return:
         """
         if force_apolar:
-            apolar_dict = {feat.score: feat for feat in self.features if feat.feature_type == "apolar"}
+            apolar_dict = {feat.score_value: feat for feat in self.features if feat.feature_type == "apolar"}
             top_apolar = sorted(apolar_dict.items(), key=lambda x: x[0], reverse=True)[0]
             apolar = apolar_dict[top_apolar[0]]
 
-            score_dic = {feat.score: feat for feat in self.features if feat.feature_type != "apolar"}
+            score_dic = {feat.score_value: feat for feat in self.features if feat.feature_type != "apolar"}
             sorted_scores = sorted(score_dic.items(), key=lambda x: x[0], reverse=True)
             max_features -= 1
             if max_features > len(self.features):
@@ -124,7 +124,7 @@ class PharmacophoreModel(Helper):
             ordered_features.append(apolar)
 
         else:
-            score_dic = {feat.score: feat for feat in self.features}
+            score_dic = {feat.score_value: feat for feat in self.features}
             sorted_scores = sorted(score_dic.items(), key=lambda x: x[0], reverse=True)
             if max_features > len(features):
                 ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold]
@@ -193,9 +193,9 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
         return pymol_out
 
-    def _create_result(self, protein):
-        """"""
-        temp = tempfile.mkdtemp()
+    # def _create_result(self, protein):
+    #     """"""
+    #     temp = tempfile.mkdtemp()
 
     def _as_grid(self, feature_type=None, tolerance=2):
         """
@@ -326,7 +326,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                                             feature.feature_coordinates.x,
                                                             feature.feature_coordinates.y,
                                                             feature.feature_coordinates.z,
-                                                            feature.score
+                                                            feature.score_value
                                                             )
                     if feature.projected_coordinates:
                         line += ",{0},{1},{2}".format(feature.projected_coordinates.x,
@@ -416,7 +416,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             pseudo_atms = [Atom(atomic_symbol=atom_dic[feat.feature_type],
                                 atomic_number=14,
                                 coordinates=feat.feature_coordinates,
-                                label=str(feat.score))
+                                label=str(feat.score_value))
                            for feat in self.features]
 
             for a in  pseudo_atms:
@@ -528,7 +528,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                                       feature_type=feat,
                                                       feature_coordinates=coords,
                                                       projected_coordinates=projected_coordinates,
-                                                      score=feature_grd.value_at_coordinate(coords, position=False),
+                                                      score_value=feature_grd.value_at_coordinate(coords, position=False),
                                                       vector=None,
                                                       settings=settings
                                                       )
@@ -549,10 +549,7 @@ class _PharmacophoreFeature(Helper):
     This feature is designed to be used after fragment sized hotspots have been extracted.
     (Hotspot.extract_hotspots method)
     """
-
-
-
-    def __init__(self, projected, feature_type, feature_coordinates, projected_coordinates, score, vector, settings):
+    def __init__(self, projected, feature_type, feature_coordinates, projected_coordinates, score_value, vector, settings):
         """
         new __init__ allows flexibility of pharmacophore generation
         :return:
@@ -562,7 +559,7 @@ class _PharmacophoreFeature(Helper):
         self._feature_type = feature_type
         self._feature_coordinates = feature_coordinates
         self._projected_coordinates = projected_coordinates
-        self._score = score
+        self._score_value = score_value
         self._vector = vector
 
         self.settings = settings
@@ -587,8 +584,8 @@ class _PharmacophoreFeature(Helper):
         return self._projected_coordinates
 
     @property
-    def score(self):
-        return self._score
+    def score_value(self):
+        return self._score_value
 
     @property
     def vector(self):
