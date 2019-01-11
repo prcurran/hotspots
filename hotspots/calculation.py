@@ -27,7 +27,7 @@ from ccdc.molecule import Molecule, Coordinates
 from ccdc.protein import Protein
 from ccdc.utilities import PushDir
 from grid_extension import Grid
-from hs_result import Results
+from result import Results
 from hs_pharmacophore import PharmacophoreModel
 from hs_utilities import Figures, Helper
 # from best_volume import Extractor
