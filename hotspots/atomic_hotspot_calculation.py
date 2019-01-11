@@ -75,9 +75,12 @@ class AtomicHotspot(object):
                 superstar_env = dict()
             else:
                 if sys.platform == 'win32':
-                    merc = glob.glob(join(base, 'mercury*'))
-                    if len(merc):
-                        merc = merc[0]
+                    merc = glob.glob(join(dirname(base), 'mercury*'))
+                    if type(merc) is list:
+                        try:
+                            merc = merc[0]
+                        except IndexError:
+                            raise IndexError("No mercury path found, check API version")
 
                     superstar_executable = join(merc, 'superstar_app.exe')
                     if not isfile(superstar_executable):
