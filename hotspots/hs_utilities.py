@@ -139,10 +139,11 @@ class Helper(object):
             coordinates = [feat.feature_coordinates for feat in input._features]
             scores = [feat.score for feat in input._features]
 
-        except:
+        except AttributeError:
 
+            print(threshold)
             try:
-                if not threshold:
+                if threshold is None:
                     pass
                 else:
                     interaction_types = []
