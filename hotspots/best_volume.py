@@ -33,6 +33,7 @@ from grid_extension import Grid
 from scipy import optimize
 from skimage import feature
 from hs_utilities import Helper
+import numpy as np
 
 
 class _Results(calculation.Results):
@@ -57,6 +58,7 @@ class _Results(calculation.Results):
             :param threshold:
             :return: int
             """
+
             island = self.mask.get_best_island(threshold, mode="score", peak=self.peak)
             if island is None:
                 return 999999
@@ -95,7 +97,11 @@ class _Results(calculation.Results):
             Takes the input mask and finds the island threshold which returns the desired volume
             :return:
             """
-            threshold = optimize.fminbound(self._count_island_points, 0, 50, xtol=0.025)
+            #threshold = optimize.fminbound(self._count_island_points, 0, 50, xtol=0.025)
+            x0 = np.array([14])
+            b = optimize.Bounds(0,50)
+            ret = optimize.minimize_scalar(self._count_island_points, x0, bounds=(0,50), method='bounded')
+            threshold = ret.x
             if threshold >48:
                 threshold = 1
             best_island = self.mask.get_best_island(threshold=threshold, mode='score', peak=self.peak)
@@ -523,11 +529,13 @@ class Extractor(object):
             print(self.peaks)
             for peak in self.peaks:
                 print(peak)
+
                 e = _Results.from_hotspot(self.single_grid,
                                           self.masked_dic,
                                           self.settings,
                                           self.hotspot_result.protein,
                                           seed=peak)
+
 
                 # if e:
                 #     if e.threshold > 0:

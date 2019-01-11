@@ -140,10 +140,11 @@ class Helper(object):
             scores = [feat.score_value for feat in input._features]
             print scores
 
-        except:
+        except AttributeError:
 
+            print(threshold)
             try:
-                if not threshold:
+                if threshold is None:
                     pass
                 else:
                     interaction_types = []
