@@ -9,7 +9,7 @@ from __future__ import division, print_function
 import os
 from os.path import join, exists
 from glob import glob
-from hotspots.calculation import Results
+from hotspots.result import Results
 from hotspots import hs_io
 
 
@@ -50,8 +50,8 @@ with hs_io.HotspotWriter(out2, visualisation="pymol", grid_extension=".ccp4", zi
      writer.write(ensemble_2)
 del(prot2_res_list)
 
-# Get selectivity maps
-sel_map_result = ensemble_1.get_selectivity_map(ensemble_2, 1)
+# Get difference maps
+sel_map_result = ensemble_1.get_difference_map(ensemble_2, 1)
 out_sel = make_savedir("select_{}_{}".format(prot1_name, prot2_name))
 with hs_io.HotspotWriter(out_sel, visualisation="pymol", grid_extension=".ccp4", zip_results=True) as writer:
      writer.write(sel_map_result)

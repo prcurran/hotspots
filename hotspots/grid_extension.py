@@ -610,7 +610,10 @@ utilities.Grid = Grid
 
 
 class _GridEnsemble(object):
-    """Class that handles a numpy array of tuples from Hotspot maps of a given probe type across multiple structures"""
+    """
+    Experimental feature
+    Class that handles a numpy array of tuples from Hotspot maps of a given probe type across multiple structures
+    """
 
     def __init__(self):
         self.prot_name = None
@@ -657,6 +660,11 @@ class _GridEnsemble(object):
         print('Making array grid')
         grid_list = [Grid.from_file(f) for f in self.path_list if self.probe in basename(f)]
         common_grids = self._common_grids_from_grid_list(grid_list)
+        self.tup_max_length = len(grid_list)
+        self.common_grid_origin = common_grids[0].bounding_box[0]
+        self.common_grid_far_corner = common_grids[0].bounding_box[1]
+        self.common_grid_nsteps = common_grids[0].nsteps
+
 
         return common_grids
 
@@ -787,36 +795,6 @@ class _GridEnsemble(object):
 
     #### Functions for plotting histograms of analysed ensemble data ####
 
-    def get_gridpoint_histograms(self):
-        """
-        Makes and saves histograms for each point in the results array.
-        Caution - may output thousands of histograms for large maps.
-        """
-
-        ind_array = np.indices(self.results_array.shape)
-
-        def results_array_histograms(x, y, z):
-            if isinstance(self.results_array[x][y][z], tuple):
-                num_zeros = self.tup_max_length - len(self.results_array[x][y][z])
-                if num_zeros != 0:
-                    print('Num_zeros: ', num_zeros)
-                hist_arr = np.array(self.results_array[x][y][z])
-                # hist, bin_edges = np.histogram(hist_arr, bins=20)
-                colour_dict = {"acceptor": "r", "donor": "b", "apolar": "y"}
-                hist_name = self.prot_name + '_' + self.probe + '_{}_{}_{}'.format(x, y, z)
-
-                plt.figure(1)
-                plt.hist(hist_arr, bins=20, color=colour_dict[self.probe])
-                plt.figtext(0.6, 0.8, ('Number of zero values:' + str(num_zeros)))
-                plt.title('Score distribution at point x:{}, y:{}, z:{}'.format(x, y, z))
-                plt.xlabel('Fragment hotspot score')
-                plt.ylabel('Frequency')
-                plt.savefig(join(self.out_dir, hist_name))
-                plt.close()
-
-        print('Generating Histograms')
-        vresults_array_histograms = np.vectorize(results_array_histograms)
-        vresults_array_histograms(ind_array[0], ind_array[1], ind_array[2])
 
     def plot_gridpoint_spread(self):
         '''
@@ -832,12 +810,12 @@ class _GridEnsemble(object):
         # y_fit = np.random.normal(mu, sigma, np.shape(mean_arr))
         y = norm.pdf(bins, mu, sigma)
         a = plt.plot(bins, y, 'r--', linewidth=2)
-        bins = 0.5 * (bins[1:] + bins[:-1])
-        y_fit = norm.pdf(bins, mu, sigma)
+        fit_bins = 0.5 * (bins[1:] + bins[:-1])
+        y_fit = norm.pdf(fit_bins, mu, sigma)
         ss_res = np.sum((n - y_fit) ** 2)
         ss_tot = np.sum((n - np.mean(n)) ** 2)
         r2 = 1 - (ss_res / ss_tot)
-        plt.title('Mu: {}, Sigma: {}, R^2 : {} '.format(round(mu, 2), round(sigma, 2), round(r2, 4)))
+        plt.title('Mu: {}, Sigma: {}, R^2 : {} '.format(round(mu, 2), round(sigma, 2), round(r2, 2)))
         hist_name = self.prot_name + '_{}_gridpoint_spread_fit'.format(self.probe)
         plt.savefig(join(self.out_dir, hist_name))
         # plt.show()
@@ -910,7 +888,7 @@ class _GridEnsemble(object):
     @staticmethod
     def load_GridEnsemble(filename):
         """
-        Loads a pickled MegaGrid
+        Loads a pickled _GridEnsemble
         :param filename: str, full path to pickled grid
         :return: MegaGrid object
         """
@@ -920,7 +898,7 @@ class _GridEnsemble(object):
 
     def pickle_GridEnsemble(self):
         """
-        Saves MegaGrids as pickles.
+        Saves _GridEnsembles as pickles.
         :return:
         """
         pickle.dump(self, open(join(self.out_dir, '{}_{}_GridEnsemble.p'.format(self.prot_name, self.probe)), 'wb'))
@@ -930,7 +908,7 @@ class _GridEnsemble(object):
     def from_hotspot_maps(self, path_list, out_dir, prot_name, probe_name, mode="max"):
         """
         Creates a GridEnsemble from paths to Hotspot maps for a certain probe
-        :param stem: path to directory where the grids are
+        :param path_list: list of paths for the hotspot maps
         :param out_dir: path to where grids and histograms are saved
         :param prot_name: str
         :param probe_name: 'donor', 'acceptor', or 'apolar'

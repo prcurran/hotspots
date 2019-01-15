@@ -23,7 +23,7 @@ with _private_importer():
 
 DockingLib.licence_check()
 
-from best_volume import Extractor
+from hotspots.result import Extractor
 
 
 class DockerSettings(docking.Docker.Settings):
