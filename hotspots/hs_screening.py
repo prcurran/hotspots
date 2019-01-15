@@ -58,21 +58,26 @@ class DockerSettings(docking.Docker.Settings):
             super(self.__class__, self).__init__(_constraint)
 
         @staticmethod
-        def from_hotspot(hr, max_constraints=2, weight=5.0, min_hbond_score=0.001):
+        def from_hotspot(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001):
             """
             construct a Hotspot HBondConstraint
             :param hr: a `hotspots.calculation.Result`
             :return:
             """
-            prot = hr.score(hr.protein)
+            for atm in protein.atoms:
+                atm.partial_charge = 0
+
+            prot = hr.score(protein)
+            with io.MoleculeWriter("/home/pcurran/use_case/scored_prot.mol2") as w:
+                w.write(prot)
             atm_dic = {atm.partial_charge: atm for atm in prot.atoms
                        if type(atm.partial_charge) is float
-                       and ((atm.atomic_number == 1 and a.neighbours[0].is_donor) or atm.is_acceptor)}
+                       and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
+                       }
 
             scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
-            selected = [atm_dic[s] for s in scores]
 
-            print selected
+            selected = [atm_dic[s] for s in scores]
             return DockerSettings.HotspotHBondConstraint(atoms=selected,
                                                          weight=weight,
                                                          hotspot_score=scores,
@@ -86,6 +91,7 @@ class DockerSettings(docking.Docker.Settings):
 
     def add_apolar_fitting_points(self, hr, volume=400, threshold=17, mode='threshold'):
         """
+        help on volumes
         sets apolar fitting points for docking run
         :param hr: `hotspots.calculation.Result`
         :param volume: int

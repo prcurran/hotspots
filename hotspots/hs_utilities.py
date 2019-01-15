@@ -137,12 +137,14 @@ class Helper(object):
         try:
             interaction_types = [atom_dic[feat.feature_type] for feat in input._features]
             coordinates = [feat.feature_coordinates for feat in input._features]
-            scores = [feat.score for feat in input._features]
+            scores = [feat.score_value for feat in input._features]
+            print scores
 
-        except:
+        except AttributeError:
 
+            print(threshold)
             try:
-                if not threshold:
+                if threshold is None:
                     pass
                 else:
                     interaction_types = []

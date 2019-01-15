@@ -271,6 +271,7 @@ class Grid(utilities.Grid):
 
         :return:
         """
+
         islands = self.islands(threshold)
         if len(islands) == 0:
             return None

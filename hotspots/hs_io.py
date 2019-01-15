@@ -76,7 +76,7 @@ class HotspotWriter(Helper):
             self.pharmacophore_labels = True
             self.pharmacophore_format = [".py"]
 
-    def __init__(self, path, visualisation="pymol", grid_extension=".grd", zip_results=False, settings=None):
+    def __init__(self, path, visualisation="pymol", grid_extension=".grd", zip_results=True, settings=None):
         """
         :param path: directory (maybe zipped) containing hotspot information
         """

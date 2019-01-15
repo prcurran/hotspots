@@ -33,6 +33,7 @@ from grid_extension import Grid
 from scipy import optimize
 from skimage import feature
 from hs_utilities import Helper
+import numpy as np
 
 
 class _Results(calculation.Results):
@@ -57,6 +58,7 @@ class _Results(calculation.Results):
             :param threshold:
             :return: int
             """
+
             island = self.mask.get_best_island(threshold, mode="score", peak=self.peak)
             if island is None:
                 return 999999
@@ -95,7 +97,11 @@ class _Results(calculation.Results):
             Takes the input mask and finds the island threshold which returns the desired volume
             :return:
             """
-            threshold = optimize.fminbound(self._count_island_points, 0, 50, xtol=0.025)
+            #threshold = optimize.fminbound(self._count_island_points, 0, 50, xtol=0.025)
+            x0 = np.array([14])
+            b = optimize.Bounds(0,50)
+            ret = optimize.minimize_scalar(self._count_island_points, x0, bounds=(0,50), method='bounded')
+            threshold = ret.x
             if threshold >48:
                 threshold = 1
             best_island = self.mask.get_best_island(threshold=threshold, mode='score', peak=self.peak)
@@ -148,7 +154,7 @@ class _Results(calculation.Results):
             hr.best_island = best_island.minimal()
             hr.location = location
             hr.features = features
-            hr.score = hr.score()
+            hr.score_value = hr.score()
             hr.rank = hr._rank_features()
             return hr
 
@@ -203,7 +209,7 @@ class _Results(calculation.Results):
             hr.best_island = best_island.minimal()
             hr.location = location
             hr.features = features
-            hr.score = hr.score()
+            hr.score_value = hr.score()
             hr.rank = hr._rank_features()
             return hr
 
@@ -232,14 +238,14 @@ class _Results(calculation.Results):
         """
         grid_dic = {"apolar": location.minimal()}
         interaction_types = set([feat.feature_type for feat in features])
-        feature_by_score = {f.score: f for f in features}
+        feature_by_score = {f.score_value: f for f in features}
         features = [feature_by_score[s]
                     for s in sorted([f[0] for f in feature_by_score.items()], reverse=True)][:settings.max_features - 1]
         for probe in interaction_types:
             if settings.mode == "seed":
                 grids = [feat.grid for feat in features
                          if feat.feature_type == probe and
-                         feat.score >= settings.cutoff]
+                         feat.score_value >= settings.cutoff]
 
             else:
                 grids = [feat.grid for feat in features if feat.feature_type == probe]
@@ -366,7 +372,7 @@ class Extractor(object):
             print('search_radius',s)
             return s
 
-    def __init__(self, hr, settings=None, mode="seed", volume="125", pharmacophores=True):
+    def __init__(self, hr, settings=None, mode="seed", volume="125", pharmacophores=True, mvon=True):
         """
 
         :param hr: An :class:`hotspots.HotspotResults` instance
@@ -386,15 +392,15 @@ class Extractor(object):
         self.settings.volume = volume
         self.settings.pharmacophore = pharmacophores
         self.out_dir = None
+        self.mvon = mvon
 
         # fragment hotspot post processing
         # if self.settings.mode == "seed":
         #     hr.super_grids = self.grid_post_process(hr.super_grids)
 
         # else:
-        hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
-
-        hr.super_grids.update({probe: g.minimal() for probe, g in hr.super_grids.items()})
+        if self.mvon:
+            hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
 
         try:
             hr.super_grids["negative"] = hr.super_grids["negative"].deduplicate(hr.super_grids["acceptor"],
@@ -405,7 +411,10 @@ class Extractor(object):
                                                                                 threshold=10,
                                                                                 tolerance=2)
         except KeyError:
+            print("deduplication failed, make sure grids have common boundaries")
             pass
+
+        hr.super_grids.update({probe: g.minimal() for probe, g in hr.super_grids.items()})
 
         # enable extraction to run in seeded or global modes
         if self.settings.mode == "seed":
@@ -520,11 +529,13 @@ class Extractor(object):
             print(self.peaks)
             for peak in self.peaks:
                 print(peak)
+
                 e = _Results.from_hotspot(self.single_grid,
                                           self.masked_dic,
                                           self.settings,
                                           self.hotspot_result.protein,
                                           seed=peak)
+
 
                 # if e:
                 #     if e.threshold > 0:
@@ -563,9 +574,8 @@ class Extractor(object):
         assigns rank based upon extracted hotspot score
         :return:
         """
-        hotspot_by_score = {hotspot.score: hotspot for hotspot in self.extracted_hotspots}
+        hotspot_by_score = {hotspot.score_value: hotspot for hotspot in self.extracted_hotspots}
         score = sorted([f[0] for f in hotspot_by_score.items()], reverse=True)
-        print(score)
 
         for i, key in enumerate(score):
             hotspot_by_score[key].rank = int(i + 1)
@@ -575,7 +585,7 @@ class Extractor(object):
 
         for i, hs in enumerate(self.extracted_hotspots):
             hs.identifier = "rank_{}".format(hs.rank)
-            print("rank", hs.rank, "score", hs.score)
+            print("rank", hs.rank, "score", hs.score_value)
 
     def _select_cavity_grids(self, cavs):
         """get empty cavity grids"""
