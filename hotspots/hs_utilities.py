@@ -143,7 +143,7 @@ class Helper(object):
 
             print(threshold)
             try:
-                if not threshold:
+                if threshold is None:
                     pass
                 else:
                     interaction_types = []

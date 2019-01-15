@@ -26,7 +26,7 @@ from ccdc.io import MoleculeWriter, MoleculeReader
 from ccdc.molecule import Molecule, Coordinates
 from ccdc.protein import Protein
 from ccdc.utilities import PushDir
-from grid_extension import Grid,
+from grid_extension import Grid
 from result import Results
 from hs_pharmacophore import PharmacophoreModel
 from hs_utilities import Figures, Helper
@@ -825,7 +825,6 @@ class Runner(object):
                        protein=self.protein,
                        buriedness=self.buriedness)
 
-
     def from_pdb(self, pdb_code, charged_probes=False, probe_size=7, buriedness_method='ligsite', nprocesses=3,
                  settings=None):
         """
@@ -858,10 +857,3 @@ class Runner(object):
                        protein=self.protein,
                        buriedness=self.buriedness)
 
-
-def main():
-    print("This is being run from the command line")
-
-
-if __name__ == '__main__':
-    main()
