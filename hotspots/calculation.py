@@ -15,7 +15,7 @@ import random
 import sys
 import tempfile
 import time
-from os import system, environ, getcwd
+from os import system, environ
 from os.path import join
 
 import numpy as np
@@ -26,7 +26,7 @@ from ccdc.io import MoleculeWriter, MoleculeReader
 from ccdc.molecule import Molecule, Coordinates
 from ccdc.protein import Protein
 from ccdc.utilities import PushDir
-from grid_extension import Grid, _GridEnsemble
+from grid_extension import Grid,
 from result import Results
 from hs_pharmacophore import PharmacophoreModel
 from hs_utilities import Figures, Helper
