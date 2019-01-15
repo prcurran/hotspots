@@ -788,7 +788,7 @@ class Runner(object):
         self.protein.remove_all_metals()
 
     def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method='ghecom',
-                     cavities=None, nprocesses=1, settings=None):
+                     cavities=None, nprocesses=1, settings=None, buriedness_grid = None):
         """
 
         :param protein: a :class:`ccdc.protein.Protein` instance
@@ -803,6 +803,8 @@ class Runner(object):
         """
 
         start = time.time()
+        self.super_grids = {}
+        self.buriedness = buriedness_grid
         self.protein = protein
         self.charged_probes = charged_probes
         self.probe_size = probe_size

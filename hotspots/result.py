@@ -53,7 +53,7 @@ from hotspots.grid_extension import Grid
 from hotspots.hs_utilities import Figures
 from hs_pharmacophore import PharmacophoreModel
 from hs_utilities import Helper
-from atomic_hotspot_calculation import AtomicHotspot
+from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
 
 
 class _Scorer(object):
@@ -947,7 +947,8 @@ class Extractor(object):
             self.settings = self.Settings()
         else:
             self.settings = settings
-
+        self._single_grid = None
+        self._masked_dic = None
         self.settings.mode = mode
         self.settings.volume = volume
         self.settings.pharmacophore = pharmacophores
