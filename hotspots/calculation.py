@@ -734,7 +734,7 @@ class Runner(object):
         Function for overall organisation of hotspot calculation
         :return:
         """
-        print("Start atomic hotspot detection")
+        print("Start atomic hotspot detection\n        Processors: {}".format(self.nprocesses))
         a = AtomicHotspot()
         a.settings.atomic_probes = {"apolar": "AROMATIC CH CARBON",
                                     "donor": "UNCHARGED NH NITROGEN",
@@ -743,6 +743,8 @@ class Runner(object):
             a.settings.atomic_probes = {"negative": "CARBOXYLATE OXYGEN", "positive": "CHARGED NH NITROGEN"}
 
         probe_types = a.settings.atomic_probes.keys()
+        print(__name__)
+
         self.superstar_grids = a.calculate(protein=self.protein,
                                            nthreads=self.nprocesses,
                                            cavity_origins=self.cavities)
@@ -825,7 +827,7 @@ class Runner(object):
                        protein=self.protein,
                        buriedness=self.buriedness)
 
-    def from_pdb(self, pdb_code, charged_probes=False, probe_size=7, buriedness_method='ligsite', nprocesses=1,
+    def from_pdb(self, pdb_code, charged_probes=False, probe_size=7, buriedness_method='ligsite', nprocesses=3,
                  settings=None):
         """
 
@@ -837,6 +839,8 @@ class Runner(object):
 
         fname = join(tmp, "{}.pdb".format(pdb_code))
         self.protein = Protein.from_file(fname)
+
+        print(self.protein.atoms)
         self.prepare_protein()
         self.charged_probes = charged_probes
         self.probe_size = probe_size
@@ -854,3 +858,4 @@ class Runner(object):
         return Results(super_grids=self.super_grids,
                        protein=self.protein,
                        buriedness=self.buriedness)
+
