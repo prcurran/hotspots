@@ -2,7 +2,11 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
+<<<<<<< HEAD
     <orderEntry type="jdk" jdkName="Python 2.7" jdkType="Python SDK" />
+=======
+    <orderEntry type="jdk" jdkName="Remote Python 2.7.15 Vagrant VM at ~/vagrant_pdb_wide (/home/vagrant/anaconda2/envs/pdb_wide/bin/python)" jdkType="Python SDK" />
+>>>>>>> 84fe3dabd15dbe5c527781308e06096009c40322
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="R User Library" level="project" />
     <orderEntry type="library" name="R Skeletons" level="application" />

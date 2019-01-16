@@ -38,7 +38,8 @@ from __future__ import print_function, division
 import copy
 import operator
 import tempfile
-from os.path import join
+from os.path import join, dirname
+from os import getcwd
 
 import numpy as np
 from ccdc.cavity import Cavity
@@ -49,11 +50,11 @@ from scipy import optimize
 from scipy.stats import percentileofscore
 from skimage import feature
 
-from hotspots.grid_extension import Grid
+from hotspots.grid_extension import Grid, _GridEnsemble
 from hotspots.hs_utilities import Figures
 from hs_pharmacophore import PharmacophoreModel
 from hs_utilities import Helper
-from atomic_hotspot_calculation import AtomicHotspot
+from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
 
 
 class _Scorer(Helper):
@@ -353,16 +354,78 @@ class Results(object):
 
         return _Scorer(self, obj, tolerance).scored_object
 
-    def get_selectivity_map(self, other):
+    def _filter_map(self, g1, g2, tol):
         """
-        Generate maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
-        by the binding site of interest prior to calculation.
+        Experimental feature.
+        Takes 2 grids of the same size and coordinate frames. Points that are
+        zero in one grid but sampled in the other are
+        set to the mean of their nonzero neighbours. Grids are then subtracted and
+        the result is returned.
+        :param int tol: how many grid points away to consider scores from
+        :param g1: a :class: "ccdc.utilities.Grid" instance
+        :param g2: a :class: "ccdc.utilities.Grid" instance
+        :return: a :class: "ccdc.utilities.Grid" instance
+        """
 
+        def filter_point(x, y, z):
+            loc_arr = np.array(
+                [g[x + i][y + j][z + k] for i in range(-tol, tol + 1) for j in range(-tol, tol + 1) for k in
+                 range(-tol, tol + 1)])
+            if loc_arr[loc_arr > 0].size != 0:
+                #print(np.mean(loc_arr[loc_arr > 0]))
+                new_grid[x][y][z] = np.mean(loc_arr[loc_arr > 0])
+
+        vfilter_point = np.vectorize(filter_point)
+        com_bound_box = g1.bounding_box
+        com_spacing = g1.spacing
+
+        arr1 = g1.get_array()
+        arr2 = g2.get_array()
+
+        b_arr1 = np.copy(arr1)
+        b_arr2 = np.copy(arr2)
+
+        b_arr1[b_arr1 > 0] = 1.0
+        b_arr2[b_arr2 > 0] = -1.0
+
+        diff_arr = b_arr1 + b_arr2
+
+        unmatch1 = np.where(diff_arr == 1)
+        unmatch2 = np.where(diff_arr == -1)
+
+        g = arr1
+        new_grid = np.copy(arr1)
+        vfilter_point(unmatch2[0], unmatch2[1], unmatch2[2])
+        f_arr1 = np.copy(new_grid)
+
+        g = arr2
+        new_grid = np.copy(arr2)
+        vfilter_point(unmatch1[0], unmatch1[1], unmatch1[2])
+        f_arr2 = np.copy(new_grid)
+
+        sel_arr = f_arr1 - f_arr2
+        sel_arr[sel_arr < 0] = 0
+        sel_map = Grid(origin=com_bound_box[0], far_corner=com_bound_box[1], spacing=com_spacing, _grid=None)
+
+        idxs = sel_arr.nonzero()
+        vals = sel_arr[idxs]
+
+        as_triads = zip(*idxs)
+        for (i, j, k), v in zip(as_triads, vals):
+            sel_map._grid.set_value(int(i), int(j), int(k), v)
+
+        return sel_map
+
+    def get_difference_map(self, other, tolerance):
+        """
+        Experimental feature.
+        Generates maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
+        by the binding site of interest prior to calculation.
         High scoring regions of a map represent areas of favourable interaction in the target binding site, not
         present in off target binding site
-
-        :param other: a :class:`hotspots.hotspot_calculation.HotspotResults` instance
-        :return: a :class:`hotspots.hotspot_calculation.HotspotResults` instance
+        :param other: a :class:`hotspots.result.Results` instance
+        :param int tolerance: how many grid points away to apply filter to
+        :return: a :class:`hotspots.result.Results` instance
         """
 
         selectivity_grids = {}
@@ -370,9 +433,35 @@ class Results(object):
             g1 = self.super_grids[probe]
             g2 = other.super_grids[probe]
             og1, og2 = Grid.common_grid([g1, g2])
-            sele = og1 - og2
+            sele = self._filter_map(og1, og2, tolerance)
             selectivity_grids[probe] = sele
-        hr = Results(super_grids=selectivity_grids, protein=self.protein)
+        hr = Results(selectivity_grids, self.protein, None, None)
+        return hr
+
+    @staticmethod
+    def from_grid_ensembles(res_list, prot_name, charged=False):
+        """
+        Experimental feature.
+        Creates ensemble map from a list of Results. Structures in the ensemble have to aligned by the
+        binding site of interest prior to the hotspots calculation.
+        :param res_list: list of hotspots.result.Results
+        :param str prot_name: str
+        :param str out_dir: str
+        :return: a :class:`hotspots.result.Results` instance
+        """
+        if charged:
+            probe_list = ["acceptor", "apolar", "donor", "positive", "negative"]
+        else:
+            probe_list = ["acceptor", "apolar", "donor"]
+
+        grid_dic = {}
+
+        for p in probe_list:
+            grid_list_p = [r.super_grids[p].minimal() for r in res_list]
+            ens = _GridEnsemble()
+            grid_dic[p] = ens.from_grid_list(grid_list_p, getcwd(), prot_name, p)
+
+        hr = Results(grid_dic, protein=res_list[0].protein)
         return hr
 
     def get_pharmacophore_model(self, identifier="id_01", cutoff=5):
@@ -400,7 +489,7 @@ class Results(object):
         :param fpath: path to output file
         :return:
         """
-        data, plt = Figures.histogram(self, plot)
+        data, plt = Figures.histogram(self, plot=True)
         plt.savefig(fpath)
         return data, plt
 
@@ -956,7 +1045,8 @@ class Extractor(object):
             self.settings = self.Settings()
         else:
             self.settings = settings
-
+        self._single_grid = None
+        self._masked_dic = None
         self.settings.mode = mode
         self.settings.volume = volume
         self.settings.pharmacophore = pharmacophores

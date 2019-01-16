@@ -21,13 +21,15 @@ from __future__ import print_function, division
 
 import collections
 import operator
-
 import numpy as np
 from ccdc import utilities
 from hotspots.hs_utilities import Helper
 from scipy import ndimage
 from skimage import feature
-
+from os.path import join, basename
+from scipy.stats import norm
+import matplotlib.pyplot as plt
+import pickle
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -617,3 +619,344 @@ class Grid(utilities.Grid):
             return score
 
 utilities.Grid = Grid
+
+
+class _GridEnsemble(object):
+    """
+    Experimental feature
+    Class that handles a numpy array of tuples from Hotspot maps of a given probe type across multiple structures
+    """
+
+    def __init__(self):
+        self.prot_name = None
+        self.probe = None
+        self.path_list = None
+        self.tup_max_length = None
+        self.results_array = None
+        self.common_grid_origin = None
+        self.common_grid_far_corner = None
+        self.common_grid_nsteps = None
+        self.nonzeros = None
+        self.out_dir = None
+        self.spacing = None
+
+    ###### Functions that generate the ensemble and set attributes
+
+    def _common_grids_from_grid_list(self, grid_list, fnames=None):
+        """
+        Gets the coordinates of a grid that can fit all other grids (to use as basis for self.results_array)
+        :param grid_list: list of 'hotspots.grid_extension.Grid' objects
+        :return: list of 'hotspots.grid_extension.Grid' objects
+        """
+        print("Making array grid {} {}".format(self.prot_name, self.probe))
+        common_grids = Grid.common_grid(grid_list)
+
+        assert (len(set([c.bounding_box for c in common_grids])) == 1), "Common grids don't have same frames"
+        self.spacing = grid_list[0].spacing
+        # assert (common_grids[0].spacing == 0.5), "Grid spacing not 0.5"
+        self.tup_max_length = len(grid_list)
+        self.common_grid_origin = common_grids[0].bounding_box[0]
+        self.common_grid_far_corner = common_grids[0].bounding_box[1]
+        self.common_grid_nsteps = common_grids[0].nsteps
+
+        if fnames:
+            self.path_list = fnames
+
+        return common_grids
+
+    def _common_grids_from_paths(self):
+        """
+        Gets the coordinates of a grid that can fit all other grids (to use as basis for self.results_array)
+        :return: list of 'hotspots.grid_extension.Grid' objects
+        """
+        print('Making array grid')
+        grid_list = [Grid.from_file(f) for f in self.path_list if self.probe in basename(f)]
+        common_grids = self._common_grids_from_grid_list(grid_list)
+        self.tup_max_length = len(grid_list)
+        self.common_grid_origin = common_grids[0].bounding_box[0]
+        self.common_grid_far_corner = common_grids[0].bounding_box[1]
+        self.common_grid_nsteps = common_grids[0].nsteps
+
+
+        return common_grids
+
+    def _get_results_array(self, common_grids):
+        """
+        constructs the numpy array containing the list of tuples.
+        Adjusts the coordinates based on the origins of the grids
+        self.results_array = numpy array
+        :return:
+        """
+        print('Making results array')
+
+        results_array = np.zeros(self.common_grid_nsteps, dtype=tuple)
+        # rec_spacing = 1 / self.spacing
+
+        nx, ny, nz = self.common_grid_nsteps
+        for c in common_grids:
+            for x in range(nx):
+                for y in range(ny):
+                    for z in range(nz):
+                        if c.value(x, y, z) != 0:
+                            if isinstance(results_array[x][y][z], tuple):
+                                results_array[x][y][z] += (c.value(x, y, z),)
+                            else:
+                                results_array[x][y][z] = (c.value(x, y, z),)
+
+        self.results_array = results_array
+        self.nonzeros = self.results_array.nonzero()
+
+    def get_alternative_results_array(self, grid_list):
+        """"
+        Could be of use for larger ensembles.
+        """
+        # Find bounding box of smallest grid that fits all the grids
+        dimensions = np.array([g.bounding_box for g in grid_list])
+
+        self.tup_max_length = len(grid_list)
+        self.common_grid_origin = tuple(np.min(dimensions[:, 0, :], axis=0))
+        self.common_grid_far_corner = tuple(np.max(dimensions[:, 1, :], axis=0))
+
+        origins = dimensions[:, 0, :]
+        print(origins)
+        far_corners = dimensions[:, 1, :]
+        print(far_corners)
+        if self.spacing:
+            rec_spacing = 1 / self.spacing
+        else:
+            rec_spacing = 2
+
+        origin_diff = (origins - self.common_grid_origin) * rec_spacing
+        print(origin_diff)
+
+        if (origins == origins[0]).all() and (far_corners == far_corners[0]).all():
+            print("Grids have same dimensions")
+            self.common_grid_nsteps = grid_list[0].nsteps
+            self._get_results_array(grid_list)
+
+
+        else:
+            comm_grid = Grid(origin=self.common_grid_origin,
+                             far_corner=self.common_grid_far_corner,
+                             spacing=0.5,
+                             _grid=None)
+            self.common_grid_nsteps = comm_grid.nsteps
+
+            results_array = np.zeros(self.common_grid_nsteps, dtype=tuple)
+            assert len(origin_diff) == len(grid_list)
+
+            for i in range(len(origin_diff)):
+                g = grid_list[i]
+                diff = origin_diff[i]
+                d_x, d_y, d_z = diff
+                nx, ny, nz = g.nsteps
+                for x in range(nx):
+                    for y in range(ny):
+                        for z in range(nz):
+                            if g.value(x, y, z) != 0:
+                                if isinstance(results_array[x + int(d_x)][y + int(d_y)][z + int(d_z)], tuple):
+                                    results_array[x + int(d_x)][y + int(d_y)][z + int(d_z)] += (g.value(x, y, z),)
+                                else:
+                                    results_array[x + int(d_x)][y + int(d_y)][z + int(d_z)] = (g.value(x, y, z),)
+
+            self.results_array = results_array
+            self.nonzeros = self.results_array.nonzero()
+
+    #### Functions for analysing ensemble data #####
+
+    def get_gridpoint_means(self):
+        """
+        For each tuple in the GridEnsemble, calculates the means of the tuple
+        :return: list
+        """
+        means = [np.mean(val) for val in self.results_array[self.nonzeros]]
+        return means
+
+    def get_gridpoint_max(self):
+        """
+        For each tuple in the GridEnsemble, calculates the max of the tuple
+        :return: list
+        """
+        maxes = [np.max(val) for val in self.results_array[self.nonzeros]]
+        return maxes
+
+    def get_gridpoint_ranges(self):
+        """
+        For each tuple in the GridEnsemble, returns the difference between max and mean
+        :return: list
+        """
+        ranges = [np.max(val) - np.min(val) for val in self.results_array[self.nonzeros]]
+        return ranges
+
+    def get_gridpoint_means_spread(self):
+        """
+        For tuple in the GridEnsemble, calculates the difference in score between each point in the tuple and the mean of the tuple.
+        :return: Python list
+        """
+        means_spread = []
+        values = self.results_array[self.nonzeros]
+
+        for v in values:
+            num_zeros = self.tup_max_length - len(v)
+            if num_zeros != 0:
+                print('Number of zeros', num_zeros, 'out of ', self.tup_max_length)
+            hist_arr = np.array(v)
+            means_spread.extend(list(hist_arr - np.mean(hist_arr)))
+
+        return means_spread
+
+    #### Functions for plotting histograms of analysed ensemble data ####
+
+
+    def plot_gridpoint_spread(self):
+        '''
+        For each point in the 3D grid, plots the difference in score between each point in the tuple and the mean of the tuple.
+
+        '''
+        # Get the data:
+        means_spread = self.get_gridpoint_means_spread()
+        mean_arr = np.array(means_spread)
+        (mu, sigma) = norm.fit(mean_arr)
+        n, bins, patches = plt.hist(means_spread, bins=40, normed=1)
+        # print(bins)
+        # y_fit = np.random.normal(mu, sigma, np.shape(mean_arr))
+        y = norm.pdf(bins, mu, sigma)
+        a = plt.plot(bins, y, 'r--', linewidth=2)
+        fit_bins = 0.5 * (bins[1:] + bins[:-1])
+        y_fit = norm.pdf(fit_bins, mu, sigma)
+        ss_res = np.sum((n - y_fit) ** 2)
+        ss_tot = np.sum((n - np.mean(n)) ** 2)
+        r2 = 1 - (ss_res / ss_tot)
+        plt.title('Mu: {}, Sigma: {}, R^2 : {} '.format(round(mu, 2), round(sigma, 2), round(r2, 2)))
+        hist_name = self.prot_name + '_{}_gridpoint_spread_fit'.format(self.probe)
+        plt.savefig(join(self.out_dir, hist_name))
+        # plt.show()
+        plt.close()
+
+    def plot_gridpoint_ranges(self):
+        '''
+        Plots the range of the tuple values for each point in the 3D grid
+        :return: ranges = list of the tuple ranges at each point
+        '''
+        ranges = self.get_gridpoint_ranges()
+        plt.hist(ranges, bins=40, normed=0)
+        plt.title('Score ranges for {} {}'.format(self.prot_name, self.probe))
+        hist_name = self.prot_name + '_{}_score_ranges'.format(self.probe)
+        plt.savefig(join(self.out_dir, hist_name))
+        # plt.show()
+        plt.close()
+
+    #### Functions that output analysed ensemble data as Grids ####
+
+    def _make_grid(self, values):
+        """
+        Makes a grid to store output of ranges, max, means, etc
+        Duplicating Grid.from_array
+        :param values:
+        :return:
+        """
+        grid = Grid(origin=self.common_grid_origin,
+                    far_corner=self.common_grid_far_corner,
+                    spacing=0.5,
+                    default=0.0,
+                    _grid=None)
+
+        as_triads = zip(*self.nonzeros)
+        for (i, j, k), v in zip(as_triads, values):
+            grid._grid.set_value(int(i), int(j), int(k), v)
+
+        return grid
+
+    def output_grid(self, mode="max", save=True):
+        """
+        Ouputs ensemble information as ccdc.utilites.Grid
+        :param mode: the operation to be done on each tuple in the grid. Can be "max", "mean", "ranges", or "frequency" (Length of tuple)
+        :param save: bool, whether output should be written to disk
+        :return: a class ccdc.utilities.Grid object
+        """
+        # Get the values
+        if mode == "max":
+            vals = self.get_gridpoint_max()
+        elif mode == "mean":
+            vals = self.get_gridpoint_means()
+        elif mode == "ranges":
+            vals = self.get_gridpoint_ranges()
+        elif mode == "frequency":
+            vals = [np.max(val) - np.min(val) for val in self.results_array[self.nonzeros]]
+        else:
+            print("Unrecognised mode: {}".format(mode))
+            return
+
+        # Fill the grid
+        out_grid = self._make_grid(vals)
+
+        if save:
+            out_grid.write(join(self.out_dir, '{}_{}_{}.ccp4'.format(self.prot_name, mode, self.probe)))
+
+        return out_grid
+
+    ###### Saving and loading ensembles #########
+
+    @staticmethod
+    def load_GridEnsemble(filename):
+        """
+        Loads a pickled _GridEnsemble
+        :param filename: str, full path to pickled grid
+        :return: MegaGrid object
+        """
+        pickle_file = open(filename, 'rb')
+        newGridEnsemble = pickle.load(pickle_file)
+        return newGridEnsemble
+
+    def pickle_GridEnsemble(self):
+        """
+        Saves _GridEnsembles as pickles.
+        :return:
+        """
+        pickle.dump(self, open(join(self.out_dir, '{}_{}_GridEnsemble.p'.format(self.prot_name, self.probe)), 'wb'))
+
+    ###### Functions to run full ensemble calculation and output grids (to integrate into main hotspots code ######
+
+    def from_hotspot_maps(self, path_list, out_dir, prot_name, probe_name, mode="max"):
+        """
+        Creates a GridEnsemble from paths to Hotspot maps for a certain probe
+        :param path_list: list of paths for the hotspot maps
+        :param out_dir: path to where grids and histograms are saved
+        :param prot_name: str
+        :param probe_name: 'donor', 'acceptor', or 'apolar'
+        :return:
+        """
+        print('In from_hotspot_maps')
+        self.path_list = path_list
+        self.out_dir = out_dir
+        self.prot_name = prot_name
+        self.probe = probe_name
+
+        common_grids = self._common_grids_from_paths()
+        # grid_list = [Grid.from_file(p) for p in self.path_list]
+        # self.get_alternative_results_array(grid_list)
+        self._get_results_array(common_grids)
+
+        return self.output_grid(mode, save=False)
+
+    def from_grid_list(self, grid_list, out_dir, prot_name, probe_name, mode="max"):
+        """
+        Creates a GridEnsemble from Hotspot maps for a certain probe
+        :param grid_list:
+        :param out_dir:
+        :param prot_name:
+        :param probe_name:
+        :return:
+        """
+        self.out_dir = out_dir
+        self.prot_name = prot_name
+        self.probe = probe_name
+        print("Making ensemble {} {}".format(self.prot_name, self.probe))
+
+        common_grids = self._common_grids_from_grid_list(grid_list)
+        self._get_results_array(common_grids)
+        # self.get_alternative_results_array(grid_list)
+        print(self.common_grid_origin, self.common_grid_far_corner)
+
+        return self.output_grid(mode, save=False)
+

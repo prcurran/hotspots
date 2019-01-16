@@ -1,6 +1,8 @@
 *.pyc
 .idea
 .idea/*
+.idea/misc.xml
+.idea/fragment_hotspot_maps.iml
 *.egg-info
 hotspots0.1.zip
 dist
