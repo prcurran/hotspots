@@ -36,6 +36,8 @@ import numpy as np
 from ccdc import io
 from ccdc.descriptors import GeometricDescriptors
 from ccdc.molecule import Atom, Molecule
+
+
 from ccdc.pharmacophore import Pharmacophore
 from grid_extension import Grid, Coordinates
 
@@ -255,7 +257,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         try:
             Pharmacophore.read_feature_definitions()
         except:
-            raise ImportError("CrossMiner must be installed")
+            raise ImportError("Crossminer is only available to CSD-Discovery")
 
         feature_definitions = {supported_features[fd.identifier]: fd for fd in Pharmacophore.feature_definitions.values()
                                if fd.identifier in supported_features.keys()}
@@ -491,7 +493,11 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                     w.write(l)
             ligands = list(io.CrystalReader(join(temp, "ligs.mol2")))
 
-        Pharmacophore.read_feature_definitions()
+        try:
+            Pharmacophore.read_feature_definitions()
+        except:
+            raise ImportError("Crossminer is only available to CSD-Discovery")
+
         feature_definitions = [fd for fd in Pharmacophore.feature_definitions.values() if
                                fd.identifier != 'exit_vector' and
                                fd.identifier != 'heavy_atom' and
