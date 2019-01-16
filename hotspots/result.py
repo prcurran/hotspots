@@ -56,7 +56,7 @@ from hs_utilities import Helper
 from atomic_hotspot_calculation import AtomicHotspot
 
 
-class _Scorer(object):
+class _Scorer(Helper):
     """a class to handle the annotation of objects with Fragment Hotspot Scores"""
 
     def __init__(self, hotspot_result, obj, tolerance):
@@ -87,10 +87,11 @@ class _Scorer(object):
         """
         score a protein's atoms, values stored as partial charge
         h_bond_distance between 1.5 - 2.5 A (2.0 A taken for simplicity)
+        This method uses the cavity API to reduce the number of atoms to iterate over.
         :return:
         """
         # TODO: enable cavities to be generated from Protein objects
-        #
+        feats = set([f for f in self.hotspot_result.features])
         prot = self.object
         h_bond_distance = 2.0
         interaction_pairs = {"acceptor": "donor",
@@ -104,31 +105,39 @@ class _Scorer(object):
 
         cavities = Helper.cavity_from_protein(self.object)
         for cavity in cavities:
-
             for feature in cavity.features:
-                grid_type = interaction_pairs[feature.type]
+                for atm in feature.residue.atoms:
+                    # score with apolar atoms
+                    if atm.is_donor is False and atm.is_acceptor is False and atm.atomic_number != 1:
+                        score = self.hotspot_result.super_grids['apolar'].get_near_scores(atm.coordinates)
+                        if len(score) == 0:
+                            score = 0
+                        else:
+                            score = max(score)
+                        prot.atoms[atm.index].partial_charge = score
 
-                if feature.type == "aliphatic" or feature.type == "aromatic":
-                    coordinates = Helper.cavity_centroid(feature)
-
-                else:
+                # deal with polar atoms using cavity
+                if feature.type == "acceptor" or feature.type == "donor" or feature.type =="doneptor":
                     v = feature.protein_vector
                     translate = tuple(map(h_bond_distance.__mul__, (v.x, v.y, v.z)))
                     c = feature.coordinates
                     coordinates = tuple(map(operator.add, (c.x, c.y, c.z), translate))
 
-                if feature.atom:
-                    score = self._score_atom_type(grid_type, coordinates)
-                    prot.atoms[feature.atom.index].partial_charge = score
-                    a = [a.index for a in prot.atoms[feature.atom.index].neighbours
-                         if int(a.atomic_number) == 1]
+                    if feature.atom:
+                        score = [f.score_value for f in feats if f.grid.contains_point(coordinates, tolerance=2)
+                                                                and f.feature_type == interaction_pairs[feature.type]]
+                        if len(score) == 0:
+                            score = 0
+                        else:
+                            score = max(score)
+                        prot.atoms[feature.atom.index].partial_charge = score
 
-                    if len(a) > 0:
-                        for atm in a:
-                            prot.atoms[atm].partial_charge = score
-
-                else:
-                    continue
+                        # score hydrogen atoms (important for GOLD)
+                        a = [a.index for a in prot.atoms[feature.atom.index].neighbours
+                             if int(a.atomic_number) == 1]
+                        if len(a) > 0:
+                            for atm in a:
+                                prot.atoms[atm].partial_charge = score
 
         return prot
 
@@ -160,20 +169,20 @@ class _Scorer(object):
         sg = Grid.get_single_grid(self.hotspot_result.super_grids, mask=False)
         return sg.grid_score(threshold=threshold, percentile=percentile)
 
-    def _score_atom_type(self, grid_type, coordinates):
-        """
-        atom
-        :param grid_type:
-        :param coordinate:
-        :param tolerance:
-        :return:
-        """
-        if grid_type == "doneptor":
-            grid_type = self._doneptor_grid(coordinates)
-
-        return self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
-                                                                              tolerance=self.tolerance,
-                                                                              position=False)
+    # def _score_atom_type(self, grid_type, coordinates):
+    #     """
+    #     atom
+    #     :param grid_type:
+    #     :param coordinate:
+    #     :param tolerance:
+    #     :return:
+    #     """
+    #     if grid_type == "doneptor":
+    #         grid_type = self._doneptor_grid(coordinates)
+    #
+    #     return self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
+    #                                                                           tolerance=self.tolerance,
+    #                                                                           position=False)
 
     def _percentage_rank(self, obj, threshold=5):
         """
@@ -193,22 +202,22 @@ class _Scorer(object):
 
         return mol
 
-    def _doneptor_grid(self, coordinates):
-        """
-        An atom is scored from the grid which yields the highest value
-        :param coordinates:
-        :param grid_type:
-        :return:
-        """
-        scores = [self.hotspot_result.super_grids["donor"].value_at_coordinate(coordinates,
-                                                                               tolerance=self.tolerance,
-                                                                               position=False),
-                  self.hotspot_result.super_grids["acceptor"].value_at_coordinate(coordinates,
-                                                                                  tolerance=self.tolerance,
-                                                                                  position=False)
-                  ]
-        d = dict(zip(scores, ["donor", "acceptor"]))
-        return d[max(d.keys())]
+    # def _doneptor_grid(self, coordinates):
+    #     """
+    #     An atom is scored from the grid which yields the highest value
+    #     :param coordinates:
+    #     :param grid_type:
+    #     :return:
+    #     """
+    #     scores = [self.hotspot_result.super_grids["donor"].value_at_coordinate(coordinates,
+    #                                                                            tolerance=self.tolerance,
+    #                                                                            position=False),
+    #               self.hotspot_result.super_grids["acceptor"].value_at_coordinate(coordinates,
+    #                                                                               tolerance=self.tolerance,
+    #                                                                               position=False)
+    #               ]
+    #     d = dict(zip(scores, ["donor", "acceptor"]))
+    #     return d[max(d.keys())]
 
     @staticmethod
     def _atom_type(atom):
@@ -250,6 +259,7 @@ class Results(object):
         self.protein = protein
         self.buriedness = buriedness
         self.pharmacophore = None
+        self.features = self._get_features(interaction_dict=super_grids)
 
         if pharmacophore:
             self.pharmacophore = self.get_pharmacophore_model()
@@ -328,7 +338,6 @@ class Results(object):
             all += x.tolist()
 
         return np.median(all)
-
 
 
     def score(self, obj=None, tolerance=2):

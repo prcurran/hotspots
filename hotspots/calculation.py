@@ -743,8 +743,6 @@ class Runner(object):
             a.settings.atomic_probes = {"negative": "CARBOXYLATE OXYGEN", "positive": "CHARGED NH NITROGEN"}
 
         probe_types = a.settings.atomic_probes.keys()
-        print(__name__)
-
         self.superstar_grids = a.calculate(protein=self.protein,
                                            nthreads=self.nprocesses,
                                            cavity_origins=self.cavities)
@@ -788,6 +786,7 @@ class Runner(object):
         for lig in self.protein.ligands:
             self.protein.remove_ligand(lig.identifier)
         self.protein.remove_all_metals()
+        self.protein.add_hydrogens()
 
     def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method='ghecom',
                      cavities=None, nprocesses=1, settings=None):
@@ -837,8 +836,6 @@ class Runner(object):
 
         fname = join(tmp, "{}.pdb".format(pdb_code))
         self.protein = Protein.from_file(fname)
-
-        print(self.protein.atoms)
         self.prepare_protein()
         self.charged_probes = charged_probes
         self.probe_size = probe_size

@@ -55,6 +55,18 @@ class Grid(utilities.Grid):
 
         return dic
 
+    def get_near_scores(self, coordinate, tolerance=3):
+        """"""
+        i, j, k = self.point_to_indices(coordinate)
+
+        ri = range(i - tolerance, i + tolerance)
+        rj = range(j - tolerance, j + tolerance)
+        rk = range(k - tolerance, k + tolerance)
+
+
+        return [self.value(a, b, c) for a in ri for b in rj for c in rk if self.value(a,b,c) > 0]
+
+
     def grid_values(self, threshold=0):
         """"""
         array = self.get_array()

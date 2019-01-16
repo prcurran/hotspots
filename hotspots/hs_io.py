@@ -98,7 +98,7 @@ class HotspotWriter(Helper):
                 self.settings.grid_extension = ".ccp4"
                 print("WARNING: Grids must be .ccp4 format for visualisation with NGLViewer")
 
-        self.path = path
+        self.path = self.get_out_dir(path)
         self.zipped = zip_results
 
     def __enter__(self):
