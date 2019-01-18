@@ -155,7 +155,6 @@ class Helper(object):
                                 interaction_types.append(atom_dic[p])
                                 coordinates.append(island.centroid())
                                 scores.append(island.grid_score(threshold=threshold, percentile=50))
-
             except:
                 print("object not supported")
 

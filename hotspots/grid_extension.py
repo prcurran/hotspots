@@ -57,17 +57,36 @@ class Grid(utilities.Grid):
 
         return dic
 
+    @staticmethod
+    def _tolerance_range(value, tolerance, min, max):
+        """
+        checks that a given range is within min and max. Returns a value range
+        :param value: int, i j k indice
+        :param min: integer, always 0
+        :param max: integer, always nstep
+        :return: range
+        """
+        low = value - tolerance
+        if low < 0:
+            low = 0
+
+        high = value + tolerance
+        if high > max:
+            high = max
+        return range(low, high)
+
     def get_near_scores(self, coordinate, tolerance=3):
-        """"""
+        """
+        for a given grid point, return a list of values within a search tolerance
+        :param coordinate: tuple, floats
+        :param tolerance: integer
+        :return:
+        """
         i, j, k = self.point_to_indices(coordinate)
-
-        ri = range(i - tolerance, i + tolerance)
-        rj = range(j - tolerance, j + tolerance)
-        rk = range(k - tolerance, k + tolerance)
-
-
+        ri = self._tolerance_range(i, tolerance, 0, self.nsteps[0])
+        rj = self._tolerance_range(j, tolerance, 0, self.nsteps[1])
+        rk = self._tolerance_range(k, tolerance, 0, self.nsteps[2])
         return [self.value(a, b, c) for a in ri for b in rj for c in rk if self.value(a,b,c) > 0]
-
 
     def grid_values(self, threshold=0):
         """"""

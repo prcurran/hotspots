@@ -25,6 +25,8 @@ DockingLib.licence_check()
 
 from hotspots.result import Extractor
 
+import numpy as np
+
 
 class DockerSettings(docking.Docker.Settings):
     class HotspotHBondConstraint(docking.Docker.Settings.Constraint):
@@ -64,20 +66,31 @@ class DockerSettings(docking.Docker.Settings):
             :param hr: a `hotspots.calculation.Result`
             :return:
             """
-            for atm in protein.atoms:
-                atm.partial_charge = 0
 
+            for atm in protein.atoms:
+                atm.partial_charge = int(0)
             prot = hr.score(protein)
-            with io.MoleculeWriter("/home/pcurran/use_case/scored_prot.mol2") as w:
-                w.write(prot)
+
+            coords = np.array([a.coordinates for a in prot.atoms])
             atm_dic = {atm.partial_charge: atm for atm in prot.atoms
                        if type(atm.partial_charge) is float
                        and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
+                       and _is_solvent_accessible(coords, atm, min_distance=2)
                        }
 
-            scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
+            print atm_dic
+
+            if len(atm_dic) > max_constraints:
+                scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
+            else:
+                scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
 
             selected = [atm_dic[s] for s in scores]
+
+            print selected[0].index, selected[0].atomic_symbol, selected[0]
+
+            print selected[0].atomic_number, selected[0].neighbours[0].is_donor, selected[0].is_acceptor
+
             return DockerSettings.HotspotHBondConstraint(atoms=selected,
                                                          weight=weight,
                                                          hotspot_score=scores,
@@ -111,7 +124,7 @@ class DockerSettings(docking.Docker.Settings):
             dic = bv.grid_value_by_coordinates(threshold=17)
 
         else:
-            raise TypeError("{} not supported, see documentation for detials".format(mode))
+            raise TypeError("{} not supported, see documentation for details".format(mode))
 
         for score, v in dic.items():
             for pts in v:
@@ -122,11 +135,33 @@ class DockerSettings(docking.Docker.Settings):
                 atm.partial_charge = score
                 mol.add_atom(atom=atm)
 
-        fname = os.path.join(temp, "test.mol2")
+        fname = os.path.join(temp, 'fit_pts.mol2')
         with io.MoleculeWriter(fname) as w:
             w.write(mol)
 
         self.fitting_points_file = fname
 
+
+def _is_solvent_accessible(protein_coords, atm, min_distance=2):
+    """
+    given a protein and an atom of a protein, determine if the atom is accessible to solvent
+    :param protein:
+    :param atm:
+    :return:
+    """
+    # HeavyAtom to Hydrogen
+    if str(atm.atomic_symbol) == 'H':
+        atm_position = np.array(atm.coordinates)
+        neighbour = np.array(atm.neighbours[0].coordinates)
+        direction = np.subtract(atm_position, neighbour) * 2
+        position = np.array([direction + atm_position])
+        distance = min(np.linalg.norm(protein_coords-position, axis=1))
+        if distance > min_distance:
+            return True
+        else:
+            return False
+
+    else:
+        return True
 
 docking.Docker.Settings = DockerSettings

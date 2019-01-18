@@ -170,20 +170,20 @@ class _Scorer(Helper):
         sg = Grid.get_single_grid(self.hotspot_result.super_grids, mask=False)
         return sg.grid_score(threshold=threshold, percentile=percentile)
 
-    # def _score_atom_type(self, grid_type, coordinates):
-    #     """
-    #     atom
-    #     :param grid_type:
-    #     :param coordinate:
-    #     :param tolerance:
-    #     :return:
-    #     """
-    #     if grid_type == "doneptor":
-    #         grid_type = self._doneptor_grid(coordinates)
-    #
-    #     return self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
-    #                                                                           tolerance=self.tolerance,
-    #                                                                           position=False)
+    def _score_atom_type(self, grid_type, coordinates):
+        """
+        atom
+        :param grid_type:
+        :param coordinate:
+        :param tolerance:
+        :return:
+        """
+        if grid_type == "doneptor":
+            grid_type = self._doneptor_grid(coordinates)
+
+        return self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
+                                                                              tolerance=self.tolerance,
+                                                                              position=False)
 
     def _percentage_rank(self, obj, threshold=5):
         """
@@ -203,22 +203,22 @@ class _Scorer(Helper):
 
         return mol
 
-    # def _doneptor_grid(self, coordinates):
-    #     """
-    #     An atom is scored from the grid which yields the highest value
-    #     :param coordinates:
-    #     :param grid_type:
-    #     :return:
-    #     """
-    #     scores = [self.hotspot_result.super_grids["donor"].value_at_coordinate(coordinates,
-    #                                                                            tolerance=self.tolerance,
-    #                                                                            position=False),
-    #               self.hotspot_result.super_grids["acceptor"].value_at_coordinate(coordinates,
-    #                                                                               tolerance=self.tolerance,
-    #                                                                               position=False)
-    #               ]
-    #     d = dict(zip(scores, ["donor", "acceptor"]))
-    #     return d[max(d.keys())]
+    def _doneptor_grid(self, coordinates):
+        """
+        An atom is scored from the grid which yields the highest value
+        :param coordinates:
+        :param grid_type:
+        :return:
+        """
+        scores = [self.hotspot_result.super_grids["donor"].value_at_coordinate(coordinates,
+                                                                               tolerance=self.tolerance,
+                                                                               position=False),
+                  self.hotspot_result.super_grids["acceptor"].value_at_coordinate(coordinates,
+                                                                                  tolerance=self.tolerance,
+                                                                                  position=False)
+                  ]
+        d = dict(zip(scores, ["donor", "acceptor"]))
+        return d[max(d.keys())]
 
     @staticmethod
     def _atom_type(atom):
@@ -317,16 +317,17 @@ class Results(object):
         def rank(self):
             return self._rank
 
-        def score_feature(self):
+        def score_feature(self, threshold=14, percentile=50):
             """
             returns
             :return:
             """
-            nx, ny, nz = self.grid.nsteps
-
-            return sum([self.grid.value(i, j, k)
-                        for i in range(nx) for j in range(ny) for k in range(nz)
-                        if self.grid.value(i, j, k) > 0]) / self.count
+            #nx, ny, nz = self.grid.nsteps
+            return self.grid.grid_score(threshold=threshold,
+                                        percentile=percentile)
+            # return sum([self.grid.value(i, j, k)
+            #             for i in range(nx) for j in range(ny) for k in range(nz)
+            #             if self.grid.value(i, j, k) > 0]) / self.count
 
     def tractability_scores(self):
         extractor_settings = Extractor.Settings()
