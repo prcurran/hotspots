@@ -354,7 +354,10 @@ class Grid(utilities.Grid):
 
     def minimal(self):
         """Reduces grid size to the minimal dimensions"""
-        return Grid.super_grid(1, *self.islands(threshold=1))
+        try:
+            return Grid.super_grid(1, *self.islands(threshold=1))
+        except RuntimeError:
+            return self
 
     def limit_island_size(self, npoints, threshold=10):
         """for a given grid, there are no islands above npoints (at any value)"""
@@ -520,7 +523,7 @@ class Grid(utilities.Grid):
         :param scaling: float
         :return: `hotspots.grid_extension.Grid`
         """
-        g = Grid.initalise_grid(coords=mol.atoms)
+        g = Grid.initalise_grid(coords=[a.coordinates for a in  mol.atoms])
         for a in mol.heavy_atoms:
             g.set_sphere(point=a.coordinates,
                          radius=a.vdw_radius * scaling,
