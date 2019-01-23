@@ -33,7 +33,7 @@ class DockerSettings(docking.Docker.Settings):
         """A protein HBond constraint constructed from a hotspot
         Assign Protein Hbond constraints based on the highest scoring interactions."""
 
-        def __init__(self, atoms, weight=5.0, min_hbond_score=0.001, hotspot_score=None, _constraint=None):
+        def __init__(self, atoms, weight=5.0, min_hbond_score=0.001, _constraint=None):
             '''Initialise a HotspotHBondConstraint constraint.
 
             :param atoms: a list :class:`ccdc.molecule.Atom` instances from the protein.
@@ -51,7 +51,6 @@ class DockerSettings(docking.Docker.Settings):
                 ):
                     raise RuntimeError('One of the atoms does not form an HBond')
             self._add_to_protein = atoms[0]._molecule
-            self.hotspot_scores = hotspot_score
             self.weight = weight
             self.min_hbond_score = min_hbond_score
             if _constraint is None:
@@ -60,7 +59,7 @@ class DockerSettings(docking.Docker.Settings):
             super(self.__class__, self).__init__(_constraint)
 
         @staticmethod
-        def from_hotspot(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001):
+        def from_hotspot(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001, cutoff=14):
             """
             construct a Hotspot HBondConstraint
             :param hr: a `hotspots.calculation.Result`
@@ -85,16 +84,17 @@ class DockerSettings(docking.Docker.Settings):
             else:
                 scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
 
-            selected = [atm_dic[s] for s in scores]
+            return [DockerSettings.HotspotHBondConstraint(atoms=[atm_dic[s]],
+                                                          weight=weight * s,
+                                                          min_hbond_score=min_hbond_score)
+                    for s in scores if s > cutoff]
 
-            print selected[0].index, selected[0].atomic_symbol, selected[0]
+            #
+            # return DockerSettings.HotspotHBondConstraint(atoms=selected,
+            #                                              weight=weight,
+            #                                              hotspot_score=scores,
+            #                                              min_hbond_score=min_hbond_score)
 
-            print selected[0].atomic_number, selected[0].neighbours[0].is_donor, selected[0].is_acceptor
-
-            return DockerSettings.HotspotHBondConstraint(atoms=selected,
-                                                         weight=weight,
-                                                         hotspot_score=scores,
-                                                         min_hbond_score=min_hbond_score)
 
         def _to_string(self):
             s = '%.4f %.4f %s' % (

@@ -135,7 +135,7 @@ class Organiser(argparse.ArgumentParser):
         """
         rescored_mols = []
         mol_dic = {}
-        self.docked_ligands = [self.hr.score(m) for m in self.docked_ligands]
+        self.docked_ligands = [self.hr.score(m.molecule) for m in self.docked_ligands]
         for m in self.docked_ligands:
             array = []
             for atm in m.atoms:
@@ -155,7 +155,10 @@ class Organiser(argparse.ArgumentParser):
                     mol_dic.update({g: [m]})
 
         for key in sorted(mol_dic.keys(), reverse=True):
-            rescored_mols.extend(mol_dic[key])
+            for mol in mol_dic[key]:
+                mol.identifier = "{}".format(key)
+                rescored_mols.append(mol)
+
 
         return rescored_mols
 
@@ -204,32 +207,36 @@ class Organiser(argparse.ArgumentParser):
             e_settings = result.Extractor.Settings()
             e_settings.mvon = True
             extractor = result.Extractor(self.hr, settings=e_settings)
-            bv = extractor.extract_best_volume(volume=400)[0]
+            bv = extractor.extract_best_volume(volume=300)[0]
             f = hs_utilities.Helper.get_out_dir(os.path.join(self.args.path, "best_volume"))
 
             with hs_io.HotspotWriter(path=f) as hw:
                 hw.write(bv)
-            hs = docker.settings.HotspotHBondConstraint.from_hotspot(protein=docker.settings.proteins[0],
-                                                                     hr=bv,
-                                                                     weight=150,
-                                                                     max_constraints=5)
 
-            docker.settings.add_constraint(hs)
+            constraints = docker.settings.HotspotHBondConstraint.from_hotspot(protein=docker.settings.proteins[0],
+                                                                     hr=bv,
+                                                                     weight=5,
+                                                                     min_hbond_score=0.5,
+                                                                     max_constraints=3)
+
+            for constraint in constraints:
+                docker.settings.add_constraint(constraint)
             docker.settings.add_apolar_fitting_points(hr=bv)
 
             mol = Molecule(identifier="constraints")
-            for a in hs.atoms:
-                mol.add_atom(Atom(atomic_symbol="C",
-                                  atomic_number=14,
-                                  label="Du",
-                                  coordinates=a.coordinates))
+            for constraint in constraints:
+                for a in constraint.atoms:
+                    mol.add_atom(Atom(atomic_symbol="C",
+                                      atomic_number=14,
+                                      label="Du",
+                                      coordinates=a.coordinates))
 
             with MoleculeWriter(os.path.join(self.args.path, "constaints.mol2")) as w:
                 w.write(mol)
 
         docker.dock()
-        return MoleculeReader(os.path.join(docker.settings.output_directory,
-                                           docker.settings.output_file))
+        results = docker.Results(docker.settings)
+        return results.ligands
 
     def write(self, fname="results.mol2"):
         """
@@ -243,7 +250,9 @@ class Organiser(argparse.ArgumentParser):
                     w.write(l)
             except:
                 for l in self.docked_ligands:
-                    w.write(l)
+                    mol = l.molecule
+                    mol.identifier = "{}".format(l.fitness())
+                    w.write(mol)
 
     def clean_up(self):
         """

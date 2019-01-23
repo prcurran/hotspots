@@ -1,6 +1,6 @@
 @<TRIPOS>MOLECULE
 constraints
-     5     0     1     0     0
+     3     0     1     0     0
 SMALL
 NO_CHARGES
 ****
@@ -10,7 +10,5 @@ Generated from the CSD - Crystal connectivity not present
      1 Du     106.8496 103.1854  78.2181   C.3       1 RES1   0.0000
      2 Du     105.0619 103.1252  76.5293   C.3       1 RES1   0.0000
      3 Du     101.1429  95.3234  78.5262   C.3       1 RES1   0.0000
-     4 Du      98.7230 101.3727  75.1266   C.3       1 RES1   0.0000
-     5 Du      94.4370  97.8643  84.7322   C.3       1 RES1   0.0000
 @<TRIPOS>SUBSTRUCTURE
      1 RES1        1 GROUP             0 ****  ****    0  
