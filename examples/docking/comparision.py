@@ -8,6 +8,8 @@ from ccdc.io import MoleculeReader
 
 from pdb_python_api import PDBResult
 
+import numpy as np
+import pandas as pd
 
 class Organiser(argparse.ArgumentParser):
     """
@@ -70,15 +72,22 @@ class Organiser(argparse.ArgumentParser):
 
         self.results = MoleculeReader(os.path.join(os.path.dirname(os.path.realpath(__file__)), self.args.results))
 
-    def rmsd(self):
+        self.rmsd_values = []
+        for l in self.results:
+            self.rmsd_values.append(self.rmsd(l, self.reference_ligand))
+
+
+    def rmsd(self, ligand, reference):
         """
         prepares molecules for rmsd calculation
         :param a:
         :param b:
         :return:
         """
-        self.reference_ligand = self._clean_mol(self.reference_ligand)
-        return[MolecularDescriptors.rmsd(self.reference_ligand, self._clean_mol(l)) for l in self.results]
+        return MolecularDescriptors.rmsd(self._clean_mol(ligand), reference)
+
+        # self.reference_ligand = self._clean_mol(self.reference_ligand)
+        # return[MolecularDescriptors.rmsd(self.reference_ligand, self._clean_mol(l)) for l in self.results]
 
     @staticmethod
     def _clean_mol(mol):
@@ -123,7 +132,15 @@ class Organiser(argparse.ArgumentParser):
 
 def main():
     results = Organiser()
-    print np.mean(results.rmsd())
+
+    score = [r.identifier for r in results.results]
+    rmsd = [r for r in results.rmsd_values]
+    ident = ["ID {}".format(str(i)) for i in range(len(rmsd))]
+    df = pd.DataFrame({"ID": ident,
+                       "score": score,
+                       "rmsd": rmsd})
+
+    df.to_csv(os.path.join(os.path.dirname(results.args.results), "compare.csv"))
 
 if __name__ == "__main__":
     main()

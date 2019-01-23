@@ -132,39 +132,44 @@ for t in threshold_list:
 
 cluster_dict = {"rank_1":[], "rank_1_arrows":[]}
 
-cluster_dict["rank_1"] += [COLOR, 0.00, 0.00, 1.00] + [ALPHA, 0.6] + [SPHERE, float(94.0), float(94.5), float(83.0), float(1.0)]
+cluster_dict["rank_1"] += [COLOR, 0.00, 0.00, 1.00] + [ALPHA, 0.6] + [SPHERE, float(101.5), float(100.5), float(79.0), float(1.0)]
 
-cluster_dict["rank_1_arrows"] += cgo_arrow([94.0,94.5,83.0], [94.4359725254,97.8613302701,84.731173863], color="blue red", name="Arrows_rank_1_1")
+cluster_dict["rank_1_arrows"] += cgo_arrow([101.5,100.5,79.0], [99.3539190176,97.9993265054,75.8282606673], color="blue red", name="Arrows_rank_1_1")
 
 cluster_dict["rank_1"] += [COLOR, 0.00, 0.00, 1.00] + [ALPHA, 0.6] + [SPHERE, float(101.5), float(100.5), float(79.0), float(1.0)]
 
 cluster_dict["rank_1_arrows"] += cgo_arrow([101.5,100.5,79.0], [99.3539190176,97.9993265054,75.8282606673], color="blue red", name="Arrows_rank_1_2")
 
-cluster_dict["rank_1"] += [COLOR, 0.00, 0.00, 1.00] + [ALPHA, 0.6] + [SPHERE, float(101.5), float(100.5), float(79.0), float(1.0)]
+cluster_dict["rank_1"] += [COLOR, 1.00, 0.00, 0.00] + [ALPHA, 0.6] + [SPHERE, float(100.0), float(93.0), float(83.0), float(1.0)]
 
-cluster_dict["rank_1_arrows"] += cgo_arrow([101.5,100.5,79.0], [99.3539190176,97.9993265054,75.8282606673], color="blue red", name="Arrows_rank_1_3")
-
-cluster_dict["rank_1"] += [COLOR, 1.00, 0.00, 0.00] + [ALPHA, 0.6] + [SPHERE, float(94.5), float(90.5), float(83.0), float(1.0)]
-
-cluster_dict["rank_1_arrows"] += cgo_arrow([94.5,90.5,83.0], [93.3759840582,87.6766081169,83.3211876105], color="red blue", name="Arrows_rank_1_4")
+cluster_dict["rank_1_arrows"] += cgo_arrow([100.0,93.0,83.0], [102.239887618,91.3185087631,82.099199525], color="red blue", name="Arrows_rank_1_3")
 
 cluster_dict["rank_1"] += [COLOR, 1.00, 0.00, 0.00] + [ALPHA, 0.6] + [SPHERE, float(100.0), float(103.0), float(76.0), float(1.0)]
 
-cluster_dict["rank_1_arrows"] += cgo_arrow([100.0,103.0,76.0], [99.3359192134,100.912247039,74.459274015], color="red blue", name="Arrows_rank_1_5")
+cluster_dict["rank_1_arrows"] += cgo_arrow([100.0,103.0,76.0], [99.3359192134,100.912247039,74.459274015], color="red blue", name="Arrows_rank_1_4")
 
 cluster_dict["rank_1"] += [COLOR, 1.00, 0.00, 0.00] + [ALPHA, 0.6] + [SPHERE, float(100.5), float(100.5), float(77.0), float(1.0)]
 
-cluster_dict["rank_1_arrows"] += cgo_arrow([100.5,100.5,77.0], [99.3359192134,100.912247039,74.459274015], color="red blue", name="Arrows_rank_1_6")
+cluster_dict["rank_1_arrows"] += cgo_arrow([100.5,100.5,77.0], [99.3359192134,100.912247039,74.459274015], color="red blue", name="Arrows_rank_1_5")
 
 cluster_dict["rank_1"] += [COLOR, 1.00, 0.00, 0.00] + [ALPHA, 0.6] + [SPHERE, float(101.0), float(98.5), float(83.0), float(1.0)]
 
-cluster_dict["rank_1_arrows"] += cgo_arrow([101.0,98.5,83.0], [103.45387441,98.4033154843,84.5691754425], color="red blue", name="Arrows_rank_1_7")
+cluster_dict["rank_1_arrows"] += cgo_arrow([101.0,98.5,83.0], [103.45387441,98.4033154843,84.5691754425], color="red blue", name="Arrows_rank_1_6")
 
 cluster_dict["rank_1"] += [COLOR, 1.00, 0.00, 0.00] + [ALPHA, 0.6] + [SPHERE, float(105.5), float(102.5), float(79.5), float(1.0)]
 
-cluster_dict["rank_1_arrows"] += cgo_arrow([105.5,102.5,79.5], [107.561829715,103.44217802,77.543243946], color="red blue", name="Arrows_rank_1_8")
+cluster_dict["rank_1_arrows"] += cgo_arrow([105.5,102.5,79.5], [107.561829715,103.44217802,77.543243946], color="red blue", name="Arrows_rank_1_7")
 
-cluster_dict["rank_1"] += [COLOR, 1.00, 1.000, 0.000] + [ALPHA, 0.6] + [SPHERE, float(100.929678451), float(99.3533969699), float(80.5174329043), float(1.0)]
+cluster_dict["rank_1"] += [COLOR, 1.00, 1.000, 0.000] + [ALPHA, 0.6] + [SPHERE, float(96.4404638051), float(92.8539517401), float(82.3560117005), float(1.0)]
+
+
+cluster_dict["rank_1"] += [COLOR, 1.00, 1.000, 0.000] + [ALPHA, 0.6] + [SPHERE, float(96.5), float(93.0), float(84.0), float(1.0)]
+
+
+cluster_dict["rank_1"] += [COLOR, 1.00, 1.000, 0.000] + [ALPHA, 0.6] + [SPHERE, float(101.318937137), float(99.7879379828), float(80.3960782506), float(1.0)]
+
+
+cluster_dict["rank_1"] += [COLOR, 1.00, 1.000, 0.000] + [ALPHA, 0.6] + [SPHERE, float(97.0), float(96.5), float(80.0), float(1.0)]
 
 
 cluster_dict["rank_1"] += [COLOR, 0.6, 0.1, 0.6] + [ALPHA, 0.6] + [SPHERE, float(97.5), float(99.5), float(76.0), float(1.0)]
