@@ -520,7 +520,8 @@ class Grid(utilities.Grid):
         :param scaling: float
         :return: `hotspots.grid_extension.Grid`
         """
-        g = Grid.initalise_grid(coords=mol.atoms)
+        coords = [a.coordinates for a in mol.atoms]
+        g = Grid.initalise_grid(coords=coords)
         for a in mol.heavy_atoms:
             g.set_sphere(point=a.coordinates,
                          radius=a.vdw_radius * scaling,

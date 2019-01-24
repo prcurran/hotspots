@@ -134,10 +134,6 @@ class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
                                      'refine.ls_d_res_high.min': '0',
                                      'refine.ls_d_res_high.max': '2.5'},
                    conjunction='and')
-        #
-        # q.add_term(query_type="NoModResQuery",
-        #            query_parameters={"hasModifiedResidues": 'no'},
-        #            conjunction='and')
 
         return PDB.search(q.query)
 
