@@ -329,18 +329,22 @@ class Results(object):
             #             for i in range(nx) for j in range(ny) for k in range(nz)
             #             if self.grid.value(i, j, k) > 0]) / self.count
 
-    def tractability_scores(self):
+    def tractability_map(self):
         extractor_settings = Extractor.Settings()
         extractor_settings.cutoff = 5
         extractor_settings.island_max_size = 500
 
-        extractor = Extractor(self, mode="global", volume=500, settings=extractor_settings)
+        extractor = Extractor(self, settings=extractor_settings)
+        extractor.extract_best_volume(volume=500)
         hist = extractor.extracted_hotspots[0].get_map_values()
         all = []
         for x in hist.values():
             all += x.tolist()
 
-        return np.median(all)
+        best_vol = extractor.extracted_hotspots[0]
+        best_vol.identifier = np.median(all)
+
+        return best_vol
 
 
     def score(self, obj=None, tolerance=2):
@@ -867,6 +871,7 @@ class Extractor(object):
 
 
         if self.settings.mvon:
+
             hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
 
         try:
@@ -880,7 +885,11 @@ class Extractor(object):
         except KeyError:
             pass
 
-        hr.super_grids.update({probe: g.minimal() for probe, g in hr.super_grids.items()})
+        try:
+            hr.super_grids.update({probe: g.minimal() for probe, g in hr.super_grids.items()})
+        except RuntimeError:
+            pass
+
         self.hotspot_result = hr
         self._masked_dic, self._single_grid = Grid.get_single_grid(self.hotspot_result.super_grids)
 
@@ -1266,7 +1275,7 @@ class Extractor(object):
         self.extracted_hotspots = [value for (key, value) in sorted(extracted_hotspots_by_rank.items())]
 
         for i, hs in enumerate(self.extracted_hotspots):
-            hs.identifier = "rank_{}".format(hs.rank)
+            hs.identifier = hs.score_value #"rank_{}".format(hs.rank)
             print("rank", hs.rank, "score", hs.score_value)
 
     def _select_cavity_grids(self, cavs):

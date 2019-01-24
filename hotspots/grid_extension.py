@@ -354,7 +354,10 @@ class Grid(utilities.Grid):
 
     def minimal(self):
         """Reduces grid size to the minimal dimensions"""
-        return Grid.super_grid(1, *self.islands(threshold=1))
+        try:
+            return Grid.super_grid(1, *self.islands(threshold=1))
+        except RuntimeError:
+            return self
 
     def limit_island_size(self, npoints, threshold=10):
         """for a given grid, there are no islands above npoints (at any value)"""
