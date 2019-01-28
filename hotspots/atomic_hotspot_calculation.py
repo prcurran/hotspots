@@ -47,7 +47,7 @@ class AtomicHotspot(object):
             self.database = 'CSD'
             self.mapbackgroundvalue = 1
             self.boxborder = 10
-            self.minpropensity = 1
+            self.minpropensity = 0
             self.superstar_sigma = 0.5
             self.superstar_executable, self.superstar_env = self._set_environment_variables()
             self.temp_dir = tempfile.mkdtemp()
@@ -136,7 +136,8 @@ class AtomicHotspot(object):
         def __init__(self, jobname, probename, settings, cavity=None):
             self.ins_str = atomic_hotspot_ins(jobname, probename, settings)
             if cavity:
-                self.ins_str += '\nCAVITY_ORIGIN {} {} {}'.format(cavity[0], cavity[1], cavity[2])
+                self.ins_str += '\nCAVITY_ORIGIN {} {} {}'.format(round(cavity[0],1), round(cavity[1],1),
+                                                                  round(cavity[2],1))
             else:
                 self.ins_str += '\nSUBSTRUCTURE ALL'
 
@@ -250,6 +251,7 @@ class AtomicHotspot(object):
             cmds = self._get_cmd(protein, cavity_origins)
 
         inputs = zip(cmds, jobnames, env_str, temp_dirs)
+
 
         # paralyze atomic hotspot calculation
         results = []
