@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import collections
 import glob
 import subprocess
@@ -20,27 +22,27 @@ Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
 def _run_job(args):
     """
-    runs atomic hotspot(superstar) job (paralyzable)
-    :param args:
-    :return:
+    Runs an Atomic Hotspot calculation using the SuperStar algorithm.
+    :param tup or list args: Command, Jobname, SuperStar Environment Variable and Temporary directory
+    :return: tup, temporary directory and jobname
     """
     cmd, jobname, superstar_env, temp_dir = args
     env = environ.copy()
     env.update(superstar_env)
     with PushDir(temp_dir):
         subprocess.call(cmd, shell=sys.platform != 'win32', env=env)
-
     return temp_dir, jobname
 
 
 class AtomicHotspot(object):
     """
-    class to handle SuperStar run
+    A class for handling the calculation of Atomic Hotspots using SuperStar
     """
 
     class Settings(object):
         """
-        setting for Superstar run
+        A class to handle the adjustable settings of Atomic Hotspot calculation.
+        NB: not all settings are exposed here, for other settings please look at "atomic_hotspot_ins"
         """
 
         def __init__(self):
@@ -51,18 +53,15 @@ class AtomicHotspot(object):
             self.superstar_sigma = 0.5
             self.superstar_executable, self.superstar_env = self._set_environment_variables()
             self.temp_dir = tempfile.mkdtemp()
-
-            # TODO: decide which probes should be included
-            # TODO: this could be read in from superstar defaults (talk to Richard)
             self._csd_atomic_probes = {}
-
-            # TODO: add PDB probes
             self._pdb_atomic_probes = {}
 
         @staticmethod
         def _set_environment_variables():
             """
-            From the internal API (Thanks Richard!), sets up superstar environment variables
+            private method
+
+            sets up superstar environment variables
             :return: superstar executable (str), superstar env(str)
             """
             base = csd_directory()
@@ -107,6 +106,10 @@ class AtomicHotspot(object):
 
         @property
         def atomic_probes(self):
+            """
+            The probe atoms to be used by the Atomic Hotspot calculation.
+            :return: dict, key- "identifier", value- "SuperStar identifier"
+            """
             if self.database == 'CSD':
                 return self._csd_atomic_probes
 
@@ -118,6 +121,11 @@ class AtomicHotspot(object):
 
         @atomic_probes.setter
         def atomic_probes(self, probes):
+            """
+            The probe atoms to be used by the Atomic Hotspot calculation.
+            :param dict probes: key- "identifier", value- "SuperStar identifier"
+            :return:
+            """
             if self.database == 'CSD':
                 self._csd_atomic_probes.update(probes)
 
@@ -127,7 +135,6 @@ class AtomicHotspot(object):
             else:
                 raise TypeError("Database must be 'CSD' or 'PDB'")
 
-
     class InstructionFile(object):
         """
         A class to handle 'SuperStar' instruction files
@@ -136,12 +143,19 @@ class AtomicHotspot(object):
         def __init__(self, jobname, probename, settings, cavity=None):
             self.ins_str = atomic_hotspot_ins(jobname, probename, settings)
             if cavity:
-                self.ins_str += '\nCAVITY_ORIGIN {} {} {}'.format(round(cavity[0],1), round(cavity[1],1),
-                                                                  round(cavity[2],1))
+                self.ins_str += '\nCAVITY_ORIGIN {} {} {}'.format(round(cavity[0], 1),
+                                                                  round(cavity[1], 1),
+                                                                  round(cavity[2], 1)
+                                                                  )
             else:
                 self.ins_str += '\nSUBSTRUCTURE ALL'
 
         def write(self, fname):
+            """
+            writes out the instruction file
+            :param str fname: path of the output file
+            :return:
+            """
             with open(fname, "w") as f:
                 f.write(self.ins_str)
 
@@ -154,10 +168,12 @@ class AtomicHotspot(object):
 
     def _get_cmd(self, protein, cavity_origin, out=None):
         """
+        private method
+
         constructs the commandline str required to run atomic hotspot calculation
-        :param jobname:
-        :param probename:
-        :param out:
+        :param str jobname: general format (<probe_type>.ins)
+        :param str probename: probe identifier
+        :param str out: output directory (outputting ins maybe useful for debugging)
         :return:
         """
         cmds = []
@@ -174,7 +190,11 @@ class AtomicHotspot(object):
                                                settings=self.settings,
                                                cavity=cavity_origin)
 
-            cmds.append('{}'.format(self.settings.superstar_executable) + ' ' + '{}.ins'.format(jobname))
+            cmds.append('{}'.format(self.settings.superstar_executable)
+                        + ' '
+                        + '{}.ins'.format(jobname)
+                        )
+
             with PushDir(out):
                 instruction.write("{}.ins".format(jobname))
         return cmds
@@ -182,12 +202,12 @@ class AtomicHotspot(object):
     @staticmethod
     def _merge_cavities(results):
         """
+        private method
+
         atomic hotspot results for the same atomic probe but different cavities are combined onto a single grid
-        :param results:
-        :return:
+        :param a `hotspots.atomic_hotspot_calculation.AtomicHotspotResult` instance results: a result object
+        :return: list, of merged AtomicHotspotResults
         """
-        # TODO: supply ins list during AtomicHotspotResult creation, (only if requested)
-        # TODO: deal with background value of 1 during additions
         result_dict = {}
         for result in results:
             if result.identifier in result_dict:
@@ -206,7 +226,6 @@ class AtomicHotspot(object):
             merged_results.append(AtomicHotspotResult(identifier=identifier,
                                                       grid=g,
                                                       buriedness=b,
-                                                      ins = None
                                                       )
                                   )
 
@@ -214,20 +233,17 @@ class AtomicHotspot(object):
 
     def calculate(self, protein, nthreads=None, cavity_origins=None):
         """
-        main function of AtomicHotspot, used to handle atomic hotspot calculations
-        :param protein:
-        :param probes: MUST BE LIST
-        :param nthreads:
-        :param cavity_origins: MUST BE LIST
+        Calculates the Atomic Hotspot, main method of the AtomicHotspot class.
+        :param `ccdc.protein.Protein` protein:
+        :param int nthreads: number of threads to be used in the parallelisation
+        :param list cavity_origins: list of cavity origins. NB: Currently the `hotspots.calculation.Runner` class
+        handles the formatting of cavity data
         :return:
         """
         self._merge = False
         if cavity_origins:
-
             if len(cavity_origins) > 1:
                 self._merge = True
-
-            # create input lists per cavity
             temp_dirs = []
             cmds = []
             env_str = [self.settings.superstar_env] * len(self.settings.atomic_probes) * len(cavity_origins)
@@ -244,7 +260,6 @@ class AtomicHotspot(object):
                 cmds.extend(self._get_cmd(protein, cavity_origin, out=out))
 
         else:
-            # create input lists
             temp_dirs = [self.settings.temp_dir] * len(self.settings.atomic_probes)
             env_str = [self.settings.superstar_env] * len(self.settings.atomic_probes)
             jobnames = self.settings.atomic_probes.keys()
@@ -252,8 +267,6 @@ class AtomicHotspot(object):
 
         inputs = zip(cmds, jobnames, env_str, temp_dirs)
 
-
-        # paralyze atomic hotspot calculation
         results = []
         if nthreads:
             with futures.ProcessPoolExecutor(max_workers=nthreads) as executor:
@@ -265,8 +278,7 @@ class AtomicHotspot(object):
                 t, j = _run_job(input)
                 results.append(AtomicHotspotResult.find(temp_dir=t, jobname=j))
 
-        # merge the atomic hotspot results for different cavities
-        if self._merge == True:
+        if self._merge is True:
             results = self._merge_cavities(results)
 
         return results
@@ -274,16 +286,14 @@ class AtomicHotspot(object):
 
 class AtomicHotspotResult(object):
     """
-    class to store a SuperStar result
-    """
+    A class to handle the results of the Atomic Hotspot calculation
 
+    :param str identifier: identifier of the AtomicHotspotResult, <probe_type>
+    :param `hotspots.grid_extension.Grid` grid: atomic propensity grid from Atomic Hotspot calculation
+    :param `hotspots.grid_extension.Grid` buriedness: pocket grid from Atomic Hotspot calculation
+    :param str ins: the input data to the Atomic Hotspot calculations (superstar ins)
+    """
     def __init__(self, identifier, grid, buriedness, ins=None):
-        """
-        attributes of a AtomicHotspotResult object
-        :param identifier:
-        :param grid:
-        :param buriedness:
-        """
         self._identifier = identifier
         self._grid = grid
         self._buriedness = buriedness
@@ -291,62 +301,75 @@ class AtomicHotspotResult(object):
 
     @property
     def identifier(self):
+        """
+        identifier of the AtomicHotspotResult, <probe_type>
+        :return:
+        """
         return self._identifier
 
     @property
-    def buriedness(self):
-        return self._buriedness
-
-    @property
     def grid(self):
+        """
+        atomic propensity grid from Atomic Hotspot calculation
+        :return:
+        """
         return self._grid
 
     @grid.setter
     def grid(self, g):
+        """
+        atomic propensity grid from Atomic Hotspot calculation
+        :param `hotspots.grid_extension.Grid` g: a grid
+        :return:
+        """
         if isinstance(g, Grid):
             self._grid = g
         else:
             raise IOError("Must supply a hotspots.grid_extension.Grid class instance")
 
+    @property
+    def buriedness(self):
+        """
+        pocket grid from Atomic Hotspot calculation
+        :return:
+        """
+        return self._buriedness
+
     @staticmethod
     def find(temp_dir, jobname):
         """
-        constructs as AtomicHotspotResult object from AtomicHotspot calculation
-        :param settings:
-        :return:
+        searches the calculation working directory and constructs a
+        `hotspots.atomic_hotspots_calculation.AtomHotspotResult` instance
+        :param str temp_dir: path to the temporary calculation directory
+        :param str jobname: name of the atomic probe used in the calculation
+        :return: a `hotspots.atomic_hotspots_calculation.AtomHotspotResult` instance
         """
         grid_path = join(temp_dir, jobname + ".acnt")
-
         grid = Grid.from_file(grid_path)
-
-        # if exists(grid_path):
-        #     grid = Grid.from_file(grid_path)
-        #
-        # else:
-        #     print grid_path
-        #     raise AttributeError('{} superstar grid could not be found'.format(jobname))
-
         buriedness_path = join(temp_dir, jobname + ".ligsite.acnt")
+
         if exists(buriedness_path):
             b = Grid.from_file(buriedness_path)
             buriedness = AtomicHotspotResult._correct_ligsite(grid, b)
 
         else:
-            print buriedness_path
+            print(buriedness_path)
             raise AttributeError('{} ligsite grid could not be found'.format(jobname))
 
         return AtomicHotspotResult(identifier=jobname,
                                    grid=grid,
                                    buriedness=buriedness,
-                                   ins = join(temp_dir, "{}.ins".format(jobname)))
+                                   ins=join(temp_dir, "{}.ins".format(jobname))
+                                   )
 
     @staticmethod
     def _correct_ligsite(g, l):
         """
-        Grid points where ligsite has a score of 0 (i.e. a clash) and SuperStar has a favourable score, set the ligsite
+        a correction applied to the pocket grid created by LIGSITE during the Atomic Hotspot calculation
+        grid points where ligsite has a score of 0 (i.e. a clash) and SuperStar has a favourable score, set the ligsite
         grid point to its maximum neighbour
-        :param g:
-        :param l:
+        :param `ccdc.utilities.Grid` g: atomic hotspot grid
+        :param `ccdc.utilities.Grid` l: pocket grid
         :return:
         """
         mask = ((l < 1) & (g > 2))
@@ -354,7 +377,15 @@ class AtomicHotspotResult(object):
         lc = lc.max_value_of_neighbours().max_value_of_neighbours()
         return l + ((mask * lc).mean_value_of_neighbours() * mask)
 
+
 def atomic_hotspot_ins(jobname, probename, settings):
+    """
+    template for atomic hotspot input file (SuperStar ins)
+    :param str jobname: general format (<probe_type>.ins)
+    :param str probename: probe identifier
+    :param `hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings`settings:
+    :return: str, atomic hotspot calculation input str
+    """
     ss_str = '''
 JOBNAME {0}
 PROBENAME {1}
