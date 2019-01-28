@@ -27,8 +27,6 @@ def _run_job(args):
     cmd, jobname, superstar_env, temp_dir = args
     env = environ.copy()
     env.update(superstar_env)
-    print(temp_dir)
-    print(cmd)
     with PushDir(temp_dir):
         subprocess.call(cmd, shell=sys.platform != 'win32', env=env)
 
