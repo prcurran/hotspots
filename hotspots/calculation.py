@@ -73,8 +73,6 @@ class _Buriedness(object):
             self.radius_max_large_sphere = radius_max_large_sphere
             self.mode = mode
 
-            self.protein = protein
-            self.out_grid = out_grid
             self.working_directory = tempfile.mkdtemp()
             self.in_name = join(self.working_directory, "protein.pdb")
             self.out_name = join(self.working_directory, "ghecom_out.pdb")
@@ -928,7 +926,6 @@ class Runner(object):
         tmp = tempfile.mkdtemp()
         PDBResult(identifier=pdb_code).download(out_dir=tmp)
         fname = join(tmp, "{}.pdb".format(pdb_code))
-
         self.protein = Protein.from_file(fname)
         self.prepare_protein()
         self.charged_probes = charged_probes

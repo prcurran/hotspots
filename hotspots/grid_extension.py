@@ -36,13 +36,13 @@ Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
 class Grid(utilities.Grid):
     """
-    Initialisation handled in the main class
+    A class to extend a `ccdc.utilities.Grid` this provides grid methods required in the Fragment Hotspot Maps algorithm
     """
     def grid_value_by_coordinates(self, threshold=1):
         """
         returns a dictionary of grid point values by coordinates
-        :param threshold:
-        :return:
+        :param int threshold: the island threshold of the grid, only points over this value will be returned
+        :return: dict, grid point values by coordinates
         """
         dic = {}
         nx, ny, nz = self.nsteps
@@ -60,11 +60,14 @@ class Grid(utilities.Grid):
     @staticmethod
     def _tolerance_range(value, tolerance, min, max):
         """
-        checks that a given range is within min and max. Returns a value range
-        :param value: int, i j k indice
-        :param min: integer, always 0
-        :param max: integer, always nstep
-        :return: range
+        private method
+
+        for a given value and tolerance, the method checks that the tolerance range for that value is within the grid
+        boundaries
+        :param int value: an "indice" value either (i or j or k)
+        :param int min: the minimum grid boundary (always = 0)
+        :param int max: the maximum grid boundary (always = n step)
+        :return: range,
         """
         low = value - tolerance
         if low < 0:
@@ -78,8 +81,8 @@ class Grid(utilities.Grid):
     def get_near_scores(self, coordinate, tolerance=3):
         """
         for a given grid point, return a list of values within a search tolerance
-        :param coordinate: tuple, floats
-        :param tolerance: integer
+        :param tup coordinate: coordinate of a point within the grid
+        :param int tolerance: search distance, in grid steps
         :return:
         """
         i, j, k = self.point_to_indices(coordinate)
@@ -89,7 +92,11 @@ class Grid(utilities.Grid):
         return [self.value(a, b, c) for a in ri for b in rj for c in rk if self.value(a,b,c) > 0]
 
     def grid_values(self, threshold=0):
-        """"""
+        """
+
+        :param threshold:
+        :return:
+        """
         array = self.get_array()
         masked_array = np.ma.masked_less_equal(array, threshold)
         return masked_array.compressed()
