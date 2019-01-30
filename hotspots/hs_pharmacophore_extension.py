@@ -17,25 +17,26 @@ from tqdm import tqdm
 
 from hotspots import hs_pharmacophore
 
+
 class PharmacophoreModel(hs_pharmacophore.PharmacophoreModel):
     """
     a class to handle the the generation of diverse set of ligands
     """
 
-    @staticmethod
-    def _img(ligands, out_dir, fname="ligands.png"):
-        out = []
-        for l in ligands:
-            lig = l.rdmol
-            lig.SetProp("_Name", str(l.structure_id + "/" + l.chemical_id))
-            out.append(lig)
-
-        img = Draw.MolsToGridImage(mols=out,
-                                   molsPerRow=10,
-                                   subImgSize=(200, 200),
-                                   legends=[o.GetProp("_Name") for o in out])
-
-        img.save(os.path.join(out_dir, fname))
+    # @staticmethod
+    # def _img(ligands, out_dir, fname="ligands.png"):
+    #     out = []
+    #     for l in ligands:
+    #         lig = l.rdmol
+    #         lig.SetProp("_Name", str(l.structure_id + "/" + l.chemical_id))
+    #         out.append(lig)
+    #
+    #     img = Draw.MolsToGridImage(mols=out,
+    #                                molsPerRow=10,
+    #                                subImgSize=(200, 200),
+    #                                legends=[o.GetProp("_Name") for o in out])
+    #
+    #     img.save(os.path.join(out_dir, fname))
 
     @staticmethod
     def _to_file(ligands, out_dir, fname="ligands.dat"):

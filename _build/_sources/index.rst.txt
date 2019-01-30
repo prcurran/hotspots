@@ -14,10 +14,12 @@ calculations and process the results within Python.
    :caption: Contents:
 
    tutorial
-   hotspot_calculation_api
-   io_api
-   best_volume_api
+   atomic_hotspot_calculation_api
+   calculation_api
+   hs_io_api
+   result_api
    pharmacophore_api
+   docking_api
    utilities_api
 Indices and tables
 ==================

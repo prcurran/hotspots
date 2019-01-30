@@ -1,13 +1,20 @@
 #!/usr/bin/env python
 """
-More information about the fragment hotspot maps method is available from:
-Radoux, C.J. et. al., Identifying the Interactions that Determine Fragment Binding at Protein Hotspots J. Med. Chem.
-2016, 59 (9), 4314-4325
-dx.doi.org/10.1021/acs.jmedchem.5b01980
+The :mod:`hotspots.calculation` handles the main Fragment Hotspot Maps algorithm. In addition, an alternative pocket burial method, Ghecom, is provided.
+
+The main classes of the :mod:`hotspots.calculation` module are:
+
+- :class:`hotspots.calculation.Buriedness`
+- :class:`hotspots.calculation.Runner`
+
+More information about the Fragment Hotspot Maps method is available from:
+    - Radoux, C.J. et. al., Identifying the Interactions that Determine Fragment Binding at Protein Hotspots J. Med. Chem. 2016, 59 (9), 4314-4325 [dx.doi.org/10.1021/acs.jmedchem.5b01980]
+
+More information about the Ghecom method is available from:
+    - Kawabata T, Go N. Detection of pockets on protein surfaces using small and large probe spheres to find putative ligand binding sites. Proteins 2007; 68: 516-529
 """
 from __future__ import print_function, division
 
-import copy
 import multiprocessing
 import operator
 import random
@@ -19,52 +26,56 @@ from os.path import join
 
 import numpy as np
 import pkg_resources
-from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
 from ccdc.cavity import Cavity
 from ccdc.io import MoleculeWriter, MoleculeReader
 from ccdc.molecule import Molecule, Coordinates
 from ccdc.protein import Protein
 from ccdc.utilities import PushDir
-from grid_extension import Grid
-from result import Results
-from hs_pharmacophore import PharmacophoreModel
-from hs_utilities import Figures, Helper
-from scipy.stats import percentileofscore
-from tqdm import tqdm
+from hotspots.atomic_hotspot_calculation import AtomicHotspot
+from hotspots.grid_extension import Grid
+from hotspots.hs_utilities import Helper
 from pdb_python_api import PDBResult
+from result import Results
+from tqdm import tqdm
 
 
-class _Buriedness(object):
+class Buriedness(object):
     """
-    private class
+    A class to handle the calculation of pocket burial
 
-    A class to handle the buriedness calculation using ghecom
+    This provides a python interface for the command-line tool.
+    Ghecom is available for download `here! <http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html>`_
+
+    NB: Currently this method is only available to linux users
+
+    Please ensure you have set the following environment variable:
+
+    >>> export GHECOM_EXE=<path_to_ghecom>
 
     :param `ccdc.protein.Protein` protein: protein to submit for calculation
-    :param `hotspots.hotspot_calculation._Buriedness.Settings` settings:
+    :param `ccdc.utilities.Grid` out_grid: the output grid NB: must be initialised so that the bounding box covers the whole protein
+    :param `hotspots.hotspot_calculation.Buriedness.Settings` settings:
 
-    TO DO: implement internal version to enable execution on windows
     """
 
     class Settings(object):
         """
-        private class
-
         A class to handle the buriedness calculation settings using ghecom
 
-        :param str ghecom_executable: path to ghecom executable, should now be set as environment variable
-        >>> export GHECOM_EXE=<path to ghecom executable>
+        :param str ghecom_executable: path to ghecom executable NB: should now be set as environment variable
         :param float grid_spacing: spacing of the results grid. default = 0.5
         :param float radius_min_large_sphere: radius of the smallest sphere
         :param float radius_max_large_sphere: radius of the largest sphere
-        :param str mode: either D, P, M, G, R, L (see description below):
-            -'D'ilation 'E'rosion, 'C'losing(molecular surface), 'O'pening.
-            -'P'ocket(masuya_doi),'p'ocket(kawabata_go),'V':ca'V'ity, 'e'roded pocket.
-            -'M'ultiscale_closing/pocket,'I'nterface_pocket_bwn_two_chains.
-            -'G'rid_comparison_binary 'g'rid_comparison_mutiscale.
-            -'R'ay-based lig site PSP/visibility calculation.
-            -'L'igand-grid comparison (-ilg and -igA are required)[P]
+        :param str mode: options
+
+                    - 'D'ilation 'E'rosion, 'C'losing(molecular surface), 'O'pening.
+                    - 'P'ocket(masuya_doi),'p'ocket(kawabata_go),'V':ca'V'ity, 'e'roded pocket.
+                    - 'M'ultiscale_closing/pocket,'I'nterface_pocket_bwn_two_chains.
+                    - 'G'rid_comparison_binary 'g'rid_comparison_mutiscale.
+                    - 'R'ay-based lig site PSP/visibility calculation.
+                    - 'L'igand-grid comparison (-ilg and -igA are required)[P]
         """
+
         def __init__(self, ghecom_executable=None, grid_spacing=0.5, radius_min_large_sphere=2.5,
                      radius_max_large_sphere=9.5, mode="M"):
             self.ghecom_executable = ghecom_executable
@@ -86,8 +97,9 @@ class _Buriedness(object):
 
     def calculate(self):
         """
-        executes a buriedness calculation
-        :return: a :class: `hotspots.calculation._BuriednessResult` instance
+        runs the buriedness calculation
+
+        :return: `hotspots.calculation._BuriednessResult`: a class with a :class:`ccdc.utilities.Grid` attribute
         """
 
         with PushDir(self.settings.working_directory):
@@ -114,8 +126,9 @@ class _BuriednessResult(object):
 
     class to handle the buriedness calculation result
 
-    :param `hotspots.calculation._Buriedness.Settings` settings: settings from the _Buriedness class
+    :param `hotspots.calculation.Buriedness.Settings` settings: settings from the _Buriedness class
     """
+
     def __init__(self, settings):
         self.settings = settings
         if self.settings.out_grid:
@@ -150,6 +163,7 @@ class _WeightedResult(object):
     :param str identifier: identifier, default is the probe identifier assigned at the Atomic Hotspot Calculation stage
     :param `ccdc.utilities.Grid` grid: result grid
     """
+
     def __init__(self, identifier, grid):
         self.identifier = identifier
         self.grid = grid
@@ -286,12 +300,12 @@ class _SampleGrid(object):
 
 class Runner(object):
     """
-    A class for running Fragment Hotspot Map calculations
+    A class for running the Fragment Hotspot Map calculation
     """
 
     class Settings(object):
         """
-        A class to handle the settings of a hotspot calculation
+        adjusts the default settings for the calculation
 
         :param int nrotations: number of rotations (keep it below 10**6)
         :param float apolar_translation_threshold: translate probe to grid points above this threshold. Give lower values for greater sampling. Default 15
@@ -302,7 +316,7 @@ class Runner(object):
         """
 
         def __init__(self, nrotations=3000, apolar_translation_threshold=15, polar_translation_threshold=15,
-                     polar_contributions=False, return_probes=False, sphere_maps = False):
+                     polar_contributions=False, return_probes=False, sphere_maps=False):
             self.nrotations = nrotations
             self.apolar_translation_threshold = apolar_translation_threshold
             self.polar_translation_threshold = polar_translation_threshold
@@ -490,7 +504,7 @@ class Runner(object):
                     #
                     if self.settings.sphere_maps:
                         if score > orig_value:
-                            pg.grid.set_sphere(coords, 1.5, score-orig_value)
+                            pg.grid.set_sphere(coords, 1.5, score - orig_value)
                     else:
                         pg.grid.set_value(i, j, k, max(score, orig_value))
 
@@ -841,8 +855,8 @@ class Runner(object):
         if self.buriedness_method.lower() == 'ghecom' and self.buriedness is None:
             print("    method: Ghecom")
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
-            b = _Buriedness(protein=self.protein,
-                            out_grid=out_grid)
+            b = Buriedness(protein=self.protein,
+                           out_grid=out_grid)
             self.buriedness = b.calculate().grid
         elif self.buriedness_method.lower() == 'ligsite' and self.buriedness is None:
             print("    method: LIGSITE")
@@ -865,7 +879,7 @@ class Runner(object):
 
         print("Sampling complete\n")
 
-    def prepare_protein(self):
+    def _prepare_protein(self):
         """
         default protein preparation settings on the protein
         :return:
@@ -877,17 +891,31 @@ class Runner(object):
         self.protein.add_hydrogens()
 
     def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method='ghecom',
-                     cavities=None, nprocesses=1, settings=None, buriedness_grid = None):
+                     cavities=None, nprocesses=1, settings=None, buriedness_grid=None):
         """
         generates a result from a protein
+
         :param protein: a :class:`ccdc.protein.Protein` instance
         :param bool charged_probes: If True include positive and negative probes
         :param int probe_size: Size of probe in number of heavy atoms (3-8 atoms)
         :param str buriedness_method: Either 'ghecom' or 'ligsite'
-        :param cavities: Coordinate or :class:`ccdc.cavity.Cavity` or :class:`ccdc.molecule.Molecule` or list, algorithm run on parsed cavity
-        :param nprocesses: int, number of CPU's used
-        :param settings: a :class:`hotspots.calculation.Runner.Settings`, holds the sampler settings
-        :return: :class:`hotspots.calculation.Results` instance
+        :param cavities: Coordinate or `ccdc.cavity.Cavity` or `ccdc.molecule.Molecule` or list specifying the cavity or cavities on which the calculation should be run
+        :param int nprocesses: number of CPU's used
+        :param `hotspots.calculation.Runner.Settings` settings: holds the sampler settings
+        :param `ccdc.utilities.Grid` buriedness_grid: pre-calculated buriedness grid
+        :return: a :class:`hotspots.result.Results` instance
+
+
+        >>> from ccdc.protein import Protein
+        >>> from hotspots.calculation import Runner
+
+        >>> protein = Protein.from_file(<path_to_protein>)
+
+        >>> runner = Runner()
+        >>> settings = Runner.Settings()
+        >>> settings.nrotations = 1000  # fewer rotations increase speed at the expense of accuracy
+        >>> runner.from_protein(protein, nprocesses=3, settings=settings)
+        Result()
 
         """
         start = time.time()
@@ -912,26 +940,37 @@ class Runner(object):
                        buriedness=self.buriedness)
 
     def from_pdb(self, pdb_code, charged_probes=False, probe_size=7, buriedness_method='ghecom', nprocesses=3,
-                 settings=None):
+                 cavities=False, settings=None):
         """
         generates a result from a pdb code
+
         :param str pdb_code: PDB code
         :param bool charged_probes: If True include positive and negative probes
         :param int probe_size: Size of probe in number of heavy atoms (3-8 atoms)
         :param str buriedness_method: Either 'ghecom' or 'ligsite'
-        :param nprocesses: int, number of CPU's used
-        :param settings: a :class:`hotspots.calculation.Runner.Settings`, holds the sampler settings
-        :return: :class:`hotspots.calculation.Results` instance
+        :param int nprocesses: number of CPU's used
+        :param `hotspots.calculation.Runner.Settings` settings: holds the calculation settings
+        :return: a :class:`hotspots.result.Result` instance
+
+
+        >>> from hotspots.calculation import Runner
+
+        >>> runner = Runner()
+        >>> runner.from_pdb("1hcl")
+        Result()
+
         """
         tmp = tempfile.mkdtemp()
         PDBResult(identifier=pdb_code).download(out_dir=tmp)
         fname = join(tmp, "{}.pdb".format(pdb_code))
         self.protein = Protein.from_file(fname)
-        self.prepare_protein()
+        self._prepare_protein()
         self.charged_probes = charged_probes
         self.probe_size = probe_size
         self.buriedness_method = buriedness_method
-        self.cavities = Cavity.from_pdb_file(fname)
+        self.cavities = None
+        if cavities is True:
+            self.cavities = Cavity.from_pdb_file(fname)
         self.nprocesses = nprocesses
 
         if settings is None:

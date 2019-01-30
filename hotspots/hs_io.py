@@ -41,7 +41,6 @@ from hotspots.result import Results
 from template_strings import pymol_imports, pymol_arrow, pymol_protein, pymol_grids, pymol_display_settings, \
     pymol_load_zip, pymol_labels, pymol_mesh
 from hs_utilities import Helper
-from hs_pharmacophore import PharmacophoreModel
 
 
 class HotspotWriter(Helper):

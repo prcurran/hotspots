@@ -88,11 +88,9 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../hotspot_calculation_api.html">Hotspot Calculation API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../io_api.html">IO API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../best_volume_api.html">Best Volume API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../utilities_api.html">Hotspot Utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calculation_api.html">Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_io_api.html">Hotspot IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../result_api.html">Result API</a></li>
 </ul>
 
             
@@ -193,15 +191,16 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ccdc.cavity</span> <span class="k">import</span> <span class="n">Cavity</span>
 <span class="kn">from</span> <span class="nn">ccdc.io</span> <span class="k">import</span> <span class="n">MoleculeWriter</span>
+<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="k">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Atom</span>
 
 <span class="n">Coordinates</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Coordinates&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">])</span>
 
 
-<div class="viewcode-block" id="Helper"><a class="viewcode-back" href="../../utilities_api.html#hotspots.hs_utilities.Helper">[docs]</a><span class="k">class</span> <span class="nc">Helper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Helper"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.Helper">[docs]</a><span class="k">class</span> <span class="nc">Helper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    class providing utility functions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="Helper.get_distance"><a class="viewcode-back" href="../../utilities_api.html#hotspots.hs_utilities.Helper.get_distance">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Helper.get_distance"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.Helper.get_distance">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_distance</span><span class="p">(</span><span class="n">coords1</span><span class="p">,</span> <span class="n">coords2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        given two coordinates, calculates the distance</span>
@@ -223,7 +222,7 @@
             <span class="n">mkdir</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Helper.get_lines_from_file"><a class="viewcode-back" href="../../utilities_api.html#hotspots.hs_utilities.Helper.get_lines_from_file">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Helper.get_lines_from_file"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.Helper.get_lines_from_file">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_lines_from_file</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        fetch lines from ghecom output</span>
@@ -238,7 +237,7 @@
             <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">lines</span></div>
 
-<div class="viewcode-block" id="Helper.cavity_centroid"><a class="viewcode-back" href="../../utilities_api.html#hotspots.hs_utilities.Helper.cavity_centroid">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Helper.cavity_centroid"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.Helper.cavity_centroid">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">cavity_centroid</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the centroid of a cavity object</span>
@@ -246,7 +245,7 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Cavity</span><span class="p">):</span>
-            <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">coordinates</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_features</span><span class="p">]</span>
+            <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">coordinates</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">features</span><span class="p">]</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">features</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">surface_points</span>
@@ -257,7 +256,7 @@
 
         <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x_avg</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y_avg</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">z_avg</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Helper.cavity_from_protein"><a class="viewcode-back" href="../../utilities_api.html#hotspots.hs_utilities.Helper.cavity_from_protein">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Helper.cavity_from_protein"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.Helper.cavity_from_protein">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">cavity_from_protein</span><span class="p">(</span><span class="n">prot</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        generates a cavities from prot.</span>
@@ -270,16 +269,71 @@
         <span class="k">with</span> <span class="n">MoleculeWriter</span><span class="p">(</span><span class="n">tfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
             <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">Cavity</span><span class="o">.</span><span class="n">from_pdb_file</span><span class="p">(</span><span class="n">tfile</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">Cavity</span><span class="o">.</span><span class="n">from_pdb_file</span><span class="p">(</span><span class="n">tfile</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Helper.get_label"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.Helper.get_label">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_label</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param input:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">min_size_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apolar&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+                         <span class="s2">&quot;donor&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+                         <span class="s2">&quot;acceptor&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+                         <span class="s2">&quot;negative&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+                         <span class="s2">&quot;positive&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">}</span>
+
+        <span class="n">atom_dic</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apolar&quot;</span><span class="p">:</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span>
+                    <span class="s2">&quot;donor&quot;</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
+                    <span class="s2">&quot;acceptor&quot;</span><span class="p">:</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span>
+                    <span class="s2">&quot;negative&quot;</span><span class="p">:</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span>
+                    <span class="s2">&quot;positive&quot;</span><span class="p">:</span> <span class="s1">&#39;H&#39;</span><span class="p">}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">interaction_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">atom_dic</span><span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span><span class="p">]</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="nb">input</span><span class="o">.</span><span class="n">_features</span><span class="p">]</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_coordinates</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="nb">input</span><span class="o">.</span><span class="n">_features</span><span class="p">]</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">score_value</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="nb">input</span><span class="o">.</span><span class="n">_features</span><span class="p">]</span>
+
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">interaction_types</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">scores</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">input</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">for</span> <span class="n">island</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="n">island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">min_size_dict</span><span class="p">[</span><span class="n">p</span><span class="p">]:</span>
+                                <span class="n">interaction_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom_dic</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+                                <span class="n">coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">island</span><span class="o">.</span><span class="n">centroid</span><span class="p">())</span>
+                                <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">island</span><span class="o">.</span><span class="n">grid_score</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">50</span><span class="p">))</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;object not supported&quot;</span><span class="p">)</span>
+
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">identifier</span><span class="o">=</span><span class="s2">&quot;pharmacophore_model&quot;</span><span class="p">)</span>
+
+        <span class="n">pseudo_atms</span> <span class="o">=</span> <span class="p">[</span><span class="n">Atom</span><span class="p">(</span><span class="n">atomic_symbol</span><span class="o">=</span><span class="n">interaction_types</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="n">atomic_number</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+                            <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">interaction_types</span><span class="p">))]</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">pseudo_atms</span><span class="p">:</span>
+            <span class="n">mol</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mol</span></div></div>
 
 
-<div class="viewcode-block" id="Figures"><a class="viewcode-back" href="../../utilities_api.html#hotspots.hs_utilities.Figures">[docs]</a><span class="k">class</span> <span class="nc">Figures</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Figures"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.Figures">[docs]</a><span class="k">class</span> <span class="nc">Figures</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class to handle the generation of hotspot related figures</span>
 
 <span class="sd">    TO DO: is there a better place for this to live?</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="Figures.histogram"><a class="viewcode-back" href="../../utilities_api.html#hotspots.hs_utilities.Figures.histogram">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Figures.histogram"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.Figures.histogram">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">histogram</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="n">plot</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; creates a histrogram from grid values&quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
@@ -443,7 +497,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="hotspot_histograms"><a class="viewcode-back" href="../../utilities_api.html#hotspots.hs_utilities.hotspot_histograms">[docs]</a><span class="k">def</span> <span class="nf">hotspot_histograms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ligand</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="hotspot_histograms"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.hotspot_histograms">[docs]</a><span class="k">def</span> <span class="nf">hotspot_histograms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ligand</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Outputs histograms of hotspot score.</span>
 
@@ -507,7 +561,17 @@
 
     
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../../',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>

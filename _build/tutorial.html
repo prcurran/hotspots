@@ -30,7 +30,6 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Hotspot Calculation API" href="hotspot_calculation_api.html" />
     <link rel="prev" title="Welcome to the Hotspot API’s documentation!" href="index.html" /> 
 
   
@@ -117,11 +116,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="hotspot_calculation_api.html">Hotspot Calculation API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io_api.html">IO API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="best_volume_api.html">Best Volume API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
             
@@ -212,7 +206,7 @@ in the calculation.</p>
 </div>
 <div class="section" id="calculating-fragment-hotspot-maps">
 <h3>Calculating Fragment Hotspot Maps<a class="headerlink" href="#calculating-fragment-hotspot-maps" title="Permalink to this headline">¶</a></h3>
-<p>Once the protein is prepared, the <a class="reference internal" href="hotspot_calculation_api.html#hotspots.calculation.Runner" title="hotspots.calculation.Runner"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.Runner</span></code></a> object can be used to perform the calculation:</p>
+<p>Once the protein is prepared, the <a class="reference internal" href="calculation_api.html#hotspots.calculation.Runner" title="hotspots.calculation.Runner"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.Runner</span></code></a> object can be used to perform the calculation:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
 
 <span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
@@ -224,7 +218,7 @@ in the calculation.</p>
 <h3>Reading and Writing Hotspots<a class="headerlink" href="#reading-and-writing-hotspots" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="writing">
 <h4>Writing<a class="headerlink" href="#writing" title="Permalink to this headline">¶</a></h4>
-<p>The <a class="reference internal" href="io_api.html#module-hotspots.hs_io" title="hotspots.hs_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.hs_io</span></code></a> module handles the reading and writing of both <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.results</span></code>
+<p>The <a class="reference internal" href="hs_io_api.html#module-hotspots.hs_io" title="hotspots.hs_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.hs_io</span></code></a> module handles the reading and writing of both <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.results</span></code>
 and <code class="xref py py-class docutils literal notranslate"><span class="pre">hotsptots.best_volume.Extractor</span></code> objects. The output <cite>.grd</cite> files can become quite large, but are highly
 compressible, therefore the results are written to a <cite>.zip</cite> archive by default, along with a PyMOL run script to
 visualise the output.</p>
@@ -285,8 +279,6 @@ visualise the output.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="hotspot_calculation_api.html" class="btn btn-neutral float-right" title="Hotspot Calculation API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
       
         <a href="index.html" class="btn btn-neutral" title="Welcome to the Hotspot API’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
@@ -318,7 +310,17 @@ visualise the output.</p>
 
     
     
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>

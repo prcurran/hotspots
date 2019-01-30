@@ -29,9 +29,7 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Hotspot Utilities API" href="utilities_api.html" />
-    <link rel="prev" title="Best Volume API" href="best_volume_api.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -88,13 +86,8 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hotspot_calculation_api.html">Hotspot Calculation API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io_api.html">IO API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="best_volume_api.html">Best Volume API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
             
@@ -146,7 +139,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/pharmacophore_api.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/hs_pharmacophore_api.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -172,7 +165,7 @@ conversion of Grid objects to pharmacophore models.</p>
 Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 <dl class="class">
 <dt id="hotspots.hs_pharmacophore.PharmacophoreModel">
-<em class="property">class </em><code class="descclassname">hotspots.hs_pharmacophore.</code><code class="descname">PharmacophoreModel</code><span class="sig-paren">(</span><em>settings</em>, <em>identifier=None</em>, <em>features=None</em>, <em>protein=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">hotspots.hs_pharmacophore.</code><code class="descname">PharmacophoreModel</code><span class="sig-paren">(</span><em>settings</em>, <em>identifier=None</em>, <em>features=None</em>, <em>protein=None</em>, <em>dic=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class to wrap pharmacophore _features and output in various formats</p>
 <dl class="class">
 <dt id="hotspots.hs_pharmacophore.PharmacophoreModel.Settings">
@@ -196,12 +189,10 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="hotspots.hs_pharmacophore.PharmacophoreModel.as_grid">
-<code class="descname">as_grid</code><span class="sig-paren">(</span><em>feature_type=None</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.as_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.as_grid" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns _features as grid
-:param tolerance:
-:return:</p>
+<dl class="attribute">
+<dt id="hotspots.hs_pharmacophore.PharmacophoreModel.features">
+<code class="descname">features</code><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.features" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of <cite>hotspots.pharmacophore.PharmacophoreFeature</cite> class instances</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -216,35 +207,24 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 <dd><p>creates a pharmacophore model from hotspot results object</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="hotspots.hs_pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore">
-<code class="descname">get_crossminer_pharmacophore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.get_crossminer_pharmacophore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.get_crossminer_pharmacophore" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="hotspots.hs_pharmacophore.PharmacophoreModel.from_ligands">
+<em class="property">static </em><code class="descname">from_ligands</code><span class="sig-paren">(</span><em>ligands</em>, <em>identifier</em>, <em>protein=None</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.from_ligands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.from_ligands" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ligands</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="hotspots.hs_pharmacophore.PharmacophoreModel.get_pymol_pharmacophore">
-<code class="descname">get_pymol_pharmacophore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.get_pymol_pharmacophore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.get_pymol_pharmacophore" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="hotspots.hs_pharmacophore.PharmacophoreModel.rank_polar_features">
-<code class="descname">rank_polar_features</code><span class="sig-paren">(</span><em>threshold=0</em>, <em>max_num_features=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.rank_polar_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.rank_polar_features" title="Permalink to this definition">¶</a></dt>
+<dt id="hotspots.hs_pharmacophore.PharmacophoreModel.rank_features">
+<code class="descname">rank_features</code><span class="sig-paren">(</span><em>max_features=4</em>, <em>feature_threshold=0</em>, <em>force_apolar=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.rank_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.rank_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>rank polar _features, sort feature list
 :return:</p>
 </dd></dl>
@@ -266,15 +246,6 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="utilities_api.html" class="btn btn-neutral float-right" title="Hotspot Utilities API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="best_volume_api.html" class="btn btn-neutral" title="Best Volume API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>
@@ -302,7 +273,17 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 
     
     
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>

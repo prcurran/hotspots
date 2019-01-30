@@ -93,8 +93,8 @@ class Grid(utilities.Grid):
 
     def grid_values(self, threshold=0):
         """
-
-        :param threshold:
+        generates a numpy array with all values over a given threshold (default = 0)
+        :param int threshold: values over this value
         :return:
         """
         array = self.get_array()
@@ -103,10 +103,9 @@ class Grid(utilities.Grid):
 
     def grid_score(self, threshold=0, percentile=75):
         """
-        take a group and return average score of points above threshold
-        :param g:
-        :param threshold
-        :param percentile
+        for a given grid, the xth percentile of values above a given threshold is returned
+        :param int threshold: values over this value
+        :param int percentile: value at this percentile
 
         :return:
         """
@@ -121,25 +120,20 @@ class Grid(utilities.Grid):
 
     def indices_to_point(self, i, j, k):
         """
-        Return x,y,z coordinate for a given grid index
-
-        :param i: int, indice (x-axis)
-        :param j: int, indice (y-axis)
-        :param k: int, indice (z-axis)
-        :param g: a :class: `ccdc.utilities.Grid` instance
-        :return: float(x), float(y), float(z)
+        return x,y,z coordinate for a given grid index
+        :param int i: indice (x-axis)
+        :param int j: indice (y-axis)
+        :param int k: indice (z-axis)
+        :return: tup, float(x), float(y), float(z)
         """
-
         ox, oy, oz, = self.bounding_box[0]
         gs = self.spacing
         return ox + float(i) * gs, oy + float(j) * gs, oz + gs * float(k)
 
     def point_to_indices(self, p):
         """
-        Return the nearest grid index for a given point
-
-        :param p: tup, (float(x), float(y), float(z)), a coordinate on a 3D grid
-        :param g: a :class: `ccdc.utilities.Grid` instance
+        return the nearest grid index for a given point
+        :param tup p: (float(x), float(y), float(z)), a coordinate on a 3D grid
         :return: int(x), int(y), int(z)
         """
 
@@ -151,7 +145,7 @@ class Grid(utilities.Grid):
     def gaussian(self, sigma=0.2):
         """
         gaussian smoothing function, method of reducing noise in output
-        :param sigma:
+        :param float sigma: degree of smoothing
         :return:
         """
         s = (sigma, sigma, sigma, 0)
@@ -172,7 +166,9 @@ class Grid(utilities.Grid):
     def contains_point(self, point, threshold=0, tolerance=0):
         """
         determines whether a set of coordinates are within a grids boundary
-        :param point:
+        :param tup point: (float(x), float(y), float(z))
+        :param int threshold: values above this value
+        :param float tolerance: radius of search
         :return:
         """
         mini = self.bounding_box[0]
@@ -187,8 +183,7 @@ class Grid(utilities.Grid):
     def get_array(self):
         """
         convert grid object to np.array
-        :param self:
-        :return:
+        :return: `numpy.array`, array with shape (nsteps) and each element corresponding to value at that indice
         """
         nx, ny, nz = self.nsteps
         array = np.zeros((nx, ny, nz))
@@ -201,9 +196,8 @@ class Grid(utilities.Grid):
     def restricted_volume(self, volume=75):
         """
         returns a grid with of a defined volume
-        :param self:
-        :param volume:
-        :return:
+        :param float volume: desired volume in Angstroms ^ 3
+        :return: `hotspots.grid_extension.Grid`
         """
         grid = self.copy_and_clear()
         max_points = int(float(volume) / 0.125)
@@ -229,7 +223,7 @@ class Grid(utilities.Grid):
 
     def centroid(self):
         """
-        returns centre of grid
+        returns centre of the grid's bounding box
         :param self:
         :return:
         """
@@ -240,11 +234,10 @@ class Grid(utilities.Grid):
 
     def deduplicate(self, major, threshold=12, tolerance=2):
         """
-        method to deduplicate two grids
-        :param self: clearing grid
-        :param major: overriding grid
-        :param threshold: island threshold
-        :param tolerance: tolerance in contains point metho
+        method to deduplicate two grids, used for charged-polar deduplication
+        :param `ccdc.utilities.Grid` major: overriding grid
+        :param int threshold: values above this value
+        :param int tolerance: search radius for determining feature overlap
         :return:
         """
         if self.bounding_box[0] != major.bounding_box[0] or self.bounding_box[1] != major.bounding_box[1]:
@@ -269,9 +262,8 @@ class Grid(utilities.Grid):
 
     def copy_and_clear(self):
         """
-        make a new empty grid
-        :param self:
-        :return:
+        make a new empty grid, with the same dimensions as the old
+        :return: `hotspots.grid_extension.Grid`
         """
         g = self.copy()
         g *= 0
@@ -279,21 +271,20 @@ class Grid(utilities.Grid):
 
     def common_boundaries(self, grid):
         """
-        Expands parsed grid to the size of self grid (supplied grid should be smaller than self)
+        expands supplied grid to the size of self (supplied grid should be smaller than self)
         :param grid:
         :return:
         """
         reference = Grid.super_grid(0, self, grid)
         blank = reference.copy_and_clear()
-
         return Grid.super_grid(0, blank, grid)
 
     def multi_max_mask(self, grids):
         """
-        given 1 or more grid, the value selected is the grid point across the input grids which contains the highest val
-        this doesnt make sense
-        :param grid:
-        :return:
+        for a self grid and collection of grids supplied, for each grid point, if the maximum grid value across all the
+        grids belongs to the self grid, the value is assigned to a fresh grid.
+        :param list grids: grids to be compared to self
+        :return: `ccdc.utilities.Grid`
         """
         max_grids = [self > g for g in grids]
         blank = -self.copy_and_clear()
@@ -302,14 +293,13 @@ class Grid(utilities.Grid):
     def get_best_island(self, threshold, mode="count", peak=None):
         """
         returns the best grid island. Mode: "count" or "score"
-        :param threshold: island threshold
-        :param mode:
-                    -"count" : returns island with most grid points above threshold
-                    -"score" : returns island with the largest sum of all grid points over threshold
-
-        :return:
+        :param int threshold: island threshold
+        :param str mode:
+                       -"count" : returns island with most grid points above threshold
+                       -"score" : returns island with the largest sum of all grid points over threshold
+        :param tup peak: (float(x), float(y), float(z)) coordinates of peak in grid
+        :return: `ccdc.utilities.Grid`, grid containing the best island
         """
-
         islands = self.islands(threshold)
         if len(islands) == 0:
             return None
@@ -360,14 +350,22 @@ class Grid(utilities.Grid):
                 return island_by_rank[rank]
 
     def minimal(self):
-        """Reduces grid size to the minimal dimensions"""
+        """
+        reduces grid size to the minimal dimensions
+        :return: `ccdc.utilities.Grid`
+        """
         try:
             return Grid.super_grid(1, *self.islands(threshold=1))
         except RuntimeError:
             return self
 
     def limit_island_size(self, npoints, threshold=10):
-        """for a given grid, there are no islands above npoints (at any value)"""
+        """
+        for a given grid, the number of points contained within the islands (threshold = x) is limited to npoints
+        :param int npoints: maximum number of points in each island feature
+        :param float threshold: values above this value
+        :return:
+        """
         g = (self > 10) * self
         all_islands = []
         for island in g.islands(threshold):
@@ -378,7 +376,11 @@ class Grid(utilities.Grid):
         return Grid.super_grid(0, *all_islands)
 
     def top_points(self, npoints):
-        """orders points and returns the top npoints"""
+        """
+        for a given grid, the top scoring n points are returned
+        :param int npoints: number of points to be returned
+        :return: `ccdc.ulilities.Grid`
+        """
         pts = {}
         nx, ny, nz = self.nsteps
 
@@ -395,12 +397,14 @@ class Grid(utilities.Grid):
         sorted_pts = sorted(pts.items(), key=lambda x: x[0], reverse=True)
 
         thres = self._get_threshold(sorted_pts, npoints=npoints)
-        #thres = sorted_pts[npoints][0]
-
         return (self > thres) * self
 
     def step_out_mask(self, nsteps=2):
-        """Add one step in all directions to Grid boundary, returns blank grid"""
+        """
+        add n step in all directions to Grid boundary, returns blank grid
+        :param nsteps: the number of steps the grid is expanded
+        :return: `hotspots.grid_extension.Grid`
+        """
         origin = (self.bounding_box[0].x - (self.spacing * nsteps),
                   self.bounding_box[0].y - (self.spacing * nsteps),
                   self.bounding_box[0].z - (self.spacing * nsteps))
@@ -417,7 +421,13 @@ class Grid(utilities.Grid):
 
     @staticmethod
     def _get_threshold(sorted_points, npoints):
-        """private method, hands off"""
+        """
+        private method
+        returns the lower limit of the top n number of points in a grid
+        :param dict sorted_points: {grid_value, (float(x), float(y), float(z))
+        :param int npoints: number of grid points
+        :return:
+        """
         count = []
         for value, pts in sorted_points:
             count.extend(pts)
@@ -430,8 +440,8 @@ class Grid(utilities.Grid):
     def from_array(fname):
         """
         creates a grid from array
-        :param fname:
-        :return:
+        :param fname: path to pickled numpy array
+        :return: `hotspots.grid_extension.Grid`
         """
         grid = Grid(origin=[-35.00, -42.00, 44.00],
                     far_corner=[59.00, 53.00, 54.00],
@@ -453,9 +463,8 @@ class Grid(utilities.Grid):
     def common_grid(grid_list, padding=1):
         """
         returns two grid with common boundaries
-        :param grid_a:
-        :param grid_b:
-        :param padding:
+        :param list grid_list: list of `ccdc.utilities.Grid` instances
+        :param padding: number of steps to add to the grid boundary
         :return:
         """
         sg = Grid.super_grid(padding, *grid_list)

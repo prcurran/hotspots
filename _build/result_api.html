@@ -1,0 +1,386 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Result API &mdash; Fragment Hotspot Maps 0.1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/logo_test.png"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Hotspot IO API" href="hs_io_api.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Fragment Hotspot Maps
+          
+
+          
+            
+            <img src="_static/logo_test.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calculation_api.html">Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_io_api.html">Hotspot IO API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Result API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Fragment Hotspot Maps</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Result API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/result_api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-hotspots.result">
+<span id="result-api"></span><h1>Result API<a class="headerlink" href="#module-hotspots.result" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#module-hotspots.result" title="hotspots.result"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.result</span></code></a> module contains classes to extract valuable information from the calculated Fragment Hotspot
+Maps.</p>
+<p>The main fields can be broken due using a fixed volume or fixed score mode.</p>
+<p>This approach enables a ranking of ligand sized cavity descriptions to be
+extracted. For example, these grids can be used to generate pharmacophores.</p>
+<dl class="docutils">
+<dt>The main classes of the <a class="reference internal" href="#module-hotspots.result" title="hotspots.result"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.result</span></code></a> module are:</dt>
+<dd>-Extractor
+-Results</dd>
+<dt>More information about the fragment hotspot maps method is available from:</dt>
+<dd>Radoux, C.J. et. al., Identifying the Interactions that Determine Fragment Binding at Protein Hotspots J. Med. Chem.
+2016, 59 (9), 4314-4325
+dx.doi.org/10.1021/acs.jmedchem.5b01980</dd>
+</dl>
+<dl class="class">
+<dt id="hotspots.result.Extractor">
+<em class="property">class </em><code class="descclassname">hotspots.result.</code><code class="descname">Extractor</code><span class="sig-paren">(</span><em>hr</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Extractor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Extractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to handle the extraction of discrete volumes from the highest scoring regions of the hotspot maps.</p>
+<dl class="class">
+<dt id="hotspots.result.Extractor.Settings">
+<em class="property">class </em><code class="descname">Settings</code><span class="sig-paren">(</span><em>volume=150</em>, <em>cutoff=14</em>, <em>mode='seed'</em>, <em>padding_factor=0</em>, <em>spacing=0.5</em>, <em>min_feature_gp=5</em>, <em>max_features=10</em>, <em>min_distance=6</em>, <em>island_max_size=100</em>, <em>sigma=0.3</em>, <em>drug_volume=300</em>, <em>buriedness_value=4</em>, <em>fragments=None</em>, <em>lead=None</em>, <em>pharmacophore=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Extractor.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Extractor.Settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default settings for hotspot extraction</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>volume</strong> (<em>float</em>) – </li>
+<li><strong>cutoff</strong> (<em>float</em>) – </li>
+<li><strong>mode</strong> (<em>str</em>) – </li>
+<li><strong>padding_factor</strong> (<em>int</em>) – </li>
+<li><strong>spacing</strong> (<em>float</em>) – </li>
+<li><strong>min_feature_gp</strong> (<em>int</em>) – </li>
+<li><strong>max_features</strong> (<em>int</em>) – </li>
+<li><strong>min_distance</strong> (<em>float</em>) – </li>
+<li><strong>island_max_size</strong> (<em>int</em>) – </li>
+<li><strong>sigma</strong> (<em>float</em>) – </li>
+<li><strong>drug_volume</strong> (<em>float</em>) – </li>
+<li><strong>buriedness_value</strong> (<em>int</em>) – </li>
+<li><strong>fragments</strong> (<em>bool</em>) – </li>
+<li><strong>lead</strong> (<em>bool</em>) – </li>
+<li><strong>pharmacophore</strong> (<em>bool</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hotspots.result.Results">
+<em class="property">class </em><code class="descclassname">hotspots.result.</code><code class="descname">Results</code><span class="sig-paren">(</span><em>super_grids</em>, <em>protein</em>, <em>buriedness=None</em>, <em>pharmacophore=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Hotspot_results object is returned at the end of a Hotspots calculation. It contains functions for accessing
+and using the results.</p>
+<dl class="method">
+<dt id="hotspots.result.Results.extract_pocket">
+<code class="descname">extract_pocket</code><span class="sig-paren">(</span><em>whole_residues=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.extract_pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.extract_pocket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.Protein</span></code> containing atoms or residues that have a score &gt; 0</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>whole_residues</strong> (<em>bool</em>) – whether to include all residue atoms if only a subset have a score &gt; 0</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.Protein</span></code> instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="hotspots.result.Results.from_grid_ensembles">
+<em class="property">static </em><code class="descname">from_grid_ensembles</code><span class="sig-paren">(</span><em>res_list</em>, <em>prot_name</em>, <em>charged=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.from_grid_ensembles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.from_grid_ensembles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Experimental feature.
+Creates ensemble map from a list of Results. Structures in the ensemble have to aligned by the
+binding site of interest prior to the hotspots calculation.
+:param res_list: list of hotspots.result.Results
+:param str prot_name: str
+:param str out_dir: str
+:return: a <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.result.Results.get_difference_map">
+<code class="descname">get_difference_map</code><span class="sig-paren">(</span><em>other</em>, <em>tolerance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.get_difference_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.get_difference_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Experimental feature.
+Generates maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
+by the binding site of interest prior to calculation.
+High scoring regions of a map represent areas of favourable interaction in the target binding site, not
+present in off target binding site
+:param other: a <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance
+:param int tolerance: how many grid points away to apply filter to
+:return: a <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.result.Results.get_histogram">
+<code class="descname">get_histogram</code><span class="sig-paren">(</span><em>fpath='histogram.png'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.get_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.get_histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>get histogram of zero grid points for the Fragment Hotspot Result
+:param fpath: path to output file
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.result.Results.get_map_values">
+<code class="descname">get_map_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.get_map_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.get_map_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the number zero grid points for the Fragment Hotspot Result
+:return: dict of str(probe type) by a <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.array</span></code> (non-zero grid point scores)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.result.Results.get_pharmacophore_model">
+<code class="descname">get_pharmacophore_model</code><span class="sig-paren">(</span><em>identifier='id_01'</em>, <em>cutoff=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.get_pharmacophore_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.get_pharmacophore_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hotspot_pharmacophore.PharmacophoreModel</span></code> instance from peaks in the hotspot maps</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>identifier</strong> (<em>str</em>) – Identifier for displaying multiple models at once</li>
+<li><strong>cutoff</strong> (<em>float</em>) – The score cutoff used to identify islands in the maps. One peak will be identified per island</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hotspot_pharmacophore.PharmacophoreModel</span></code> instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.result.Results.score">
+<code class="descname">score</code><span class="sig-paren">(</span><em>obj=None</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>obj</strong> – </li>
+<li><strong>return_value</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>TODO: Complete this docstring</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="hs_io_api.html" class="btn btn-neutral" title="Hotspot IO API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Chris Radoux and Peter Curran
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

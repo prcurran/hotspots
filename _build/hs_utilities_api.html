@@ -29,8 +29,7 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Hotspot Pharmacophore API" href="pharmacophore_api.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -87,13 +86,8 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hotspot_calculation_api.html">Hotspot Calculation API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io_api.html">IO API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="best_volume_api.html">Best Volume API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Hotspot Utilities API</a></li>
 </ul>
 
             
@@ -145,7 +139,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/utilities_api.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/hs_utilities_api.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -244,6 +238,21 @@ general functionality.</p>
 </dd></dl>
 
 <dl class="staticmethod">
+<dt id="hotspots.hs_utilities.Helper.get_label">
+<em class="property">static </em><code class="descname">get_label</code><span class="sig-paren">(</span><em>input</em>, <em>threshold=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_utilities.html#Helper.get_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_utilities.Helper.get_label" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="hotspots.hs_utilities.Helper.get_lines_from_file">
 <em class="property">static </em><code class="descname">get_lines_from_file</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_utilities.html#Helper.get_lines_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_utilities.Helper.get_lines_from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>fetch lines from ghecom output</p>
@@ -283,13 +292,6 @@ general functionality.</p>
           </div>
           <footer>
   
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-      
-        <a href="pharmacophore_api.html" class="btn btn-neutral" title="Hotspot Pharmacophore API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
 
   <hr/>
 
@@ -316,7 +318,17 @@ general functionality.</p>
 
     
     
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>

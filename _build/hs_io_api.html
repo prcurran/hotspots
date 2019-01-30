@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>IO API &mdash; Fragment Hotspot Maps 0.1 documentation</title>
+  <title>Hotspot IO API &mdash; Fragment Hotspot Maps 0.1 documentation</title>
   
 
   
@@ -29,9 +29,7 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Best Volume API" href="best_volume_api.html" />
-    <link rel="prev" title="Hotspot Calculation API" href="hotspot_calculation_api.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -88,13 +86,8 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hotspot_calculation_api.html">Hotspot Calculation API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">IO API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="best_volume_api.html">Best Volume API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
             
@@ -140,13 +133,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>IO API</li>
+      <li>Hotspot IO API</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/io_api.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/hs_io_api.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -160,7 +153,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="module-hotspots.hs_io">
-<span id="io-api"></span><h1>IO API<a class="headerlink" href="#module-hotspots.hs_io" title="Permalink to this headline">¶</a></h1>
+<span id="hotspot-io-api"></span><h1>Hotspot IO API<a class="headerlink" href="#module-hotspots.hs_io" title="Permalink to this headline">¶</a></h1>
 <p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.io</span></code> module contains classes for the
 reading and writing of hotspots.</p>
 <p>The main classes of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.io</span></code> module are:</p>
@@ -184,7 +177,7 @@ reading and writing of hotspots.</p>
 
 <dl class="class">
 <dt id="hotspots.hs_io.HotspotWriter">
-<em class="property">class </em><code class="descclassname">hotspots.hs_io.</code><code class="descname">HotspotWriter</code><span class="sig-paren">(</span><em>path</em>, <em>visualisation='pymol'</em>, <em>grid_extension='.grd'</em>, <em>zip_results=False</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotWriter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">hotspots.hs_io.</code><code class="descname">HotspotWriter</code><span class="sig-paren">(</span><em>path</em>, <em>visualisation='pymol'</em>, <em>grid_extension='.grd'</em>, <em>zip_results=True</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotWriter" title="Permalink to this definition">¶</a></dt>
 <dd><p>class to handle the writing of Hotspots to file. And creation of visualisation scripts.</p>
 <dl class="class">
 <dt id="hotspots.hs_io.HotspotWriter.Settings">
@@ -232,15 +225,6 @@ removes the directory by default. The zipped file can be loaded directly into a 
           </div>
           <footer>
   
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="best_volume_api.html" class="btn btn-neutral float-right" title="Best Volume API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="hotspot_calculation_api.html" class="btn btn-neutral" title="Hotspot Calculation API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
 
   <hr/>
 
@@ -267,7 +251,17 @@ removes the directory by default. The zipped file can be loaded directly into a 
 
     
     
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>

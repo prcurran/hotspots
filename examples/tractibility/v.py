@@ -40,7 +40,7 @@ g.set(yticks=[])
 g.despine(bottom=True, left=True)
 
 # Create legend, and position
-t = {"d": "Druggable", "n": "Non-Druggable"}
+t = {"d": "Druggable", "n": "Less-Druggable"}
 labels = [t[s] for s in set(df["tractability"])]
 colors = pal
 handles= [patches.Patch(color=col, label=lab) for col, lab in zip(colors, labels)]

@@ -54,7 +54,7 @@ from hotspots.grid_extension import Grid, _GridEnsemble
 from hotspots.hs_utilities import Figures
 from hs_pharmacophore import PharmacophoreModel
 from hs_utilities import Helper
-from atomic_hotspot_calculation import AtomicHotspot, AtomicHotspotResult
+from atomic_hotspot_calculation import AtomicHotspot, _AtomicHotspotResult
 
 
 class _Scorer(Helper):
@@ -590,7 +590,7 @@ class Results(object):
                     shortest = sorted([f[0] for f in ss_dict.items()], reverse=False)[0]
                     g = ss_dict[shortest]
 
-                feat.superstar_results.append(AtomicHotspotResult(identifier=r.identifier,
+                feat.superstar_results.append(_AtomicHotspotResult(identifier=r.identifier,
                                                                   grid=g,
                                                                   buriedness=None)
                                               )

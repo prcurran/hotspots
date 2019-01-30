@@ -1,9 +1,9 @@
-__author__ = "Chris Radoux and Peter Curran"
+__author__ = "Chris Radoux, Peter Curran, Mihaela Smilova"
 __copyright__ = None
 __credits__ = None
 __license__ = None
-__version__ = "0.1"
-__maintainer__ = "Chris Radoux and Peter Curran"
+__version__ = "1.0"
+__maintainer__ = "Peter Curran"
 __email__ = "pcurran@ccdc.cam.ac.uk"
 __status__ = "Development"
 name = "hotspots"
