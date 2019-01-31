@@ -192,6 +192,24 @@
 <span class="sd">    This class is designed to mirror the existing CSD python API for smooth integration. For use, import this class</span>
 <span class="sd">    as the docking settings rather than directly from the Docking API.</span>
 
+<span class="sd">    &gt;&gt;&gt; from ccdc.docking import Docker</span>
+<span class="sd">    &gt;&gt;&gt; from ccdc.protein import Protein</span>
+<span class="sd">    &gt;&gt;&gt; from hotspots.calculation import Runner</span>
+<span class="sd">    &gt;&gt;&gt; from hotspots.hs_docking import DockerSettings</span>
+
+<span class="sd">    &gt;&gt;&gt; protein = Protein.from_file(&lt;path_to_protein&gt;)</span>
+
+<span class="sd">    &gt;&gt;&gt; runner = Runner()</span>
+<span class="sd">    &gt;&gt;&gt; hs = runner.from_protein(protein)</span>
+
+<span class="sd">    &gt;&gt;&gt; docker.settings.add_protein_file(&lt;path_to_protein&gt;)</span>
+<span class="sd">    &gt;&gt;&gt; docker.settings.add_ligand_file(&lt;path_to_ligands&gt;, ndocks=25)</span>
+<span class="sd">    &gt;&gt;&gt; constraints = docker.settings.HotspotHBondConstraint.from_hotspot(protein=docker.settings.proteins[0], hr=hs)</span>
+<span class="sd">    &gt;&gt;&gt; docker.settings.add_constraint(constraints)</span>
+<span class="sd">    &gt;&gt;&gt; docker.dock()</span>
+
+<span class="sd">    &gt;&gt;&gt; docker.Results(docker.settings).ligands</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="DockerSettings.HotspotHBondConstraint"><a class="viewcode-back" href="../../hs_docking_api.html#hotspots.hs_docking.DockerSettings.HotspotHBondConstraint">[docs]</a>    <span class="k">class</span> <span class="nc">HotspotHBondConstraint</span><span class="p">(</span><span class="n">docking</span><span class="o">.</span><span class="n">Docker</span><span class="o">.</span><span class="n">Settings</span><span class="o">.</span><span class="n">Constraint</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -232,11 +250,6 @@
 <span class="sd">            :param float min_hbond_score: float between 0.0 (bad) and 1.0 (good) determining the minimum hydrogen bond quality in the solutions.</span>
 <span class="sd">            :param cutoff: minimum score required to assign the constraint</span>
 <span class="sd">            :return list: list of :class:`hotspots.hs_docking.HotspotHBondConstraint</span>
-
-
-<span class="sd">            &gt;&gt;&gt;</span>
-
-
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">for</span> <span class="n">atm</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
                 <span class="n">atm</span><span class="o">.</span><span class="n">partial_charge</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -278,10 +291,6 @@
 <span class="sd">        :param int volume: volume of the occupied by fitting points in Angstroms ^ 3</span>
 <span class="sd">        :param float threshold: points above this value will be included in the fitting points</span>
 <span class="sd">        :param str mode: &#39;threshold&#39;- assigns fitting points based on a score cutoff or &#39;bcv&#39;- assigns fitting points from best continuous volume analysis (recommended)</span>
-
-
-<span class="sd">        &gt;&gt;&gt;</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">temp</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
         <span class="n">mol</span> <span class="o">=</span> <span class="n">molecule</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">identifier</span><span class="o">=</span><span class="s2">&quot;fitting_pts&quot;</span><span class="p">)</span>

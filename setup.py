@@ -7,7 +7,7 @@ print find_packages()
 
 setup(
     name="hotspots",
-    author="Chris Radoux, Peter Curran", "Mihaela Smilova",
+    author="Chris Radoux, Peter Curran, Mihaela Smilova",
     author_email="pcurran@ccdc.cam.ac.uk",
     version="1.0",
     url="https://github.com/prcurran/fragment_hotspot_maps",

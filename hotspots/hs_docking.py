@@ -48,13 +48,11 @@ class DockerSettings(docking.Docker.Settings):
 
     >>> docker.settings.add_protein_file(<path_to_protein>)
     >>> docker.settings.add_ligand_file(<path_to_ligands>, ndocks=25)
-    >>> constraints = docker.settings.HotspotHBondConstraint.from_hotspot(protein=docker.settings.proteins[0],
-                                                                     hr=bv,
-                                                                     weight=5,
-                                                                     min_hbond_score=0.6,
-                                                                     max_constraints=3)
+    >>> constraints = docker.settings.HotspotHBondConstraint.from_hotspot(protein=docker.settings.proteins[0], hr=hs)
+    >>> docker.settings.add_constraint(constraints)
+    >>> docker.dock()
 
-
+    >>> docker.Results(docker.settings).ligands
 
     """
     class HotspotHBondConstraint(docking.Docker.Settings.Constraint):

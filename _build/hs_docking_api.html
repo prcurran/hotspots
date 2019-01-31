@@ -180,6 +180,29 @@ Hotspot Maps to docking.</p>
 <dd><p>A class to handle the integration of Fragment Hotspot Map data with GOLD</p>
 <p>This class is designed to mirror the existing CSD python API for smooth integration. For use, import this class
 as the docking settings rather than directly from the Docking API.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ccdc.docking</span> <span class="k">import</span> <span class="n">Docker</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.hs_docking</span> <span class="k">import</span> <span class="n">DockerSettings</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="o">&lt;</span><span class="n">path_to_protein</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">from_protein</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_protein_file</span><span class="p">(</span><span class="o">&lt;</span><span class="n">path_to_protein</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_ligand_file</span><span class="p">(</span><span class="o">&lt;</span><span class="n">path_to_ligands</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">ndocks</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">constraints</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">HotspotHBondConstraint</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">proteins</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">hr</span><span class="o">=</span><span class="n">hs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">dock</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">Results</span><span class="p">(</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span><span class="o">.</span><span class="n">ligands</span>
+</pre></div>
+</div>
 <dl class="class">
 <dt id="hotspots.hs_docking.DockerSettings.HotspotHBondConstraint">
 <em class="property">class </em><code class="descname">HotspotHBondConstraint</code><span class="sig-paren">(</span><em>atoms</em>, <em>weight=5.0</em>, <em>min_hbond_score=0.001</em>, <em>_constraint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_docking.html#DockerSettings.HotspotHBondConstraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_docking.DockerSettings.HotspotHBondConstraint" title="Permalink to this definition">¶</a></dt>
@@ -221,9 +244,6 @@ Assign Protein Hbond constraints based on the highest scoring interactions.</p>
 </tr>
 </tbody>
 </table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">&gt;&gt;&gt;</span>
-</pre></div>
-</div>
 </dd></dl>
 
 </dd></dl>
@@ -248,9 +268,6 @@ points using the Fragment Hotspot Maps helps to biast results towards making Hot
 </tr>
 </tbody>
 </table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">&gt;&gt;&gt;</span>
-</pre></div>
-</div>
 </dd></dl>
 
 </dd></dl>
