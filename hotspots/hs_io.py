@@ -25,7 +25,6 @@ import shutil
 from ccdc.molecule import Molecule, Atom
 from ccdc.protein import Protein
 from ccdc import io
-import nglview as nv
 
 from grid_extension import Grid
 from hotspots.result import Results
