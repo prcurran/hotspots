@@ -162,6 +162,15 @@
 
 <span class="sd">- :class:`hotspots.hs_pharmacophore.PharmacophoreModel`</span>
 
+
+<span class="sd">A Pharmacophore Model can be generated directly from a :class:`hotspots.result.Result` :</span>
+
+<span class="sd">&gt;&gt;&gt; from hotspots.calculation import Runner</span>
+
+<span class="sd">&gt;&gt;&gt; r = Runner()</span>
+<span class="sd">&gt;&gt;&gt; result = r.from_pdb(&quot;1hcl&quot;)</span>
+<span class="sd">&gt;&gt;&gt; result.get_pharmacophore_model(identifier=&quot;MyFirstPharmacophore&quot;)</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">csv</span>
@@ -248,13 +257,33 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;list of `hotspots.pharmacophore.PharmacophoreFeature` class instances&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interaction features of the Pharmacophore Model</span>
+
+<span class="sd">        :return: list of :class:`hotspots.hs_pharmacophore._PharmacophoreFeature instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_features</span>
 
 <div class="viewcode-block" id="PharmacophoreModel.rank_features"><a class="viewcode-back" href="../../hs_pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.rank_features">[docs]</a>    <span class="k">def</span> <span class="nf">rank_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">feature_threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">force_apolar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        rank polar _features, sort feature list</span>
-<span class="sd">        :return:</span>
+<span class="sd">        orders features by score</span>
+
+<span class="sd">        :param int max_features: maximum number of features returned</span>
+<span class="sd">        :param float feature_threshold: only features above this value are considered</span>
+<span class="sd">        :param force_apolar: ensures at least one point is apolar</span>
+<span class="sd">        :return: list of features</span>
+
+
+<span class="sd">        &gt;&gt;&gt; from hotspots.hs_io import HotspotReader</span>
+
+<span class="sd">        &gt;&gt;&gt; result = HotspotReader(&quot;out.zip&quot;).read()</span>
+<span class="sd">        &gt;&gt;&gt; model = result.get_pharmacophore_model()</span>
+<span class="sd">        &gt;&gt;&gt; print len(model.features)</span>
+<span class="sd">        38</span>
+<span class="sd">        &gt;&gt;&gt; model.rank_features(max_features=5)</span>
+<span class="sd">        &gt;&gt;&gt; print len(model.features)</span>
+<span class="sd">        5</span>
+<span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">force_apolar</span><span class="p">:</span>
             <span class="n">apolar_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">feat</span><span class="o">.</span><span class="n">score_value</span><span class="p">:</span> <span class="n">feat</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span> <span class="o">==</span> <span class="s2">&quot;apolar&quot;</span><span class="p">}</span>
@@ -436,12 +465,137 @@
 
         <span class="k">return</span> <span class="n">Pharmacophore</span><span class="o">.</span><span class="n">Query</span><span class="p">(</span><span class="n">model_features</span><span class="p">)</span>
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_run_query</span><span class="p">(</span><span class="n">accession_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        search the PDB for entries which have the same UniProt code, contain ligands and are</span>
+<span class="sd">        within a resolution cutoff</span>
+
+<span class="sd">        :param str accession_id: the accession ID for the target</span>
+<span class="sd">        :return list: list of :class:`pdb_python_api.PDBResult` instances</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># create query</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">add_term</span><span class="p">(</span><span class="n">query_type</span><span class="o">=</span><span class="s2">&quot;UpAccessionIdQuery&quot;</span><span class="p">,</span>
+                   <span class="n">query_parameters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accessionIdList&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">accession_id</span><span class="p">)})</span>
+
+        <span class="n">q</span><span class="o">.</span><span class="n">add_term</span><span class="p">(</span><span class="n">query_type</span><span class="o">=</span><span class="s2">&quot;NoLigandQuery&quot;</span><span class="p">,</span>
+                   <span class="n">query_parameters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;haveLigands&#39;</span><span class="p">:</span> <span class="s1">&#39;yes&#39;</span><span class="p">},</span>
+                   <span class="n">conjunction</span><span class="o">=</span><span class="s1">&#39;and&#39;</span><span class="p">)</span>
+
+        <span class="n">q</span><span class="o">.</span><span class="n">add_term</span><span class="p">(</span><span class="n">query_type</span><span class="o">=</span><span class="s2">&quot;ResolutionQuery&quot;</span><span class="p">,</span>
+                   <span class="n">query_parameters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;refine.ls_d_res_high.comparator&#39;</span><span class="p">:</span> <span class="s1">&#39;between&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;refine.ls_d_res_high.min&#39;</span><span class="p">:</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;refine.ls_d_res_high.max&#39;</span><span class="p">:</span> <span class="s1">&#39;2.5&#39;</span><span class="p">},</span>
+                   <span class="n">conjunction</span><span class="o">=</span><span class="s1">&#39;and&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">PDB</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_ligands</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        smiles to RDKit molecule</span>
+
+<span class="sd">        :param list: list of :class:`pdb_python_api.PDBResult` instances</span>
+<span class="sd">        :return: RDKit molecules</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ligs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">uniques</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">filtered_ligands</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">l</span><span class="o">.</span><span class="n">rdmol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">smiles</span><span class="p">)</span>
+                    <span class="n">l</span><span class="o">.</span><span class="n">rdmol</span><span class="o">.</span><span class="n">SetProp</span><span class="p">(</span><span class="s2">&quot;_Name&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">identifier</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">l</span><span class="o">.</span><span class="n">chemical_id</span><span class="p">))</span>
+                    <span class="n">l</span><span class="o">.</span><span class="n">fingerprint</span> <span class="o">=</span> <span class="n">MACCSkeys</span><span class="o">.</span><span class="n">GenMACCSKeys</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">rdmol</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">chemical_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">uniques</span><span class="p">:</span>
+                        <span class="n">ligs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+                        <span class="n">uniques</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">chemical_id</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+        <span class="k">return</span> <span class="n">ligs</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_cluster_ligands</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">ligands</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        !!! OUT OF DATE !!!</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cluster_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">))}</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ligands</span><span class="p">)</span>
+        <span class="n">sim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+                <span class="n">sim</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataStructs</span><span class="o">.</span><span class="n">FingerprintSimilarity</span><span class="p">(</span><span class="n">ligands</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">,</span>
+                                                              <span class="n">ligands</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">)</span>
+
+        <span class="n">kmeans_model</span> <span class="o">=</span> <span class="n">KMeans</span><span class="p">(</span><span class="n">n_clusters</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">kmeans_model</span><span class="o">.</span><span class="n">labels_</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">silhouette_score</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ident</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">kmeans_model</span><span class="o">.</span><span class="n">labels_</span><span class="p">):</span>
+            <span class="n">ligands</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">cluster_id</span> <span class="o">=</span> <span class="n">ident</span>
+            <span class="n">cluster_dict</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">ident</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ligands</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">cluster_dict</span><span class="p">,</span> <span class="n">s</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_align_proteins</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">reference_chain</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        align proteins by chain</span>
+
+<span class="sd">        :param `ccdc.protein.Protein` reference: align to me</span>
+<span class="sd">        :param str reference_chain: align to this chain</span>
+<span class="sd">        :param list targets: list of `ccdc.protein.Protein`</span>
+<span class="sd">        :return tup: list(:class:`ccdc.protein.Protein`) and list (:classa`ccdc.molecule.Molecule`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Aligning proteins to </span><span class="si">{}</span><span class="s2">, chain </span><span class="si">{}</span><span class="s2">...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">identifier</span><span class="p">,</span> <span class="n">reference_chain</span><span class="p">))</span>
+        <span class="n">aligned_prots</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">aligned_ligands</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">reference</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">reference</span><span class="o">.</span><span class="n">add_hydrogens</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">targets</span><span class="p">):</span>
+            <span class="n">prot</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+            <span class="n">prot</span><span class="o">.</span><span class="n">detect_ligand_bonds</span><span class="p">()</span>
+            <span class="n">prot</span><span class="o">.</span><span class="n">add_hydrogens</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">prot</span><span class="o">.</span><span class="n">ligands</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">clustered_ligand</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">bs</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">BindingSiteFromMolecule</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="n">prot</span><span class="p">,</span>
+                                                             <span class="n">molecule</span><span class="o">=</span><span class="n">l</span><span class="p">,</span>
+                                                             <span class="n">distance</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+                        <span class="n">chain</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">residues</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="k">break</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">chain</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        </span><span class="si">{}</span><span class="s2"> failed! No chain detected&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">identifier</span><span class="p">))</span>
+                <span class="k">break</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">binding_site_superposition</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">ChainSuperposition</span><span class="p">()</span>
+                <span class="p">(</span><span class="n">bs_rmsd</span><span class="p">,</span> <span class="n">bs_transformation</span><span class="p">)</span> <span class="o">=</span> <span class="n">binding_site_superposition</span><span class="o">.</span><span class="n">superpose</span><span class="p">(</span><span class="n">reference</span><span class="p">[</span><span class="n">reference_chain</span><span class="p">],</span>
+                                                                                    <span class="n">prot</span><span class="p">[</span><span class="n">chain</span><span class="p">])</span>
+                <span class="n">aligned_prots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">lig</span> <span class="ow">in</span> <span class="n">prot</span><span class="o">.</span><span class="n">ligands</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">clustered_ligand</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">lig</span><span class="o">.</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]):</span>
+                        <span class="k">if</span> <span class="n">chain</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">lig</span><span class="o">.</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]):</span>
+                            <span class="n">aligned_ligands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lig</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        </span><span class="si">{}</span><span class="s2"> failed!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">identifier</span><span class="p">))</span>
+                <span class="k">continue</span>
+
+        <span class="k">return</span> <span class="n">aligned_prots</span><span class="p">,</span> <span class="n">aligned_ligands</span>
+
 <div class="viewcode-block" id="PharmacophoreModel.write"><a class="viewcode-back" href="../../hs_pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        writes out pharmacophore. Supported formats:</span>
 
 <span class="sd">        - &quot;.cm&quot; (*CrossMiner*),</span>
-<span class="sd">        - &quot;.json&quot; (*`Pharmit &lt;http://pharmit.csb.pitt.edu/search.html/&gt;`_*),</span>
+<span class="sd">        - &quot;.json&quot; (`Pharmit &lt;http://pharmit.csb.pitt.edu/search.html/&gt;`_),</span>
 <span class="sd">        - &quot;.py&quot; (*PyMOL*),</span>
 <span class="sd">        - &quot;.csv&quot;,</span>
 <span class="sd">        - &quot;.mol2&quot;</span>
@@ -576,32 +730,52 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;&quot;&quot;</span><span class="si">{}</span><span class="s2">&quot; output file type is not currently supported.&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">extension</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="PharmacophoreModel.from_hotspot"><a class="viewcode-back" href="../../hs_pharmacophore_api.html#hotspots.hs_pharmacophore.PharmacophoreModel.from_hotspot">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_hotspot</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">super_grids</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s2">&quot;id_01&quot;</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;creates a pharmacophore model from hotspot results object&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">from_hotspot</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s2">&quot;id_01&quot;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        creates a pharmacophore model from a Fragment Hotspot Map result</span>
+
+<span class="sd">        (included for completeness, equivalent to `hotspots.result.Result.get_pharmacophore()`)</span>
+
+<span class="sd">        :param `hotspots.result.Result` result: a Fragment Hotspot Maps result (or equivalent)</span>
+<span class="sd">        :param str identifier: Pharmacophore Model identifier</span>
+<span class="sd">        :param float threshold: values above this value</span>
+<span class="sd">        :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings: settings</span>
+
+<span class="sd">        :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`</span>
+
+<span class="sd">        &gt;&gt;&gt; from hotspots.calculation import Runner</span>
+<span class="sd">        &gt;&gt;&gt; from hotspots.hs_pharmacophore import PharmacophoreModel</span>
+
+<span class="sd">        &gt;&gt;&gt; r = Runner()</span>
+<span class="sd">        &gt;&gt;&gt; result = r.from_pdb(&quot;1hcl&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; model = PharmacophoreModel(result, identifier=&quot;pharmacophore&quot;)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">:</span>
             <span class="n">settings</span> <span class="o">=</span> <span class="n">PharmacophoreModel</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
 
-        <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="n">island</span><span class="p">,</span> <span class="n">probe</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
-                        <span class="k">for</span> <span class="n">probe</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-                        <span class="k">for</span> <span class="n">island</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">cutoff</span><span class="p">)</span> <span class="k">if</span> <span class="n">island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">]</span>
+        <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="n">island</span><span class="p">,</span> <span class="n">probe</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">probe</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                        <span class="k">for</span> <span class="n">island</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span> <span class="k">if</span> <span class="n">island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">PharmacophoreModel</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span>
                                   <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span>
                                   <span class="n">features</span><span class="o">=</span><span class="n">feature_list</span><span class="p">,</span>
-                                  <span class="n">protein</span><span class="o">=</span><span class="n">protein</span><span class="p">)</span></div>
+                                  <span class="n">protein</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span></div>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_from_file</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        creates a pharmacophore model from file (only .cm supported)</span>
 
-<span class="sd">        :param str fname:</span>
-<span class="sd">        :param `ccdc.protein.Protein` protein:</span>
-<span class="sd">        :param str identifier:</span>
-<span class="sd">        :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings:</span>
+<span class="sd">        :param str fname: path to CrossMiner file</span>
+<span class="sd">        :param `ccdc.protein.Protein` protein: protein</span>
+<span class="sd">        :param str identifier: identifier for the Pharmacophore Model</span>
+<span class="sd">        :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings: settings</span>
 
 <span class="sd">        :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">:</span>
             <span class="n">settings</span> <span class="o">=</span> <span class="n">PharmacophoreModel</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
@@ -632,8 +806,13 @@
 <span class="sd">        :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`</span>
 
 
-<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; from ccdc.io import MoleculeReader</span>
+<span class="sd">        &gt;&gt;&gt; from hotspots.hs_pharmacophore import PharmacophoreModel</span>
 
+<span class="sd">        &gt;&gt;&gt; mols = MoleculeReader(&quot;ligand_overlay_model.mol2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; model = PharmacophoreModel.from_ligands(mols, &quot;ligand_overlay_pharmacophore&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; # write to .json and search in pharmit</span>
+<span class="sd">        &gt;&gt;&gt; model.write(&quot;model.json&quot;)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cm_dic</span> <span class="o">=</span> <span class="n">crossminer_features</span><span class="p">()</span>
@@ -729,8 +908,22 @@
 <span class="sd">        :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`</span>
 
 
-<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; from hotspots.hs_pharmacophore import PharmacophoreModel</span>
+<span class="sd">        &gt;&gt;&gt; from hotspots.result import Results</span>
+<span class="sd">        &gt;&gt;&gt; from hotspots.hs_io import HotspotWriter</span>
+<span class="sd">        &gt;&gt;&gt; from ccdc.protein import Protein</span>
+<span class="sd">        &gt;&gt;&gt; from pdb_python_api import PDBResult</span>
 
+
+<span class="sd">        &gt;&gt;&gt; # get the PDB ligand-based Pharmacophore for CDK2</span>
+<span class="sd">        &gt;&gt;&gt; model = PharmacophoreModel.from_pdb(&quot;1hcl&quot;)</span>
+
+<span class="sd">        &gt;&gt;&gt; # the models grid data is stored as PharmacophoreModel.dic</span>
+<span class="sd">        &gt;&gt;&gt; # download the PDB file and create a Results</span>
+<span class="sd">        &gt;&gt;&gt; PDBResult(&quot;1hcl&quot;).download(&lt;output_directory&gt;)</span>
+<span class="sd">        &gt;&gt;&gt; result = Result(protein=Protein.from_file(&quot;&lt;output_directory&gt;/1hcl.pdb&quot;), super_grids=model.dic)</span>
+<span class="sd">        &gt;&gt;&gt; with HotspotWriter(&quot;&lt;output_directory&gt;&quot;) as w:</span>
+<span class="sd">        &gt;&gt;&gt;     w.write(result)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">temp</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
@@ -796,138 +989,23 @@
                     <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">PharmacophoreModel</span><span class="o">.</span><span class="n">from_ligands</span><span class="p">(</span><span class="n">ligands</span><span class="o">=</span><span class="n">ligands</span><span class="p">,</span>
-                                               <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">)</span></div>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_run_query</span><span class="p">(</span><span class="n">accession_id</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># create query</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
-        <span class="n">q</span><span class="o">.</span><span class="n">add_term</span><span class="p">(</span><span class="n">query_type</span><span class="o">=</span><span class="s2">&quot;UpAccessionIdQuery&quot;</span><span class="p">,</span>
-                   <span class="n">query_parameters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accessionIdList&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">accession_id</span><span class="p">)})</span>
-
-        <span class="n">q</span><span class="o">.</span><span class="n">add_term</span><span class="p">(</span><span class="n">query_type</span><span class="o">=</span><span class="s2">&quot;NoLigandQuery&quot;</span><span class="p">,</span>
-                   <span class="n">query_parameters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;haveLigands&#39;</span><span class="p">:</span> <span class="s1">&#39;yes&#39;</span><span class="p">},</span>
-                   <span class="n">conjunction</span><span class="o">=</span><span class="s1">&#39;and&#39;</span><span class="p">)</span>
-
-        <span class="n">q</span><span class="o">.</span><span class="n">add_term</span><span class="p">(</span><span class="n">query_type</span><span class="o">=</span><span class="s2">&quot;ResolutionQuery&quot;</span><span class="p">,</span>
-                   <span class="n">query_parameters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;refine.ls_d_res_high.comparator&#39;</span><span class="p">:</span> <span class="s1">&#39;between&#39;</span><span class="p">,</span>
-                                     <span class="s1">&#39;refine.ls_d_res_high.min&#39;</span><span class="p">:</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span>
-                                     <span class="s1">&#39;refine.ls_d_res_high.max&#39;</span><span class="p">:</span> <span class="s1">&#39;2.5&#39;</span><span class="p">},</span>
-                   <span class="n">conjunction</span><span class="o">=</span><span class="s1">&#39;and&#39;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">PDB</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_ligands</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ligs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">uniques</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">filtered_ligands</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">l</span><span class="o">.</span><span class="n">rdmol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">smiles</span><span class="p">)</span>
-                    <span class="n">l</span><span class="o">.</span><span class="n">rdmol</span><span class="o">.</span><span class="n">SetProp</span><span class="p">(</span><span class="s2">&quot;_Name&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">identifier</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">l</span><span class="o">.</span><span class="n">chemical_id</span><span class="p">))</span>
-                    <span class="n">l</span><span class="o">.</span><span class="n">fingerprint</span> <span class="o">=</span> <span class="n">MACCSkeys</span><span class="o">.</span><span class="n">GenMACCSKeys</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">rdmol</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">chemical_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">uniques</span><span class="p">:</span>
-                        <span class="n">ligs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
-                        <span class="n">uniques</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">chemical_id</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-                    <span class="k">continue</span>
-        <span class="k">return</span> <span class="n">ligs</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_cluster_ligands</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">ligands</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        generate an all by all similarity matrix</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">cluster_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">))}</span>
-        <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ligands</span><span class="p">)</span>
-        <span class="n">sim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
-                <span class="n">sim</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataStructs</span><span class="o">.</span><span class="n">FingerprintSimilarity</span><span class="p">(</span><span class="n">ligands</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">,</span>
-                                                              <span class="n">ligands</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">)</span>
-
-        <span class="n">kmeans_model</span> <span class="o">=</span> <span class="n">KMeans</span><span class="p">(</span><span class="n">n_clusters</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="n">kmeans_model</span><span class="o">.</span><span class="n">labels_</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">silhouette_score</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ident</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">kmeans_model</span><span class="o">.</span><span class="n">labels_</span><span class="p">):</span>
-            <span class="n">ligands</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">cluster_id</span> <span class="o">=</span> <span class="n">ident</span>
-            <span class="n">cluster_dict</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">ident</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ligands</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-
-        <span class="k">return</span> <span class="n">cluster_dict</span><span class="p">,</span> <span class="n">s</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_align_proteins</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">reference_chain</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Aligning proteins to </span><span class="si">{}</span><span class="s2">, chain </span><span class="si">{}</span><span class="s2">...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">identifier</span><span class="p">,</span> <span class="n">reference_chain</span><span class="p">))</span>
-        <span class="n">aligned_prots</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">aligned_ligands</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="n">reference</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
-        <span class="n">reference</span><span class="o">.</span><span class="n">add_hydrogens</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">targets</span><span class="p">):</span>
-            <span class="n">prot</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
-            <span class="n">prot</span><span class="o">.</span><span class="n">detect_ligand_bonds</span><span class="p">()</span>
-            <span class="n">prot</span><span class="o">.</span><span class="n">add_hydrogens</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">prot</span><span class="o">.</span><span class="n">ligands</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">clustered_ligand</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]):</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">bs</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">BindingSiteFromMolecule</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="n">prot</span><span class="p">,</span>
-                                                             <span class="n">molecule</span><span class="o">=</span><span class="n">l</span><span class="p">,</span>
-                                                             <span class="n">distance</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
-                        <span class="n">chain</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">residues</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="k">except</span><span class="p">:</span>
-                        <span class="k">break</span>
-                    <span class="k">break</span>
-
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">continue</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">chain</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        </span><span class="si">{}</span><span class="s2"> failed! No chain detected&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">identifier</span><span class="p">))</span>
-                <span class="k">break</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">binding_site_superposition</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">ChainSuperposition</span><span class="p">()</span>
-                <span class="p">(</span><span class="n">bs_rmsd</span><span class="p">,</span> <span class="n">bs_transformation</span><span class="p">)</span> <span class="o">=</span> <span class="n">binding_site_superposition</span><span class="o">.</span><span class="n">superpose</span><span class="p">(</span><span class="n">reference</span><span class="p">[</span><span class="n">reference_chain</span><span class="p">],</span>
-                                                                                    <span class="n">prot</span><span class="p">[</span><span class="n">chain</span><span class="p">])</span>
-                <span class="n">aligned_prots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">lig</span> <span class="ow">in</span> <span class="n">prot</span><span class="o">.</span><span class="n">ligands</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">clustered_ligand</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">lig</span><span class="o">.</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]):</span>
-                        <span class="k">if</span> <span class="n">chain</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">lig</span><span class="o">.</span><span class="n">identifier</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]):</span>
-                            <span class="n">aligned_ligands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lig</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        </span><span class="si">{}</span><span class="s2"> failed!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">identifier</span><span class="p">))</span>
-                <span class="k">continue</span>
-
-        <span class="k">return</span> <span class="n">aligned_prots</span><span class="p">,</span> <span class="n">aligned_ligands</span></div>
+                                               <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">)</span></div></div>
 
 
 <span class="k">class</span> <span class="nc">_PharmacophoreFeature</span><span class="p">(</span><span class="n">Helper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-
 <span class="sd">    A class to construct pharmacophoric models based upon fragment hotspot maps.</span>
-<span class="sd">    This feature is designed to be used after fragment sized hotspots have been extracted.</span>
-<span class="sd">    (Hotspot.extract_hotspots method)</span>
+
+<span class="sd">    :param projected:</span>
+<span class="sd">    :param feature_type:</span>
+<span class="sd">    :param feature_coordinates:</span>
+<span class="sd">    :param projected_coordinates:</span>
+<span class="sd">    :param score_value:</span>
+<span class="sd">    :param vector:</span>
+<span class="sd">    :param settings:</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">projected</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">score_value</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        new __init__ allows flexibility of pharmacophore generation</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_projected</span> <span class="o">=</span> <span class="n">projected</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_feature_type</span> <span class="o">=</span> <span class="n">feature_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_feature_coordinates</span> <span class="o">=</span> <span class="n">feature_coordinates</span>
@@ -968,12 +1046,14 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_hotspot</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">probe</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        create a feature from a hotspot island</span>
 
-<span class="sd">        :param grid:</span>
-<span class="sd">        :param probe:</span>
-<span class="sd">        :param protein:</span>
+<span class="sd">        :param `ccdc.utilities.Grid`grid: input grid</span>
+<span class="sd">        :param str probe: probe type identifier</span>
+<span class="sd">        :param `ccdc.protein.Protein` protein: target protein</span>
+<span class="sd">        :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings: settings</span>
+<span class="sd">        :return: :class:`hotspots.hs_pharmacophore._PharmacophoreFeature`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">feature_type</span> <span class="o">=</span> <span class="n">probe</span>
         <span class="k">if</span> <span class="n">probe</span> <span class="o">==</span> <span class="s2">&quot;apolar&quot;</span><span class="p">:</span>
             <span class="n">score</span><span class="p">,</span> <span class="n">feature_coordinates</span> <span class="o">=</span> <span class="n">_PharmacophoreFeature</span><span class="o">.</span><span class="n">get_centroid</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
@@ -1005,7 +1085,12 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_crossminer</span><span class="p">(</span><span class="n">feature_str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;generates a pharmacophore model from a crossminer file&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        create feature from CrossMiner string</span>
+
+<span class="sd">        :param str feature_str: extracted string from CrossMiner file</span>
+<span class="sd">        :return: :class:`hotspots.hs_pharmacophore._PharmacophoreFeature`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cm_feature_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ring&quot;</span><span class="p">:</span> <span class="s2">&quot;apolar&quot;</span><span class="p">,</span>
                            <span class="s2">&quot;ring_planar_projected&quot;</span><span class="p">:</span> <span class="s2">&quot;apolar&quot;</span><span class="p">,</span>
                            <span class="s2">&quot;ring_non_planar&quot;</span><span class="p">:</span> <span class="s2">&quot;apolar&quot;</span><span class="p">,</span>

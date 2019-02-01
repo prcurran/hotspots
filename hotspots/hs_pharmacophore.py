@@ -6,6 +6,15 @@ The main classe of the :mod:`hotspots.hs_pharmacophore` module is:
 
 - :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
 
+
+A Pharmacophore Model can be generated directly from a :class:`hotspots.result.Result` :
+
+>>> from hotspots.calculation import Runner
+
+>>> r = Runner()
+>>> result = r.from_pdb("1hcl")
+>>> result.get_pharmacophore_model(identifier="MyFirstPharmacophore")
+
 """
 
 import csv
@@ -92,13 +101,33 @@ class PharmacophoreModel(Helper):
 
     @property
     def features(self):
-        """list of `hotspots.pharmacophore.PharmacophoreFeature` class instances"""
+        """
+        Interaction features of the Pharmacophore Model
+
+        :return: list of :class:`hotspots.hs_pharmacophore._PharmacophoreFeature instance
+        """
         return self._features
 
     def rank_features(self, max_features=4, feature_threshold=0, force_apolar=True):
         """
-        rank polar _features, sort feature list
-        :return:
+        orders features by score
+
+        :param int max_features: maximum number of features returned
+        :param float feature_threshold: only features above this value are considered
+        :param force_apolar: ensures at least one point is apolar
+        :return: list of features
+
+
+        >>> from hotspots.hs_io import HotspotReader
+
+        >>> result = HotspotReader("out.zip").read()
+        >>> model = result.get_pharmacophore_model()
+        >>> print len(model.features)
+        38
+        >>> model.rank_features(max_features=5)
+        >>> print len(model.features)
+        5
+        
         """
         if force_apolar:
             apolar_dict = {feat.score_value: feat for feat in self.features if feat.feature_type == "apolar"}
@@ -280,12 +309,137 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
         return Pharmacophore.Query(model_features)
 
+    @staticmethod
+    def _run_query(accession_id):
+        """
+        search the PDB for entries which have the same UniProt code, contain ligands and are
+        within a resolution cutoff
+
+        :param str accession_id: the accession ID for the target
+        :return list: list of :class:`pdb_python_api.PDBResult` instances
+        """
+        # create query
+        q = Query()
+        q.add_term(query_type="UpAccessionIdQuery",
+                   query_parameters={'accessionIdList': '{}'.format(accession_id)})
+
+        q.add_term(query_type="NoLigandQuery",
+                   query_parameters={'haveLigands': 'yes'},
+                   conjunction='and')
+
+        q.add_term(query_type="ResolutionQuery",
+                   query_parameters={'refine.ls_d_res_high.comparator': 'between',
+                                     'refine.ls_d_res_high.min': '0',
+                                     'refine.ls_d_res_high.max': '2.5'},
+                   conjunction='and')
+
+        return PDB.search(q.query)
+
+    @staticmethod
+    def _get_ligands(results):
+        """
+        smiles to RDKit molecule
+
+        :param list: list of :class:`pdb_python_api.PDBResult` instances
+        :return: RDKit molecules
+        """
+        ligs = []
+        uniques = []
+        for entry in results:
+            for l in entry.filtered_ligands:
+                try:
+                    l.rdmol = Chem.MolFromSmiles(l.smiles)
+                    l.rdmol.SetProp("_Name", str(entry.identifier + "/" + l.chemical_id))
+                    l.fingerprint = MACCSkeys.GenMACCSKeys(l.rdmol)
+                    if l.chemical_id not in uniques:
+                        ligs.append(l)
+                        uniques.append(l.chemical_id)
+                except AttributeError:
+                    continue
+        return ligs
+
+    @staticmethod
+    def _cluster_ligands(n, ligands):
+        """
+        !!! OUT OF DATE !!!
+        :return:
+        """
+        cluster_dict = {a: [] for a in range(int(n))}
+        num = len(ligands)
+        sim = np.zeros((num, num))
+        for i in range(num):
+            for j in range(num):
+                sim[i, j] = DataStructs.FingerprintSimilarity(ligands[i].fingerprint,
+                                                              ligands[j].fingerprint)
+
+        kmeans_model = KMeans(n_clusters=n, random_state=1).fit(sim)
+        labels = kmeans_model.labels_
+        s = silhouette_score(sim, labels, metric='euclidean')
+
+        for i, ident in enumerate(kmeans_model.labels_):
+            ligands[i].cluster_id = ident
+            cluster_dict[int(ident)].append(ligands[i])
+
+        return cluster_dict, s
+
+    @staticmethod
+    def _align_proteins(reference, reference_chain, targets):
+        """
+        align proteins by chain
+
+        :param `ccdc.protein.Protein` reference: align to me
+        :param str reference_chain: align to this chain
+        :param list targets: list of `ccdc.protein.Protein`
+        :return tup: list(:class:`ccdc.protein.Protein`) and list (:classa`ccdc.molecule.Molecule`)
+        """
+        print("Aligning proteins to {}, chain {}...".format(reference.identifier, reference_chain))
+        aligned_prots = []
+        aligned_ligands = []
+
+        reference = Protein.from_file(reference.fname)
+        reference.add_hydrogens()
+
+        for t in tqdm(targets):
+            prot = Protein.from_file(t.fname)
+            prot.detect_ligand_bonds()
+            prot.add_hydrogens()
+            for l in prot.ligands:
+                if str(t.clustered_ligand) == str(l.identifier.split(":")[1][0:3]):
+                    try:
+                        bs = Protein.BindingSiteFromMolecule(protein=prot,
+                                                             molecule=l,
+                                                             distance=6)
+                        chain = bs.residues[0].identifier.split(":")[0]
+                    except:
+                        break
+                    break
+
+                else:
+                    continue
+            if not chain:
+                print("\n        {} failed! No chain detected".format(t.identifier))
+                break
+            try:
+                binding_site_superposition = Protein.ChainSuperposition()
+                (bs_rmsd, bs_transformation) = binding_site_superposition.superpose(reference[reference_chain],
+                                                                                    prot[chain])
+                aligned_prots.append(prot)
+                for lig in prot.ligands:
+                    if str(t.clustered_ligand) == str(lig.identifier.split(":")[1][0:3]):
+                        if chain == str(lig.identifier.split(":")[0]):
+                            aligned_ligands.append(lig)
+            except IndexError:
+                print("\n        {} failed!".format(t.identifier))
+                continue
+
+        return aligned_prots, aligned_ligands
+
     def write(self, fname):
         """
         writes out pharmacophore. Supported formats:
 
         - ".cm" (*CrossMiner*),
-        - ".json" (*`Pharmit <http://pharmit.csb.pitt.edu/search.html/>`_*),
+        - ".json" (`Pharmit <http://pharmit.csb.pitt.edu/search.html/>`_),
         - ".py" (*PyMOL*),
         - ".csv",
         - ".mol2"
@@ -420,32 +574,52 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             raise TypeError("""""{}" output file type is not currently supported.""".format(extension))
 
     @staticmethod
-    def from_hotspot(protein, super_grids, identifier="id_01", cutoff=5, settings=None):
-        """creates a pharmacophore model from hotspot results object"""
+    def from_hotspot(result, identifier="id_01", threshold=5, settings=None):
+        """
+        creates a pharmacophore model from a Fragment Hotspot Map result
+
+        (included for completeness, equivalent to `hotspots.result.Result.get_pharmacophore()`)
+
+        :param `hotspots.result.Result` result: a Fragment Hotspot Maps result (or equivalent)
+        :param str identifier: Pharmacophore Model identifier
+        :param float threshold: values above this value
+        :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings: settings
+
+        :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
+
+        >>> from hotspots.calculation import Runner
+        >>> from hotspots.hs_pharmacophore import PharmacophoreModel
+
+        >>> r = Runner()
+        >>> result = r.from_pdb("1hcl")
+        >>> model = PharmacophoreModel(result, identifier="pharmacophore")
+
+        """
 
         if not settings:
             settings = PharmacophoreModel.Settings()
 
-        feature_list = [_PharmacophoreFeature.from_hotspot(island, probe, protein, settings)
-                        for probe, g in super_grids.items()
-                        for island in g.islands(cutoff) if island.count_grid() >= 5]
+        feature_list = [_PharmacophoreFeature.from_hotspot(island, probe, result.protein, settings)
+                        for probe, g in result.super_grids.items()
+                        for island in g.islands(threshold) if island.count_grid() >= 5]
 
         return PharmacophoreModel(settings,
                                   identifier=identifier,
                                   features=feature_list,
-                                  protein=protein)
+                                  protein=result.protein)
 
     @staticmethod
     def _from_file(fname, protein=None, identifier=None, settings=None):
         """
         creates a pharmacophore model from file (only .cm supported)
 
-        :param str fname:
-        :param `ccdc.protein.Protein` protein:
-        :param str identifier:
-        :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings:
+        :param str fname: path to CrossMiner file
+        :param `ccdc.protein.Protein` protein: protein
+        :param str identifier: identifier for the Pharmacophore Model
+        :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings: settings
 
         :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
+
         """
         if not settings:
             settings = PharmacophoreModel.Settings()
@@ -476,8 +650,13 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
 
 
-        >>>
+        >>> from ccdc.io import MoleculeReader
+        >>> from hotspots.hs_pharmacophore import PharmacophoreModel
 
+        >>> mols = MoleculeReader("ligand_overlay_model.mol2")
+        >>> model = PharmacophoreModel.from_ligands(mols, "ligand_overlay_pharmacophore")
+        >>> # write to .json and search in pharmit
+        >>> model.write("model.json")
 
         """
         cm_dic = crossminer_features()
@@ -573,8 +752,22 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
 
 
-        >>>
+        >>> from hotspots.hs_pharmacophore import PharmacophoreModel
+        >>> from hotspots.result import Results
+        >>> from hotspots.hs_io import HotspotWriter
+        >>> from ccdc.protein import Protein
+        >>> from pdb_python_api import PDBResult
 
+
+        >>> # get the PDB ligand-based Pharmacophore for CDK2
+        >>> model = PharmacophoreModel.from_pdb("1hcl")
+
+        >>> # the models grid data is stored as PharmacophoreModel.dic
+        >>> # download the PDB file and create a Results
+        >>> PDBResult("1hcl").download(<output_directory>)
+        >>> result = Result(protein=Protein.from_file("<output_directory>/1hcl.pdb"), super_grids=model.dic)
+        >>> with HotspotWriter("<output_directory>") as w:
+        >>>     w.write(result)
 
         """
         temp = tempfile.mkdtemp()
@@ -642,136 +835,21 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         return PharmacophoreModel.from_ligands(ligands=ligands,
                                                identifier=identifier)
 
-    @staticmethod
-    def _run_query(accession_id):
-        """
-
-        :return:
-        """
-        # create query
-        q = Query()
-        q.add_term(query_type="UpAccessionIdQuery",
-                   query_parameters={'accessionIdList': '{}'.format(accession_id)})
-
-        q.add_term(query_type="NoLigandQuery",
-                   query_parameters={'haveLigands': 'yes'},
-                   conjunction='and')
-
-        q.add_term(query_type="ResolutionQuery",
-                   query_parameters={'refine.ls_d_res_high.comparator': 'between',
-                                     'refine.ls_d_res_high.min': '0',
-                                     'refine.ls_d_res_high.max': '2.5'},
-                   conjunction='and')
-
-        return PDB.search(q.query)
-
-    @staticmethod
-    def _get_ligands(results):
-        """
-
-        :return:
-        """
-        ligs = []
-        uniques = []
-        for entry in results:
-            for l in entry.filtered_ligands:
-                try:
-                    l.rdmol = Chem.MolFromSmiles(l.smiles)
-                    l.rdmol.SetProp("_Name", str(entry.identifier + "/" + l.chemical_id))
-                    l.fingerprint = MACCSkeys.GenMACCSKeys(l.rdmol)
-                    if l.chemical_id not in uniques:
-                        ligs.append(l)
-                        uniques.append(l.chemical_id)
-                except AttributeError:
-                    continue
-        return ligs
-
-    @staticmethod
-    def _cluster_ligands(n, ligands):
-        """
-        generate an all by all similarity matrix
-        :return:
-        """
-        cluster_dict = {a: [] for a in range(int(n))}
-        num = len(ligands)
-        sim = np.zeros((num, num))
-        for i in range(num):
-            for j in range(num):
-                sim[i, j] = DataStructs.FingerprintSimilarity(ligands[i].fingerprint,
-                                                              ligands[j].fingerprint)
-
-        kmeans_model = KMeans(n_clusters=n, random_state=1).fit(sim)
-        labels = kmeans_model.labels_
-        s = silhouette_score(sim, labels, metric='euclidean')
-
-        for i, ident in enumerate(kmeans_model.labels_):
-            ligands[i].cluster_id = ident
-            cluster_dict[int(ident)].append(ligands[i])
-
-        return cluster_dict, s
-
-    @staticmethod
-    def _align_proteins(reference, reference_chain, targets):
-        """
-
-        :return:
-        """
-        print("Aligning proteins to {}, chain {}...".format(reference.identifier, reference_chain))
-        aligned_prots = []
-        aligned_ligands = []
-
-        reference = Protein.from_file(reference.fname)
-        reference.add_hydrogens()
-
-        for t in tqdm(targets):
-            prot = Protein.from_file(t.fname)
-            prot.detect_ligand_bonds()
-            prot.add_hydrogens()
-            for l in prot.ligands:
-                if str(t.clustered_ligand) == str(l.identifier.split(":")[1][0:3]):
-                    try:
-                        bs = Protein.BindingSiteFromMolecule(protein=prot,
-                                                             molecule=l,
-                                                             distance=6)
-                        chain = bs.residues[0].identifier.split(":")[0]
-                    except:
-                        break
-                    break
-
-                else:
-                    continue
-            if not chain:
-                print("\n        {} failed! No chain detected".format(t.identifier))
-                break
-            try:
-                binding_site_superposition = Protein.ChainSuperposition()
-                (bs_rmsd, bs_transformation) = binding_site_superposition.superpose(reference[reference_chain],
-                                                                                    prot[chain])
-                aligned_prots.append(prot)
-                for lig in prot.ligands:
-                    if str(t.clustered_ligand) == str(lig.identifier.split(":")[1][0:3]):
-                        if chain == str(lig.identifier.split(":")[0]):
-                            aligned_ligands.append(lig)
-            except IndexError:
-                print("\n        {} failed!".format(t.identifier))
-                continue
-
-        return aligned_prots, aligned_ligands
-
 
 class _PharmacophoreFeature(Helper):
     """
-
     A class to construct pharmacophoric models based upon fragment hotspot maps.
-    This feature is designed to be used after fragment sized hotspots have been extracted.
-    (Hotspot.extract_hotspots method)
+
+    :param projected:
+    :param feature_type:
+    :param feature_coordinates:
+    :param projected_coordinates:
+    :param score_value:
+    :param vector:
+    :param settings:
+
     """
     def __init__(self, projected, feature_type, feature_coordinates, projected_coordinates, score_value, vector, settings):
-        """
-        new __init__ allows flexibility of pharmacophore generation
-        :return:
-        """
-
         self._projected = projected
         self._feature_type = feature_type
         self._feature_coordinates = feature_coordinates
@@ -812,12 +890,14 @@ class _PharmacophoreFeature(Helper):
     @staticmethod
     def from_hotspot(grid, probe, protein, settings):
         """
+        create a feature from a hotspot island
 
-        :param grid:
-        :param probe:
-        :param protein:
+        :param `ccdc.utilities.Grid`grid: input grid
+        :param str probe: probe type identifier
+        :param `ccdc.protein.Protein` protein: target protein
+        :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings: settings
+        :return: :class:`hotspots.hs_pharmacophore._PharmacophoreFeature`
         """
-
         feature_type = probe
         if probe == "apolar":
             score, feature_coordinates = _PharmacophoreFeature.get_centroid(grid)
@@ -849,7 +929,12 @@ class _PharmacophoreFeature(Helper):
 
     @staticmethod
     def from_crossminer(feature_str):
-        """generates a pharmacophore model from a crossminer file"""
+        """
+        create feature from CrossMiner string
+
+        :param str feature_str: extracted string from CrossMiner file
+        :return: :class:`hotspots.hs_pharmacophore._PharmacophoreFeature`
+        """
         cm_feature_dict = {"ring": "apolar",
                            "ring_planar_projected": "apolar",
                            "ring_non_planar": "apolar",

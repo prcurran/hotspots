@@ -454,7 +454,7 @@ class Results(object):
         hr = Results(grid_dic, protein=res_list[0].protein)
         return hr
 
-    def get_pharmacophore_model(self, identifier="id_01", cutoff=5):
+    def get_pharmacophore_model(self, identifier="id_01", threshold=5):
         """
         Generates a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance from peaks in the hotspot maps
 
@@ -463,7 +463,7 @@ class Results(object):
         :param float cutoff: The score cutoff used to identify islands in the maps. One peak will be identified per island
         :return: a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance
         """
-        return PharmacophoreModel.from_hotspot(self.protein, self.super_grids, identifier=identifier, cutoff=cutoff)
+        return PharmacophoreModel.from_hotspot(self, identifier=identifier, threshold=threshold)
 
     def get_map_values(self):
         """

@@ -163,6 +163,15 @@ conversion of Grid objects to pharmacophore models.</p>
 <ul class="simple">
 <li><a class="reference internal" href="#hotspots.hs_pharmacophore.PharmacophoreModel" title="hotspots.hs_pharmacophore.PharmacophoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_pharmacophore.PharmacophoreModel</span></code></a></li>
 </ul>
+<p>A Pharmacophore Model can be generated directly from a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Result</span></code> :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;1hcl&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">get_pharmacophore_model</span><span class="p">(</span><span class="n">identifier</span><span class="o">=</span><span class="s2">&quot;MyFirstPharmacophore&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="class">
 <dt id="hotspots.hs_pharmacophore.PharmacophoreModel">
 <em class="property">class </em><code class="descclassname">hotspots.hs_pharmacophore.</code><code class="descname">PharmacophoreModel</code><span class="sig-paren">(</span><em>settings</em>, <em>identifier=None</em>, <em>features=None</em>, <em>protein=None</em>, <em>dic=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel" title="Permalink to this definition">¶</a></dt>
@@ -205,16 +214,37 @@ conversion of Grid objects to pharmacophore models.</p>
 </table>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="hotspots.hs_pharmacophore.PharmacophoreModel.features">
-<code class="descname">features</code><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.features" title="Permalink to this definition">¶</a></dt>
-<dd><p>list of <cite>hotspots.pharmacophore.PharmacophoreFeature</cite> class instances</p>
-</dd></dl>
-
 <dl class="staticmethod">
 <dt id="hotspots.hs_pharmacophore.PharmacophoreModel.from_hotspot">
-<em class="property">static </em><code class="descname">from_hotspot</code><span class="sig-paren">(</span><em>protein</em>, <em>super_grids</em>, <em>identifier='id_01'</em>, <em>cutoff=5</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.from_hotspot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.from_hotspot" title="Permalink to this definition">¶</a></dt>
-<dd><p>creates a pharmacophore model from hotspot results object</p>
+<em class="property">static </em><code class="descname">from_hotspot</code><span class="sig-paren">(</span><em>result</em>, <em>identifier='id_01'</em>, <em>threshold=5</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.from_hotspot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.from_hotspot" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates a pharmacophore model from a Fragment Hotspot Map result</p>
+<p>(included for completeness, equivalent to <cite>hotspots.result.Result.get_pharmacophore()</cite>)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>result</strong> (<em>hotspots.result.Result</em>) – a Fragment Hotspot Maps result (or equivalent)</li>
+<li><strong>identifier</strong> (<em>str</em>) – Pharmacophore Model identifier</li>
+<li><strong>threshold</strong> (<em>float</em>) – values above this value</li>
+<li><strong>settings</strong> (<a class="reference internal" href="#hotspots.hs_pharmacophore.PharmacophoreModel.Settings" title="hotspots.hs_pharmacophore.PharmacophoreModel.Settings"><em>hotspots.hs_pharmacophore.PharmacophoreModel.Settings</em></a>) – settings</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#hotspots.hs_pharmacophore.PharmacophoreModel" title="hotspots.hs_pharmacophore.PharmacophoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_pharmacophore.PharmacophoreModel</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.hs_pharmacophore</span> <span class="k">import</span> <span class="n">PharmacophoreModel</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;1hcl&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">PharmacophoreModel</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s2">&quot;pharmacophore&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -238,7 +268,14 @@ conversion of Grid objects to pharmacophore models.</p>
 </tr>
 </tbody>
 </table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">&gt;&gt;&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ccdc.io</span> <span class="k">import</span> <span class="n">MoleculeReader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.hs_pharmacophore</span> <span class="k">import</span> <span class="n">PharmacophoreModel</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mols</span> <span class="o">=</span> <span class="n">MoleculeReader</span><span class="p">(</span><span class="s2">&quot;ligand_overlay_model.mol2&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">PharmacophoreModel</span><span class="o">.</span><span class="n">from_ligands</span><span class="p">(</span><span class="n">mols</span><span class="p">,</span> <span class="s2">&quot;ligand_overlay_pharmacophore&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># write to .json and search in pharmit</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;model.json&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -268,7 +305,23 @@ of atom types a given point is assigned to a grid.</p>
 </tr>
 </tbody>
 </table>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">&gt;&gt;&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.hs_pharmacophore</span> <span class="k">import</span> <span class="n">PharmacophoreModel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.result</span> <span class="k">import</span> <span class="n">Results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.hs_io</span> <span class="k">import</span> <span class="n">HotspotWriter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pdb_python_api</span> <span class="k">import</span> <span class="n">PDBResult</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># get the PDB ligand-based Pharmacophore for CDK2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">PharmacophoreModel</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;1hcl&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># the models grid data is stored as PharmacophoreModel.dic</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># download the PDB file and create a Results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">PDBResult</span><span class="p">(</span><span class="s2">&quot;1hcl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="o">&lt;</span><span class="n">output_directory</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">Result</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;&lt;output_directory&gt;/1hcl.pdb&quot;</span><span class="p">),</span> <span class="n">super_grids</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">dic</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">HotspotWriter</span><span class="p">(</span><span class="s2">&quot;&lt;output_directory&gt;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -276,8 +329,35 @@ of atom types a given point is assigned to a grid.</p>
 <dl class="method">
 <dt id="hotspots.hs_pharmacophore.PharmacophoreModel.rank_features">
 <code class="descname">rank_features</code><span class="sig-paren">(</span><em>max_features=4</em>, <em>feature_threshold=0</em>, <em>force_apolar=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.rank_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.rank_features" title="Permalink to this definition">¶</a></dt>
-<dd><p>rank polar _features, sort feature list
-:return:</p>
+<dd><p>orders features by score</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>max_features</strong> (<em>int</em>) – maximum number of features returned</li>
+<li><strong>feature_threshold</strong> (<em>float</em>) – only features above this value are considered</li>
+<li><strong>force_apolar</strong> – ensures at least one point is apolar</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of features</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.hs_io</span> <span class="k">import</span> <span class="n">HotspotReader</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">HotspotReader</span><span class="p">(</span><span class="s2">&quot;out.zip&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_pharmacophore_model</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">features</span><span class="p">)</span>
+<span class="go">38</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">rank_features</span><span class="p">(</span><span class="n">max_features</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">features</span><span class="p">)</span>
+<span class="go">5</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -286,7 +366,7 @@ of atom types a given point is assigned to a grid.</p>
 <dd><p>writes out pharmacophore. Supported formats:</p>
 <ul class="simple">
 <li>“.cm” (<em>CrossMiner</em>),</li>
-<li>“.json” (<em>`Pharmit &lt;http://pharmit.csb.pitt.edu/search.html/&gt;`_</em>),</li>
+<li>“.json” (<a class="reference external" href="http://pharmit.csb.pitt.edu/search.html/">Pharmit</a>),</li>
 <li>“.py” (<em>PyMOL</em>),</li>
 <li>“.csv”,</li>
 <li>“.mol2”</li>
