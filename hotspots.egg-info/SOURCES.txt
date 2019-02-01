@@ -4,12 +4,11 @@ setup.py
 hotspots/__init__.py
 hotspots/atomic_hotspot_calculation.py
 hotspots/calculation.py
-hotspots/fragment_elaboration.py
 hotspots/grid_extension.py
+hotspots/hs_docking.py
 hotspots/hs_io.py
 hotspots/hs_pharmacophore.py
 hotspots/hs_pharmacophore_extension.py
-hotspots/hs_screening.py
 hotspots/hs_utilities.py
 hotspots/result.py
 hotspots/template_strings.py

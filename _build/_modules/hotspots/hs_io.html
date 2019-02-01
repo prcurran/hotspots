@@ -154,87 +154,73 @@
            <div itemprop="articleBody">
             
   <h1>Source code for hotspots.hs_io</h1><div class="highlight"><pre>
-<span></span><span class="c1">#</span>
-<span class="c1"># This code is Copyright (C) 2015 The Cambridge Crystallographic Data Centre</span>
-<span class="c1"># (CCDC) of 12 Union Road, Cambridge CB2 1EZ, UK and a proprietary work of CCDC.</span>
-<span class="c1"># This code may not be used, reproduced, translated, modified, disassembled or</span>
-<span class="c1"># copied, except in accordance with a valid licence agreement with CCDC and may</span>
-<span class="c1"># not be disclosed or redistributed in any form, either in whole or in part, to</span>
-<span class="c1"># any third party. All copies of this code made in accordance with a valid</span>
-<span class="c1"># licence agreement as referred to above must contain this copyright notice.</span>
-<span class="c1">#</span>
-<span class="c1"># No representations, warranties, or liabilities are expressed or implied in the</span>
-<span class="c1"># supply of this code by CCDC, its servants or agents, except where such</span>
-<span class="c1"># exclusion or limitation is prohibited, void or unenforceable under governing</span>
-<span class="c1"># law.</span>
-<span class="c1">#</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">The :mod:`hotspots.io` module contains classes for the</span>
-<span class="sd">reading and writing of hotspots.</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The :mod:`hotspots.hs_io` module was created to facilitate easy reading and</span>
+<span class="sd">writing of Fragment Hotspot Map results.</span>
+
+<span class="sd">There are multiple components to a :class:`hotspots.result.Result` including, the</span>
+<span class="sd">protein, interaction grids and buriedness grid. It is therefore tedious to manually</span>
+<span class="sd">read/write using the various class readers/writers. The Hotspots I/O organises this</span>
+<span class="sd">for the user and can handle single :class:`hotspots.result.Result` or lists of</span>
+<span class="sd">:class:`hotspots.result.Result`.</span>
+
 
 <span class="sd">The main classes of the :mod:`hotspots.io` module are:</span>
 
 <span class="sd">- :class:`hotspots.io.HotspotWriter`</span>
 <span class="sd">- :class:`hotspots.io.HotspotReader`</span>
 
-<span class="sd">TO DO:</span>
-
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">zipfile</span>
-<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">listdir</span><span class="p">,</span> <span class="n">walk</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">isdir</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
+
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">listdir</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">isdir</span>
 
-<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="k">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Atom</span>
-<span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
 <span class="kn">from</span> <span class="nn">ccdc</span> <span class="k">import</span> <span class="n">io</span>
-<span class="kn">import</span> <span class="nn">nglview</span> <span class="k">as</span> <span class="nn">nv</span>
-
+<span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
 <span class="kn">from</span> <span class="nn">grid_extension</span> <span class="k">import</span> <span class="n">Grid</span>
 <span class="kn">from</span> <span class="nn">hotspots.result</span> <span class="k">import</span> <span class="n">Results</span>
-<span class="kn">from</span> <span class="nn">template_strings</span> <span class="k">import</span> <span class="n">pymol_imports</span><span class="p">,</span> <span class="n">pymol_arrow</span><span class="p">,</span> <span class="n">pymol_protein</span><span class="p">,</span> <span class="n">pymol_grids</span><span class="p">,</span> <span class="n">pymol_display_settings</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">hotspots.hs_utilities</span> <span class="k">import</span> <span class="n">Helper</span>
+<span class="kn">from</span> <span class="nn">hotspots.template_strings</span> <span class="k">import</span> <span class="n">pymol_imports</span><span class="p">,</span> <span class="n">pymol_arrow</span><span class="p">,</span> <span class="n">pymol_protein</span><span class="p">,</span> <span class="n">pymol_grids</span><span class="p">,</span> <span class="n">pymol_display_settings</span><span class="p">,</span> \
     <span class="n">pymol_load_zip</span><span class="p">,</span> <span class="n">pymol_labels</span><span class="p">,</span> <span class="n">pymol_mesh</span>
-<span class="kn">from</span> <span class="nn">hs_utilities</span> <span class="k">import</span> <span class="n">Helper</span>
 
 
 <div class="viewcode-block" id="HotspotWriter"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotWriter">[docs]</a><span class="k">class</span> <span class="nc">HotspotWriter</span><span class="p">(</span><span class="n">Helper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    class to handle the writing of Hotspots to file. And creation of visualisation scripts.</span>
+<span class="sd">    A class to handle the writing of a :class`hotspots.result.Result`. Additionally, creation of the</span>
+<span class="sd">    PyMol visualisation scripts are handled here.</span>
+
+<span class="sd">    :param str path: path to output directory</span>
+<span class="sd">    :param str visualisation: &quot;pymol&quot; or &quot;ngl&quot; currently only PyMOL available</span>
+<span class="sd">    :param str grid_extension: &quot;.grd&quot;, &quot;.ccp4&quot; and &quot;.acnt&quot; supported</span>
+<span class="sd">    :param bool zip_results: If True, the result directory will be compressed. (recommended)</span>
+<span class="sd">    :param `hotspots.hs_io.HotspotWriter.Settings` settings: settings</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
 <div class="viewcode-block" id="HotspotWriter.Settings"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotWriter.Settings">[docs]</a>    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;class to hold writer settings&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A class to hold the :class:`hotspots.hs_io.HotspotWriter` settings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="c1"># format settings</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">grid_extension</span> <span class="o">=</span> <span class="s2">&quot;.grd&quot;</span>
-
-            <span class="c1"># visual settings</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">bg_color</span> <span class="o">=</span> <span class="s2">&quot;white&quot;</span>
-
-            <span class="c1"># protein</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">surface</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">surface</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">surface_trim_factor</span> <span class="o">=</span> <span class="mi">13</span>
-
-            <span class="c1"># ligand</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">organic_sticks</span> <span class="o">=</span> <span class="kc">True</span>
-
-            <span class="c1"># grid</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">isosurface_threshold</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">17</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isosurface_threshold</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">17</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">grids</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">transparency</span> <span class="o">=</span> <span class="mf">0.2</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">grid_labels</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">supported_grids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="s2">&quot;.ccp4&quot;</span><span class="p">,</span> <span class="s2">&quot;.acnt&quot;</span><span class="p">]</span>
-
-            <span class="c1">#pharmacophore</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pharmacophore_labels</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pharmacophore_format</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.py&quot;</span><span class="p">]</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">visualisation</span><span class="o">=</span><span class="s2">&quot;pymol&quot;</span><span class="p">,</span> <span class="n">grid_extension</span><span class="o">=</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="n">zip_results</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param path: directory (maybe zipped) containing hotspot information</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -264,24 +250,38 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HotspotWriter.write"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotWriter.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;hr result can be instance or list&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        writes the Fragment Hotspot Maps result to the output directory and create the pymol visualisation file</span>
 
+<span class="sd">        :param `hotspots.result.Result` hr: a Fragment Hotspot Maps result or list of results</span>
+
+<span class="sd">        &gt;&gt;&gt; from hotspots.calculation import Runner</span>
+<span class="sd">        &gt;&gt;&gt; from hotspots.hs_io import HotspotWriter</span>
+
+<span class="sd">        &gt;&gt;&gt; r = Runner</span>
+<span class="sd">        &gt;&gt;&gt; result = r.from_pdb(&quot;1hcl&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; out_dir = &lt;path_to_out&gt;</span>
+<span class="sd">        &gt;&gt;&gt; with HotspotWriter(out_dir) as w:</span>
+<span class="sd">        &gt;&gt;&gt;     w.write(result)</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grids</span> <span class="o">=</span> <span class="n">hr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="s2">&quot;hotspot_boundaries&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">number_of_hotspots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hr</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">))</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_write_protein</span><span class="p">(</span><span class="n">hr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">hr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="c1">#hts = [h.hotspot_result for h in hr]</span>
+            <span class="c1"># hts = [h.hotspot_result for h in hr]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_write_pymol</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">hotspot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hr</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">isosurface_threshold</span> <span class="o">=</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">hotspot</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">isosurface_threshold</span> <span class="o">=</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">hotspot</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
 
                 <span class="n">bi</span> <span class="o">=</span> <span class="p">(</span><span class="n">Grid</span><span class="o">.</span><span class="n">super_grid</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">hotspot</span><span class="o">.</span><span class="n">best_island</span><span class="p">)</span><span class="o">.</span><span class="n">max_value_of_neighbours</span><span class="p">()</span>
                       <span class="o">&gt;</span> <span class="n">hotspot</span><span class="o">.</span><span class="n">threshold</span><span class="p">)</span>
@@ -296,7 +296,7 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">zip_results</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">))</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grids</span> <span class="o">=</span> <span class="n">hr</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
@@ -313,7 +313,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_write_pymol</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">zip_results</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">))</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">_write_grids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid_dict</span><span class="p">,</span> <span class="n">buriedness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -384,7 +384,6 @@
             <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_arrow</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">zipped</span><span class="p">:</span>
-
             <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_load_zip</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">))</span>
 
         <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_protein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">)</span>
@@ -422,7 +421,7 @@
                     <span class="n">fname</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s2">&quot;label_threshold_</span><span class="si">{}</span><span class="s2">.mol2&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;label_threshold_</span><span class="si">{}</span><span class="s2">.mol2&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-                <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_labels</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span> <span class="n">fname</span><span class="p">,</span>
+                <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_labels</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="n">fname</span><span class="p">,</span>
                                           <span class="n">objname</span><span class="o">=</span><span class="s2">&quot;label_threshold_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
 
         <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_grids</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
@@ -437,17 +436,15 @@
 
         <span class="k">return</span> <span class="n">pymol_out</span>
 
-<div class="viewcode-block" id="HotspotWriter.zip_results"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotWriter.zip_results">[docs]</a>    <span class="k">def</span> <span class="nf">zip_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">archive_name</span><span class="p">,</span> <span class="n">delete_directory</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="HotspotWriter.compress"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotWriter.compress">[docs]</a>    <span class="k">def</span> <span class="nf">compress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">archive_name</span><span class="p">,</span> <span class="n">delete_directory</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Zips the output directory created for this :class:`hotspots.HotspotResults` instance, and</span>
+<span class="sd">        compresses the output directory created for this :class:`hotspots.HotspotResults` instance, and</span>
 <span class="sd">        removes the directory by default. The zipped file can be loaded directly into a new</span>
 <span class="sd">        :class:`hotspots.HotspotResults` instance using the</span>
 <span class="sd">        :func:`~hotspots.Hotspots.from_zip_dir` function</span>
 
-<span class="sd">        :param archive_name: str, file path</span>
-<span class="sd">        :param delete_directory: bool, remove the out directory once it has been zipped</span>
-
-<span class="sd">        :return: None</span>
+<span class="sd">        :param str archive_name: file path</span>
+<span class="sd">        :param bool delete_directory: remove the out directory once it has been zipped</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">archive_name</span> <span class="o">=</span> <span class="n">archive_name</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">make_archive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archive_name</span><span class="p">,</span> <span class="s1">&#39;zip&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">)</span>
@@ -458,13 +455,12 @@
 
 <div class="viewcode-block" id="HotspotReader"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotReader">[docs]</a><span class="k">class</span> <span class="nc">HotspotReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    class to handle the reading of Hotspots</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to organise the reading of a :class:`hotspots.result.Result`</span>
 
-<span class="sd">        :param path:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">    :param str path: path to the result directory (can be .zip directory)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_supported_interactions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;apolar&quot;</span><span class="p">,</span> <span class="s2">&quot;donor&quot;</span><span class="p">,</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">,</span> <span class="s2">&quot;positive&quot;</span><span class="p">,</span> <span class="s2">&quot;negative&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_supported_grids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="s2">&quot;.ccp4&quot;</span><span class="p">,</span> <span class="s2">&quot;.acnt&quot;</span><span class="p">,</span> <span class="s2">&quot;.dat&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_not_hs_dir</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;best_islands&quot;</span><span class="p">,</span> <span class="s2">&quot;peaks&quot;</span><span class="p">,</span> <span class="s2">&quot;ins&quot;</span><span class="p">]</span>
@@ -483,7 +479,7 @@
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pfiles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING! </span><span class="si">{}</span><span class="s2"> has been used as default protein&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="s2">&quot;protein.pdb&quot;</span><span class="p">)))</span>
-            <span class="n">pfiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="k">if</span> <span class="n">f</span> <span class="o">==</span><span class="s2">&quot;protein.pdb&quot;</span><span class="p">]</span>
+            <span class="n">pfiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="s2">&quot;protein.pdb&quot;</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="n">pfiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hs_dir</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span>
@@ -499,7 +495,7 @@
 
         <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">hs_zip</span><span class="p">:</span>
             <span class="n">hs_zip</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
-        <span class="c1">#d = splitext(basename(self._path))</span>
+        <span class="c1"># d = splitext(basename(self._path))</span>
 
         <span class="k">return</span> <span class="n">base</span>
 
@@ -529,9 +525,9 @@
             <span class="n">ext</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extensions</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_supported_grids</span><span class="p">))</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">grid_dic</span> <span class="o">=</span> <span class="p">{</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">Grid</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
-                                 <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span>
-                                               <span class="k">if</span> <span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">ext</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                                               <span class="ow">and</span> <span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supported_interactions</span><span class="p">]}</span>
+                            <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span>
+                                          <span class="k">if</span> <span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">ext</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                                          <span class="ow">and</span> <span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supported_interactions</span><span class="p">]}</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">buriedness</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;buriedness</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ext</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
                 <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
@@ -543,10 +539,18 @@
 
 <div class="viewcode-block" id="HotspotReader.read"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotReader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        creates a hotspot result</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        creates a single or list of :class:`hotspots.result.Result` instance(s)</span>
 
+<span class="sd">        :param str identifier: for directories containing multiple Fragment Hotspot Map results,</span>
+<span class="sd">        identifier is the subdirectory for which a :class:`hotspots.result.Result` is requried</span>
+<span class="sd">        :return `hotspots.result.Result`: a Fragment Hotspot Map result</span>
+
+<span class="sd">        &gt;&gt;&gt; from hotspots.hs_io import HotspotReader</span>
+
+<span class="sd">        &gt;&gt;&gt; path = &lt;path_to_results_directory&gt;</span>
+<span class="sd">        &gt;&gt;&gt; result = HotspotReader(path).read()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hs_dir</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grids</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">Results</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
@@ -600,20 +604,11 @@
 
     
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
     
 
   

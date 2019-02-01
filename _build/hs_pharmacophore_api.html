@@ -88,6 +88,9 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calculation_api.html">Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_io_api.html">Hotspot IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="result_api.html">Result API</a></li>
 </ul>
 
             
@@ -154,23 +157,36 @@
             
   <div class="section" id="module-hotspots.hs_pharmacophore">
 <span id="hotspot-pharmacophore-api"></span><h1>Hotspot Pharmacophore API<a class="headerlink" href="#module-hotspots.hs_pharmacophore" title="Permalink to this headline">¶</a></h1>
-<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.pharmacophore</span></code> module contains classes for the
+<p>The <a class="reference internal" href="#module-hotspots.hs_pharmacophore" title="hotspots.hs_pharmacophore"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.hs_pharmacophore</span></code></a> module contains classes for the
 conversion of Grid objects to pharmacophore models.</p>
-<p>The main classes of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.pharmacophore</span></code> module are:</p>
+<p>The main classe of the <a class="reference internal" href="#module-hotspots.hs_pharmacophore" title="hotspots.hs_pharmacophore"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.hs_pharmacophore</span></code></a> module is:</p>
 <ul class="simple">
-<li><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.pharmacophore.PharmacophoreFeature</span></code></li>
-<li><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.pharmacophore.PharmacophoreModel</span></code></li>
+<li><a class="reference internal" href="#hotspots.hs_pharmacophore.PharmacophoreModel" title="hotspots.hs_pharmacophore.PharmacophoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_pharmacophore.PharmacophoreModel</span></code></a></li>
 </ul>
-<p>TO DO:
-Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 <dl class="class">
 <dt id="hotspots.hs_pharmacophore.PharmacophoreModel">
 <em class="property">class </em><code class="descclassname">hotspots.hs_pharmacophore.</code><code class="descname">PharmacophoreModel</code><span class="sig-paren">(</span><em>settings</em>, <em>identifier=None</em>, <em>features=None</em>, <em>protein=None</em>, <em>dic=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>A class to wrap pharmacophore _features and output in various formats</p>
+<dd><p>A class to handle a Pharmacophore Model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>settings</strong> (<a class="reference internal" href="#hotspots.hs_pharmacophore.PharmacophoreModel.Settings" title="hotspots.hs_pharmacophore.PharmacophoreModel.Settings"><em>hotspots.hs_pharmacophore.PharmacophoreModel.Settings</em></a>) – Pharmacophore Model settings</li>
+<li><strong>identifier</strong> (<em>str</em>) – Model identifier</li>
+<li><strong>features</strong> (<em>list</em>) – list of  :class:hotspots.hs_pharmacophore._PharmacophoreFeatures</li>
+<li><strong>protein</strong> (<em>ccdc.protein.Protein</em>) – a protein</li>
+<li><strong>dic</strong> (<em>dict</em>) – key = grid identifier(interaction type), value = <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.utilities.Grid</span></code></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="class">
 <dt id="hotspots.hs_pharmacophore.PharmacophoreModel.Settings">
 <em class="property">class </em><code class="descname">Settings</code><span class="sig-paren">(</span><em>feature_boundary_cutoff=5</em>, <em>max_hbond_dist=5</em>, <em>radius=1.0</em>, <em>vector_on=False</em>, <em>transparency=0.6</em>, <em>excluded_volume=True</em>, <em>binding_site_radius=12</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.Settings" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>settings available for adjustment</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -180,8 +196,8 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 <li><strong>radius</strong> (<em>float</em>) – Sphere radius</li>
 <li><strong>vector_on</strong> (<em>bool</em>) – Include interaction vector</li>
 <li><strong>transparency</strong> (<em>float</em>) – Set transparency of sphere</li>
-<li><strong>excluded_volume</strong> (<em>bool</em>) – PETE</li>
-<li><strong>binding_site_radius</strong> (<em>float</em>) – PETE</li>
+<li><strong>excluded_volume</strong> (<em>bool</em>) – If True, the CrossMiner pharmacophore will contain excluded volume spheres</li>
+<li><strong>binding_site_radius</strong> (<em>float</em>) – Radius of search for binding site calculation, used for excluded volume</li>
 </ul>
 </td>
 </tr>
@@ -196,12 +212,6 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="hotspots.hs_pharmacophore.PharmacophoreModel.from_file">
-<em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>fname</em>, <em>protein=None</em>, <em>identifier=None</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>creates a pharmacophore model from file (only .cm supported)</p>
-</dd></dl>
-
-<dl class="staticmethod">
 <dt id="hotspots.hs_pharmacophore.PharmacophoreModel.from_hotspot">
 <em class="property">static </em><code class="descname">from_hotspot</code><span class="sig-paren">(</span><em>protein</em>, <em>super_grids</em>, <em>identifier='id_01'</em>, <em>cutoff=5</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.from_hotspot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.from_hotspot" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates a pharmacophore model from hotspot results object</p>
@@ -210,16 +220,57 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 <dl class="staticmethod">
 <dt id="hotspots.hs_pharmacophore.PharmacophoreModel.from_ligands">
 <em class="property">static </em><code class="descname">from_ligands</code><span class="sig-paren">(</span><em>ligands</em>, <em>identifier</em>, <em>protein=None</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.from_ligands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.from_ligands" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>creates a Pharmacophore Model from a collection of overlaid ligands</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ligands</strong> – </td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ligands</strong> (<em>ccdc</em><em>,</em><em>molecule.Molecule</em>) – ligands from which the Model is created</li>
+<li><strong>identifier</strong> (<em>str</em>) – identifier for the Pharmacophore Model</li>
+<li><strong>protein</strong> (<em>ccdc.protein.Protein</em>) – target system that the model has been created for</li>
+<li><strong>settings</strong> (<a class="reference internal" href="#hotspots.hs_pharmacophore.PharmacophoreModel.Settings" title="hotspots.hs_pharmacophore.PharmacophoreModel.Settings"><em>hotspots.hs_pharmacophore.PharmacophoreModel.Settings</em></a>) – Pharmacophore Model settings</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#hotspots.hs_pharmacophore.PharmacophoreModel" title="hotspots.hs_pharmacophore.PharmacophoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_pharmacophore.PharmacophoreModel</span></code></a></p>
+</td>
 </tr>
 </tbody>
 </table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="hotspots.hs_pharmacophore.PharmacophoreModel.from_pdb">
+<em class="property">static </em><code class="descname">from_pdb</code><span class="sig-paren">(</span><em>pdb_code</em>, <em>chain</em>, <em>out_dir=None</em>, <em>representatives=None</em>, <em>identifier='LigandBasedPharmacophore'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.from_pdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.from_pdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates a Pharmacophore Model from a PDB code.</p>
+<p>This method is used for the creation of Ligand-Based pharmacophores. The PDB is searched for protein-ligand
+complexes of the same UniProt code as the input. These PDB’s are align, the ligands are clustered and density
+of atom types a given point is assigned to a grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pdb_code</strong> (<em>str</em>) – single PDB code from the target system</li>
+<li><strong>chain</strong> (<em>str</em>) – chain of interest</li>
+<li><strong>out_dir</strong> (<em>str</em>) – path to output directory</li>
+<li><strong>representatives</strong> – path to .dat file containing previously clustered data (time saver)</li>
+<li><strong>identifier</strong> (<em>str</em>) – identifier for the Pharmacophore Model</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#hotspots.hs_pharmacophore.PharmacophoreModel" title="hotspots.hs_pharmacophore.PharmacophoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_pharmacophore.PharmacophoreModel</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -232,9 +283,22 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 <dl class="method">
 <dt id="hotspots.hs_pharmacophore.PharmacophoreModel.write">
 <code class="descname">write</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_pharmacophore.html#PharmacophoreModel.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_pharmacophore.PharmacophoreModel.write" title="Permalink to this definition">¶</a></dt>
-<dd><p>given a fname, will output Pharmacophore in detected format
-:param fname: str, extensions support: “.cm”, “.py”, “.json”, “.csv”, “.mol2”
-:return:</p>
+<dd><p>writes out pharmacophore. Supported formats:</p>
+<ul class="simple">
+<li>“.cm” (<em>CrossMiner</em>),</li>
+<li>“.json” (<em>`Pharmit &lt;http://pharmit.csb.pitt.edu/search.html/&gt;`_</em>),</li>
+<li>“.py” (<em>PyMOL</em>),</li>
+<li>“.csv”,</li>
+<li>“.mol2”</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>str</em>) – path to output file</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -273,20 +337,11 @@ Could this be made into and extension of the ccdc.pharmacophore :mod:</p>
 
     
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
     
 
   

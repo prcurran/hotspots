@@ -2,73 +2,69 @@
 The :mod:`hotspots.hs_io` module was created to facilitate easy reading and
 writing of Fragment Hotspot Map results.
 
-There are multiple components to a :class:`hotspots.
+There are multiple components to a :class:`hotspots.result.Result` including, the
+protein, interaction grids and buriedness grid. It is therefore tedious to manually
+read/write using the various class readers/writers. The Hotspots I/O organises this
+for the user and can handle single :class:`hotspots.result.Result` or lists of
+:class:`hotspots.result.Result`.
 
-The :mod:`hotspots.io` module contains classes for the
-reading and writing of hotspots.
 
 The main classes of the :mod:`hotspots.io` module are:
 
 - :class:`hotspots.io.HotspotWriter`
 - :class:`hotspots.io.HotspotReader`
 
-TO DO:
-
 """
 from __future__ import print_function
-import zipfile
-from os import listdir, walk
-from os.path import splitext, join, basename, dirname, isdir
-import tempfile
+
 import shutil
+import tempfile
+import zipfile
+from os import listdir
+from os.path import splitext, join, basename, dirname, isdir
 
-from ccdc.molecule import Molecule, Atom
-from ccdc.protein import Protein
 from ccdc import io
-
+from ccdc.protein import Protein
 from grid_extension import Grid
 from hotspots.result import Results
-from template_strings import pymol_imports, pymol_arrow, pymol_protein, pymol_grids, pymol_display_settings, \
+from hotspots.hs_utilities import Helper
+from hotspots.template_strings import pymol_imports, pymol_arrow, pymol_protein, pymol_grids, pymol_display_settings, \
     pymol_load_zip, pymol_labels, pymol_mesh
-from hs_utilities import Helper
 
 
 class HotspotWriter(Helper):
     """
-    class to handle the writing of Hotspots to file. And creation of visualisation scripts.
+    A class to handle the writing of a :class`hotspots.result.Result`. Additionally, creation of the
+    PyMol visualisation scripts are handled here.
+
+    :param str path: path to output directory
+    :param str visualisation: "pymol" or "ngl" currently only PyMOL available
+    :param str grid_extension: ".grd", ".ccp4" and ".acnt" supported
+    :param bool zip_results: If True, the result directory will be compressed. (recommended)
+    :param `hotspots.hs_io.HotspotWriter.Settings` settings: settings
     """
+
     class Settings(object):
-        """class to hold writer settings"""
+        """
+        A class to hold the :class:`hotspots.hs_io.HotspotWriter` settings
+        """
+
         def __init__(self):
-            # format settings
             self.grid_extension = ".grd"
-
-            # visual settings
             self.bg_color = "white"
-
-            # protein
-            self.surface = True
+            self.surface = False
             self.surface_trim_factor = 13
-
-            # ligand
             self.organic_sticks = True
-
-            # grid
-            self.isosurface_threshold=[10, 14, 17]
+            self.isosurface_threshold = [10, 14, 17]
             self.grids = None
             self.transparency = 0.2
             self.grid_labels = True
             self.supported_grids = [".grd", ".ccp4", ".acnt"]
-
-            #pharmacophore
             self.pharmacophore = False
             self.pharmacophore_labels = True
             self.pharmacophore_format = [".py"]
 
     def __init__(self, path, visualisation="pymol", grid_extension=".grd", zip_results=True, settings=None):
-        """
-        :param path: directory (maybe zipped) containing hotspot information
-        """
         if settings is None:
             self.settings = self.Settings()
         else:
@@ -98,24 +94,38 @@ class HotspotWriter(Helper):
             print(traceback)
 
     def write(self, hr):
-        """hr result can be instance or list"""
+        """
+        writes the Fragment Hotspot Maps result to the output directory and create the pymol visualisation file
 
+        :param `hotspots.result.Result` hr: a Fragment Hotspot Maps result or list of results
+
+        >>> from hotspots.calculation import Runner
+        >>> from hotspots.hs_io import HotspotWriter
+
+        >>> r = Runner
+        >>> result = r.from_pdb("1hcl")
+        >>> out_dir = <path_to_out>
+        >>> with HotspotWriter(out_dir) as w:
+        >>>     w.write(result)
+
+
+        """
         if isinstance(hr, list):
             self.settings.grids = hr[0].super_grids.keys()
             self.container = "hotspot_boundaries"
             self.number_of_hotspots = len(hr)
 
-            self.out_dir= Helper.get_out_dir(join(self.path, self.container))
+            self.out_dir = Helper.get_out_dir(join(self.path, self.container))
 
             self._write_protein(hr[0].protein)
             if hr[0].pharmacophore:
                 self.settings.pharmacophore = True
-            #hts = [h.hotspot_result for h in hr]
+            # hts = [h.hotspot_result for h in hr]
             self._write_pymol(hr, self.zipped)
 
             for i, hotspot in enumerate(hr):
                 self.out_dir = Helper.get_out_dir(join(self.path, self.container, str(i)))
-                self.settings.isosurface_threshold = [round(hotspot.threshold,1)]
+                self.settings.isosurface_threshold = [round(hotspot.threshold, 1)]
 
                 bi = (Grid.super_grid(2, hotspot.best_island).max_value_of_neighbours()
                       > hotspot.threshold)
@@ -130,7 +140,7 @@ class HotspotWriter(Helper):
 
             self.out_dir = dirname(self.out_dir)
             if self.zipped:
-                self.zip_results(join(dirname(self.out_dir), self.container))
+                self.compress(join(dirname(self.out_dir), self.container))
 
         else:
             self.settings.grids = hr.super_grids.keys()
@@ -147,7 +157,7 @@ class HotspotWriter(Helper):
             self._write_pymol(hr, self.zipped)
 
             if self.zipped:
-                self.zip_results(join(dirname(self.out_dir), self.container))
+                self.compress(join(dirname(self.out_dir), self.container))
 
     def _write_grids(self, grid_dict, buriedness=None, mesh=None, out_dir=None):
         """
@@ -218,7 +228,6 @@ class HotspotWriter(Helper):
             pymol_out += pymol_arrow()
 
         if zipped:
-
             pymol_out += pymol_load_zip(basename(self.out_dir))
 
         pymol_out += pymol_protein(self.settings, self.zipped)
@@ -256,7 +265,7 @@ class HotspotWriter(Helper):
                     fname = join(str(i), "label_threshold_{}.mol2".format(t))
                 else:
                     fname = "label_threshold_{}.mol2".format(t)
-                pymol_out += pymol_labels(fname= fname,
+                pymol_out += pymol_labels(fname=fname,
                                           objname="label_threshold_{}".format(t))
 
         pymol_out += pymol_grids(i, self.settings)
@@ -271,17 +280,15 @@ class HotspotWriter(Helper):
 
         return pymol_out
 
-    def zip_results(self, archive_name, delete_directory=True):
+    def compress(self, archive_name, delete_directory=True):
         """
-        Zips the output directory created for this :class:`hotspots.HotspotResults` instance, and
+        compresses the output directory created for this :class:`hotspots.HotspotResults` instance, and
         removes the directory by default. The zipped file can be loaded directly into a new
         :class:`hotspots.HotspotResults` instance using the
         :func:`~hotspots.Hotspots.from_zip_dir` function
 
-        :param archive_name: str, file path
-        :param delete_directory: bool, remove the out directory once it has been zipped
-
-        :return: None
+        :param str archive_name: file path
+        :param bool delete_directory: remove the out directory once it has been zipped
         """
         self.archive_name = archive_name
         shutil.make_archive(self.archive_name, 'zip', self.out_dir)
@@ -292,13 +299,12 @@ class HotspotWriter(Helper):
 
 class HotspotReader(object):
     """
-    class to handle the reading of Hotspots
-    """
-    def __init__(self, path):
-        """
+    A class to organise the reading of a :class:`hotspots.result.Result`
 
-        :param path:
-        """
+    :param str path: path to the result directory (can be .zip directory)
+    """
+
+    def __init__(self, path):
         self._supported_interactions = ["apolar", "donor", "acceptor", "positive", "negative"]
         self._supported_grids = [".grd", ".ccp4", ".acnt", ".dat"]
         self._not_hs_dir = ["best_islands", "peaks", "ins"]
@@ -317,7 +323,7 @@ class HotspotReader(object):
 
         if len(pfiles) > 1:
             print("WARNING! {} has been used as default protein".format(join(self._base, "protein.pdb")))
-            pfiles = [p for p in self._files if f =="protein.pdb"]
+            pfiles = [p for p in self._files if f == "protein.pdb"]
 
         self.protein = Protein.from_file(join(self._base, pfiles[0]))
         self.hs_dir = [d for d in self._files
@@ -333,7 +339,7 @@ class HotspotReader(object):
 
         with zipfile.ZipFile(self._path) as hs_zip:
             hs_zip.extractall(base)
-        #d = splitext(basename(self._path))
+        # d = splitext(basename(self._path))
 
         return base
 
@@ -363,9 +369,9 @@ class HotspotReader(object):
             ext = list(set(self._extensions).intersection(self._supported_grids))
             if len(ext) == 1:
                 grid_dic = {splitext(fname)[0]: Grid.from_file(join(base, fname))
-                                 for fname in [f for f in self._files
-                                               if splitext(f)[1] == ext[0]
-                                               and splitext(f)[0] in self._supported_interactions]}
+                            for fname in [f for f in self._files
+                                          if splitext(f)[1] == ext[0]
+                                          and splitext(f)[0] in self._supported_interactions]}
                 try:
                     buriedness = Grid.from_file("buriedness{}".format(ext[0]))
                 except RuntimeError:
@@ -377,10 +383,18 @@ class HotspotReader(object):
 
     def read(self, identifier=None):
         """
-        creates a hotspot result
-        :return:
-        """
+        creates a single or list of :class:`hotspots.result.Result` instance(s)
 
+        :param str identifier: for directories containing multiple Fragment Hotspot Map results,
+        identifier is the subdirectory for which a :class:`hotspots.result.Result` is requried
+        :return `hotspots.result.Result`: a Fragment Hotspot Map result
+
+        >>> from hotspots.hs_io import HotspotReader
+
+        >>> path = <path_to_results_directory>
+        >>> result = HotspotReader(path).read()
+
+        """
         if len(self.hs_dir) == 0:
             self.grid_dic, self.buriedness = self._get_grids()
             return Results(protein=self.protein,

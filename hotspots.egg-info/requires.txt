@@ -8,4 +8,3 @@ pandas
 futures
 cython
 tqdm
-nglview

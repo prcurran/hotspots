@@ -1,33 +1,16 @@
-#
-# This code is Copyright (C) 2015 The Cambridge Crystallographic Data Centre
-# (CCDC) of 12 Union Road, Cambridge CB2 1EZ, UK and a proprietary work of CCDC.
-# This code may not be used, reproduced, translated, modified, disassembled or
-# copied, except in accordance with a valid licence agreement with CCDC and may
-# not be disclosed or redistributed in any form, either in whole or in part, to
-# any third party. All copies of this code made in accordance with a valid
-# licence agreement as referred to above must contain this copyright notice.
-#
-# No representations, warranties, or liabilities are expressed or implied in the
-# supply of this code by CCDC, its servants or agents, except where such
-# exclusion or limitation is prohibited, void or unenforceable under governing
-# law.
-#
-
 """
-The :mod:`hotspots.pharmacophore` module contains classes for the
+The :mod:`hotspots.hs_pharmacophore` module contains classes for the
 conversion of Grid objects to pharmacophore models.
 
-The main classes of the :mod:`hotspots.pharmacophore` module are:
+The main classe of the :mod:`hotspots.hs_pharmacophore` module is:
 
-- :class:`hotspots.pharmacophore.PharmacophoreFeature`
-- :class:`hotspots.pharmacophore.PharmacophoreModel`
+- :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
 
-TO DO:
-Could this be made into and extension of the ccdc.pharmacophore :mod:
 """
-import collections
+
 import csv
 import json
+import os
 import re
 import tempfile
 from os.path import basename, splitext, join, dirname
@@ -36,35 +19,50 @@ import numpy as np
 from ccdc import io
 from ccdc.descriptors import GeometricDescriptors
 from ccdc.molecule import Atom, Molecule
-
-
 from ccdc.pharmacophore import Pharmacophore
-from grid_extension import Grid, Coordinates
+from ccdc.protein import Protein
 
-from template_strings import pymol_arrow, pymol_imports, crossminer_features, pymol_labels
-from hs_utilities import Helper
+from hotspots.grid_extension import Grid, Coordinates
+from hotspots.hs_utilities import Helper
+from hotspots.template_strings import pymol_arrow, pymol_imports, crossminer_features, pymol_labels
+
+from pdb_python_api import Query, PDB, PDBResult
+
+from rdkit import Chem, DataStructs
+# from rdkit.Chem import MACCSkey, AllChem, Draw
+from rdkit.Chem import MACCSkeys
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+from tqdm import tqdm
 
 
 class PharmacophoreModel(Helper):
-
     """
-    A class to wrap pharmacophore _features and output in various formats
+    A class to handle a Pharmacophore Model
+
+    :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings: Pharmacophore Model settings
+    :param str identifier: Model identifier
+    :param list features: list of  :class:hotspots.hs_pharmacophore._PharmacophoreFeatures
+    :param `ccdc.protein.Protein` protein: a protein
+    :param dict dic: key = grid identifier(interaction type), value = :class:`ccdc.utilities.Grid`
+
     """
 
     class Settings():
         """
-            :param float feature_boundary_cutoff: The map score cutoff used to generate islands
-            :param float max_hbond_dist: Furthest acceptable distance for a hydrogen bonding partner (from polar feature)
-            :param float radius: Sphere radius
-            :param bool vector_on: Include interaction vector
-            :param float transparency: Set transparency of sphere
-            :param bool excluded_volume:  PETE
-            :param float binding_site_radius: PETE
+        settings available for adjustment
+
+        :param float feature_boundary_cutoff: The map score cutoff used to generate islands
+        :param float max_hbond_dist: Furthest acceptable distance for a hydrogen bonding partner (from polar feature)
+        :param float radius: Sphere radius
+        :param bool vector_on: Include interaction vector
+        :param float transparency: Set transparency of sphere
+        :param bool excluded_volume:  If True, the CrossMiner pharmacophore will contain excluded volume spheres
+        :param float binding_site_radius: Radius of search for binding site calculation, used for excluded volume
         """
 
         def __init__(self, feature_boundary_cutoff=5, max_hbond_dist=5, radius=1.0, vector_on=False, transparency=0.6,
                      excluded_volume=True, binding_site_radius=12):
-
             self.feature_boundary_cutoff = feature_boundary_cutoff
             self.max_hbond_dist = max_hbond_dist
             self.radius = radius  # set more intelligently
@@ -78,19 +76,11 @@ class PharmacophoreModel(Helper):
                 self.vector_on = 0
 
     def __init__(self, settings, identifier=None, features=None, protein=None, dic=None):
-        """
-
-        :param settings: a :class:`hotspots.hs_pharmacophore.PharmacophoreModel.Settings` instance
-        :param str identifier: Identifier, useful for displaying multiple models at once
-        :param features: PETE
-        :param protein: a :class:`ccdc.protein.Protein` instance
-        """
         self.identifier = identifier
         self._features = features
 
         self.fname = None
         self.projected_dict = {"True": ["donor", "acceptor"], "False": ["negative", "positive", "apolar"]}
-
         self.protein = protein
 
         if settings == None:
@@ -128,7 +118,7 @@ class PharmacophoreModel(Helper):
         else:
             score_dic = {feat.score_value: feat for feat in self.features}
             sorted_scores = sorted(score_dic.items(), key=lambda x: x[0], reverse=True)
-            if max_features > len(features):
+            if max_features > len(self.features):
                 ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold]
             else:
                 ordered_features = [feat for score, feat in sorted_scores if score > feature_threshold][:max_features]
@@ -137,8 +127,7 @@ class PharmacophoreModel(Helper):
 
     def _get_pymol_pharmacophore(self, lfile):
         """
-
-        :return:
+        create the pymol visualisation for a pharmacophore
         """
         pymol_out = """
 cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
@@ -195,15 +184,9 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
         return pymol_out
 
-    # def _create_result(self, protein):
-    #     """"""
-    #     temp = tempfile.mkdtemp()
-
     def _as_grid(self, feature_type=None, tolerance=2):
         """
         returns _features as grid
-        :param tolerance:
-        :return:
         """
         if feature_type == None:
             filtered_features = self._features
@@ -225,8 +208,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
     def _get_binding_site_residues(self):
         """
-
-        :return:
+        return a protein binding site
         """
         centroid = [feat.feature_coordinates for feat in self._features if feat.feature_type == "apolar"][0]
         prot = self.protein
@@ -234,8 +216,6 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         bs = prot.BindingSiteFromPoint(protein=self.protein,
                                        origin=centroid,
                                        distance=self.settings.binding_site_radius)
-
-        #print "bs", len(bs.residues)
 
         bs_residues = [str(r.identifier) for r in bs.residues]
         protein_residues = [str(p.identifier) for p in prot.residues]
@@ -247,8 +227,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
     def _get_crossminer_pharmacophore(self):
         """
-
-        :return:
+        convert a PharmacophoreModel into a crossminer pharmacophore
         """
         # TODO: UPDATE WITH CHARGED FEATURES
         supported_features = {"acceptor_projected": "acceptor",
@@ -303,9 +282,15 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
     def write(self, fname):
         """
-        given a fname, will output Pharmacophore in detected format
-        :param fname: str, extensions support: ".cm", ".py", ".json", ".csv", ".mol2"
-        :return:
+        writes out pharmacophore. Supported formats:
+
+        - ".cm" (*CrossMiner*),
+        - ".json" (*`Pharmit <http://pharmit.csb.pitt.edu/search.html/>`_*),
+        - ".py" (*PyMOL*),
+        - ".csv",
+        - ".mol2"
+
+        :param str fname: path to output file
         """
         extension = splitext(fname)[1]
 
@@ -451,18 +436,27 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                   protein=protein)
 
     @staticmethod
-    def from_file(fname, protein=None, identifier=None, settings=None):
-        """creates a pharmacophore model from file (only .cm supported) """
+    def _from_file(fname, protein=None, identifier=None, settings=None):
+        """
+        creates a pharmacophore model from file (only .cm supported)
+
+        :param str fname:
+        :param `ccdc.protein.Protein` protein:
+        :param str identifier:
+        :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings:
+
+        :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
+        """
         if not settings:
             settings = PharmacophoreModel.Settings()
-        if identifier == None:
+
+        if identifier is None:
             identifier = basename(fname).split(".")[0]
 
         with open(fname) as f:
             file = f.read().split("FEATURE_LIBRARY_END")[1]
             lines = [l for l in file.split("""\n\n""") if l != ""]
             feature_list = [f for f in [_PharmacophoreFeature.from_crossminer(feature) for feature in lines] if f != None]
-
 
         return PharmacophoreModel(settings,
                                   identifier=identifier,
@@ -472,9 +466,19 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
     @staticmethod
     def from_ligands(ligands, identifier, protein=None, settings=None):
         """
+        creates a Pharmacophore Model from a collection of overlaid ligands
 
-        :param ligands:
-        :return:
+        :param `ccdc,molecule.Molecule` ligands: ligands from which the Model is created
+        :param str identifier: identifier for the Pharmacophore Model
+        :param `ccdc.protein.Protein` protein: target system that the model has been created for
+        :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings: Pharmacophore Model settings
+
+        :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
+
+
+        >>>
+
+
         """
         cm_dic = crossminer_features()
         blank_grd = Grid.initalise_grid([a.coordinates for l in ligands for a in l.atoms])
@@ -545,7 +549,214 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                   features=features,
                                   protein=protein,
                                   dic=feature_dic)
+    @staticmethod
+    def _to_file(ligands, out_dir, fname="ligands.dat"):
+        with open(os.path.join(out_dir, fname), "w") as f:
+            for l in ligands:
+                f.write("{},{},{}\n".format(l.structure_id, l.chemical_id, l.smiles))
 
+    @staticmethod
+    def from_pdb(pdb_code, chain, out_dir=None, representatives=None, identifier="LigandBasedPharmacophore"):
+        """
+        creates a Pharmacophore Model from a PDB code.
+
+        This method is used for the creation of Ligand-Based pharmacophores. The PDB is searched for protein-ligand
+        complexes of the same UniProt code as the input. These PDB's are align, the ligands are clustered and density
+        of atom types a given point is assigned to a grid.
+
+        :param str pdb_code: single PDB code from the target system
+        :param str chain: chain of interest
+        :param str out_dir: path to output directory
+        :param representatives: path to .dat file containing previously clustered data (time saver)
+        :param str identifier: identifier for the Pharmacophore Model
+
+        :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
+
+
+        >>>
+
+
+        """
+        temp = tempfile.mkdtemp()
+        ref = PDBResult(pdb_code)
+        ref.download(out_dir=temp, compressed=False)
+
+        if representatives:
+            print("Reading representative PDB codes ...")
+            reps = []
+            f = open(representatives, "r")
+            entries = f.read().splitlines()
+
+            for entry in entries:
+                pdb_code, hetid, smiles = entry.split(",")
+                reps.append((pdb_code, hetid))
+
+        else:
+            accession_id = PDBResult(pdb_code).protein.sub_units[0].accession_id
+            results = PharmacophoreModel._run_query(accession_id)
+            ligands = PharmacophoreModel._get_ligands(results)
+
+            top = os.path.dirname(os.path.dirname(out_dir))
+            PharmacophoreModel._to_file(ligands, top, fname="all_ligands.dat")
+
+            k = int(round(len(ligands) / 5))
+            if k < 2:
+                k = 2
+            cluster_dict, s = PharmacophoreModel._cluster_ligands(n=k, ligands=ligands)
+            reps = [l[0] for l in cluster_dict.values() if len(l) != 0]
+
+        targets = []
+
+        for rep in reps:
+            try:
+                r = PDBResult(identifier=rep.structure_id)
+                r.clustered_ligand = rep.chemical_id
+
+            except:
+                try:
+                    r = PDBResult(identifier=rep[0])
+                    r.clustered_ligand = rep[1]
+                except:
+                    raise AttributeError
+
+            r.download(out_dir=temp, compressed=False)
+            targets.append(r)
+
+        prots, ligands = PharmacophoreModel._align_proteins(reference=ref,
+                                                            reference_chain=chain,
+                                                            targets=targets)
+
+        try:
+            with open(os.path.join(top, "silhouette.dat"), "w") as sfile:
+                sfile.write("{}".format(s))
+            PharmacophoreModel._to_file(reps, top, fname="representatives.dat")
+
+        except:
+            pass
+
+        if out_dir:
+            with io.MoleculeWriter(os.path.join(out_dir, "aligned_mols.mol2")) as w:
+                for l in ligands:
+                    w.write(l)
+
+        return PharmacophoreModel.from_ligands(ligands=ligands,
+                                               identifier=identifier)
+
+    @staticmethod
+    def _run_query(accession_id):
+        """
+
+        :return:
+        """
+        # create query
+        q = Query()
+        q.add_term(query_type="UpAccessionIdQuery",
+                   query_parameters={'accessionIdList': '{}'.format(accession_id)})
+
+        q.add_term(query_type="NoLigandQuery",
+                   query_parameters={'haveLigands': 'yes'},
+                   conjunction='and')
+
+        q.add_term(query_type="ResolutionQuery",
+                   query_parameters={'refine.ls_d_res_high.comparator': 'between',
+                                     'refine.ls_d_res_high.min': '0',
+                                     'refine.ls_d_res_high.max': '2.5'},
+                   conjunction='and')
+
+        return PDB.search(q.query)
+
+    @staticmethod
+    def _get_ligands(results):
+        """
+
+        :return:
+        """
+        ligs = []
+        uniques = []
+        for entry in results:
+            for l in entry.filtered_ligands:
+                try:
+                    l.rdmol = Chem.MolFromSmiles(l.smiles)
+                    l.rdmol.SetProp("_Name", str(entry.identifier + "/" + l.chemical_id))
+                    l.fingerprint = MACCSkeys.GenMACCSKeys(l.rdmol)
+                    if l.chemical_id not in uniques:
+                        ligs.append(l)
+                        uniques.append(l.chemical_id)
+                except AttributeError:
+                    continue
+        return ligs
+
+    @staticmethod
+    def _cluster_ligands(n, ligands):
+        """
+        generate an all by all similarity matrix
+        :return:
+        """
+        cluster_dict = {a: [] for a in range(int(n))}
+        num = len(ligands)
+        sim = np.zeros((num, num))
+        for i in range(num):
+            for j in range(num):
+                sim[i, j] = DataStructs.FingerprintSimilarity(ligands[i].fingerprint,
+                                                              ligands[j].fingerprint)
+
+        kmeans_model = KMeans(n_clusters=n, random_state=1).fit(sim)
+        labels = kmeans_model.labels_
+        s = silhouette_score(sim, labels, metric='euclidean')
+
+        for i, ident in enumerate(kmeans_model.labels_):
+            ligands[i].cluster_id = ident
+            cluster_dict[int(ident)].append(ligands[i])
+
+        return cluster_dict, s
+
+    @staticmethod
+    def _align_proteins(reference, reference_chain, targets):
+        """
+
+        :return:
+        """
+        print("Aligning proteins to {}, chain {}...".format(reference.identifier, reference_chain))
+        aligned_prots = []
+        aligned_ligands = []
+
+        reference = Protein.from_file(reference.fname)
+        reference.add_hydrogens()
+
+        for t in tqdm(targets):
+            prot = Protein.from_file(t.fname)
+            prot.detect_ligand_bonds()
+            prot.add_hydrogens()
+            for l in prot.ligands:
+                if str(t.clustered_ligand) == str(l.identifier.split(":")[1][0:3]):
+                    try:
+                        bs = Protein.BindingSiteFromMolecule(protein=prot,
+                                                             molecule=l,
+                                                             distance=6)
+                        chain = bs.residues[0].identifier.split(":")[0]
+                    except:
+                        break
+                    break
+
+                else:
+                    continue
+            if not chain:
+                print("\n        {} failed! No chain detected".format(t.identifier))
+                break
+            try:
+                binding_site_superposition = Protein.ChainSuperposition()
+                (bs_rmsd, bs_transformation) = binding_site_superposition.superpose(reference[reference_chain],
+                                                                                    prot[chain])
+                aligned_prots.append(prot)
+                for lig in prot.ligands:
+                    if str(t.clustered_ligand) == str(lig.identifier.split(":")[1][0:3]):
+                        if chain == str(lig.identifier.split(":")[0]):
+                            aligned_ligands.append(lig)
+            except IndexError:
+                print("\n        {} failed!".format(t.identifier))
+                continue
+
+        return aligned_prots, aligned_ligands
 
 
 class _PharmacophoreFeature(Helper):
