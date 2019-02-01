@@ -88,9 +88,13 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../atomic_hotspot_calculation_api.html">Atomic Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../hs_io_api.html">Hotspot IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../result_api.html">Result API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_docking_api.html">Hotspot Docking API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
             
@@ -200,11 +204,11 @@
     <span class="k">return</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">jobname</span>
 
 
-<div class="viewcode-block" id="AtomicHotspot"><a class="viewcode-back" href="../../atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot">[docs]</a><span class="k">class</span> <span class="nc">AtomicHotspot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="AtomicHotspot"><a class="viewcode-back" href="../../atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot">[docs]</a><span class="k">class</span> <span class="nc">AtomicHotspot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class for handling the calculation of Atomic Hotspots using SuperStar</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="AtomicHotspot.Settings"><a class="viewcode-back" href="../../atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings">[docs]</a>    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="AtomicHotspot.Settings"><a class="viewcode-back" href="../../atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings">[docs]</a>    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; handles the adjustable settings of Atomic Hotspot calculation.</span>
 
 <span class="sd">        NB: not all settings are exposed here, for other settings please look at</span>
@@ -331,7 +335,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Database must be &#39;CSD&#39; or &#39;PDB&#39;&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AtomicHotspot.InstructionFile"><a class="viewcode-back" href="../../atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile">[docs]</a>    <span class="k">class</span> <span class="nc">InstructionFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="AtomicHotspot.InstructionFile"><a class="viewcode-back" href="../../atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile">[docs]</a>    <span class="k">class</span> <span class="nc">InstructionFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; handles the instruction files for the commandline call of the Atomic Hotspot calculation</span>
 
 <span class="sd">        :param str jobname: general format &quot;&lt;probename&gt;.ins&quot;</span>
@@ -350,7 +354,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ins_str</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">SUBSTRUCTURE ALL&#39;</span>
 
-<div class="viewcode-block" id="AtomicHotspot.InstructionFile.write"><a class="viewcode-back" href="../../atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile.write">[docs]</a>        <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+<div class="viewcode-block" id="AtomicHotspot.InstructionFile.write"><a class="viewcode-back" href="../../atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile.write">[docs]</a>        <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            writes out the instruction file, enables calculation to be repeated</span>
 
@@ -431,7 +435,7 @@
 
         <span class="k">return</span> <span class="n">merged_results</span>
 
-<div class="viewcode-block" id="AtomicHotspot.calculate"><a class="viewcode-back" href="../../atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">nthreads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cavity_origins</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AtomicHotspot.calculate"><a class="viewcode-back" href="../../atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">nthreads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cavity_origins</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Calculates the Atomic Hotspot</span>
 
 <span class="sd">        This function executes the Atomic Hotspot Calculation for a given input protein.</span>
@@ -701,7 +705,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Chris Radoux and Peter Curran
+        &copy; Copyright 2019, Chris Radoux, Peter Curran and Mihaela Smilova
 
     </p>
   </div>

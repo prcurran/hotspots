@@ -8,6 +8,30 @@ This section will introduce the main functionality of the Hotspots API
 Getting Started
 ***************
 
+NB: Although the Hotspots API is publicly available, it is dependant on the CSD python API - a commerical package. 
+If you are an academic user it's likely your institution will have a license.
+
+DISCLAIMER: This is an academic project, we would therefore really appreciate feedback and contributions.
+
+For any questions on obtaining or setting the CSDS, please contact support@ccdc.cam.ac.uk
+
+===================
+Installation
+===================
+
+-------------------------
+Step 1: Install CSDS 2019
+-------------------------
+Available from CCDC downloads page (https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/) 
+You will need a valid site number and confirmation code, this will have been emailed to you when you bought your CSDS 2019 license
+
+
+----------------------------------
+Step 2: Create a conda environment 
+----------------------------------
+
+
+
 *********************
 Running a Calculation
 *********************
@@ -20,7 +44,7 @@ The first step is to make sure your protein is correctly prepared for the calcul
 protonated with small molecules and waters removed. Any waters or small molecules left in the structure will be included
 in the calculation.
 
-This can be done with the CSD Python API::
+One way to do this is to use the CSD Python API::
 
     from ccdc import Protein
 
@@ -29,6 +53,8 @@ This can be done with the CSD Python API::
     prot.add_hydrogens()
     for l in prot.ligands:
          prot.remove_ligand(l.identifier)
+		 
+However, there is no substitute for manually checking your structure before the calculation.
 
 =================================
 Calculating Fragment Hotspot Maps
@@ -40,6 +66,12 @@ Once the protein is prepared, the :class:`hotspots.calculation.Runner` object ca
 
     r = Runner()
     results = Runner.from_protein(prot)
+	
+
+Alternatively, for a quick calculation, you can supply a PDB code and we will prepare the protein as described above::
+
+    r = Runner()
+    results = Runner.from_pdb("1hcl")
 
 ============================
 Reading and Writing Hotspots
@@ -50,7 +82,7 @@ Writing
 -------
 
 The :mod:`hotspots.hs_io` module handles the reading and writing of both :class:`hotspots.calculation.results`
-and :class:`hotsptots.best_volume.Extractor` objects. The output `.grd` files can become quite large, but are highly
+and :class:`hotspots.best_volume.Extractor` objects. The output `.grd` files can become quite large, but are highly
 compressible, therefore the results are written to a `.zip` archive by default, along with a PyMOL run script to
 visualise the output. ::
 
@@ -85,29 +117,5 @@ Scoring
 =======
 
 
----------------
-Small molecules
----------------
 
---------
-Proteins
---------
-
-
-=======================
-Creating Pharmacophores
-=======================
-
-
-
-=========================================
-Extracting Hotspots and Drug-like Volumes
-=========================================
-
-------
-Global
-------
-
-----
-Seed
-----
+For more functionality check out the main Docs

@@ -33,7 +33,8 @@
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages']
+    'sphinx.ext.githubpages',
+	]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -49,8 +50,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Fragment Hotspot Maps'
-copyright = u'2018, Chris Radoux and Peter Curran'
-author = u'Chris Radoux and Peter Curran'
+copyright = u'2019, Chris Radoux, Peter Curran and Mihaela Smilova'
+author = u'Chris Radoux, Peter Curran and Mihaela Smilova'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -156,6 +157,8 @@ texinfo_documents = [
      author, 'FragmentHotspotMaps', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+
 
 
 

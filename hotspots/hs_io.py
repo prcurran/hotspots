@@ -387,12 +387,14 @@ class HotspotReader(object):
 
         :param str identifier: for directories containing multiple Fragment Hotspot Map results,
         identifier is the subdirectory for which a :class:`hotspots.result.Result` is requried
-        :return `hotspots.result.Result`: a Fragment Hotspot Map result
+
+        :return: `hotspots.result.Result` a Fragment Hotspot Map result
 
         >>> from hotspots.hs_io import HotspotReader
 
-        >>> path = <path_to_results_directory>
+        >>> path = "<path_to_results_directory>"
         >>> result = HotspotReader(path).read()
+
 
         """
         if len(self.hs_dir) == 0:

@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Hotspot Pharmacophore API" href="hs_pharmacophore_api.html" />
     <link rel="prev" title="Hotspot IO API" href="hs_io_api.html" /> 
 
   
@@ -89,9 +90,13 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atomic_hotspot_calculation_api.html">Atomic Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hs_io_api.html">Hotspot IO API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Result API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_docking_api.html">Hotspot Docking API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
             
@@ -158,48 +163,68 @@
             
   <div class="section" id="module-hotspots.result">
 <span id="result-api"></span><h1>Result API<a class="headerlink" href="#module-hotspots.result" title="Permalink to this headline">¶</a></h1>
-<p>The <a class="reference internal" href="#module-hotspots.result" title="hotspots.result"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.result</span></code></a> module contains classes to extract valuable information from the calculated Fragment Hotspot
-Maps.</p>
-<p>The main fields can be broken due using a fixed volume or fixed score mode.</p>
-<p>This approach enables a ranking of ligand sized cavity descriptions to be
-extracted. For example, these grids can be used to generate pharmacophores.</p>
+<p>The <a class="reference internal" href="#module-hotspots.result" title="hotspots.result"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.result</span></code></a> contains classes to extract valuable information from the calculated Fragment Hotspot Maps.</p>
 <dl class="docutils">
 <dt>The main classes of the <a class="reference internal" href="#module-hotspots.result" title="hotspots.result"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.result</span></code></a> module are:</dt>
-<dd>-Extractor
--Results</dd>
-<dt>More information about the fragment hotspot maps method is available from:</dt>
-<dd>Radoux, C.J. et. al., Identifying the Interactions that Determine Fragment Binding at Protein Hotspots J. Med. Chem.
-2016, 59 (9), 4314-4325
-dx.doi.org/10.1021/acs.jmedchem.5b01980</dd>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a></li>
+<li><a class="reference internal" href="#hotspots.result.Extractor" title="hotspots.result.Extractor"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Extractor</span></code></a></li>
+</ul>
+</dd>
 </dl>
+<p><a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> can be generated using the <a class="reference internal" href="calculation_api.html#module-hotspots.calculation" title="hotspots.calculation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.calculation</span></code></a> module</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>either</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;pdb_code&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;path_to_protein&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">from_protein</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> is the central class for the entire API. Every module either feeds into creating
+a <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance or uses it to generate derived data structures.</p>
+<p>The <a class="reference internal" href="#hotspots.result.Extractor" title="hotspots.result.Extractor"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Extractor</span></code></a> enables the main result to be broken down based on molecular volumes. This
+produces molecule sized descriptions of the cavity and aids tractibility analysis and pharmacophoric generation.</p>
 <dl class="class">
 <dt id="hotspots.result.Extractor">
 <em class="property">class </em><code class="descclassname">hotspots.result.</code><code class="descname">Extractor</code><span class="sig-paren">(</span><em>hr</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Extractor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Extractor" title="Permalink to this definition">¶</a></dt>
-<dd><p>A class to handle the extraction of discrete volumes from the highest scoring regions of the hotspot maps.</p>
+<dd><p>A class to handle the extraction of molecular volumes from a Fragment Hotspot Map result</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>hr</strong> (<em>hotspots.HotspotResults</em>) – A Fragment Hotspot Maps result</li>
+<li><strong>settings</strong> (<em>hotspots.Extractor.Settings</em>) – Extractor settings</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="class">
 <dt id="hotspots.result.Extractor.Settings">
-<em class="property">class </em><code class="descname">Settings</code><span class="sig-paren">(</span><em>volume=150</em>, <em>cutoff=14</em>, <em>mode='seed'</em>, <em>padding_factor=0</em>, <em>spacing=0.5</em>, <em>min_feature_gp=5</em>, <em>max_features=10</em>, <em>min_distance=6</em>, <em>island_max_size=100</em>, <em>sigma=0.3</em>, <em>drug_volume=300</em>, <em>buriedness_value=4</em>, <em>fragments=None</em>, <em>lead=None</em>, <em>pharmacophore=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Extractor.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Extractor.Settings" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descname">Settings</code><span class="sig-paren">(</span><em>volume=150</em>, <em>cutoff=14</em>, <em>spacing=0.5</em>, <em>min_feature_gp=5</em>, <em>max_features=10</em>, <em>min_distance=6</em>, <em>island_max_size=100</em>, <em>pharmacophore=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Extractor.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Extractor.Settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default settings for hotspot extraction</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>volume</strong> (<em>float</em>) – </li>
-<li><strong>cutoff</strong> (<em>float</em>) – </li>
-<li><strong>mode</strong> (<em>str</em>) – </li>
-<li><strong>padding_factor</strong> (<em>int</em>) – </li>
-<li><strong>spacing</strong> (<em>float</em>) – </li>
-<li><strong>min_feature_gp</strong> (<em>int</em>) – </li>
-<li><strong>max_features</strong> (<em>int</em>) – </li>
-<li><strong>min_distance</strong> (<em>float</em>) – </li>
-<li><strong>island_max_size</strong> (<em>int</em>) – </li>
-<li><strong>sigma</strong> (<em>float</em>) – </li>
-<li><strong>drug_volume</strong> (<em>float</em>) – </li>
-<li><strong>buriedness_value</strong> (<em>int</em>) – </li>
-<li><strong>fragments</strong> (<em>bool</em>) – </li>
-<li><strong>lead</strong> (<em>bool</em>) – </li>
-<li><strong>pharmacophore</strong> (<em>bool</em>) – </li>
+<li><strong>volume</strong> (<em>float</em>) – required volume (default = 150)</li>
+<li><strong>cutoff</strong> (<em>float</em>) – only features above this value are considered (default = 14)</li>
+<li><strong>spacing</strong> (<em>float</em>) – grid spacing, (default = 0.5)</li>
+<li><strong>min_feature_gp</strong> (<em>int</em>) – the minimum number of grid points required to create a feature (default = 5)</li>
+<li><strong>max_features</strong> (<em>int</em>) – the maximum number of features in a extracted volume (default = 10)(not recommended, control at pharmacophore)</li>
+<li><strong>min_distance</strong> (<em>float</em>) – the minimum distance between two apolar interaction peaks (default = 6)</li>
+<li><strong>island_max_size</strong> (<em>int</em>) – the maximum number of grid points a feature can take. (default = 100)(stops overinflation of polar features)</li>
+<li><strong>pharmacophore</strong> (<em>bool</em>) – if True, generate a Pharmacophore Model (default = True)</li>
 </ul>
 </td>
 </tr>
@@ -207,73 +232,153 @@ dx.doi.org/10.1021/acs.jmedchem.5b01980</dd>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="hotspots.result.Extractor.extract_all_volumes">
+<code class="descname">extract_all_volumes</code><span class="sig-paren">(</span><em>volume='125'</em>, <em>pharmacophores=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Extractor.extract_all_volumes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Extractor.extract_all_volumes" title="Permalink to this definition">¶</a></dt>
+<dd><p>from the main Fragment Hotspot Map result, the best continuous volume is calculated using peaks in the apolar
+maps as a seed point.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>volume</strong> (<em>float</em>) – volume in Angstrom^3</li>
+<li><strong>pharmacophores</strong> (<em>bool</em>) – if True, generates pharmacophores</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <cite>hotspots.result.Results</cite> instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span>
+<span class="go">&lt;hotspots.result.Results object at 0x000000001B657940&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.result</span> <span class="k">import</span> <span class="n">Extractor</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">extractor</span> <span class="o">=</span> <span class="n">Extractor</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">all_vols</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">extract_all_volumes</span><span class="p">(</span><span class="n">volume</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+<span class="go">[&lt;hotspots.result.Results object at 0x000000002963A438&gt;,</span>
+<span class="go"> &lt;hotspots.result.Results object at 0x0000000029655240&gt;,</span>
+<span class="go"> &lt;hotspots.result.Results object at 0x000000002963D2B0&gt;,</span>
+<span class="go"> &lt;hotspots.result.Results object at 0x000000002964FDD8&gt;,</span>
+<span class="go"> &lt;hotspots.result.Results object at 0x0000000029651D68&gt;,</span>
+<span class="go"> &lt;hotspots.result.Results object at 0x00000000296387F0&gt;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.result.Extractor.extract_best_volume">
+<code class="descname">extract_best_volume</code><span class="sig-paren">(</span><em>volume='125'</em>, <em>pharmacophores=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Extractor.extract_best_volume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Extractor.extract_best_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>from the main Fragment Hotspot Map result, the best continuous volume is returned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>volume</strong> (<em>float</em>) – volume in Angstrom^3</li>
+<li><strong>pharmacophores</strong> (<em>bool</em>) – if True, generates pharmacophores</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <cite>hotspots.result.Results</cite> instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span>
+<span class="go">&lt;hotspots.result.Results object at 0x000000001B657940&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.result</span> <span class="k">import</span> <span class="n">Extractor</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">extractor</span> <span class="o">=</span> <span class="n">Extractor</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">best</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">extract_best_volume</span><span class="p">(</span><span class="n">volume</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+<span class="go">[&lt;hotspots.result.Results object at 0x0000000028E201D0&gt;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="hotspots.result.Results">
 <em class="property">class </em><code class="descclassname">hotspots.result.</code><code class="descname">Results</code><span class="sig-paren">(</span><em>super_grids</em>, <em>protein</em>, <em>buriedness=None</em>, <em>pharmacophore=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Hotspot_results object is returned at the end of a Hotspots calculation. It contains functions for accessing
-and using the results.</p>
-<dl class="method">
-<dt id="hotspots.result.Results.extract_pocket">
-<code class="descname">extract_pocket</code><span class="sig-paren">(</span><em>whole_residues=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.extract_pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.extract_pocket" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.Protein</span></code> containing atoms or residues that have a score &gt; 0</p>
+<dd><p>A class to handle the results of the Fragment Hotspot Map calcation and to organise subsequent analysis</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>whole_residues</strong> (<em>bool</em>) – whether to include all residue atoms if only a subset have a score &gt; 0</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>super_grids</strong> (<em>dict</em>) – key = probe identifier and value = grid</li>
+<li><strong>protein</strong> (<em>ccdc.protein.Protein</em>) – target protein</li>
+<li><strong>buriedness</strong> (<em>ccdc.utilities.Grid</em>) – the buriedness grid</li>
+<li><strong>pharmacophore</strong> (<em>bool</em>) – if True, a pharmacophore will be generated</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.Protein</span></code> instance</td>
+</tbody>
+</table>
+<dl class="staticmethod">
+<dt id="hotspots.result.Results.from_grid_ensembles">
+<em class="property">static </em><code class="descname">from_grid_ensembles</code><span class="sig-paren">(</span><em>res_list</em>, <em>prot_name</em>, <em>charged=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.from_grid_ensembles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.from_grid_ensembles" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Experimental feature</em></p>
+<p>Creates ensemble map from a list of Results. Structures in the ensemble have to aligned by the
+binding site of interest prior to the hotspots calculation.</p>
+<p>TODO: Move to the calculation module?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>res_list</strong> – list of <cite>hotspots.result.Results</cite></li>
+<li><strong>prot_name</strong> (<em>str</em>) – str</li>
+<li><strong>out_dir</strong> (<em>str</em>) – path to output directory</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance</p>
+</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
-<dl class="staticmethod">
-<dt id="hotspots.result.Results.from_grid_ensembles">
-<em class="property">static </em><code class="descname">from_grid_ensembles</code><span class="sig-paren">(</span><em>res_list</em>, <em>prot_name</em>, <em>charged=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.from_grid_ensembles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.from_grid_ensembles" title="Permalink to this definition">¶</a></dt>
-<dd><p>Experimental feature.
-Creates ensemble map from a list of Results. Structures in the ensemble have to aligned by the
-binding site of interest prior to the hotspots calculation.
-:param res_list: list of hotspots.result.Results
-:param str prot_name: str
-:param str out_dir: str
-:return: a <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="hotspots.result.Results.get_difference_map">
 <code class="descname">get_difference_map</code><span class="sig-paren">(</span><em>other</em>, <em>tolerance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.get_difference_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.get_difference_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>Experimental feature.
-Generates maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
+<dd><p><em>Experimental feature.</em></p>
+<p>Generates maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
 by the binding site of interest prior to calculation.
 High scoring regions of a map represent areas of favourable interaction in the target binding site, not
-present in off target binding site
-:param other: a <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance
-:param int tolerance: how many grid points away to apply filter to
-:return: a <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hotspots.result.Results.get_histogram">
-<code class="descname">get_histogram</code><span class="sig-paren">(</span><em>fpath='histogram.png'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.get_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.get_histogram" title="Permalink to this definition">¶</a></dt>
-<dd><p>get histogram of zero grid points for the Fragment Hotspot Result
-:param fpath: path to output file
-:return:</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="hotspots.result.Results.get_map_values">
-<code class="descname">get_map_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.get_map_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.get_map_values" title="Permalink to this definition">¶</a></dt>
-<dd><p>get the number zero grid points for the Fragment Hotspot Result
-:return: dict of str(probe type) by a <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.array</span></code> (non-zero grid point scores)</p>
+present in off target binding site</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>other</strong> – a <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance</li>
+<li><strong>tolerance</strong> (<em>int</em>) – how many grid points away to apply filter to</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <a class="reference internal" href="#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="hotspots.result.Results.get_pharmacophore_model">
 <code class="descname">get_pharmacophore_model</code><span class="sig-paren">(</span><em>identifier='id_01'</em>, <em>threshold=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.get_pharmacophore_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.get_pharmacophore_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hotspot_pharmacophore.PharmacophoreModel</span></code> instance from peaks in the hotspot maps</p>
+<p>TODO: investigate using feature recognition to go from grids to features.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -292,25 +397,70 @@ present in off target binding site
 </dd></dl>
 
 <dl class="method">
+<dt id="hotspots.result.Results.histogram">
+<code class="descname">histogram</code><span class="sig-paren">(</span><em>fpath='histogram.png'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>get histogram of zero grid points for the Fragment Hotspot Result</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fpath</strong> – path to output file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">data, plot</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span>
+<span class="go">&lt;hotspots.result.Results object at 0x000000001B657940&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">histogram</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.result.Results.map_values">
+<code class="descname">map_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.map_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.map_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the number zero grid points for the Fragment Hotspot Result</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict of str(probe type) by a <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.array</span></code> (non-zero grid point scores)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="hotspots.result.Results.score">
 <code class="descname">score</code><span class="sig-paren">(</span><em>obj=None</em>, <em>tolerance=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/result.html#Results.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.result.Results.score" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores</p>
+<dd><p>annotate protein, molecule or self with Fragment Hotspot scores</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>obj</strong> – </li>
-<li><strong>return_value</strong> – </li>
+<li><strong>obj</strong> – <cite>ccdc.protein.Protein</cite>, <cite>ccdc.molecule.Molecule</cite> or <cite>hotsptos.result.Results</cite> (find the median)</li>
+<li><strong>tolerance</strong> (<em>int</em>) – the search radius around each point</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">scored obj, either <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.protein.Protein</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.molecule.Molecule</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspot.result.Results</span></code></p>
 </td>
 </tr>
 </tbody>
 </table>
-<p>TODO: Complete this docstring</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span>          <span class="c1"># example &quot;1hcl&quot;</span>
+<span class="go">&lt;hotspots.result.Results object at 0x000000001B657940&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>    <span class="c1"># scored protein</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">([</span><span class="n">a</span><span class="o">.</span><span class="n">partial_charge</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">atoms</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">partial_charge</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">8.852499961853027</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -325,6 +475,8 @@ present in off target binding site
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="hs_pharmacophore_api.html" class="btn btn-neutral float-right" title="Hotspot Pharmacophore API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
       
         <a href="hs_io_api.html" class="btn btn-neutral" title="Hotspot IO API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
@@ -335,7 +487,7 @@ present in off target binding site
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Chris Radoux and Peter Curran
+        &copy; Copyright 2019, Chris Radoux, Peter Curran and Mihaela Smilova
 
     </p>
   </div>

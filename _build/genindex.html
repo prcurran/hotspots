@@ -89,9 +89,13 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atomic_hotspot_calculation_api.html">Atomic Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hs_io_api.html">Hotspot IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="result_api.html">Result API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_docking_api.html">Hotspot Docking API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
             
@@ -166,6 +170,7 @@
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
+ | <a href="#M"><strong>M</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
@@ -180,15 +185,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="hs_docking_api.html#hotspots.hs_docking.DockerSettings.add_fitting_points">add_fitting_points() (hotspots.hs_docking.DockerSettings method)</a>
 </li>
-      <li><a href="atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings.atomic_probes">atomic_probes (hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings attribute)</a>
+      <li><a href="atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings.atomic_probes">atomic_probes (hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot">AtomicHotspot (class in hotspots.atomic_hotspot_calculation)</a>
+      <li><a href="atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot">AtomicHotspot (class in hotspots.atomic_hotspot_calculation)</a>
 </li>
-      <li><a href="atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile">AtomicHotspot.InstructionFile (class in hotspots.atomic_hotspot_calculation)</a>
+      <li><a href="atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile">AtomicHotspot.InstructionFile (class in hotspots.atomic_hotspot_calculation)</a>
 </li>
-      <li><a href="atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings">AtomicHotspot.Settings (class in hotspots.atomic_hotspot_calculation)</a>
+      <li><a href="atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings">AtomicHotspot.Settings (class in hotspots.atomic_hotspot_calculation)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -208,7 +213,7 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.calculate">calculate() (hotspots.atomic_hotspot_calculation.AtomicHotspot method)</a>
+      <li><a href="atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.calculate">calculate() (hotspots.atomic_hotspot_calculation.AtomicHotspot method)</a>
 
       <ul>
         <li><a href="calculation_api.html#hotspots.calculation.Buriedness.calculate">(hotspots.calculation.Buriedness method)</a>
@@ -244,7 +249,9 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="result_api.html#hotspots.result.Results.extract_pocket">extract_pocket() (hotspots.result.Results method)</a>
+      <li><a href="result_api.html#hotspots.result.Extractor.extract_all_volumes">extract_all_volumes() (hotspots.result.Extractor method)</a>
+</li>
+      <li><a href="result_api.html#hotspots.result.Extractor.extract_best_volume">extract_best_volume() (hotspots.result.Extractor method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -286,15 +293,13 @@
 </li>
       <li><a href="hs_utilities_api.html#hotspots.hs_utilities.Helper.get_distance">get_distance() (hotspots.hs_utilities.Helper static method)</a>
 </li>
-      <li><a href="result_api.html#hotspots.result.Results.get_histogram">get_histogram() (hotspots.result.Results method)</a>
+      <li><a href="hs_utilities_api.html#hotspots.hs_utilities.Helper.get_label">get_label() (hotspots.hs_utilities.Helper static method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="hs_utilities_api.html#hotspots.hs_utilities.Helper.get_label">get_label() (hotspots.hs_utilities.Helper static method)</a>
-</li>
       <li><a href="hs_utilities_api.html#hotspots.hs_utilities.Helper.get_lines_from_file">get_lines_from_file() (hotspots.hs_utilities.Helper static method)</a>
 </li>
-      <li><a href="result_api.html#hotspots.result.Results.get_map_values">get_map_values() (hotspots.result.Results method)</a>
+      <li><a href="hs_utilities_api.html#hotspots.hs_utilities.Helper.get_out_dir">get_out_dir() (hotspots.hs_utilities.Helper static method)</a>
 </li>
       <li><a href="result_api.html#hotspots.result.Results.get_pharmacophore_model">get_pharmacophore_model() (hotspots.result.Results method)</a>
 </li>
@@ -307,12 +312,14 @@
       <li><a href="hs_utilities_api.html#hotspots.hs_utilities.Helper">Helper (class in hotspots.hs_utilities)</a>
 </li>
       <li><a href="hs_utilities_api.html#hotspots.hs_utilities.Figures.histogram">histogram() (hotspots.hs_utilities.Figures static method)</a>
+
+      <ul>
+        <li><a href="result_api.html#hotspots.result.Results.histogram">(hotspots.result.Results method)</a>
 </li>
-      <li><a href="hs_utilities_api.html#hotspots.hs_utilities.hotspot_histograms">hotspot_histograms() (in module hotspots.hs_utilities)</a>
-</li>
+      </ul></li>
       <li><a href="hs_io_api.html#hotspots.hs_io.HotspotReader">HotspotReader (class in hotspots.hs_io)</a>
 </li>
-      <li><a href="atomic_hotspot_calculation.html#module-hotspots.atomic_hotspot_calculation">hotspots.atomic_hotspot_calculation (module)</a>
+      <li><a href="atomic_hotspot_calculation_api.html#module-hotspots.atomic_hotspot_calculation">hotspots.atomic_hotspot_calculation (module)</a>
 </li>
       <li><a href="calculation_api.html#module-hotspots.calculation">hotspots.calculation (module)</a>
 </li>
@@ -331,6 +338,14 @@
       <li><a href="hs_io_api.html#hotspots.hs_io.HotspotWriter">HotspotWriter (class in hotspots.hs_io)</a>
 </li>
       <li><a href="hs_io_api.html#hotspots.hs_io.HotspotWriter.Settings">HotspotWriter.Settings (class in hotspots.hs_io)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="result_api.html#hotspots.result.Results.map_values">map_values() (hotspots.result.Results method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -376,7 +391,7 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="atomic_hotspot_calculation.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile.write">write() (hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile method)</a>
+      <li><a href="atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile.write">write() (hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile method)</a>
 
       <ul>
         <li><a href="hs_io_api.html#hotspots.hs_io.HotspotWriter.write">(hotspots.hs_io.HotspotWriter method)</a>
@@ -423,7 +438,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Chris Radoux and Peter Curran
+        &copy; Copyright 2019, Chris Radoux, Peter Curran and Mihaela Smilova
 
     </p>
   </div>

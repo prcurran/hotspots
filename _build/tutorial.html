@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Hotspot Calculation API" href="calculation_api.html" />
+    <link rel="next" title="Atomic Hotspot Calculation API" href="atomic_hotspot_calculation_api.html" />
     <link rel="prev" title="Welcome to the Hotspot API’s documentation!" href="index.html" /> 
 
   
@@ -90,7 +90,14 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#step-1-install-csds-2019">Step 1: Install CSDS 2019</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-2-create-a-conda-environment">Step 2: Create a conda environment</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#running-a-calculation">Running a Calculation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#protein-preparation">Protein Preparation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#calculating-fragment-hotspot-maps">Calculating Fragment Hotspot Maps</a></li>
@@ -102,24 +109,18 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#using-the-output">Using the Output</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#scoring">Scoring</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#small-molecules">Small molecules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#proteins">Proteins</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#creating-pharmacophores">Creating Pharmacophores</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#extracting-hotspots-and-drug-like-volumes">Extracting Hotspots and Drug-like Volumes</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#global">Global</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#seed">Seed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scoring">Scoring</a></li>
 </ul>
 </li>
 </ul>
 </li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="atomic_hotspot_calculation_api.html">Atomic Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hs_io_api.html">Hotspot IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="result_api.html">Result API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_docking_api.html">Hotspot Docking API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
             
@@ -189,6 +190,21 @@
 <p>This section will introduce the main functionality of the Hotspots API</p>
 <div class="section" id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>NB: Although the Hotspots API is publicly available, it is dependant on the CSD python API - a commerical package.
+If you are an academic user it’s likely your institution will have a license.</p>
+<p>DISCLAIMER: This is an academic project, we would therefore really appreciate feedback and contributions.</p>
+<p>For any questions on obtaining or setting the CSDS, please contact <a class="reference external" href="mailto:support&#37;&#52;&#48;ccdc&#46;cam&#46;ac&#46;uk">support<span>&#64;</span>ccdc<span>&#46;</span>cam<span>&#46;</span>ac<span>&#46;</span>uk</a></p>
+<div class="section" id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="step-1-install-csds-2019">
+<h4>Step 1: Install CSDS 2019<a class="headerlink" href="#step-1-install-csds-2019" title="Permalink to this headline">¶</a></h4>
+<p>Available from CCDC downloads page (<a class="reference external" href="https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/">https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/</a>)
+You will need a valid site number and confirmation code, this will have been emailed to you when you bought your CSDS 2019 license</p>
+</div>
+<div class="section" id="step-2-create-a-conda-environment">
+<h4>Step 2: Create a conda environment<a class="headerlink" href="#step-2-create-a-conda-environment" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
 </div>
 <div class="section" id="running-a-calculation">
 <h2>Running a Calculation<a class="headerlink" href="#running-a-calculation" title="Permalink to this headline">¶</a></h2>
@@ -197,7 +213,7 @@
 <p>The first step is to make sure your protein is correctly prepared for the calculation. The structures should be
 protonated with small molecules and waters removed. Any waters or small molecules left in the structure will be included
 in the calculation.</p>
-<p>This can be done with the CSD Python API:</p>
+<p>One way to do this is to use the CSD Python API:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ccdc</span> <span class="k">import</span> <span class="n">Protein</span>
 
 <span class="n">prot</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
@@ -207,6 +223,7 @@ in the calculation.</p>
      <span class="n">prot</span><span class="o">.</span><span class="n">remove_ligand</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>However, there is no substitute for manually checking your structure before the calculation.</p>
 </div>
 <div class="section" id="calculating-fragment-hotspot-maps">
 <h3>Calculating Fragment Hotspot Maps<a class="headerlink" href="#calculating-fragment-hotspot-maps" title="Permalink to this headline">¶</a></h3>
@@ -217,13 +234,18 @@ in the calculation.</p>
 <span class="n">results</span> <span class="o">=</span> <span class="n">Runner</span><span class="o">.</span><span class="n">from_protein</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Alternatively, for a quick calculation, you can supply a PDB code and we will prepare the protein as described above:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">Runner</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;1hcl&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="reading-and-writing-hotspots">
 <h3>Reading and Writing Hotspots<a class="headerlink" href="#reading-and-writing-hotspots" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="writing">
 <h4>Writing<a class="headerlink" href="#writing" title="Permalink to this headline">¶</a></h4>
 <p>The <a class="reference internal" href="hs_io_api.html#module-hotspots.hs_io" title="hotspots.hs_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.hs_io</span></code></a> module handles the reading and writing of both <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.results</span></code>
-and <code class="xref py py-class docutils literal notranslate"><span class="pre">hotsptots.best_volume.Extractor</span></code> objects. The output <cite>.grd</cite> files can become quite large, but are highly
+and <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.best_volume.Extractor</span></code> objects. The output <cite>.grd</cite> files can become quite large, but are highly
 compressible, therefore the results are written to a <cite>.zip</cite> archive by default, along with a PyMOL run script to
 visualise the output.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots</span> <span class="k">import</span> <span class="n">hs_io</span>
@@ -253,24 +275,7 @@ visualise the output.</p>
 <p>While Fragment Hotspot Maps provide a useful visual guide, the grid-based data can be used</p>
 <div class="section" id="scoring">
 <h3>Scoring<a class="headerlink" href="#scoring" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="small-molecules">
-<h4>Small molecules<a class="headerlink" href="#small-molecules" title="Permalink to this headline">¶</a></h4>
-</div>
-<div class="section" id="proteins">
-<h4>Proteins<a class="headerlink" href="#proteins" title="Permalink to this headline">¶</a></h4>
-</div>
-</div>
-<div class="section" id="creating-pharmacophores">
-<h3>Creating Pharmacophores<a class="headerlink" href="#creating-pharmacophores" title="Permalink to this headline">¶</a></h3>
-</div>
-<div class="section" id="extracting-hotspots-and-drug-like-volumes">
-<h3>Extracting Hotspots and Drug-like Volumes<a class="headerlink" href="#extracting-hotspots-and-drug-like-volumes" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="global">
-<h4>Global<a class="headerlink" href="#global" title="Permalink to this headline">¶</a></h4>
-</div>
-<div class="section" id="seed">
-<h4>Seed<a class="headerlink" href="#seed" title="Permalink to this headline">¶</a></h4>
-</div>
+<p>For more functionality check out the main Docs</p>
 </div>
 </div>
 </div>
@@ -283,7 +288,7 @@ visualise the output.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="calculation_api.html" class="btn btn-neutral float-right" title="Hotspot Calculation API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="atomic_hotspot_calculation_api.html" class="btn btn-neutral float-right" title="Atomic Hotspot Calculation API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral" title="Welcome to the Hotspot API’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -295,7 +300,7 @@ visualise the output.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Chris Radoux and Peter Curran
+        &copy; Copyright 2019, Chris Radoux, Peter Curran and Mihaela Smilova
 
     </p>
   </div>

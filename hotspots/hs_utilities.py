@@ -1,24 +1,11 @@
-#
-# This code is Copyright (C) 2015 The Cambridge Crystallographic Data Centre
-# (CCDC) of 12 Union Road, Cambridge CB2 1EZ, UK and a proprietary work of CCDC.
-# This code may not be used, reproduced, translated, modified, disassembled or
-# copied, except in accordance with a valid licence agreement with CCDC and may
-# not be disclosed or redistributed in any form, either in whole or in part, to
-# any third party. All copies of this code made in accordance with a valid
-# licence agreement as referred to above must contain this copyright notice.
-#
-# No representations, warranties, or liabilities are expressed or implied in the
-# supply of this code by CCDC, its servants or agents, except where such
-# exclusion or limitation is prohibited, void or unenforceable under governing
-# law.
-#
 """
-
 The :mod:`hotspots.utilities` module contains classes to for
 general functionality.
 
 The main classes of the :mod:`hotspots.extraction` module are:
-    -Utilities
+    - :class:`hotspots.hs_utilities.Helper`
+    - :class:`hotspots.hs_utilities.Figures`
+
 """
 from __future__ import division
 
@@ -33,6 +20,7 @@ mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
 import numpy as np
+
 from ccdc.cavity import Cavity
 from ccdc.io import MoleculeWriter
 from ccdc.molecule import Molecule, Atom
@@ -42,15 +30,15 @@ Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
 class Helper(object):
     """
-    class providing utility functions
+    A class to handle miscellaneous functionality
     """
     @staticmethod
     def get_distance(coords1, coords2):
         """
         given two coordinates, calculates the distance
 
-        :param coords1: tup, (float(x), float(y), float(z), coordinates of point 1
-        :param coords2: tup, (float(x), float(y), float(z), coordinates of point 2
+        :param tup coords1: float(x), float(y), float(z), coordinates of point 1
+        :param tup coords2: float(x), float(y), float(z), coordinates of point 2
         :return: float, distance
         """
         xd = coords1[0] - coords2[0]
@@ -61,7 +49,12 @@ class Helper(object):
 
     @staticmethod
     def get_out_dir(path):
-        """"""
+        """
+        checks if directory exists, if not, it create the directory
+
+        :param str path: path to directory
+        :return str: path to output directory
+        """
         if not exists(abspath(path)):
             mkdir(abspath(path))
         return abspath(path)
@@ -69,11 +62,10 @@ class Helper(object):
     @staticmethod
     def get_lines_from_file(fname):
         """
-        fetch lines from ghecom output
+        gets lines from text file, used in Ghecom calculation
 
-        :return: str, lines from output file
+        :return: list, list of str
         """
-
         f = open(fname)
         lines = f.readlines()
         f.close()
@@ -84,9 +76,10 @@ class Helper(object):
     @staticmethod
     def cavity_centroid(obj):
         """
-        Returns the centroid of a cavity object
-        :param cav:
-        :return:
+        returns the centre of a cavity
+
+        :param obj: can be a `ccdc.cavity.Cavity` or
+        :return: Coordinate
         """
         if isinstance(obj, Cavity):
             features = [f.coordinates for f in obj.features]
@@ -103,12 +96,12 @@ class Helper(object):
     @staticmethod
     def cavity_from_protein(prot):
         """
-        generates a cavities from prot.
-        :param prot:
-        :return:
-        """
-        # TODO: proper solution has been requested
+        currently the Protein API doesn't support the generation of cavities directly from the Protein instance
+        this method handles the tedious writing / reading
 
+        :param `ccdc.protein.Protein` prot: protein
+        :return: `ccdc.cavity.Cavity`
+        """
         tfile = join(tempfile.mkdtemp(), "protein.pdb")
         with MoleculeWriter(tfile) as writer:
             writer.write(prot)
@@ -118,9 +111,10 @@ class Helper(object):
     @staticmethod
     def get_label(input, threshold=None):
         """
+        creates a value labels from an input grid dictionary
 
-        :param input:
-        :return:
+        :param dic input: key = "probe identifier" and value = `ccdc.utilities.Grid`
+        :return `ccdc.molecule.Molecule`: pseduomolecule which contains score labels
         """
         min_size_dict = {"apolar": 40,
                          "donor": 15,
@@ -178,8 +172,13 @@ class Figures(object):
     TO DO: is there a better place for this to live?
     """
     @staticmethod
-    def histogram(hr, plot):
-        """ creates a histrogram from grid values"""
+    def histogram(hr):
+        """
+        creates a histogram from the hotspot scores
+
+        :param `hotspots.result.Results` hr: a Fragment Hotspot Map result
+        :return: data, plot
+        """
         data = {}
         for p, g in hr.super_grids.items():
             array = g.get_array()
@@ -187,11 +186,9 @@ class Figures(object):
             grid_values = masked_array.compressed()
             data.update({p: grid_values})
 
-        if plot:
-            plt = Figures._plot_histogram(data)
-            return data, plt
-        else:
-            return data
+        plt = Figures._plot_histogram(data)
+        return data, plt
+
 
     # @staticmethod
     # def _2D_diagram(hr, ligand, fpath, title):
@@ -203,15 +200,14 @@ class Figures(object):
     #     :param output: str, Output file name
     #     :return:
     #     '''
-    #     try:
-    #         from rdkit import Chem
-    #         from rdkit.Chem import Draw
-    #         from rdkit.Chem import AllChem
-    #         from matplotlib.colors import LinearSegmentedColormap
-    #
-    #     except ImportError:
-    #         print("""rdkit is needed for this method""")
-    #         exit()
+    # try:
+    #     from rdkit import Chem
+    #     from rdkit.Chem import Draw
+    #     from rdkit.Chem import AllChem
+    #     from matplotlib.colors import LinearSegmentedColormap
+    # except ImportError:
+    #     print("""rdkit is needed for this method""")
+    #     exit()
     #
     #     mol = MoleculeReader(ligand)[0]
     #
@@ -294,81 +290,32 @@ class Figures(object):
         :param title:
         :return:
         """
-        colour_dict = {"acceptor": "r", "donor": "b", "apolar": "y"}
         plt.xlim(min(bin_edges), max(bin_edges))
         plt.ylim(0, 0.35)
         plt.yticks([])
 
-def _histogram_info(self, data, key, n):
-    """
-    data for the matplotlib figure
+    def _histogram_info(self, data, key, n):
+        """
+        data for the matplotlib figure
 
-    :param data:
-    :param key:
-    :param n:
-    :return:
-    """
+        :param data:
+        :param key:
+        :param n:
+        :return:
+        """
 
-    colour_dict = {"acceptor": "r", "donor": "b", "apolar": "y"}
-    hist, bin_edges = np.histogram(data[key], bins=range(0, 40), normed=True)
-    plt.bar(bin_edges[:-1], hist, width=1, color=colour_dict[key])
-    plt.xlim(min(bin_edges), max(bin_edges))
-    plt.ylim(0, 0.35)
-    plt.yticks([])
-    if n == 0:
-        plt.title("Fragment-hotspot Maps")
-    if n < 2:
-        plt.xticks([])
-    if n == 2:
-        plt.xlabel("Fragment hotspot score")
-    if n == 1:
-        plt.ylabel("Frequency")
+        colour_dict = {"acceptor": "r", "donor": "b", "apolar": "y"}
+        hist, bin_edges = np.histogram(data[key], bins=range(0, 40), normed=True)
+        plt.bar(bin_edges[:-1], hist, width=1, color=colour_dict[key])
+        plt.xlim(min(bin_edges), max(bin_edges))
+        plt.ylim(0, 0.35)
+        plt.yticks([])
+        if n == 0:
+            plt.title("Fragment-hotspot Maps")
+        if n < 2:
+            plt.xticks([])
+        if n == 2:
+            plt.xlabel("Fragment hotspot score")
+        if n == 1:
+            plt.ylabel("Frequency")
 
-
-def _generate_histogram(self, data):
-    """
-    initialise the matplotlib figure to output histograms
-
-    :param data:
-    :return:
-    """
-
-    plt.figure(1)
-    for n, key in enumerate(data.keys()):
-        plt.subplot(3, 1, (n + 1))
-        self._histogram_info(data, key, n)
-    plt.savefig("hotspot_histogram.png")
-    plt.close()
-
-
-def hotspot_histograms(self, ligand=None):
-    """
-    Outputs histograms of hotspot score.
-
-    :param ligand:
-    :return: None
-    """
-
-    self.data = {}
-    if ligand:
-        self.bs_centroid = ligand.centre_of_geometry()
-        for g in self.super_grids.keys():
-            grd = self.super_grids[g]
-            fragment_centroid = self._point_to_indices(self.bs_centroid, grd)
-            n = 8
-            rx = range(fragment_centroid[0] - n, fragment_centroid[0] + n)
-            ry = range(fragment_centroid[1] - n, fragment_centroid[1] + n)
-            rz = range(fragment_centroid[2] - n, fragment_centroid[2] + n)
-
-            self.data[g] = np.array(
-                [grd.value(i, j, k) for i in rx for j in ry for k in rz if grd.value(i, j, k) != 0])
-
-    else:
-        for g in self.super_grids.keys():
-            grd = self.super_grids[g]
-            nx, ny, nz = grd.nsteps
-            self.data[g] = np.array(
-                [grd.value(i, j, k) for i in xrange(0, nx) for j in xrange(0, ny) for k in xrange(0, nz) if
-                 grd.value(i, j, k) != 0])
-
-    self._generate_histogram(self.data)

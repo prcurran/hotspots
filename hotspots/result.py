@@ -1,33 +1,41 @@
 """
-
-The :mod:`hotspots.result` module contains classes to extract valuable information from the calculated Fragment Hotspot
-Maps.
-
-The main fields can be broken due using a fixed volume or fixed score mode.
-
-This approach enables a ranking of ligand sized cavity descriptions to be
-extracted. For example, these grids can be used to generate pharmacophores.
+The :mod:`hotspots.result` contains classes to extract valuable information from the calculated Fragment Hotspot Maps.
 
 The main classes of the :mod:`hotspots.result` module are:
-    -Extractor
-    -Results
+    - :class:`hotspots.result.Results`
+    - :class:`hotspots.result.Extractor`
 
-More information about the fragment hotspot maps method is available from:
-    Radoux, C.J. et. al., Identifying the Interactions that Determine Fragment Binding at Protein Hotspots J. Med. Chem.
-    2016, 59 (9), 4314-4325
-    dx.doi.org/10.1021/acs.jmedchem.5b01980
+:class:`hotspots.result.Results` can be generated using the :mod:`hotspots.calculation` module
+
+>>> from hotspots.calculation import Runner
+>>>
+>>> r = Runner()
+
+either
+
+>>> r.from_pdb("pdb_code")
+
+or
+
+>>> from ccdc.protein import Protein
+>>> protein = Protein.from_file("path_to_protein")
+>>> result = r.from_protein(protein)
+
+The :class:`hotspots.result.Results` is the central class for the entire API. Every module either feeds into creating
+a :class:`hotspots.result.Results` instance or uses it to generate derived data structures.
+
+The :class:`hotspots.result.Extractor` enables the main result to be broken down based on molecular volumes. This
+produces molecule sized descriptions of the cavity and aids tractibility analysis and pharmacophoric generation.
 """
 from __future__ import print_function, division
 
 import copy
 import operator
-import tempfile
 from os.path import join, dirname
 
 from os import getcwd
 import numpy as np
 from ccdc.cavity import Cavity
-from ccdc.io import MoleculeWriter
 from ccdc.molecule import Molecule
 from ccdc.protein import Protein
 from scipy import optimize
@@ -42,8 +50,13 @@ from atomic_hotspot_calculation import AtomicHotspot, _AtomicHotspotResult
 
 
 class _Scorer(Helper):
-    """a class to handle the annotation of objects with Fragment Hotspot Scores"""
+    """
+    A class to handle the annotation of objects with Fragment Hotspot Scores
 
+    :param `hotspots.result.Results` hotspot_result: a Fragment Hotspot Map result
+    :param obj: either `ccdc.molecule.Molecule` or `ccdc.protein.Protein`
+    :param int tolerance: search distance
+    """
     def __init__(self, hotspot_result, obj, tolerance):
         self.hotspot_result = hotspot_result
         self.object = obj
@@ -229,8 +242,12 @@ class _Scorer(Helper):
 
 class Results(object):
     """
-    A Hotspot_results object is returned at the end of a Hotspots calculation. It contains functions for accessing
-    and using the results.
+    A class to handle the results of the Fragment Hotspot Map calcation and to organise subsequent analysis
+
+    :param dict super_grids: key = probe identifier and value = grid
+    :param `ccdc.protein.Protein` protein: target protein
+    :param `ccdc.utilities.Grid` buriedness: the buriedness grid
+    :param bool pharmacophore: if True, a pharmacophore will be generated
     """
 
     def __init__(self, super_grids, protein, buriedness=None, pharmacophore=None):
@@ -306,14 +323,15 @@ class Results(object):
             returns
             :return:
             """
-            #nx, ny, nz = self.grid.nsteps
             return self.grid.grid_score(threshold=threshold,
                                         percentile=percentile)
-            # return sum([self.grid.value(i, j, k)
-            #             for i in range(nx) for j in range(ny) for k in range(nz)
-            #             if self.grid.value(i, j, k) > 0]) / self.count
 
     def tractability_map(self):
+        """
+        generate the best volume and labels with the median value. A median > 14 is more likely to be tractable
+
+        :return: a :class:`hotspots.result.Results` instance
+        """
         extractor_settings = Extractor.Settings()
         extractor_settings.cutoff = 5
         extractor_settings.island_max_size = 500
@@ -330,27 +348,33 @@ class Results(object):
 
         return best_vol
 
-
     def score(self, obj=None, tolerance=2):
         """
-        Given a supported CCDC object, will return the object annotated with Fragment Hotspot scores
+        annotate protein, molecule or self with Fragment Hotspot scores
 
-        :param obj:
-        :param return_value:
-        :return:
+        :param obj: `ccdc.protein.Protein`, `ccdc.molecule.Molecule` or `hotsptos.result.Results` (find the median)
+        :param int tolerance: the search radius around each point
+        :return: scored obj, either :class:`ccdc.protein.Protein`, :class:`ccdc.molecule.Molecule` or :class:`hotspot.result.Results`
 
-        TODO: Complete this docstring
+        >>> result          # example "1hcl"
+        <hotspots.result.Results object at 0x000000001B657940>
+
+        >>> from numpy import np
+        >>> p = result.score(result.protein)    # scored protein
+        >>> np.median([a.partial_charge for a in p.atoms if a.partial_charge > 0])
+        8.852499961853027
         """
-
         return _Scorer(self, obj, tolerance).scored_object
 
     def _filter_map(self, g1, g2, tol):
         """
-        Experimental feature.
+        *Experimental feature*
+
         Takes 2 grids of the same size and coordinate frames. Points that are
         zero in one grid but sampled in the other are
         set to the mean of their nonzero neighbours. Grids are then subtracted and
         the result is returned.
+
         :param int tol: how many grid points away to consider scores from
         :param g1: a :class: "ccdc.utilities.Grid" instance
         :param g2: a :class: "ccdc.utilities.Grid" instance
@@ -408,11 +432,13 @@ class Results(object):
 
     def get_difference_map(self, other, tolerance):
         """
-        Experimental feature.
+        *Experimental feature.*
+
         Generates maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
         by the binding site of interest prior to calculation.
         High scoring regions of a map represent areas of favourable interaction in the target binding site, not
         present in off target binding site
+
         :param other: a :class:`hotspots.result.Results` instance
         :param int tolerance: how many grid points away to apply filter to
         :return: a :class:`hotspots.result.Results` instance
@@ -431,12 +457,16 @@ class Results(object):
     @staticmethod
     def from_grid_ensembles(res_list, prot_name, charged=False):
         """
-        Experimental feature.
+        *Experimental feature*
+
         Creates ensemble map from a list of Results. Structures in the ensemble have to aligned by the
         binding site of interest prior to the hotspots calculation.
-        :param res_list: list of hotspots.result.Results
+
+        TODO: Move to the calculation module?
+
+        :param res_list: list of `hotspots.result.Results`
         :param str prot_name: str
-        :param str out_dir: str
+        :param str out_dir: path to output directory
         :return: a :class:`hotspots.result.Results` instance
         """
         if charged:
@@ -458,6 +488,7 @@ class Results(object):
         """
         Generates a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance from peaks in the hotspot maps
 
+        TODO: investigate using feature recognition to go from grids to features.
 
         :param str identifier: Identifier for displaying multiple models at once
         :param float cutoff: The score cutoff used to identify islands in the maps. One peak will be identified per island
@@ -465,27 +496,33 @@ class Results(object):
         """
         return PharmacophoreModel.from_hotspot(self, identifier=identifier, threshold=threshold)
 
-    def get_map_values(self):
+    def map_values(self):
         """
         get the number zero grid points for the Fragment Hotspot Result
+
         :return: dict of str(probe type) by a :class:`numpy.array` (non-zero grid point scores)
         """
-        data = Figures.histogram(self, False)
-        return data
+        return {p: g.get_array() for p, g in self.super_grids.items()}
 
-    def get_histogram(self, fpath="histogram.png"):
+    def histogram(self, fpath="histogram.png"):
         """
         get histogram of zero grid points for the Fragment Hotspot Result
+
         :param fpath: path to output file
-        :return:
+        :return: data, plot
+
+        >>> result
+        <hotspots.result.Results object at 0x000000001B657940>
+        >>> plt = result.histogram()
+        >>> plt.show()
         """
-        data, plt = Figures.histogram(self, plot=True)
+        data, plt = Figures.histogram(self)
         plt.savefig(fpath)
         return data, plt
 
     # def get_2D_diagram(self, ligand, fpath="diagram.png", title=False):
     #     """
-    #
+    #     broken
     #     :param ligand:
     #     :param fpath:
     #     :param title:
@@ -493,27 +530,13 @@ class Results(object):
     #     """
     #     Figures._2D_diagram(hr, ligand, title=False, output="diagram.png")
 
-    # def get_elaboration_potential(self, large_cavities):
-    #     """
-    #     Is the hotspot within a drug size cavity:
-    #     0 = False
-    #     1 = True
-    #     TODO: develop a more sophicated method to evaluate elaboration potential
-    #     TODO: Complete docstring
-    #     :param large_cavities:
-    #     :return:
-    #     """
-    #     centroid = self.location.centroid()
-    #     cavity = [c for c in large_cavities if c.contains_point(centroid)]
-    #
-    #     if len(cavity) == 0:
-    #         return 0
-    #     else:
-    #         return 1
-
     def _get_superstar_profile(self, feature_radius=1.5, nthreads=6, features=None, best_volume=None):
         """
-        EXPERIMENTAL
+        *experimental feature*
+
+        enable calculation to different superstar probes at hotspot features. Perhaps a better understanding
+        of the nature of each feature can be gained from doing this or perhaps it just adds noise.
+
         :return:
         """
         # set additional object properties
@@ -609,126 +632,84 @@ class Results(object):
         for i, key in enumerate(score):
             feature_by_score[key]._rank = int(i + 1)
 
-    def extract_pocket(self, whole_residues=False):
-        """
-        Create a :class:`ccdc.Protein` containing atoms or residues that have a score > 0
-
-        :param bool whole_residues: whether to include all residue atoms if only a subset have a score > 0
-        :return: a :class:`ccdc.Protein` instance
-        """
-        prot_scores = self.score_protein()
-        pocket = self.protein.copy()
-        pocket.remove_hydrogens()
-        for residue in pocket.residues:
-            keep_residue = False
-            for atom in residue.atoms:
-                a_id = "{0}/{1}/{2}".format(residue.chain_identifier, residue.identifier.split(':')[1][3:],
-                                            atom.label)
-                atom_type = self._get_atom_type(atom)
-
-                if atom_type == 'doneptor':
-                    score = max([prot_scores[a_id]['donor'], prot_scores[a_id]['acceptor']])
-                else:
-                    score = prot_scores[a_id][atom_type]
-
-                if score > 0:
-                    keep_residue = True
-                elif score == 0 and not whole_residues:
-                    pocket.remove_atom(atom)
-
-            if whole_residues and not keep_residue:
-                pocket.remove_atoms(residue.atoms)
-        return pocket
-
-    def _ngl_widget(self, out_dir=None):
-        """
-        jupyter notebook --NotebookApp.iopub_data_rate_limit=10000000000.0
-        creates ngl widget from hotspot. For use in ipython notebooks
-        :param str out_dir:
-        :return:
-        """
-        import nglview as nv
-        from ipywidgets import IntSlider, interact
-
-        color_dict = {"apolar": "yellow",
-                      "donor": "blue",
-                      "acceptor": "red",
-                      "negative": "magenta",
-                      "positive": "cyan"}
-        if out_dir:
-            out = Helper.get_out_dir(out_dir)
-        else:
-            out = tempfile.mkdtemp()
-
-        for p, g in self.super_grids.items():
-            g.write(join(out, "{}.ccp4".format(p)))
-
-        with MoleculeWriter(join(out, "protein.pdb")) as w:
-            w.write(self.protein)
-
-        view = nv.NGLWidget()
-        view.add_component(join(out, "protein.pdb"))
-
-        k = self.super_grids.keys()
-        for i, p in enumerate(k):
-            view.add_component(join(out, "{}.ccp4".format(p)))
-            view.add_representation('isosurface', component=i + 1)
-            view.update_representation(component=i + 1, color=color_dict[p])
-
-        @interact(x=IntSlider(description="HS Score", min=0, max=30, step=1))
-        def f(x):
-            view.update_representation(component=1, isolevel=int(x), isoleveltype='value')
-            view.update_representation(component=2, isolevel=int(x), isoleveltype='value')
-            view.update_representation(component=3, isolevel=int(x), isoleveltype='value')
-            view.update_representation(component=4, isolevel=int(x), isoleveltype='value')
-            view.update_representation(component=5, isolevel=int(x), isoleveltype='value')
-
-        return view
+    # def _ngl_widget(self, out_dir=None):
+    #     """
+    #     jupyter notebook --NotebookApp.iopub_data_rate_limit=10000000000.0
+    #     creates ngl widget from hotspot. For use in ipython notebooks
+    #     :param str out_dir:
+    #     :return:
+    #     """
+    #     import nglview as nv
+    #     from ipywidgets import IntSlider, interact
+    #
+    #     color_dict = {"apolar": "yellow",
+    #                   "donor": "blue",
+    #                   "acceptor": "red",
+    #                   "negative": "magenta",
+    #                   "positive": "cyan"}
+    #     if out_dir:
+    #         out = Helper.get_out_dir(out_dir)
+    #     else:
+    #         out = tempfile.mkdtemp()
+    #
+    #     for p, g in self.super_grids.items():
+    #         g.write(join(out, "{}.ccp4".format(p)))
+    #
+    #     with MoleculeWriter(join(out, "protein.pdb")) as w:
+    #         w.write(self.protein)
+    #
+    #     view = nv.NGLWidget()
+    #     view.add_component(join(out, "protein.pdb"))
+    #
+    #     k = self.super_grids.keys()
+    #     for i, p in enumerate(k):
+    #         view.add_component(join(out, "{}.ccp4".format(p)))
+    #         view.add_representation('isosurface', component=i + 1)
+    #         view.update_representation(component=i + 1, color=color_dict[p])
+    #
+    #     @interact(x=IntSlider(description="HS Score", min=0, max=30, step=1))
+    #     def f(x):
+    #         view.update_representation(component=1, isolevel=int(x), isoleveltype='value')
+    #         view.update_representation(component=2, isolevel=int(x), isoleveltype='value')
+    #         view.update_representation(component=3, isolevel=int(x), isoleveltype='value')
+    #         view.update_representation(component=4, isolevel=int(x), isoleveltype='value')
+    #         view.update_representation(component=5, isolevel=int(x), isoleveltype='value')
+    #
+    #     return view
 
 
 class Extractor(object):
     """
-    A class to handle the extraction of discrete volumes from the highest scoring regions of the hotspot maps.
+    A class to handle the extraction of molecular volumes from a Fragment Hotspot Map result
+
+    :param `hotspots.HotspotResults` hr: A Fragment Hotspot Maps result
+    :param `hotspots.Extractor.Settings` settings: Extractor settings
     """
 
     class Settings(object):
         """
         Default settings for hotspot extraction
 
-        :param float volume:
-        :param float cutoff:
-        :param str mode:
-        :param int padding_factor:
-        :param float spacing:
-        :param int min_feature_gp:
-        :param int max_features:
-        :param float min_distance:
-        :param int island_max_size:
-        :param float sigma:
-        :param float drug_volume:
-        :param int buriedness_value:
-        :param bool fragments:
-        :param bool lead:
-        :param bool pharmacophore:
+        :param float volume: required volume (default = 150)
+        :param float cutoff: only features above this value are considered (default = 14)
+        :param float spacing: grid spacing, (default = 0.5)
+        :param int min_feature_gp: the minimum number of grid points required to create a feature (default = 5)
+        :param int max_features: the maximum number of features in a extracted volume (default = 10)(not recommended, control at pharmacophore)
+        :param float min_distance: the minimum distance between two apolar interaction peaks (default = 6)
+        :param int island_max_size: the maximum number of grid points a feature can take. (default = 100)(stops overinflation of polar features)
+        :param bool pharmacophore: if True, generate a Pharmacophore Model (default = True)
+
         """
 
-        def __init__(self, volume=150, cutoff=14, mode="seed", padding_factor=0, spacing=0.5,
-                     min_feature_gp=5, max_features=10, min_distance=6, island_max_size=100, sigma=0.3,
-                     drug_volume=300, buriedness_value=4, fragments=None, lead=None, pharmacophore=True):
+        def __init__(self, volume=150, cutoff=14, spacing=0.5, min_feature_gp=5, max_features=10, min_distance=6,
+                     island_max_size=100, pharmacophore=True):
             self.volume = volume
             self.cutoff = cutoff
-            self.mode = mode
-            self.padding_factor = padding_factor
             self.spacing = spacing
             self.min_feature_gp = min_feature_gp
             self.max_features = max_features
             self.min_distance = min_distance
             self.island_max_size = island_max_size
-            self.sigma = sigma
-            self.drug_volume = drug_volume
-            self.buriedness_value = buriedness_value
-            self.fragments = fragments
-            self.lead = lead
             self.pharmacophore = pharmacophore
             self.mvon = True
 
@@ -754,6 +735,10 @@ class Extractor(object):
     class _Optimiser(object):
         """
         A class to handle the optimisation operations
+
+        :param mask:
+        :param settings:
+        :param peak:
         """
 
         def __init__(self, mask, settings, peak=None):
@@ -768,17 +753,11 @@ class Extractor(object):
             :param threshold:
             :return: int
             """
-
             island = self.mask.get_best_island(threshold, mode="score", peak=self.peak)
             if island is None:
                 return 999999
             points = (island > threshold).count_grid()
             return abs(self.settings._num_gp - points)
-            # if self.peak:
-            #     padding = self.settings.padding_factor * self.settings._num_gp
-            #     return abs((self.settings._num_gp + padding) - points)
-            # else:
-            #     return abs(self.settings._num_gp - points)
 
         def _count_grid_points(self, threshold):
             """
@@ -804,12 +783,12 @@ class Extractor(object):
 
         def optimize_island_threshold(self):
             """
-            Takes the input mask and finds the island threshold which returns the desired volume
+            finds the island threshold for a grid which returns the desired volume
+
             :return:
             """
-            # threshold = optimize.fminbound(self._count_island_points, 0, 50, xtol=0.025)
             x0 = np.array([14])
-            b = optimize.Bounds(0, 50)
+            optimize.Bounds(0, 50)
             ret = optimize.minimize_scalar(self._count_island_points, x0, bounds=(0, 50), method='bounded')
             threshold = ret.x
             if threshold > 48:
@@ -827,23 +806,10 @@ class Extractor(object):
                 best_island = (best_island > threshold) * best_island
 
             # new_threshold, best_island = self._reselect_points(threshold=threshold)
-            # if (self.settings._num_gp * 0.85) < best_island.count_grid() < (self.settings._num_gp * 1.15):
             print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
             return threshold, best_island
-            # else:
-            #     return None, None
 
     def __init__(self, hr, settings=None):
-        """
-
-        :param hr: An :class:`hotspots.HotspotResults` instance
-        :param settings: An :class:`hotspots.Extractor.Settings` instance
-        :param str mode: Options are "seed" or "global". Seed will aim to find multiple volumes, grown from suitable seed points, and works best for locating multiple hotspots in a single pocket. Global can be used to select the best target volume across the entire protein.
-        :param float volume: Target volume for extractor. The extracted volume may differ slightly from the target volume
-        :param bool pharmacophores: Whether to generate a pharmacophore model
-        """
-
-
         if settings is None:
             self.settings = self.Settings()
         else:
@@ -853,9 +819,7 @@ class Extractor(object):
         self.out_dir = None
         self.extracted_hotspots = None
 
-
         if self.settings.mvon:
-
             hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
 
         try:
@@ -877,20 +841,30 @@ class Extractor(object):
         self.hotspot_result = hr
         self._masked_dic, self._single_grid = Grid.get_single_grid(self.hotspot_result.super_grids)
 
-
-        # fragment hotspot post processing
-        # if self.settings.mode == "seed":
-        #     hr.super_grids = self.grid_post_process(hr.super_grids)
-
-        # else:
-
-
     def extract_best_volume(self, volume="125", pharmacophores=True):
+        """
+        from the main Fragment Hotspot Map result, the best continuous volume is returned
+
+        :param float volume: volume in Angstrom^3
+        :param bool pharmacophores: if True, generates pharmacophores
+        :return: a `hotspots.result.Results` instance
+
+
+        >>> result
+        <hotspots.result.Results object at 0x000000001B657940>
+
+        >>> from hotspots.result import Extractor
+
+        >>> extractor = Extractor(result)
+        >>> best = extractor.extract_best_volume(volume=400)
+        [<hotspots.result.Results object at 0x0000000028E201D0>]
+
+        """
         self.settings.volume = volume
         self.settings.pharmacophore = pharmacophores
         self.out_dir = None
-
         self._peaks = None
+
         e = self._from_hotspot(self.single_grid,
                                self.masked_dic,
                                self.settings,
@@ -900,23 +874,39 @@ class Extractor(object):
         self.extracted_hotspots = [e]
         self._rank_extracted_hotspots()
 
-        # generate pharmacophores
         if self.settings.pharmacophore:
             self._get_pharmacophores()
 
-
-
         return self.extracted_hotspots
 
-
-
     def extract_all_volumes(self, volume="125", pharmacophores=True):
+        """
+        from the main Fragment Hotspot Map result, the best continuous volume is calculated using peaks in the apolar
+        maps as a seed point.
+
+        :param float volume: volume in Angstrom^3
+        :param bool pharmacophores: if True, generates pharmacophores
+        :return: a `hotspots.result.Results` instance
+
+        >>> result
+        <hotspots.result.Results object at 0x000000001B657940>
+
+        >>> from hotspots.result import Extractor
+
+        >>> extractor = Extractor(result)
+        >>> all_vols = extractor.extract_all_volumes(volume=150)
+        [<hotspots.result.Results object at 0x000000002963A438>,
+         <hotspots.result.Results object at 0x0000000029655240>,
+         <hotspots.result.Results object at 0x000000002963D2B0>,
+         <hotspots.result.Results object at 0x000000002964FDD8>,
+         <hotspots.result.Results object at 0x0000000029651D68>,
+         <hotspots.result.Results object at 0x00000000296387F0>]
+
+        """
         self.settings.volume = volume
         self.settings.pharmacophore = pharmacophores
         self.out_dir = None
-
         self.extracted_hotspots = []
-
         self._peaks = self._get_peaks()
 
         for peak in self.peaks:
@@ -927,9 +917,6 @@ class Extractor(object):
                                    self.settings,
                                    self.hotspot_result.protein,
                                    seed=peak)
-
-            # if e:
-            #     if e.threshold > 0:
 
             self.extracted_hotspots.append(e)
 
@@ -942,7 +929,8 @@ class Extractor(object):
 
     def _from_hotspot(self, single_grid, mask_dic, settings, prot, seed=None):
         """
-        create a Extracted Hotspot object from HotspotResult object
+        create a continuous volume
+
         :param single_grid:
         :param mask_dic:
         :param settings:
@@ -966,7 +954,6 @@ class Extractor(object):
 
             hr = Results(super_grids=grd_dict, protein=prot)
 
-
             hr.threshold = threshold
             hr.best_island = best_island.minimal()
             hr.location = location
@@ -977,7 +964,10 @@ class Extractor(object):
 
     def _grow_from_seed(self, single_grid, mask_dic, settings, prot, seed=None):
         """
+        *experimental*
+
         create a Extracted Hotspot object from HotspotResult object
+
         :param single_grid:
         :param mask_dic:
         :param settings:

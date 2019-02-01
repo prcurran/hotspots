@@ -85,7 +85,7 @@ class DockerSettings(docking.Docker.Settings):
         @staticmethod
         def create(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001, cutoff=14):
             """
-            creates a :class:`hotspots.hs_docking.HotspotHBondConstraint
+            creates a :class:`hotspots.hs_docking.HotspotHBondConstraint`
 
             :param `ccdc.protein.Protein` protein: the protein to be used for docking
             :param `hotspots.calculation.Result` hr: a result from Fragment Hotspot Maps
@@ -93,7 +93,7 @@ class DockerSettings(docking.Docker.Settings):
             :param float weight: the factor by which the atoms Fragment Hotspot Map score will be multiplied
             :param float min_hbond_score: float between 0.0 (bad) and 1.0 (good) determining the minimum hydrogen bond quality in the solutions.
             :param cutoff: minimum score required to assign the constraint
-            :return list: list of :class:`hotspots.hs_docking.HotspotHBondConstraint
+            :return list: list of :class:`hotspots.hs_docking.HotspotHBondConstraint`
             """
             for atm in protein.atoms:
                 atm.partial_charge = int(0)

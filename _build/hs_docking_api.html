@@ -29,7 +29,9 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Hotspot Utilities API" href="hs_utilities_api.html" />
+    <link rel="prev" title="Hotspot Pharmacophore API" href="hs_pharmacophore_api.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -86,11 +88,15 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atomic_hotspot_calculation_api.html">Atomic Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="calculation_api.html">Hotspot Calculation API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hs_io_api.html">Hotspot IO API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="result_api.html">Result API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Hotspot Docking API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_utilities_api.html">Hotspot Utilities API</a></li>
 </ul>
 
             
@@ -224,7 +230,7 @@ Assign Protein Hbond constraints based on the highest scoring interactions.</p>
 <dl class="staticmethod">
 <dt id="hotspots.hs_docking.DockerSettings.HotspotHBondConstraint.create">
 <em class="property">static </em><code class="descname">create</code><span class="sig-paren">(</span><em>protein</em>, <em>hr</em>, <em>max_constraints=2</em>, <em>weight=5.0</em>, <em>min_hbond_score=0.001</em>, <em>cutoff=14</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_docking.html#DockerSettings.HotspotHBondConstraint.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_docking.DockerSettings.HotspotHBondConstraint.create" title="Permalink to this definition">¶</a></dt>
-<dd><p>creates a :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>hotspots.hs_docking.HotspotHBondConstraint</p>
+<dd><p>creates a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_docking.HotspotHBondConstraint</span></code></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -239,7 +245,7 @@ Assign Protein Hbond constraints based on the highest scoring interactions.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return list:</th><td class="field-body"><p class="first last">list of :class:<a href="#id3"><span class="problematic" id="id4">`</span></a>hotspots.hs_docking.HotspotHBondConstraint</p>
+<tr class="field-even field"><th class="field-name">Return list:</th><td class="field-body"><p class="first last">list of <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_docking.HotspotHBondConstraint</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -280,12 +286,21 @@ points using the Fragment Hotspot Maps helps to biast results towards making Hot
           </div>
           <footer>
   
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="hs_utilities_api.html" class="btn btn-neutral float-right" title="Hotspot Utilities API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="hs_pharmacophore_api.html" class="btn btn-neutral" title="Hotspot Pharmacophore API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Chris Radoux and Peter Curran
+        &copy; Copyright 2019, Chris Radoux, Peter Curran and Mihaela Smilova
 
     </p>
   </div>

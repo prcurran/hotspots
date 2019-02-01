@@ -2,7 +2,7 @@
 The :mod:`hotspots.hs_pharmacophore` module contains classes for the
 conversion of Grid objects to pharmacophore models.
 
-The main classe of the :mod:`hotspots.hs_pharmacophore` module is:
+The main class of the :mod:`hotspots.hs_pharmacophore` module is:
 
 - :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
 
@@ -14,6 +14,18 @@ A Pharmacophore Model can be generated directly from a :class:`hotspots.result.R
 >>> r = Runner()
 >>> result = r.from_pdb("1hcl")
 >>> result.get_pharmacophore_model(identifier="MyFirstPharmacophore")
+
+The Pharmacophore Model can be used in Pharmit or CrossMiner
+
+>>> result.pharmacophore.write("example.cm")   # CrossMiner
+>>> result.pharmacophore.write("example.json")    # Pharmit
+
+More information about CrossMiner is available:
+    - Korb O, Kuhn B, hert J, Taylor N, Cole J, Groom C, Stahl M "Interactive and Versatile Navigation of Structural Databases" J Med Chem, 2016, 59(9):4257, [DOI: 10.1021/acs.jmedchem.5b01756]
+
+More information about Pharmit is available:
+    - Jocelyn Sunseri, David Ryan Koes; Pharmit: interactive exploration of chemical space, Nucleic Acids Research, Volume 44, Issue W1, 8 July 2016, Pages W442-W448 [DIO: 10.1093/nar/gkw287]
+
 
 """
 
@@ -127,7 +139,7 @@ class PharmacophoreModel(Helper):
         >>> model.rank_features(max_features=5)
         >>> print len(model.features)
         5
-        
+
         """
         if force_apolar:
             apolar_dict = {feat.score_value: feat for feat in self.features if feat.feature_type == "apolar"}

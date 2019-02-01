@@ -18,9 +18,10 @@ calculations and process the results within Python.
    calculation_api
    hs_io_api
    result_api
-   pharmacophore_api
-   docking_api
-   utilities_api
+   hs_pharmacophore_api
+   hs_docking_api
+   hs_utilities_api
+   
 Indices and tables
 ==================
 
