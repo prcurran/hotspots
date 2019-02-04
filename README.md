@@ -42,8 +42,6 @@ You will need a valid site number and confirmation code, this will have been ema
 
 You may need to set the following environment variables:
 
-.. code-block:: shell
-
     export CSDHOME=<path_to_CSDS_installation>/CSD_2019
 
 
