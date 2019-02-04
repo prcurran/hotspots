@@ -31,7 +31,7 @@ Installation
 -------------------------
 Step 1: Install CSDS 2019
 -------------------------
-Available from CCDC downloads page `here <https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/>`_.
+Available from `CCDC downloads page <https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/>`_.
 
 
 You will need a valid site number and confirmation code, this will have been emailed to you when you bought your CSDS 2019 license
@@ -51,7 +51,7 @@ You may need to set the following environment variables:
 -------------------------
 Step 2: Install Ghecom
 -------------------------
-Available from Ghecom download page `here <http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html>`_.
+Available from `Ghecom download page <http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html>`_.
 
 "The source code of the ghecom is written in C, and developed and executed on
 the linux environment (actually on the Fedora Core).  For the installation,
@@ -79,7 +79,7 @@ Step 3: Create a conda environment (recommended)
 ------------------------------------------------
 Step 4: Install RDKit and CSD python API
 ------------------------------------------------
-Download the standalone CSD python API package from `here <https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87>`_.
+Download the standalone `CSD python API package <https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87>`_.
 
 .. code-block:: shell
 
@@ -131,7 +131,7 @@ For best results, manually check proteins before submitting them for calculation
 Calculating Fragment Hotspot Maps
 =================================
 
-Once the protein is prepared, the :class:`hotspots.calculation.Runner` object can be used to perform the calculation:
+Once the protein is prepared, the hotspots.calculation.Runner` object can be used to perform the calculation:
 
 .. code-block:: python
 
@@ -156,8 +156,8 @@ Reading and Writing Hotspots
 Writing
 -------
 
-The :mod:`hotspots.hs_io` module handles the reading and writing of both :class:`hotspots.calculation.results`
-and :class:`hotspots.best_volume.Extractor` objects. The output `.grd` files can become quite large, but are highly
+The  `hotspots.hs_io` module handles the reading and writing of both  `hotspots.calculation.results`
+and  `hotspots.best_volume.Extractor` objects. The output `.grd` files can become quite large, but are highly
 compressible, therefore the results are written to a `.zip` archive by default, along with a PyMOL run script to
 visualise the output.
 
@@ -176,7 +176,7 @@ Reading
 -------
 
 If you want to revisit the results of a previous calculation, you can load the `out.zip` archive directly into a
-:class:`hotspots.calculation.results` instance:
+ `hotspots.calculation.results` instance:
 
 .. code-block:: python
 
