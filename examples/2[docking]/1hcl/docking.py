@@ -13,7 +13,7 @@ import numpy as np
 
 from ccdc.cavity import Cavity
 from ccdc.docking import Docker
-from ccdc.io import MoleculeWriter, MoleculeReader, _CSDDatabaseLocator
+from ccdc.io import MoleculeWriter, _CSDDatabaseLocator
 from ccdc.molecule import Molecule, Atom
 from ccdc.protein import Protein
 from ccdc.utilities import _private_importer

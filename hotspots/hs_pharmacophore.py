@@ -27,7 +27,7 @@ More information about Pharmit is available:
     - Jocelyn Sunseri, David Ryan Koes; Pharmit: interactive exploration of chemical space, Nucleic Acids Research, Volume 44, Issue W1, 8 July 2016, Pages W442-W448 [DIO: 10.1093/nar/gkw287]
 
 """
-
+from __future__ import print_function
 import csv
 import json
 import os
@@ -132,10 +132,10 @@ class PharmacophoreModel(Helper):
 
         >>> result = HotspotReader("out.zip").read()
         >>> model = result.get_pharmacophore_model()
-        >>> print len(model.features)
+        >>> print(len(model.features))
         38
         >>> model.rank_features(max_features=5)
-        >>> print len(model.features)
+        >>> print(len(model.features))
         5
 
         """
@@ -283,7 +283,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         model_features = []
         for feat in self._features:
             if feat.feature_type == "negative" or feat.feature_type == "positive":
-                print "Charged feature not currently supported in CrossMiner: Its on the TODO list"
+                print("Charged feature not currently supported in CrossMiner: Its on the TODO list")
 
             else:
                 sphere = GeometricDescriptors.Sphere(feat.feature_coordinates, self.settings.radius)
@@ -299,7 +299,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
         if self.settings.excluded_volume:
             if not self.protein:
-                print "Pharmacophore Model must have protein to calculate excluded volume"
+                print("Pharmacophore Model must have protein to calculate excluded volume")
             else:
                 bs = self._get_binding_site_residues()
 
@@ -460,7 +460,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
         if extension == ".cm":
 
-            print "WARNING! Charged features not currently supported in CrossMiner!"
+            print("WARNING! Charged features not currently supported in CrossMiner!")
             pharmacophore = self._get_crossminer_pharmacophore()
             pharmacophore.write(fname)
 

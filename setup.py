@@ -1,9 +1,10 @@
+from __future__ import print_function
 from setuptools import setup, find_packages
 
 with open("README.txt", "r") as fh:
     long_description = fh.read()
 
-print find_packages()
+print(find_packages())
 
 setup(
     name="hotspots",

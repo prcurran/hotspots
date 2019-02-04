@@ -251,12 +251,10 @@ class Results(object):
     """
 
     def __init__(self, super_grids, protein, buriedness=None, pharmacophore=None):
-        try:
-            self.super_grids = super_grids
-            for probe, g in super_grids.items():
-                b = g.bounding_box
-        except:
-            raise TypeError("Not a valid Grid")
+
+        self.super_grids = super_grids
+        for probe, g in super_grids.items():
+            assert type(g.bounding_box) is tuple, "Not a valid Grid"
 
         self.protein = protein
         self.buriedness = buriedness

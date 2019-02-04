@@ -703,7 +703,7 @@ class Runner(object):
             if isinstance(obj, list) or isinstance(obj, tuple):
                 if isinstance(obj, Coordinates):
                     try:
-                        x = obj.x
+                        print(obj.x)
                         self._cavities = [obj]
                     except AttributeError:
                         self._cavities = obj

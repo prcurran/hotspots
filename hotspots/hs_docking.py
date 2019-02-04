@@ -13,6 +13,7 @@ More information about the CSD python API is available:
 More information about the GOLD method is available:
     - Development and Validation of a Genetic Algorithm for Flexible Docking G. Jones, P. Willett, R. C. Glen, A. R. Leach and R. Taylor, J. Mol. Biol., 267, 727-748, 1997 [DOI: 10.1006/jmbi.1996.0897]
 """
+from __future__ import print_function
 import os
 import tempfile
 
@@ -41,13 +42,13 @@ class DockerSettings(docking.Docker.Settings):
     >>> from hotspots.calculation import Runner
     >>> from hotspots.hs_docking import DockerSettings
 
-    >>> protein = Protein.from_file(<path_to_protein>)
+    >>> protein = Protein.from_file("1hcl.pdb")
 
     >>> runner = Runner()
     >>> hs = runner.from_protein(protein)
 
-    >>> docker.settings.add_protein_file(<path_to_protein>)
-    >>> docker.settings.add_ligand_file(<path_to_ligands>, ndocks=25)
+    >>> docker.settings.add_protein_file("1hcl.pdb")
+    >>> docker.settings.add_ligand_file("dock_me.mol2", ndocks=25)
     >>> constraints = docker.settings.HotspotHBondConstraint.from_hotspot(protein=docker.settings.proteins[0], hr=hs)
     >>> docker.settings.add_constraint(constraints)
     >>> docker.dock()
@@ -106,7 +107,7 @@ class DockerSettings(docking.Docker.Settings):
                        and _is_solvent_accessible(coords, atm, min_distance=2)
                        }
 
-            print atm_dic
+            print(atm_dic)
 
             if len(atm_dic) > max_constraints:
                 scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
