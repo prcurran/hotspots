@@ -40,11 +40,10 @@ You will need a valid site number and confirmation code, this will have been ema
 
 You may need to set the following environment variables:
 
-    export CSDBASE="<path_to_CSDS_installation>"
-    export CSDHOME=%CSDBASE%/CSD_2019
-    export SUPERSTAR_ROOT=%CSDBASE%/Discovery_2019/SuperStar/
-    export SUPERSTAR_ISODIR=%CSDHOME%/isostar_files/istr/
-    export GOLD_DIR=%CSDBASE%/Discovery_2019/GOLD
+.. code-block:: shell
+
+    export CSDHOME=<path_to_CSDS_installation>/CSD_2019
+
 
 
 
