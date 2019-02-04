@@ -33,7 +33,7 @@ Installation
 Step 1: Install CSDS 2019
 -------------------------
 Available from CCDC downloads page 
-<https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/
+https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/
 
 
 You will need a valid site number and confirmation code, this will have been emailed to you when you bought your CSDS 2019 license
@@ -43,8 +43,8 @@ You may need to set the following environment variables:
     export CSDBASE="<path_to_CSDS_installation>"
     export CSDHOME=%CSDBASE%/CSD_2019
     export SUPERSTAR_ROOT=%CSDBASE%/Discovery_2019/SuperStar/
-    export SUPERSTAR_ISODIR=%CSDBASE%/Discovery_2019/GOLD
-    export GOLD_DIR=%CSDHOME%/isostar_files/istr/
+    export SUPERSTAR_ISODIR=%CSDHOME%/isostar_files/istr/
+    export GOLD_DIR=%CSDBASE%/Discovery_2019/GOLD
 
 
 

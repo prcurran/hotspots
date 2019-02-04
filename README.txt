@@ -43,8 +43,8 @@ You may need to set the following environment variables:
     export CSDBASE="<path_to_CSDS_installation>"
     export CSDHOME=%CSDBASE%/CSD_2019
     export SUPERSTAR_ROOT=%CSDBASE%/Discovery_2019/SuperStar/
-    export SUPERSTAR_ISODIR=%CSDBASE%/Discovery_2019/GOLD
-    export GOLD_DIR=%CSDHOME%/isostar_files/istr/
+    export SUPERSTAR_ISODIR=%CSDHOME%/isostar_files/istr/
+    export GOLD_DIR=%CSDBASE%/Discovery_2019/GOLD
 
 
 
