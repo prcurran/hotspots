@@ -1,8 +1,6 @@
 # Welcome to the fragment-hotspot-maps wiki!
 
-.. image:: https://readthedocs.org/projects/hotspots/badge/?version=latest
-:target: https://hotspots.readthedocs.io/en/latest/?badge=latest
-:alt: Documentation Status
+[![Documentation Status](https://readthedocs.org/projects/hotspots/badge/?version=latest)](https://hotspots.readthedocs.io/en/latest/?badge=latest)
 
 ![fragment hotspots](http://fragment-hotspot-maps.ccdc.cam.ac.uk/static/cover_small.jpg)
 
