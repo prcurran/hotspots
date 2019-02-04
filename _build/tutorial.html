@@ -93,7 +93,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#step-1-install-csds-2019">Step 1: Install CSDS 2019</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#step-2-create-a-conda-environment">Step 2: Create a conda environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-2-install-ghecom">Step 2: Install Ghecom</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-3-create-a-conda-environment-recommended">Step 3: Create a conda environment (recommended)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-4-install-rdkit-and-csd-python-api">Step 4: Install RDKit and CSD python API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-5-install-hotspots-api">Step 5: Install Hotspots API</a></li>
 </ul>
 </li>
 </ul>
@@ -172,7 +175,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/tutorial.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -190,19 +193,63 @@
 <p>This section will introduce the main functionality of the Hotspots API</p>
 <div class="section" id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
-<p>NB: Although the Hotspots API is publicly available, it is dependant on the CSD python API - a commerical package.
-If you are an academic user it’s likely your institution will have a license.</p>
-<p>DISCLAIMER: This is an academic project, we would therefore really appreciate feedback and contributions.</p>
-<p>For any questions on obtaining or setting the CSDS, please contact <a class="reference external" href="mailto:support&#37;&#52;&#48;ccdc&#46;cam&#46;ac&#46;uk">support<span>&#64;</span>ccdc<span>&#46;</span>cam<span>&#46;</span>ac<span>&#46;</span>uk</a></p>
+<p>Although the Hotspots API is publicly available, it is dependant on the CSD python API - a commercial package.
+If you are an academic user, it’s likely your institution will have a license. If you are unsure if you have a
+license or would like to enquire about purchasing one, please contact <a class="reference external" href="mailto:support&#37;&#52;&#48;ccdc&#46;cam&#46;ac&#46;uk">support<span>&#64;</span>ccdc<span>&#46;</span>cam<span>&#46;</span>ac<span>&#46;</span>uk</a></p>
+<p>Please note, this is an academic project and we would therefore welcome feedback, contributions and collaborations.
+If you have any queries regarding this package please contact us (<a class="reference external" href="mailto:pcurran&#37;&#52;&#48;ccdc&#46;cam&#46;ac&#46;uk">pcurran<span>&#64;</span>ccdc<span>&#46;</span>cam<span>&#46;</span>ac<span>&#46;</span>uk</a>)!</p>
+<p>NB: We recommend installing on a Linux machine</p>
 <div class="section" id="installation">
 <h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="step-1-install-csds-2019">
 <h4>Step 1: Install CSDS 2019<a class="headerlink" href="#step-1-install-csds-2019" title="Permalink to this headline">¶</a></h4>
-<p>Available from CCDC downloads page (<a class="reference external" href="https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/">https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/</a>)
-You will need a valid site number and confirmation code, this will have been emailed to you when you bought your CSDS 2019 license</p>
+<p>Available from CCDC downloads page <a class="reference external" href="https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/">here</a>.</p>
+<p>You will need a valid site number and confirmation code, this will have been emailed to you when you bought your CSDS 2019 license</p>
+<p>You may need to set the following environment variables:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CSDBASE</span><span class="o">=</span><span class="s2">&quot;&lt;path_to_CSDS_installation&gt;&quot;</span>
+<span class="nb">export</span> <span class="nv">CSDHOME</span><span class="o">=</span>%CSDBASE%/CSD_2019
+<span class="nb">export</span> <span class="nv">SUPERSTAR_ROOT</span><span class="o">=</span>%CSDBASE%/Discovery_2019/SuperStar/
+<span class="nb">export</span> <span class="nv">SUPERSTAR_ISODIR</span><span class="o">=</span>%CSDBASE%/Discovery_2019/GOLD
+<span class="nb">export</span> <span class="nv">GOLD_DIR</span><span class="o">=</span>%CSDHOME%/isostar_files/istr/
+</pre></div>
 </div>
-<div class="section" id="step-2-create-a-conda-environment">
-<h4>Step 2: Create a conda environment<a class="headerlink" href="#step-2-create-a-conda-environment" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="step-2-install-ghecom">
+<h4>Step 2: Install Ghecom<a class="headerlink" href="#step-2-install-ghecom" title="Permalink to this headline">¶</a></h4>
+<p>Available from Ghecom download page <a class="reference external" href="http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html">here</a>.</p>
+<p>“The source code of the ghecom is written in C, and developed and executed on
+the linux environment (actually on the Fedora Core).  For the installation,
+you need the gcc compiler.  If you do not want to use it, please change the
+“Makefile” in the “src” directory.”</p>
+<p>Download the file “ghecom-src-[date].tar.gz” file.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tar zxvf ghecom-src-<span class="o">[</span>date<span class="o">]</span>.tar.gz
+<span class="nb">cd</span> src
+make
+<span class="nb">export</span> <span class="nv">GHECOM_EXE</span><span class="o">=</span><span class="s2">&quot;&lt;download_directory&gt;&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="step-3-create-a-conda-environment-recommended">
+<h4>Step 3: Create a conda environment (recommended)<a class="headerlink" href="#step-3-create-a-conda-environment-recommended" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda create -n hotspots_env <span class="nv">python</span><span class="o">=</span><span class="m">2</span>.7
+</pre></div>
+</div>
+</div>
+<div class="section" id="step-4-install-rdkit-and-csd-python-api">
+<h4>Step 4: Install RDKit and CSD python API<a class="headerlink" href="#step-4-install-rdkit-and-csd-python-api" title="Permalink to this headline">¶</a></h4>
+<p>Download the standalone CSD python API package from <a class="reference external" href="https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87">here</a>.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda install -c rdkit -n hotspots_env rdkit
+conda install csd-python-api-2.x.x-linux-py2.7-conda.tar.bz2
+</pre></div>
+</div>
+</div>
+<div class="section" id="step-5-install-hotspots-api">
+<h4>Step 5: Install Hotspots API<a class="headerlink" href="#step-5-install-hotspots-api" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span> activate hotspots_env
+pip install hotspots
+</pre></div>
+</div>
+<p>… and you’re ready to go!</p>
 </div>
 </div>
 </div>
@@ -214,28 +261,28 @@ You will need a valid site number and confirmation code, this will have been ema
 protonated with small molecules and waters removed. Any waters or small molecules left in the structure will be included
 in the calculation.</p>
 <p>One way to do this is to use the CSD Python API:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ccdc</span> <span class="k">import</span> <span class="n">Protein</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="kn">import</span> <span class="n">Protein</span>
 
 <span class="n">prot</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
 <span class="n">prot</span><span class="o">.</span><span class="n">remove_all_waters</span><span class="p">()</span>
 <span class="n">prot</span><span class="o">.</span><span class="n">add_hydrogens</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">prot</span><span class="o">.</span><span class="n">ligands</span><span class="p">:</span>
-     <span class="n">prot</span><span class="o">.</span><span class="n">remove_ligand</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
+    <span class="n">prot</span><span class="o">.</span><span class="n">remove_ligand</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>However, there is no substitute for manually checking your structure before the calculation.</p>
+<p>For best results, manually check proteins before submitting them for calculation.</p>
 </div>
 <div class="section" id="calculating-fragment-hotspot-maps">
 <h3>Calculating Fragment Hotspot Maps<a class="headerlink" href="#calculating-fragment-hotspot-maps" title="Permalink to this headline">¶</a></h3>
 <p>Once the protein is prepared, the <a class="reference internal" href="calculation_api.html#hotspots.calculation.Runner" title="hotspots.calculation.Runner"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.Runner</span></code></a> object can be used to perform the calculation:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="kn">import</span> <span class="n">Runner</span>
 
 <span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">Runner</span><span class="o">.</span><span class="n">from_protein</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Alternatively, for a quick calculation, you can supply a PDB code and we will prepare the protein as described above:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">Runner</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;1hcl&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -248,13 +295,13 @@ in the calculation.</p>
 and <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.best_volume.Extractor</span></code> objects. The output <cite>.grd</cite> files can become quite large, but are highly
 compressible, therefore the results are written to a <cite>.zip</cite> archive by default, along with a PyMOL run script to
 visualise the output.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots</span> <span class="k">import</span> <span class="n">hs_io</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots</span> <span class="kn">import</span> <span class="n">hs_io</span>
 
 <span class="n">out_dir</span> <span class="o">=</span> <span class="s2">&quot;results/pdb1&quot;</span>
 
 <span class="c1"># Creates &quot;results/pdb1/out.zip&quot;</span>
-<span class="n">w</span> <span class="o">=</span> <span class="n">hs_io</span><span class="o">.</span><span class="n">HotspotWriter</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">grid_extension</span><span class="o">=</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="n">zip_results</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">HotspotWriter</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">grid_extension</span><span class="o">=</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="n">zip_results</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -262,7 +309,7 @@ visualise the output.</p>
 <h4>Reading<a class="headerlink" href="#reading" title="Permalink to this headline">¶</a></h4>
 <p>If you want to revisit the results of a previous calculation, you can load the <cite>out.zip</cite> archive directly into a
 <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.results</span></code> instance:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots</span> <span class="k">import</span> <span class="n">hs_io</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots</span> <span class="kn">import</span> <span class="n">hs_io</span>
 
 <span class="n">results</span> <span class="o">=</span> <span class="n">hs_io</span><span class="o">.</span><span class="n">HotspotReader</span><span class="p">(</span><span class="s1">&#39;results/pdb1/out.zip&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 </pre></div>
@@ -272,10 +319,32 @@ visualise the output.</p>
 </div>
 <div class="section" id="using-the-output">
 <h2>Using the Output<a class="headerlink" href="#using-the-output" title="Permalink to this headline">¶</a></h2>
-<p>While Fragment Hotspot Maps provide a useful visual guide, the grid-based data can be used</p>
+<p>While Fragment Hotspot Maps provide a useful visual guide, the grid-based data can be used in other SBDD analysis.</p>
 <div class="section" id="scoring">
 <h3>Scoring<a class="headerlink" href="#scoring" title="Permalink to this headline">¶</a></h3>
-<p>For more functionality check out the main Docs</p>
+<p>One example is scoring atoms of either proteins or small molecules.</p>
+<p>This can be done as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="kn">import</span> <span class="n">Protein</span>
+<span class="kn">from</span> <span class="nn">ccdc.io</span> <span class="kn">import</span> <span class="n">MoleculeReader</span><span class="p">,</span> <span class="n">MoleculeWriter</span>
+<span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="kn">import</span> <span class="n">Runner</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+    <span class="n">prot</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;1hcl.pdb&quot;</span><span class="p">)</span>    <span class="c1"># prepared protein</span>
+    <span class="n">hs</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">from_protein</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
+
+    <span class="c1"># score molecule</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">MoleculeReader</span><span class="p">(</span><span class="s2">&quot;mol.mol2&quot;</span><span class="p">)</span>
+    <span class="n">scored_mol</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">MoleculeWriter</span><span class="p">(</span><span class="s2">&quot;score_mol.mol2&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">scored_mol</span><span class="p">)</span>
+
+    <span class="c1"># score protein</span>
+    <span class="n">scored_prot</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">hs</span><span class="o">.</span><span class="n">prot</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">MoleculeWriter</span><span class="p">(</span><span class="s2">&quot;scored_prot.mol2&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">scored_prot</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To learn about other ways you can use the Hotspots API please read our API documentation.</p>
 </div>
 </div>
 </div>

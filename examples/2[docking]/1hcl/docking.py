@@ -23,11 +23,10 @@ with _private_importer():
 
 from hotspots import calculation
 from hotspots import hs_io
-from hotspots import hs_screening
+from hotspots import hs_docking
 from hotspots import hs_utilities
 from hotspots import result
-
-from pdb_python_api import _Ligand, PDBResult
+from hotspots.pdb_python_api import _Ligand, PDBResult
 
 
 class Organiser(argparse.ArgumentParser):
@@ -171,7 +170,7 @@ class Organiser(argparse.ArgumentParser):
         :return: a :class:`ccdc.io.MoleculeReader`
         """
         docker = Docker()
-        docker.settings = hs_screening.DockerSettings()
+        docker.settings = hs_docking.DockerSettings()
 
         # download protein
         PDBResult(self.args.pdb).download(self.temp)

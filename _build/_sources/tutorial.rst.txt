@@ -8,12 +8,13 @@ This section will introduce the main functionality of the Hotspots API
 Getting Started
 ***************
 
-NB: Although the Hotspots API is publicly available, it is dependant on the CSD python API - a commerical package. 
-If you are an academic user it's likely your institution will have a license.
-
-DISCLAIMER: This is an academic project, we would therefore really appreciate feedback and contributions.
+Although the Hotspots API is publicly available, it is dependant on the CSD python API - a commercial package. 
+If you are an academic user it's likely your institution will have a license.This is an academic project, we would 
+therefore really appreciate feedback and contributions.
 
 For any questions on obtaining or setting the CSDS, please contact support@ccdc.cam.ac.uk
+
+NB: We recommend installing on a Linux machine
 
 ===================
 Installation
@@ -25,12 +26,54 @@ Step 1: Install CSDS 2019
 Available from CCDC downloads page (https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/) 
 You will need a valid site number and confirmation code, this will have been emailed to you when you bought your CSDS 2019 license
 
+You may need to set the following environment variables:
 
-----------------------------------
-Step 2: Create a conda environment 
-----------------------------------
+    export CSDHOME="<path_to_CSDS_installation>"
+    export SUPERSTAR_ROOT
+    export SUPERSTAR_ISODIR
+    export GOLD_DIR
 
 
+
+-------------------------
+Step 2: Install Ghecom
+-------------------------
+Available from Ghecom download page (http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html)
+
+"The source code of the ghecom is written in C, and developed and executed on
+the linux environment (actually on the Fedora Core).  For the installation,
+you need the gcc compiler.  If you do not want to use it, please change the
+"Makefile" in the "src" directory."
+
+Download the file "ghecom-src-[date].tar.gz" file.
+
+    tar zxvf ghecom-src-[date].tar.gz
+    cd src
+    make
+    export GHECOM_EXE="<download_directory>"
+	
+	
+------------------------------------------------
+Step 3: Create a conda environment (recommended)
+------------------------------------------------
+
+    conda create -n hotspots_env python=2.7
+
+------------------------------------------------
+Step 4: Install RDKit and CSD python API
+------------------------------------------------
+Download the standalone CSD python API package from: (https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87)
+	
+	conda install -c rdkit -n hotspots_env rdkit
+	conda install csd-python-api-2.x.x-linux-py2.7-conda.tar.bz2
+	
+------------------------------------------------
+Step 5: Install Hotspots API
+------------------------------------------------
+
+    source activate hotspots_env
+	pip install hotspots
+	
 
 *********************
 Running a Calculation
@@ -94,7 +137,6 @@ visualise the output. ::
     w = hs_io.HotspotWriter(out_dir, grid_extension=".grd", zip_results=True)
     w.write(results)
 
-
 -------
 Reading
 -------
@@ -110,12 +152,34 @@ If you want to revisit the results of a previous calculation, you can load the `
 Using the Output
 ****************
 
-While Fragment Hotspot Maps provide a useful visual guide, the grid-based data can be used
+While Fragment Hotspot Maps provide a useful visual guide, the grid-based data can be used in other SBDD analysis.
 
 =======
 Scoring
 =======
+One example is scoring atoms of either proteins or small molecules. 
+
+This can be done as follows: 
+
+    from ccdc.protein import Protein
+    from ccdc.io import MoleculeReader, MoleculeWriter
+	from hotspots.calculation import Runner
+	
+	r = Runner()
+	prot = Protein.from_file("<path-to-protein")    # prepared protein
+	hs = r.from_protein(prot)
+	
+	# score molecule
+	mol = MoleculeReader("<path-to-molecule>")
+	scored_mol = hs.score(mol)
+	with MoleculeWriter("score_mol.mol2") as w:
+	    w.write(scored_mol)
+		
+	# score protein
+	scored_prot = hs.score(hs.prot)
+	with MoleculeWriter("scored_prot.mol2") as w:
+	    w.write(scored_prot)
+    
 
 
-
-For more functionality check out the main Docs
+To learn about other ways you can use the Fragment Hotspot Maps API please read our API documentation.

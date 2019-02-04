@@ -26,7 +26,6 @@ More information about CrossMiner is available:
 More information about Pharmit is available:
     - Jocelyn Sunseri, David Ryan Koes; Pharmit: interactive exploration of chemical space, Nucleic Acids Research, Volume 44, Issue W1, 8 July 2016, Pages W442-W448 [DIO: 10.1093/nar/gkw287]
 
-
 """
 
 import csv
@@ -46,8 +45,7 @@ from ccdc.protein import Protein
 from hotspots.grid_extension import Grid, Coordinates
 from hotspots.hs_utilities import Helper
 from hotspots.template_strings import pymol_arrow, pymol_imports, crossminer_features, pymol_labels
-
-from pdb_python_api import Query, PDB, PDBResult
+from hotspots.pdb_python_api import Query, PDB, PDBResult
 
 from rdkit import Chem, DataStructs
 # from rdkit.Chem import MACCSkey, AllChem, Draw
