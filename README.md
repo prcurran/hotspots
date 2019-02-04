@@ -6,7 +6,8 @@
 The Hotspots API is the python package for the Fragment Hotspot Maps project, a knowledge-based method for determining small molecule binding "hotspots" 
 
 For more information on this method: 
-    -  - Radoux, C.J. et. al., Identifying the Interactions that Determine Fragment Binding at Protein Hotspots J. Med. Chem. 2016, 59 (9), 4314-4325 [dx.doi.org/10.1021/acs.jmedchem.5b01980]
+
+    - Radoux, C.J. et. al., Identifying the Interactions that Determine Fragment Binding at Protein Hotspots J. Med. Chem. 2016, 59 (9), 4314-4325 [dx.doi.org/10.1021/acs.jmedchem.5b01980]
 
 
 ***************
