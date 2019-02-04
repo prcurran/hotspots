@@ -1,7 +1,3 @@
-***************
-Hotspots API
-***************
-
 The Hotspots API is the python package for the Fragment Hotspot Maps project, a knowledge-based method for determining small molecule binding "hotspots".
 
 For more information on this method: 
@@ -40,11 +36,9 @@ You may need to set the following environment variables:
 
 .. code-block:: shell
 
-    export CSDBASE="<path_to_CSDS_installation>"
-    export CSDHOME=%CSDBASE%/CSD_2019
-    export SUPERSTAR_ROOT=%CSDBASE%/Discovery_2019/SuperStar/
-    export SUPERSTAR_ISODIR=%CSDHOME%/isostar_files/istr/
-    export GOLD_DIR=%CSDBASE%/Discovery_2019/GOLD
+    export CSDHOME=<path_to_CSDS_installation>/CSD_2019
+
+
 
 
 
