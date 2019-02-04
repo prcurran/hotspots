@@ -4,12 +4,13 @@ setup.py
 hotspots/__init__.py
 hotspots/atomic_hotspot_calculation.py
 hotspots/calculation.py
+hotspots/data.py
 hotspots/grid_extension.py
 hotspots/hs_docking.py
 hotspots/hs_io.py
 hotspots/hs_pharmacophore.py
-hotspots/hs_pharmacophore_extension.py
 hotspots/hs_utilities.py
+hotspots/pdb_python_api.py
 hotspots/result.py
 hotspots/template_strings.py
 hotspots.egg-info/PKG-INFO

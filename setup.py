@@ -15,6 +15,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     # scripts=['src/run_hotspot.py'],
+	python_requires='2.7',
     long_description=long_description,
     long_description_content_type="text/markdown",
     # Project uses reStructuredText, so ensure that the docutils get

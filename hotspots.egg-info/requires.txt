@@ -8,3 +8,4 @@ pandas
 futures
 cython
 tqdm
+xmltodict
