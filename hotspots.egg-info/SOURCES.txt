@@ -1,5 +1,6 @@
 MANIFEST.in
 README.md
+README.txt
 setup.py
 hotspots/__init__.py
 hotspots/atomic_hotspot_calculation.py
