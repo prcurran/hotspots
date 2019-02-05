@@ -1,4 +1,4 @@
-# Welcome to the fragment-hotspot-maps wiki!
+# Welcome to the Hotspots API!
 
 [![Documentation Status](https://readthedocs.org/projects/hotspots/badge/?version=latest)](https://hotspots.readthedocs.io/en/latest/?badge=latest)
 [![License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/prcurran/fragment_hotspot_maps/blob/master/LICENSE)
