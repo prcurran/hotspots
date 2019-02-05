@@ -8,3 +8,6 @@ hotspots0.1.zip
 dist
 hotspots.egg-info
 hotspots.egg-info/*
+_build
+_static
+_templates

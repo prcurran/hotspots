@@ -1,3 +1,6 @@
+from hotspots import calculation
+
+
 __author__ = "Chris Radoux, Peter Curran, Mihaela Smilova"
 __copyright__ = None
 __credits__ = None

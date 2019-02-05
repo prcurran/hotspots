@@ -12,7 +12,7 @@ setup(
     author_email="pcurran@ccdc.cam.ac.uk",
 	license="MIT",
     version="1.0.0",
-    url="https://github.com/prcurran/fragment_hotspot_maps",
+    url="https://github.com/prcurran/hotspots",
     packages=find_packages(),
     include_package_data=True,
     # scripts=['src/run_hotspot.py'],

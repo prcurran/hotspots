@@ -709,6 +709,7 @@ class Extractor(object):
             self.min_distance = min_distance
             self.island_max_size = island_max_size
             self.pharmacophore = pharmacophore
+            self.mode = None
             self.mvon = True
 
         @property
@@ -862,6 +863,7 @@ class Extractor(object):
         self.settings.pharmacophore = pharmacophores
         self.out_dir = None
         self._peaks = None
+        self.settings.mode = "global"
 
         e = self._from_hotspot(self.single_grid,
                                self.masked_dic,
@@ -903,6 +905,7 @@ class Extractor(object):
         """
         self.settings.volume = volume
         self.settings.pharmacophore = pharmacophores
+        self.settings.mode = "seed"
         self.out_dir = None
         self.extracted_hotspots = []
         self._peaks = self._get_peaks()
