@@ -133,7 +133,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'FragmentHotspotMaps.tex', u'Fragment Hotspot Maps Documentation',
-     u'Chris Radoux and Peter Curran', 'manual'),
+     u'Chris Radoux, Peter Curran, Mihaela Smilova', 'manual'),
 ]
 
 
