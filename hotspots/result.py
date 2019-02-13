@@ -1289,7 +1289,12 @@ class Extractor(object):
 
         if mode == "peaks":
             out_dir = Helper.get_out_dir(join(out_dir))
-            pymol_out = 'from pymol import cmd\nfrom pymol.cgo import *\n'
+            pymol_out = """
+from pymol import cmd, finish_launching
+from pymol.cgo import *
+finish_launching()
+
+"""
             for i, peak in enumerate(self.peaks):
                 score = "{0:.2f}".format(self.hotspot_result.super_grids["apolar"].value_at_point(peak))
                 sphere = 'score_{0} = [COLOR, 1.00, 1.000, 0.000] + ' \
