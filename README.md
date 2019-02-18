@@ -1,5 +1,5 @@
 ************
-Hotspots API
+#Hotspots API
 ************
 
 [![Documentation Status](https://readthedocs.org/projects/hotspots/badge/?version=latest)](https://hotspots.readthedocs.io/en/latest/?badge=latest)	
@@ -91,7 +91,7 @@ Download the file ``ghecom-src-[date].tar.gz`` file.
     conda run -n hotspots pip install https://github.com/prcurran/hotspots/archive/v1.0.0.zip
 
 
-Hotspots API Usage
+##Hotspots API Usage
 ==================
 
 Start activating your Anaconda environment and setting some variables.
@@ -103,11 +103,10 @@ Start activating your Anaconda environment and setting some variables.
     export CSDHOME=<path_to_CSDS_installation>/CSD_2019
 
 
-Running a Calculation
+##Running a Calculation
 ---------------------
 
-Protein Preparation
-^^^^^^^^^^^^^^^^^^^
+###Protein Preparation
 
 The first step is to make sure your protein is correctly prepared for the
 calculation. The structures should be protonated with small molecules and
@@ -131,8 +130,8 @@ One way to do this is to use the CSD Python API:
 For best results, manually check proteins before submitting them for calculation.
 
 
-Calculating Fragment Hotspot Maps
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+###Calculating Fragment Hotspot Maps
+
 
 Once the protein is prepared, the `hotspots.calculation.Runner` object can be
 used to perform the calculation:
@@ -154,11 +153,10 @@ prepare the protein as described above:
     results = runner.from_pdb("1hcl", nprocesses=11)
 
 
-Reading and Writing Hotspots
+##Reading and Writing Hotspots
 ----------------------------
 
-Writing
-^^^^^^^
+###Writing
 
 The  `hotspots.hs_io` module handles the reading and writing of both  `hotspots.calculation.results
 and  `hotspots.best_volume.Extractor` objects. The output `.grd` files can become quite large,
@@ -175,8 +173,8 @@ along with a PyMOL run script to visualise the output.
     with HotspotWriter(out_dir) as writer:
         writer.write(results)
 
-Reading
-^^^^^^^
+###Reading
+
 
 If you want to revisit the results of a previous calculation, you can load the
 `out.zip` archive directly into a `hotspots.calculation.results` instance:
@@ -189,13 +187,13 @@ If you want to revisit the results of a previous calculation, you can load the
 
 
 
-Using the Output
+##Using the Output
 ================
 
 While Fragment Hotspot Maps provide a useful visual guide, the grid-based data
 can be used in other SBDD analysis.
 
-Scoring
+###Scoring
 -------
 
 One example is scoring atoms of either proteins or small molecules.
