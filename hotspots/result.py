@@ -104,15 +104,19 @@ class _Scorer(Helper):
         cavities = Helper.cavity_from_protein(self.object)
         for cavity in cavities:
             for feature in cavity.features:
-                for atm in feature.residue.atoms:
-                    # score with apolar atoms
-                    if atm.is_donor is False and atm.is_acceptor is False and atm.atomic_number != 1:
-                        score = self.hotspot_result.super_grids['apolar'].get_near_scores(atm.coordinates)
-                        if len(score) == 0:
-                            score = 0
-                        else:
-                            score = max(score)
-                        prot.atoms[atm.index].partial_charge = score
+                try:
+                    # error catch cavity reader issue! status: reported  *** to be removed ***
+                    for atm in feature.residue.atoms:
+                        # score with apolar atoms
+                        if atm.is_donor is False and atm.is_acceptor is False and atm.atomic_number != 1:
+                            score = self.hotspot_result.super_grids['apolar'].get_near_scores(atm.coordinates)
+                            if len(score) == 0:
+                                score = 0
+                            else:
+                                score = max(score)
+                            prot.atoms[atm.index].partial_charge = score
+                except:
+                    continue
 
                 # deal with polar atoms using cavity
                 if feature.type == "acceptor" or feature.type == "donor" or feature.type =="doneptor":

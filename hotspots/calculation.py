@@ -503,8 +503,13 @@ class Runner(object):
                     orig_value = pg.grid.value(i, j, k)
                     #
                     if self.settings.sphere_maps:
+                        #pg.grid.set_sphere(coords, 2, score, mode='max')
                         if score > orig_value:
-                            pg.grid.set_sphere(coords, 1.5, score - orig_value)
+                            try:
+                                #pg.grid.set_sphere(coords, 2, score - orig_value)
+                                pg.grid.set_sphere(coords, 2, score, mode='max')
+                            except AttributeError:
+                                pg.grid.set_sphere(coords, 2, score - orig_value)
                     else:
                         pg.grid.set_value(i, j, k, max(score, orig_value))
 
