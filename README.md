@@ -1,12 +1,13 @@
 ************
-#Hotspots API
+# Hotspots API
 ************
 
 [![Documentation Status](https://readthedocs.org/projects/hotspots/badge/?version=latest)](https://hotspots.readthedocs.io/en/latest/?badge=latest)	
 [![License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/prcurran/fragment_hotspot_maps/blob/master/LICENSE)	
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/prcurran/fragment_hotspot_maps.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/prcurran/fragment_hotspot_maps/alerts/)	
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/prcurran/fragment_hotspot_maps.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/prcurran/fragment_hotspot_maps/context:python)	
-[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/prcurran/fragment_hotspot_maps.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/prcurran/fragment_hotspot_maps/context:javascript)	
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/prcurran/fragment_hotspot_maps.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/prcurran/fragment_hotspot_maps/context:javascript)
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/fragmenthotspots/community)
 
 
  ![fragment hotspots](http://fragment-hotspot-maps.ccdc.cam.ac.uk/static/cover_small.jpg)
@@ -41,7 +42,7 @@ Installation
 ============
 
 
-*#1* Install CSDS 2019
+*1* Install CSDS 2019
 ----------------------
 
 Available from `CCDC downloads page <https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/>`_.
@@ -50,7 +51,7 @@ You will need a valid site number and confirmation code, this will have been
 emailed to you when you bought your CSDS 2019 license.
 
 
-*#2* Install GHECOM
+*2* Install GHECOM
 -------------------
 
 Available from `GHECOM download page <http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html>`_.
@@ -70,7 +71,7 @@ Download the file ``ghecom-src-[date].tar.gz`` file.
     # The executable will be located at the parent directory ..
 
 
-*#3* Setup an Anaconda environment (recommended)
+*3* Setup an Anaconda environment (recommended)
 ------------------------------------------------
 
 .. code-block:: shell
@@ -91,8 +92,8 @@ Download the file ``ghecom-src-[date].tar.gz`` file.
     conda run -n hotspots pip install https://github.com/prcurran/hotspots/archive/v1.0.0.zip
 
 
-##Hotspots API Usage
-==================
+## Hotspots API Usage
+---------------------
 
 Start activating your Anaconda environment and setting some variables.
 
@@ -103,10 +104,10 @@ Start activating your Anaconda environment and setting some variables.
     export CSDHOME=<path_to_CSDS_installation>/CSD_2019
 
 
-##Running a Calculation
+## Running a Calculation
 ---------------------
 
-###Protein Preparation
+### Protein Preparation
 
 The first step is to make sure your protein is correctly prepared for the
 calculation. The structures should be protonated with small molecules and
@@ -130,7 +131,8 @@ One way to do this is to use the CSD Python API:
 For best results, manually check proteins before submitting them for calculation.
 
 
-###Calculating Fragment Hotspot Maps
+### Calculating Fragment Hotspot Maps
+---------------------
 
 
 Once the protein is prepared, the `hotspots.calculation.Runner` object can be
@@ -153,10 +155,10 @@ prepare the protein as described above:
     results = runner.from_pdb("1hcl", nprocesses=11)
 
 
-##Reading and Writing Hotspots
+## Reading and Writing Hotspots
 ----------------------------
 
-###Writing
+### Writing
 
 The  `hotspots.hs_io` module handles the reading and writing of both  `hotspots.calculation.results
 and  `hotspots.best_volume.Extractor` objects. The output `.grd` files can become quite large,
@@ -173,7 +175,7 @@ along with a PyMOL run script to visualise the output.
     with HotspotWriter(out_dir) as writer:
         writer.write(results)
 
-###Reading
+### Reading
 
 
 If you want to revisit the results of a previous calculation, you can load the
@@ -187,14 +189,14 @@ If you want to revisit the results of a previous calculation, you can load the
 
 
 
-##Using the Output
-================
+## Using the Output
+---------------------
 
 While Fragment Hotspot Maps provide a useful visual guide, the grid-based data
 can be used in other SBDD analysis.
 
-###Scoring
--------
+### Scoring
+---------------------
 
 One example is scoring atoms of either proteins or small molecules.
 
