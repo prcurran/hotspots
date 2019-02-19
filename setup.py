@@ -1,9 +1,6 @@
 from __future__ import print_function
 from setuptools import setup, find_packages
 
-with open("README.txt", "r") as fh:
-    long_description = fh.read()
-
 print(find_packages())
 
 setup(
@@ -16,7 +13,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     # scripts=['src/run_hotspot.py'],
-    long_description=long_description,
+    long_description='Hotspots 1.0.0',
     long_description_content_type="text/x-rst",
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
