@@ -808,7 +808,7 @@ class Extractor(object):
                 threshold += 0.01
                 best_island = (best_island > threshold) * best_island
 
-            # new_threshold, best_island = self._reselect_points(threshold=threshold)
+            threshold, best_island = self._reselect_points(threshold=threshold)
             print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
             return threshold, best_island
 
