@@ -437,7 +437,7 @@ class Results(object):
         """
         *Experimental feature.*
 
-        Generates maps to highlight 6_selectivity for a target over an off target cavity. Proteins should be aligned
+        Generates maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
         by the binding site of interest prior to calculation.
         High scoring regions of a map represent areas of favourable interaction in the target binding site, not
         present in off target binding site

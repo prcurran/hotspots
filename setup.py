@@ -7,7 +7,7 @@ setup(
     name="hotspots",
     author="Chris Radoux, Peter Curran, Mihaela Smilova",
     author_email="pcurran@ccdc.cam.ac.uk",
-	license="MIT",
+    license="MIT",
     version="1.0.0",
     url="https://github.com/prcurran/hotspots",
     packages=find_packages(),
