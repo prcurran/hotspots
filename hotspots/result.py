@@ -44,6 +44,7 @@ from skimage import feature
 
 from hotspots.grid_extension import Grid, _GridEnsemble
 from hotspots.hs_utilities import Figures
+from hotspots.template_strings import pymol_imports
 from hs_pharmacophore import PharmacophoreModel
 from hs_utilities import Helper
 from atomic_hotspot_calculation import AtomicHotspot, _AtomicHotspotResult
@@ -436,7 +437,7 @@ class Results(object):
         """
         *Experimental feature.*
 
-        Generates maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
+        Generates maps to highlight 6_selectivity for a target over an off target cavity. Proteins should be aligned
         by the binding site of interest prior to calculation.
         High scoring regions of a map represent areas of favourable interaction in the target binding site, not
         present in off target binding site
@@ -1291,14 +1292,9 @@ class Extractor(object):
             -_features: islands and probes at feature point locations
         """
 
+        pymol_out = pymol_imports()
         if mode == "peaks":
             out_dir = Helper.get_out_dir(join(out_dir))
-            pymol_out = """
-from pymol import cmd, finish_launching
-from pymol.cgo import *
-finish_launching()
-
-"""
             for i, peak in enumerate(self.peaks):
                 score = "{0:.2f}".format(self.hotspot_result.super_grids["apolar"].value_at_point(peak))
                 sphere = 'score_{0} = [COLOR, 1.00, 1.000, 0.000] + ' \
@@ -1313,7 +1309,6 @@ finish_launching()
 
         elif mode == "best_islands":
             out_dir = Helper.get_out_dir(join(out_dir, "best_islands"))
-            pymol_out = 'from pymol import cmd\nfrom pymol.cgo import *\n'
             thresholds = []
             for i, extracted in enumerate(self.extracted_hotspots):
                 extracted.best_island.write(join(out_dir, "island_{}.grd".format(i)))
