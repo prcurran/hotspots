@@ -351,15 +351,16 @@ class Results(object):
 
         extractor = Extractor(self, settings=extractor_settings)
         extractor.extract_best_volume(volume=500)
-        hist = extractor.extracted_hotspots[0].map_values()
-
-        all_points = []
-        for x in hist.values():
-            all_points += x.flatten().tolist()
-
-        all_points = all_points[all_points != 0]
+        # hist = extractor.extracted_hotspots[0].map_values()
+        #
+        # all_points = []
+        # for x in hist.values():
+        #     all_points += x.flatten().tolist()
+        #
+        # all_points = all_points[all_points != 0]
+        # print(all_points)
         best_vol = extractor.extracted_hotspots[0]
-        best_vol.identifier = np.median(all_points)
+        best_vol.identifier = best_vol.score()
 
         return best_vol
 
@@ -383,7 +384,7 @@ class Results(object):
                 all_points += x.flatten().tolist()
 
             all_points = all_points[all_points != 0]
-            best_vol = extractor.extracted_hotspots[0]
+            best_vol = cav
             best_vol.identifier = np.median(all_points)
             extracted.append(best_vol)
 
