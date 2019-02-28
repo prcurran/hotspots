@@ -153,9 +153,20 @@ class _Scorer(Helper):
 
         return mol
 
+    def _score_feature(self, f):
+
+        ideal_coord = (f.coordinates[n] + 1.8*(f.protein_vector[n]) for n in xrange(0,2))
+        print(ideal_coord)
+
+
+
     def score_cavity(self):
         # TODO: return scored cavity _features, the score protein function should be enough tbh
-        return 0
+        cav = copy.copy(self.scored_object)
+
+        for f in cav.features:
+            self._score_feature(f)
+
 
     def score_hotspot(self, threshold=5, percentile=50):
         """
@@ -336,7 +347,7 @@ class Results(object):
 
         extractor = Extractor(self, settings=extractor_settings)
         extractor.extract_best_volume(volume=500)
-        hist = extractor.extracted_hotspots[0].get_map_values()
+        hist = extractor.extracted_hotspots[0].map_values()
         all = []
         for x in hist.values():
             all += x.tolist()
