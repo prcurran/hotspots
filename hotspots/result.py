@@ -104,15 +104,19 @@ class _Scorer(Helper):
         cavities = Helper.cavity_from_protein(self.object)
         for cavity in cavities:
             for feature in cavity.features:
-                for atm in feature.residue.atoms:
-                    # score with apolar atoms
-                    if atm.is_donor is False and atm.is_acceptor is False and atm.atomic_number != 1:
-                        score = self.hotspot_result.super_grids['apolar'].get_near_scores(atm.coordinates)
-                        if len(score) == 0:
-                            score = 0
-                        else:
-                            score = max(score)
-                        prot.atoms[atm.index].partial_charge = score
+                try:
+                    # error catch cavity reader issue! status: reported  *** to be removed ***
+                    for atm in feature.residue.atoms:
+                        # score with apolar atoms
+                        if atm.is_donor is False and atm.is_acceptor is False and atm.atomic_number != 1:
+                            score = self.hotspot_result.super_grids['apolar'].get_near_scores(atm.coordinates)
+                            if len(score) == 0:
+                                score = 0
+                            else:
+                                score = max(score)
+                            prot.atoms[atm.index].partial_charge = score
+                except:
+                    continue
 
                 # deal with polar atoms using cavity
                 if feature.type == "acceptor" or feature.type == "donor" or feature.type =="doneptor":
@@ -815,7 +819,7 @@ class Extractor(object):
                 threshold += 0.01
                 best_island = (best_island > threshold) * best_island
 
-            # new_threshold, best_island = self._reselect_points(threshold=threshold)
+            threshold, best_island = self._reselect_points(threshold=threshold)
             print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
             return threshold, best_island
 
@@ -1300,7 +1304,12 @@ class Extractor(object):
 
         if mode == "peaks":
             out_dir = Helper.get_out_dir(join(out_dir))
-            pymol_out = 'from pymol import cmd\nfrom pymol.cgo import *\n'
+            pymol_out = """
+from pymol import cmd, finish_launching
+from pymol.cgo import *
+finish_launching()
+
+"""
             for i, peak in enumerate(self.peaks):
                 score = "{0:.2f}".format(self.hotspot_result.super_grids["apolar"].value_at_point(peak))
                 sphere = 'score_{0} = [COLOR, 1.00, 1.000, 0.000] + ' \
