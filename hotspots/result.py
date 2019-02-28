@@ -336,15 +336,42 @@ class Results(object):
 
         extractor = Extractor(self, settings=extractor_settings)
         extractor.extract_best_volume(volume=500)
-        hist = extractor.extracted_hotspots[0].get_map_values()
-        all = []
+        hist = extractor.extracted_hotspots[0].map_values()
+        all_points = []
         for x in hist.values():
-            all += x.tolist()
+            all_points += x.flatten().tolist()
 
+        all_points = all_points[all_points != 0]
         best_vol = extractor.extracted_hotspots[0]
-        best_vol.identifier = np.median(all)
+        best_vol.identifier = np.median(all_points)
 
         return best_vol
+
+    def all_tractability_maps(self):
+        """
+        generate the best volume and labels with the median value. A median > 14 is more likely to be tractable
+
+        :return: a :class:`hotspots.result.Results` instance
+        """
+        extractor_settings = Extractor.Settings()
+        extractor_settings.cutoff = 5
+        extractor_settings.island_max_size = 500
+
+        extractor = Extractor(self, settings=extractor_settings)
+        extractor.extract_all_volumes(volume=500)
+        extracted = []
+        for cav in extractor.extracted_hotspots:
+            hist = cav.map_values()
+            all_points = []
+            for x in hist.values():
+                all_points += x.flatten().tolist()
+
+            all_points = all_points[all_points != 0]
+            best_vol = extractor.extracted_hotspots[0]
+            best_vol.identifier = np.median(all_points)
+            extracted.append(best_vol)
+
+        return extracted
 
     def score(self, obj=None, tolerance=2):
         """
