@@ -498,6 +498,80 @@ class Results(object):
         """
         return PharmacophoreModel.from_hotspot(self, identifier=identifier, threshold=threshold)
 
+    @staticmethod
+    def _is_solvent_accessible(protein_coords, atm, min_distance=2):
+        """
+        given a protein and an atom of a protein, determine if the atom is accessible to solvent
+        :param protein:
+        :param atm:
+        :return:
+        """
+        if str(atm.atomic_symbol) == 'H':
+            atm_position = np.array(atm.coordinates)
+            neighbour = np.array(atm.neighbours[0].coordinates)
+            direction = np.subtract(atm_position, neighbour) * 2
+            position = np.array([direction + atm_position])
+            distance = min(np.linalg.norm(protein_coords - position, axis=1))
+            if distance > min_distance:
+                return True
+            else:
+                return False
+
+        else:
+            return True
+
+    def docking_fitting_pts(self, _best_island=None):
+        """
+
+        :return:
+        """
+        if _best_island:
+            single_grid = _best_island
+        else:
+            single_grid = Grid.get_single_grid(self.super_grids, mask=False)
+        dic = single_grid.grid_value_by_coordinates(threshold=17)
+
+        for score, v in dic.items():
+            for pts in v:
+                atm = molecule.Atom(atomic_symbol='C',
+                                    atomic_number=14,
+                                    label='{:.2f}'.format(score),
+                                    coordinates=pts)
+                atm.partial_charge = score
+                mol.add_atom(atom=atm)
+        return mol
+
+    def docking_constraint_atoms(self, max_constraints=5):
+        """
+        creates a dictionary of constraints
+
+        :param int max_constraints: max number of constraints
+        :return dic: score by atom
+        """
+        for atm in self.protein.atoms:
+            atm.partial_charge = int(0)
+        prot = self.score(protein)
+
+        coords = np.array([a.coordinates for a in prot.atoms])
+        atm_dic = {atm.partial_charge: atm for atm in prot.atoms
+                   if type(atm.partial_charge) is float
+                   and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
+                   and _is_solvent_accessible(coords, atm, min_distance=2)
+                   }
+
+        print(atm_dic)
+
+        if len(atm_dic) > max_constraints:
+            scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
+        else:
+            scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
+
+        bin_keys = set(atm_dic.key()) - set(scores)
+        for b in bin_keys:
+            del atm_dic[b]
+
+        return atm_dic
+
     def map_values(self):
         """
         get the number zero grid points for the Fragment Hotspot Result
