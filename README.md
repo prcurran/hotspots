@@ -87,13 +87,13 @@ Install CSD-Python-API:
     conda install -n hotspots csd-python-api-2.x.x-linux-py2.7-conda.tar.bz2
 
 
-5 Create Install RDKit and CSD Python API
+5 Install Hotspots
 ------------------------------------------------
 
-Install Hotspots v1.0.0:
+Install Hotspots v1.x.x:
 
     conda activate hotspots
-    pip install https://github.com/prcurran/hotspots/archive/v1.0.0.zip
+    pip install https://github.com/prcurran/hotspots/archive/v1.x.x.zip
     
 NB: dependencies should install automatically. If they do not, please see setup.py for the package requirements!
 
