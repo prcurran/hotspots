@@ -32,6 +32,8 @@ from __future__ import print_function, division
 import copy
 import operator
 from os.path import join, dirname
+from collections import OrderedDict
+import pickle
 
 from os import getcwd
 import numpy as np
@@ -339,6 +341,27 @@ class Results(object):
 
         if pharmacophore:
             self.pharmacophore = self.get_pharmacophore_model()
+
+
+    class ConstraintData(object):
+        """
+        standardise constrain read and write (required for the GOLD optimisation)
+
+        """
+        def __init__(self, score_by_index):
+            self.score_by_index = OrderedDict(score_by_index)
+
+        def write(self, path):
+            f = open(path, "wb")
+            pickle.dump(self.score_by_index, f)
+            f.close()
+
+        @staticmethod
+        def read(path):
+            f = open(path, "rb")
+            d = pickle.load(f)
+            f.close()
+            return Results.ConstraintData(d)
 
     class _HotspotFeature(object):
         """
@@ -652,18 +675,13 @@ class Results(object):
         for atm in self.protein.atoms:
             atm.partial_charge = int(0)
         prot = self.score(self.protein)
-        from ccdc.io import MoleculeWriter
-        with MoleculeWriter("scoredprot.mol2") as w:
-            w.write(prot)
 
         coords = np.array([a.coordinates for a in prot.atoms])
-        atm_dic = {atm.partial_charge: atm for atm in prot.atoms
+        atm_dic = {atm.partial_charge: atm.index for atm in prot.atoms
                    if type(atm.partial_charge) is float
                    and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
                    and self._is_solvent_accessible(coords, atm, min_distance=2)
                    }
-
-        print(atm_dic)
 
         if len(atm_dic) > max_constraints:
             scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
@@ -674,7 +692,7 @@ class Results(object):
         for b in bin_keys:
             del atm_dic[b]
 
-        return atm_dic
+        return self.ConstraintData(atm_dic)
 
     def map_values(self):
         """

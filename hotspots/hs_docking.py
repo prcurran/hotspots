@@ -22,7 +22,7 @@ from ccdc import docking
 from ccdc import io
 from ccdc import molecule
 from ccdc.utilities import _private_importer
-from hotspots.result import Extractor
+from hotspots.result import Extractor, Results
 
 with _private_importer():
     import DockingLib
@@ -84,20 +84,18 @@ class DockerSettings(docking.Docker.Settings):
             super(self.__class__, self).__init__(_constraint)
 
         @staticmethod
-        def from_file(path, weight, min_hbond_score=0.2, max=2):
+        def from_file(path, protein, weight, min_hbond_score=0.2, max=2):
             """
             create a hotspot constraint from file
 
             :return:
             """
-            atm_dic = {atm.partial_charge: atm for atm in io.MoleculeReader(path)[0].atoms}
+            constraints = Results.ConstraintData.read(path)
 
-            rank_dic = {rank: atm_dic[score] for rank, score in enumerate(sorted(atm_dic.keys()))}
-
-            return [DockerSettings.HotspotHBondConstraint(atoms=[rank_dic[i]],
+            return [DockerSettings.HotspotHBondConstraint(atoms=[protein.atoms[index]],
                                                           weight=float(weight),
                                                           min_hbond_score=float(min_hbond_score))
-                    for i in range(0, int(max))]
+                    for i, index in enumerate(constraints.score_by_index.values()) if i < max]
 
         @staticmethod
         def create(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001, cutoff=14):
