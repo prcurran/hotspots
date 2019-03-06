@@ -2,7 +2,7 @@
 Hotspots API
 ************
 
- [![Documentation Status](https://readthedocs.org/projects/hotspots/badge/?version=latest)](https://hotspots.readthedocs.io/en/latest/?badge=latest)	
+[![Documentation Status](https://readthedocs.org/projects/hotspots/badge/?version=latest)](https://hotspots.readthedocs.io/en/latest/?badge=latest)
 [![License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/prcurran/fragment_hotspot_maps/blob/master/LICENSE)	
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/prcurran/fragment_hotspot_maps.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/prcurran/fragment_hotspot_maps/alerts/)	
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/prcurran/fragment_hotspot_maps.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/prcurran/fragment_hotspot_maps/context:python)	
@@ -41,8 +41,8 @@ Installation
 ============
 
 
-*#1* Install CSDS 2019
-----------------------
+#1 Install CSDS 2019
+--------------------
 
 Available from `CCDC downloads page <https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/>`_.
 
@@ -50,8 +50,8 @@ You will need a valid site number and confirmation code, this will have been
 emailed to you when you bought your CSDS 2019 license.
 
 
-*#2* Install GHECOM
--------------------
+#2 Install GHECOM (recommended)
+-------------------------------
 
 Available from `GHECOM download page <http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html>`_.
 
@@ -70,8 +70,8 @@ Download the file ``ghecom-src-[date].tar.gz`` file.
     # The executable will be located at the parent directory ..
 
 
-*#3* Setup an Anaconda environment (recommended)
-------------------------------------------------
+#3 Setup an Anaconda environment (recommended)
+----------------------------------------------
 
 .. code-block:: shell
     
@@ -204,10 +204,10 @@ This can be done as follows:
 
 .. code-block:: python
 
-    from ccdc.protein import Protein
-    from ccdc.io import MoleculeReader, MoleculeWriter
-    from hotspots.calculation import Runner
-	
+	from ccdc.protein import Protein
+	from ccdc.io import MoleculeReader, MoleculeWriter
+	from hotspots.calculation import Runner
+
 	r = Runner()
 	prot = Protein.from_file("1hcl.pdb")    # prepared protein
 	hs = r.from_protein(prot)
@@ -216,14 +216,13 @@ This can be done as follows:
 	mol = MoleculeReader("mol.mol2")
 	scored_mol = hs.score(mol)
 	with MoleculeWriter("score_mol.mol2") as w:
-	    w.write(scored_mol)
+		w.write(scored_mol)
 		
 	# score protein
 	scored_prot = hs.score(hs.prot)
 	with MoleculeWriter("scored_prot.mol2") as w:
-	    w.write(scored_prot)
+		w.write(scored_prot)
     
 
 To learn about other ways you can use the Hotspots API please see the examples
 directory and read our API documentation.
-
