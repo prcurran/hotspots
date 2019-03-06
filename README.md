@@ -84,7 +84,7 @@ The standalone CSD-Python-API installer from is available [here](https://www.ccd
 
 Install CSD-Python-API:
 
-    conda install -n hotspots 
+    conda install -n hotspots csd-python-api-2.x.x-linux-py2.7-conda.tar.bz2
 
 
 5 Create Install RDKit and CSD Python API
@@ -143,14 +143,17 @@ used to perform the calculation:
     from hotspots.calculation import Runner
 
     runner = Runner()
-    results = runner.from_pdb(prot, nprocesses=11)
+    
+    # Only SuperStar Map generation is parallelised.
+    results = runner.from_pdb(prot, nprocesses=3)
 	
 
 Alternatively, for a quick calculation, you can supply a PDB code and we will
 prepare the protein as described above:
 
     runner = Runner()
-    results = runner.from_pdb("1hcl", nprocesses=11)
+    # Only SuperStar Map generation is parallelised.
+    results = runner.from_pdb("1hcl", nprocesses=3)
 
 
 ## Reading and Writing Hotspots
