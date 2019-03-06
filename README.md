@@ -42,7 +42,7 @@ Installation
 ============
 
 
-*1* Install CSDS 2019
+1 Install CSDS 2019
 ----------------------
 
 Available from `CCDC downloads page <https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/>`_.
@@ -51,7 +51,7 @@ You will need a valid site number and confirmation code, this will have been
 emailed to you when you bought your CSDS 2019 license.
 
 
-*2* Install GHECOM
+2 Install GHECOM
 -------------------
 
 Available from `GHECOM download page <http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html>`_.
@@ -71,8 +71,9 @@ Download the file ``ghecom-src-[date].tar.gz`` file.
     # The executable will be located at the parent directory ..
 
 
-*3* Setup an Anaconda environment (recommended)
+3 Setup an Anaconda environment (recommended)
 ------------------------------------------------
+https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87
 
 .. code-block:: shell
     
@@ -226,3 +227,4 @@ This can be done as follows:
 
 To learn about other ways you can use the Hotspots API please see the examples
 directory and read our API documentation.
+
