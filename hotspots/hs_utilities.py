@@ -164,6 +164,22 @@ class Helper(object):
             mol.add_atom(a)
         return mol
 
+    def get_atom_type(self, atom):
+        """
+        return the atom classification
+
+        :param atom:
+        :return:
+        """
+        if atom.is_donor and atom.is_acceptor:
+            return "doneptor"
+        elif atom.is_acceptor:
+            return "acceptor"
+        elif atom.is_donor:
+            return "donor"
+        else:
+            return "apolar"
+
 
 class Figures(object):
     """

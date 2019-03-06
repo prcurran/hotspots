@@ -84,19 +84,20 @@ class DockerSettings(docking.Docker.Settings):
             super(self.__class__, self).__init__(_constraint)
 
         @staticmethod
-        def from_file(atms, weight, ):
+        def from_file(path, weight, min_hbond_score=0.2, max=2):
             """
             create a hotspot constraint from file
 
-
             :return:
             """
-            # read atms
+            atm_dic = {atm.partial_charge: atm for atm in io.MoleculeReader(path)[0].atoms}
 
-            return [DockerSettings.HotspotHBondConstraint(atoms=[atm_dic[s]],
-                                                          weight=weight * s,
-                                                          min_hbond_score=min_hbond_score)
-                    for s in scores if s > cutoff]
+            rank_dic = {rank: atm_dic[score] for rank, score in enumerate(sorted(atm_dic.keys()))}
+
+            return [DockerSettings.HotspotHBondConstraint(atoms=[rank_dic[i]],
+                                                          weight=float(weight),
+                                                          min_hbond_score=float(min_hbond_score))
+                    for i in range(0, int(max))]
 
         @staticmethod
         def create(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001, cutoff=14):

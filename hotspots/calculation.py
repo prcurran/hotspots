@@ -35,7 +35,7 @@ from hotspots.atomic_hotspot_calculation import AtomicHotspot
 from hotspots.grid_extension import Grid
 from hotspots.hs_utilities import Helper
 from hotspots.pdb_python_api import PDBResult
-from result import Results
+from hotspots.result import Results
 from tqdm import tqdm
 
 

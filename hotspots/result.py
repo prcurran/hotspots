@@ -36,7 +36,7 @@ from os.path import join, dirname
 from os import getcwd
 import numpy as np
 from ccdc.cavity import Cavity
-from ccdc.molecule import Molecule
+from ccdc.molecule import Molecule, Atom
 from ccdc.protein import Protein
 from scipy import optimize
 from scipy.stats import percentileofscore
@@ -81,16 +81,16 @@ class _Scorer(Helper):
     def scored_object(self):
         return self._scored_object
 
-    def score_protein(self):
+    def _score_protein_cavity(self, prot):
         """
+        (prefered option)
         score a protein's atoms, values stored as partial charge
         h_bond_distance between 1.5 - 2.5 A (2.0 A taken for simplicity)
         This method uses the cavity API to reduce the number of atoms to iterate over.
-        :return:
+
+        :return: :class:`ccdc.protein.Protein`
         """
-        # TODO: enable cavities to be generated from Protein objects
         feats = set([f for f in self.hotspot_result.features])
-        prot = self.object
         h_bond_distance = 2.0
         interaction_pairs = {"acceptor": "donor",
                              "donor": "acceptor",
@@ -102,24 +102,21 @@ class _Scorer(Helper):
                              "dummy": "dummy"}
 
         cavities = Helper.cavity_from_protein(self.object)
+
         for cavity in cavities:
             for feature in cavity.features:
-                try:
-                    # error catch cavity reader issue! status: reported  *** to be removed ***
-                    for atm in feature.residue.atoms:
-                        # score with apolar atoms
-                        if atm.is_donor is False and atm.is_acceptor is False and atm.atomic_number != 1:
-                            score = self.hotspot_result.super_grids['apolar'].get_near_scores(atm.coordinates)
-                            if len(score) == 0:
-                                score = 0
-                            else:
-                                score = max(score)
-                            prot.atoms[atm.index].partial_charge = score
-                except:
-                    continue
+                # all cavity residues
+                for atm in feature.residue.atoms:
+                    if atm.is_donor is False and atm.is_acceptor is False and atm.atomic_number != 1:
+                        score = self.hotspot_result.super_grids['apolar'].get_near_scores(atm.coordinates)
+                        if len(score) == 0:
+                            score = 0
+                        else:
+                            score = max(score)
+                        prot.atoms[atm.index].partial_charge = score
 
-                # deal with polar atoms using cavity
-                if feature.type == "acceptor" or feature.type == "donor" or feature.type =="doneptor":
+                # polar cavity residues
+                if feature.type == "acceptor" or feature.type == "donor" or feature.type == "doneptor":
                     v = feature.protein_vector
                     translate = tuple(map(h_bond_distance.__mul__, (v.x, v.y, v.z)))
                     c = feature.coordinates
@@ -127,7 +124,7 @@ class _Scorer(Helper):
 
                     if feature.atom:
                         score = [f.score_value for f in feats if f.grid.contains_point(coordinates, tolerance=2)
-                                                                and f.feature_type == interaction_pairs[feature.type]]
+                                 and f.feature_type == interaction_pairs[feature.type]]
                         if len(score) == 0:
                             score = 0
                         else:
@@ -140,6 +137,69 @@ class _Scorer(Helper):
                         if len(a) > 0:
                             for atm in a:
                                 prot.atoms[atm].partial_charge = score
+
+        return prot
+
+    def _score_protein_backup(self, prot):
+        """
+        backup protein scoring method to deal with cases where the cavity reader fails
+        NB: this scorer is used in the GOLD Docking optimisation work
+
+
+        :return:
+        """
+        def fetch_scores(atom, grid, tolerance=4):
+            try:
+                return max(self.hotspot_result.super_grids[grid].get_near_scores(coordinate=atom.coordinates,
+                                                                                 tolerance=tolerance)
+                           )
+            except ValueError:
+                return 0.0
+
+        for residue in prot.residues:
+            for atom in residue.atoms:
+                # skip all hydrogens
+                if atom.atomic_number == 1:
+                    continue
+
+                atom_type = self.get_atom_type(atom)
+
+                # score donor hydrogens
+                if atom_type == 'donor':
+                    for n in atom.neighbours:
+                        if n.atomic_number == 1:
+                            n.partial_charge = fetch_scores(atom, 'acceptor', tolerance=5)
+
+                # score donor/acceptors atoms
+                elif atom_type == 'doneptor':
+                    atom.partial_charge = fetch_scores(atom, 'donor', tolerance=5)
+                    for n in atom.neighbours:
+                        if n.atomic_number == 1:
+                            n.partial_charge = fetch_scores(atom, 'acceptor', tolerance=5)
+
+                # score remaining atoms
+                elif atom_type == 'acceptor':
+                    atom.partial_charge = fetch_scores(atom, 'donor', tolerance=5)
+
+                else:
+                    atom.partial_charge = fetch_scores(atom, 'donor', tolerance=4)
+
+        return prot
+
+    def score_protein(self):
+        """
+        score a protein's atoms, values stored as partial charge
+
+        :return: :class:`ccdc.protein.Protein`
+        """
+        # TODO: enable cavities to be generated from Protein objects
+
+        prot = self.object
+        try:
+            prot = self._score_protein_cavity(prot=prot)
+
+        except IndexError:
+            prot = self._score_protein_backup(prot=prot)
 
         return prot
 
@@ -560,7 +620,7 @@ class Results(object):
         else:
             return True
 
-    def docking_fitting_pts(self, _best_island=None):
+    def docking_fitting_pts(self, _best_island=None, threshold=17):
         """
 
         :return:
@@ -569,14 +629,15 @@ class Results(object):
             single_grid = _best_island
         else:
             single_grid = Grid.get_single_grid(self.super_grids, mask=False)
-        dic = single_grid.grid_value_by_coordinates(threshold=17)
+        dic = single_grid.grid_value_by_coordinates(threshold=threshold)
 
+        mol = Molecule(identifier="constraints")
         for score, v in dic.items():
             for pts in v:
-                atm = molecule.Atom(atomic_symbol='C',
-                                    atomic_number=14,
-                                    label='{:.2f}'.format(score),
-                                    coordinates=pts)
+                atm = Atom(atomic_symbol='C',
+                           atomic_number=14,
+                           label='{:.2f}'.format(score),
+                           coordinates=pts)
                 atm.partial_charge = score
                 mol.add_atom(atom=atm)
         return mol
@@ -590,13 +651,16 @@ class Results(object):
         """
         for atm in self.protein.atoms:
             atm.partial_charge = int(0)
-        prot = self.score(protein)
+        prot = self.score(self.protein)
+        from ccdc.io import MoleculeWriter
+        with MoleculeWriter("scoredprot.mol2") as w:
+            w.write(prot)
 
         coords = np.array([a.coordinates for a in prot.atoms])
         atm_dic = {atm.partial_charge: atm for atm in prot.atoms
                    if type(atm.partial_charge) is float
                    and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
-                   and _is_solvent_accessible(coords, atm, min_distance=2)
+                   and self._is_solvent_accessible(coords, atm, min_distance=2)
                    }
 
         print(atm_dic)
@@ -606,7 +670,7 @@ class Results(object):
         else:
             scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
 
-        bin_keys = set(atm_dic.key()) - set(scores)
+        bin_keys = set(atm_dic.keys()) - set(scores)
         for b in bin_keys:
             del atm_dic[b]
 
