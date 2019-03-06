@@ -144,14 +144,15 @@ used to perform the calculation:
     from hotspots.calculation import Runner
 
     runner = Runner()
-    results = runner.from_pdb(prot, nprocesses=11)
+    # Only SuperStar jobs are parallelised (one job per processor). By default there are 3 jobs, when calculating charged interactions there are 5.
+    results = runner.from_pdb(prot, nprocesses=3)
 	
 
 Alternatively, for a quick calculation, you can supply a PDB code and we will
 prepare the protein as described above:
 
     runner = Runner()
-    results = runner.from_pdb("1hcl", nprocesses=11)
+    results = runner.from_pdb("1hcl", nprocesses=3)
 
 
 ## Reading and Writing Hotspots
