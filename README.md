@@ -18,10 +18,7 @@ a knowledge-based method for determining small molecule binding "hotspots".
 
 For more information on this method:
 
-    Radoux, C.J. et. al., Identifying the Interactions that Determine Fragment
-    Binding at Protein Hotspots J. Med. Chem. 2016, 59 (9), 4314-4325
-    [dx.doi.org/10.1021/acs.jmedchem.5b01980]
-
+[Radoux, C.J. et. al., Identifying the Interactions that Determine Fragment Binding at Protein Hotspots J. Med. Chem. 2016, 59 (9), 4314-4325](dx.doi.org/10.1021/acs.jmedchem.5b01980)
 
 Getting Started
 ===============
@@ -45,7 +42,7 @@ Installation
 1 Install CSDS 2019
 ----------------------
 
-Available from `CCDC downloads page <https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/>`_.
+The CSDS is available from [here](https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/).
 
 You will need a valid site number and confirmation code, this will have been
 emailed to you when you bought your CSDS 2019 license.
@@ -54,51 +51,57 @@ emailed to you when you bought your CSDS 2019 license.
 2 Install GHECOM
 -------------------
 
-Available from `GHECOM download page <http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html>`_.
+Ghecom is available from [here](http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html).
 
-    The source code of the GHECOM is written in C, and developed and executed on
-    the linux environment (actually on the Fedora Core).  For the installation,
-    you need the gcc compiler.  If you do not want to use it, please change the
-    "Makefile" in the "src" directory.
+"The source code of the GHECOM is written in C, and developed and executed on
+the linux environment (actually on the Fedora Core).  For the installation,
+you need the gcc compiler.  If you do not want to use it, please change the
+"Makefile" in the "src" directory."
 
 Download the file ``ghecom-src-[date].tar.gz`` file.
 
-.. code-block:: shell
-    
     tar zxvf ghecom-src-[date].tar.gz
     cd src
     make
-    # The executable will be located at the parent directory ..
+
+NB: The executable will be located at the parent directory.
 
 
-3 Setup an Anaconda environment (recommended)
+3 Create conda environment (recommended)
 ------------------------------------------------
-https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87
-
-.. code-block:: shell
     
-    # create environment and install requirements
     conda create -n hotspots python=2.7
-    conda install -n hotspots \
-        numpy==1.15.4 matplotlib==2.2.3 scikit-image==0.14.2 \
-        pandas==0.24.1 futures==3.2.0 cython==0.29.5 tqdm==4.31.1 \
-        xmltodict==0.12.0 \
-        scipy scikit-learn
     
-    # install the Python CSD API
-    conda install -n hotspots qt==5.9.7 rdkit==2018.09.1
-    conda install -n hotspots csd-python-api-2.x.x-linux-py2.7-conda.tar.bz2
-    
-    # install Hotspots v1.0.0
-    conda run -n hotspots pip install https://github.com/prcurran/hotspots/archive/v1.0.0.zip
+4 Create Install RDKit and CSD Python API
+------------------------------------------------		
+
+Install RDKit:	
+ 
+ 	conda install -n hotspots -c rdkit rdkit
+
+The standalone CSD-Python-API installer from is available [here](https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87).
+
+Install the Python CSD API:
+
+     conda install -n hotspots csd-python-api-2.x.x-linux-py2.7-conda.tar.bz2
+
+
+ 5 Install Hotspots		
+------------------------------------------------		
+
+ Install Hotspots v1.x.x:		
+
+    conda activate hotspots		
+    pip install https://github.com/prcurran/hotspots/archive/v1.x.x.zip		
+
+
+ NB: dependencies should install automatically. If they do not, please see setup.py for the package requirements!
 
 
 ## Hotspots API Usage
 ---------------------
 
 Start activating your Anaconda environment and setting some variables.
-
-.. code-block:: shell
 
     conda activate hotspots
     export GHECOM_EXE=<path_to_GHECOM_executable>
@@ -118,8 +121,6 @@ be included in the calculation.
 One way to do this is to use the CSD Python API:
 
 
-.. code-block:: python
-    
     from ccdc.protein import Protein
 
     prot = Protein.from_file('protein.pdb')
@@ -139,21 +140,19 @@ For best results, manually check proteins before submitting them for calculation
 Once the protein is prepared, the `hotspots.calculation.Runner` object can be
 used to perform the calculation:
 
-.. code-block:: python
 
     from hotspots.calculation import Runner
 
     runner = Runner()
-    results = runner.from_pdb(prot, nprocesses=11)
+    # Only SuperStar jobs are parallelised (one job per processor). By default there are 3 jobs, when calculating charged interactions there are 5.
+    results = runner.from_pdb(prot, nprocesses=3)
 	
 
 Alternatively, for a quick calculation, you can supply a PDB code and we will
 prepare the protein as described above:
 
-.. code-block:: python
-
     runner = Runner()
-    results = runner.from_pdb("1hcl", nprocesses=11)
+    results = runner.from_pdb("1hcl", nprocesses=3)
 
 
 ## Reading and Writing Hotspots
@@ -161,12 +160,11 @@ prepare the protein as described above:
 
 ### Writing
 
-The  `hotspots.hs_io` module handles the reading and writing of both  `hotspots.calculation.results
+The  `hotspots.hs_io` module handles the reading and writing of both  `hotspots.calculation.results`
 and  `hotspots.best_volume.Extractor` objects. The output `.grd` files can become quite large,
 but are highly compressible, therefore the results are written to a `.zip` archive by default,
 along with a PyMOL run script to visualise the output.
 
-.. code-block:: python
 
     from hotspots.hs_io import HotspotWriter
 	
@@ -182,7 +180,6 @@ along with a PyMOL run script to visualise the output.
 If you want to revisit the results of a previous calculation, you can load the
 `out.zip` archive directly into a `hotspots.calculation.results` instance:
 
-.. code-block:: python
 
     from hotspots.hs_io import HotspotReader
 
@@ -202,8 +199,6 @@ can be used in other SBDD analysis.
 One example is scoring atoms of either proteins or small molecules.
 
 This can be done as follows: 
-
-.. code-block:: python
 
     from ccdc.protein import Protein
     from ccdc.io import MoleculeReader, MoleculeWriter
