@@ -1,15 +1,20 @@
-
 from __future__ import print_function
 from setuptools import setup, find_packages
+import os
 
 print(find_packages())
+
+
+def read_file(filename):
+    with open(os.path.join(os.path.dirname(__file__), filename)) as file:
+        return file.read()
 
 setup(
     name="hotspots",
     author="Chris Radoux, Peter Curran, Mihaela Smilova",
     author_email="pcurran@ccdc.cam.ac.uk",
 	license="MIT",
-    version="1.0.0-rc-1",
+    version="1.0.1",
     url="https://github.com/prcurran/hotspots",
     packages=find_packages(),
     include_package_data=True,
