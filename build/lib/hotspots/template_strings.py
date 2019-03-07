@@ -98,8 +98,10 @@ def pymol_imports():
 from os.path import join
 import tempfile
 import zipfile
-from pymol import cmd
+from pymol import cmd, finish_launching
 from pymol.cgo import *
+
+finish_launching()
 
 dirpath = None
     """

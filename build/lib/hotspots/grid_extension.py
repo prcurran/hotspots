@@ -52,7 +52,7 @@ class Grid(utilities.Grid):
                     if self.value(i, j, k) > threshold:
                         try:
                             dic[self.value(i, j, k)].append(self.indices_to_point(i, j, k))
-                        except:
+                        except KeyError:
                             dic.update({self.value(i, j, k): [self.indices_to_point(i, j, k)]})
 
         return dic
@@ -844,13 +844,10 @@ class _GridEnsemble(object):
 
         return means_spread
 
-    #### Functions for plotting histograms of analysed ensemble data ####
-
-
+    # Functions for plotting histograms of analysed ensemble data ####
     def plot_gridpoint_spread(self):
         '''
         For each point in the 3D grid, plots the difference in score between each point in the tuple and the mean of the tuple.
-
         '''
         # Get the data:
         means_spread = self.get_gridpoint_means_spread()
@@ -860,7 +857,7 @@ class _GridEnsemble(object):
         # print(bins)
         # y_fit = np.random.normal(mu, sigma, np.shape(mean_arr))
         y = norm.pdf(bins, mu, sigma)
-        a = plt.plot(bins, y, 'r--', linewidth=2)
+        plt.plot(bins, y, 'r--', linewidth=2)
         fit_bins = 0.5 * (bins[1:] + bins[:-1])
         y_fit = norm.pdf(fit_bins, mu, sigma)
         ss_res = np.sum((n - y_fit) ** 2)

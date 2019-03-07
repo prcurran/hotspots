@@ -149,7 +149,7 @@ class Helper(object):
                                 interaction_types.append(atom_dic[p])
                                 coordinates.append(island.centroid())
                                 scores.append(island.grid_score(threshold=threshold, percentile=50))
-            except:
+            except AttributeError:
                 print("object not supported")
 
         mol = Molecule(identifier="pharmacophore_model")
@@ -163,6 +163,22 @@ class Helper(object):
         for a in pseudo_atms:
             mol.add_atom(a)
         return mol
+
+    def get_atom_type(self, atom):
+        """
+        return the atom classification
+
+        :param atom:
+        :return:
+        """
+        if atom.is_donor and atom.is_acceptor:
+            return "doneptor"
+        elif atom.is_acceptor:
+            return "acceptor"
+        elif atom.is_donor:
+            return "donor"
+        else:
+            return "apolar"
 
 
 class Figures(object):

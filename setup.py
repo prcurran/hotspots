@@ -9,13 +9,13 @@ setup(
     author="Chris Radoux, Peter Curran, Mihaela Smilova",
     author_email="pcurran@ccdc.cam.ac.uk",
 	license="MIT",
-    version="1.0.0",
+    version="1.0.0-rc-1",
     url="https://github.com/prcurran/hotspots",
     packages=find_packages(),
     include_package_data=True,
     # scripts=['src/run_hotspot.py'],
-    long_description='Hotspots 1.0.0',
-    long_description_content_type="text/x-rst",
+    long_description=read_file('README.md'),
+    long_description_content_type='text/markdown',
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
     install_requires=['numpy==1.15.4',

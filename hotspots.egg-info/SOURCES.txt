@@ -1,5 +1,5 @@
 MANIFEST.in
-README.rst
+README.md
 setup.py
 hotspots/__init__.py
 hotspots/atomic_hotspot_calculation.py

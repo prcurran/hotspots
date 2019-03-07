@@ -32,11 +32,13 @@ from __future__ import print_function, division
 import copy
 import operator
 from os.path import join, dirname
+from collections import OrderedDict
+import pickle
 
 from os import getcwd
 import numpy as np
 from ccdc.cavity import Cavity
-from ccdc.molecule import Molecule
+from ccdc.molecule import Molecule, Atom
 from ccdc.protein import Protein
 from scipy import optimize
 from scipy.stats import percentileofscore
@@ -44,6 +46,7 @@ from skimage import feature
 
 from hotspots.grid_extension import Grid, _GridEnsemble
 from hotspots.hs_utilities import Figures
+from hotspots.template_strings import pymol_imports
 from hs_pharmacophore import PharmacophoreModel
 from hs_utilities import Helper
 from atomic_hotspot_calculation import AtomicHotspot, _AtomicHotspotResult
@@ -81,16 +84,16 @@ class _Scorer(Helper):
     def scored_object(self):
         return self._scored_object
 
-    def score_protein(self):
+    def _score_protein_cavity(self, prot):
         """
+        (prefered option)
         score a protein's atoms, values stored as partial charge
         h_bond_distance between 1.5 - 2.5 A (2.0 A taken for simplicity)
         This method uses the cavity API to reduce the number of atoms to iterate over.
-        :return:
+
+        :return: :class:`ccdc.protein.Protein`
         """
-        # TODO: enable cavities to be generated from Protein objects
         feats = set([f for f in self.hotspot_result.features])
-        prot = self.object
         h_bond_distance = 2.0
         interaction_pairs = {"acceptor": "donor",
                              "donor": "acceptor",
@@ -102,10 +105,11 @@ class _Scorer(Helper):
                              "dummy": "dummy"}
 
         cavities = Helper.cavity_from_protein(self.object)
+
         for cavity in cavities:
             for feature in cavity.features:
+                # all cavity residues
                 for atm in feature.residue.atoms:
-                    # score with apolar atoms
                     if atm.is_donor is False and atm.is_acceptor is False and atm.atomic_number != 1:
                         score = self.hotspot_result.super_grids['apolar'].get_near_scores(atm.coordinates)
                         if len(score) == 0:
@@ -114,8 +118,8 @@ class _Scorer(Helper):
                             score = max(score)
                         prot.atoms[atm.index].partial_charge = score
 
-                # deal with polar atoms using cavity
-                if feature.type == "acceptor" or feature.type == "donor" or feature.type =="doneptor":
+                # polar cavity residues
+                if feature.type == "acceptor" or feature.type == "donor" or feature.type == "doneptor":
                     v = feature.protein_vector
                     translate = tuple(map(h_bond_distance.__mul__, (v.x, v.y, v.z)))
                     c = feature.coordinates
@@ -123,7 +127,7 @@ class _Scorer(Helper):
 
                     if feature.atom:
                         score = [f.score_value for f in feats if f.grid.contains_point(coordinates, tolerance=2)
-                                                                and f.feature_type == interaction_pairs[feature.type]]
+                                 and f.feature_type == interaction_pairs[feature.type]]
                         if len(score) == 0:
                             score = 0
                         else:
@@ -136,6 +140,69 @@ class _Scorer(Helper):
                         if len(a) > 0:
                             for atm in a:
                                 prot.atoms[atm].partial_charge = score
+
+        return prot
+
+    def _score_protein_backup(self, prot):
+        """
+        backup protein scoring method to deal with cases where the cavity reader fails
+        NB: this scorer is used in the GOLD Docking optimisation work
+
+
+        :return:
+        """
+        def fetch_scores(atom, grid, tolerance=4):
+            try:
+                return max(self.hotspot_result.super_grids[grid].get_near_scores(coordinate=atom.coordinates,
+                                                                                 tolerance=tolerance)
+                           )
+            except ValueError:
+                return 0.0
+
+        for residue in prot.residues:
+            for atom in residue.atoms:
+                # skip all hydrogens
+                if atom.atomic_number == 1:
+                    continue
+
+                atom_type = self.get_atom_type(atom)
+
+                # score donor hydrogens
+                if atom_type == 'donor':
+                    for n in atom.neighbours:
+                        if n.atomic_number == 1:
+                            n.partial_charge = fetch_scores(atom, 'acceptor', tolerance=5)
+
+                # score donor/acceptors atoms
+                elif atom_type == 'doneptor':
+                    atom.partial_charge = fetch_scores(atom, 'donor', tolerance=5)
+                    for n in atom.neighbours:
+                        if n.atomic_number == 1:
+                            n.partial_charge = fetch_scores(atom, 'acceptor', tolerance=5)
+
+                # score remaining atoms
+                elif atom_type == 'acceptor':
+                    atom.partial_charge = fetch_scores(atom, 'donor', tolerance=5)
+
+                else:
+                    atom.partial_charge = fetch_scores(atom, 'donor', tolerance=4)
+
+        return prot
+
+    def score_protein(self):
+        """
+        score a protein's atoms, values stored as partial charge
+
+        :return: :class:`ccdc.protein.Protein`
+        """
+        # TODO: enable cavities to be generated from Protein objects
+
+        prot = self.object
+        try:
+            prot = self._score_protein_cavity(prot=prot)
+
+        except IndexError:
+            prot = self._score_protein_backup(prot=prot)
 
         return prot
 
@@ -153,9 +220,20 @@ class _Scorer(Helper):
 
         return mol
 
+    def _score_feature(self, f):
+
+        ideal_coord = (f.coordinates[n] + 1.8*(f.protein_vector[n]) for n in xrange(0,2))
+        print(ideal_coord)
+
+
+
     def score_cavity(self):
         # TODO: return scored cavity _features, the score protein function should be enough tbh
-        return 0
+        cav = copy.copy(self.scored_object)
+
+        for f in cav.features:
+            self._score_feature(f)
+
 
     def score_hotspot(self, threshold=5, percentile=50):
         """
@@ -251,12 +329,10 @@ class Results(object):
     """
 
     def __init__(self, super_grids, protein, buriedness=None, pharmacophore=None):
-        try:
-            self.super_grids = super_grids
-            for probe, g in super_grids.items():
-                b = g.bounding_box
-        except:
-            raise TypeError("Not a valid Grid")
+
+        self.super_grids = super_grids
+        for probe, g in super_grids.items():
+            assert type(g.bounding_box) is tuple, "Not a valid Grid"
 
         self.protein = protein
         self.buriedness = buriedness
@@ -266,6 +342,27 @@ class Results(object):
 
         if pharmacophore:
             self.pharmacophore = self.get_pharmacophore_model()
+
+
+    class ConstraintData(object):
+        """
+        standardise constrain read and write (required for the GOLD optimisation)
+
+        """
+        def __init__(self, score_by_index):
+            self.score_by_index = OrderedDict(score_by_index)
+
+        def write(self, path):
+            f = open(path, "wb")
+            pickle.dump(self.score_by_index, f)
+            f.close()
+
+        @staticmethod
+        def read(path):
+            f = open(path, "rb")
+            d = pickle.load(f)
+            f.close()
+            return Results.ConstraintData(d)
 
     class _HotspotFeature(object):
         """
@@ -338,15 +435,44 @@ class Results(object):
 
         extractor = Extractor(self, settings=extractor_settings)
         extractor.extract_best_volume(volume=500)
-        hist = extractor.extracted_hotspots[0].get_map_values()
-        all = []
-        for x in hist.values():
-            all += x.tolist()
-
+        # hist = extractor.extracted_hotspots[0].map_values()
+        #
+        # all_points = []
+        # for x in hist.values():
+        #     all_points += x.flatten().tolist()
+        #
+        # all_points = all_points[all_points != 0]
+        # print(all_points)
         best_vol = extractor.extracted_hotspots[0]
-        best_vol.identifier = np.median(all)
+        best_vol.identifier = best_vol.score()
 
         return best_vol
+
+    def all_tractability_maps(self):
+        """
+        generate the best volume and labels with the median value. A median > 14 is more likely to be tractable
+
+        :return: a :class:`hotspots.result.Results` instance
+        """
+        extractor_settings = Extractor.Settings()
+        extractor_settings.cutoff = 5
+        extractor_settings.island_max_size = 500
+
+        extractor = Extractor(self, settings=extractor_settings)
+        extractor.extract_all_volumes(volume=500)
+        extracted = []
+        for cav in extractor.extracted_hotspots:
+            hist = cav.map_values()
+            all_points = []
+            for x in hist.values():
+                all_points += x.flatten().tolist()
+
+            all_points = all_points[all_points != 0]
+            best_vol = cav
+            best_vol.identifier = np.median(all_points)
+            extracted.append(best_vol)
+
+        return extracted
 
     def score(self, obj=None, tolerance=2):
         """
@@ -434,7 +560,7 @@ class Results(object):
         """
         *Experimental feature.*
 
-        Generates maps to highlight 6_selectivity for a target over an off target cavity. Proteins should be aligned
+        Generates maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
         by the binding site of interest prior to calculation.
         High scoring regions of a map represent areas of favourable interaction in the target binding site, not
         present in off target binding site
@@ -495,6 +621,79 @@ class Results(object):
         :return: a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance
         """
         return PharmacophoreModel.from_hotspot(self, identifier=identifier, threshold=threshold)
+
+    @staticmethod
+    def _is_solvent_accessible(protein_coords, atm, min_distance=2):
+        """
+        given a protein and an atom of a protein, determine if the atom is accessible to solvent
+        :param protein:
+        :param atm:
+        :return:
+        """
+        if str(atm.atomic_symbol) == 'H':
+            atm_position = np.array(atm.coordinates)
+            neighbour = np.array(atm.neighbours[0].coordinates)
+            direction = np.subtract(atm_position, neighbour) * 2
+            position = np.array([direction + atm_position])
+            distance = min(np.linalg.norm(protein_coords - position, axis=1))
+            if distance > min_distance:
+                return True
+            else:
+                return False
+
+        else:
+            return True
+
+    def docking_fitting_pts(self, _best_island=None, threshold=17):
+        """
+
+        :return:
+        """
+        if _best_island:
+            single_grid = _best_island
+        else:
+            single_grid = Grid.get_single_grid(self.super_grids, mask=False)
+        dic = single_grid.grid_value_by_coordinates(threshold=threshold)
+
+        mol = Molecule(identifier="constraints")
+        for score, v in dic.items():
+            for pts in v:
+                atm = Atom(atomic_symbol='C',
+                           atomic_number=14,
+                           label='{:.2f}'.format(score),
+                           coordinates=pts)
+                atm.partial_charge = score
+                mol.add_atom(atom=atm)
+        return mol
+
+    def docking_constraint_atoms(self, max_constraints=5):
+        """
+        creates a dictionary of constraints
+
+        :param int max_constraints: max number of constraints
+        :return dic: score by atom
+        """
+        for atm in self.protein.atoms:
+            atm.partial_charge = int(0)
+        prot = self.score(self.protein)
+
+        coords = np.array([a.coordinates for a in prot.atoms])
+        atm_dic = {atm.partial_charge: atm.index for atm in prot.atoms
+                   if type(atm.partial_charge) is float
+                   and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
+                   and self._is_solvent_accessible(coords, atm, min_distance=2)
+                   }
+
+        if len(atm_dic) > max_constraints:
+            scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
+        else:
+            scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
+
+        bin_keys = set(atm_dic.keys()) - set(scores)
+        for b in bin_keys:
+            del atm_dic[b]
+
+        return self.ConstraintData(atm_dic)
 
     def map_values(self):
         """
@@ -711,6 +910,7 @@ class Extractor(object):
             self.min_distance = min_distance
             self.island_max_size = island_max_size
             self.pharmacophore = pharmacophore
+            self.mode = None
             self.mvon = True
 
         @property
@@ -805,7 +1005,7 @@ class Extractor(object):
                 threshold += 0.01
                 best_island = (best_island > threshold) * best_island
 
-            # new_threshold, best_island = self._reselect_points(threshold=threshold)
+            threshold, best_island = self._reselect_points(threshold=threshold)
             print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
             return threshold, best_island
 
@@ -864,6 +1064,7 @@ class Extractor(object):
         self.settings.pharmacophore = pharmacophores
         self.out_dir = None
         self._peaks = None
+        self.settings.mode = "global"
 
         e = self._from_hotspot(self.single_grid,
                                self.masked_dic,
@@ -905,6 +1106,7 @@ class Extractor(object):
         """
         self.settings.volume = volume
         self.settings.pharmacophore = pharmacophores
+        self.settings.mode = "seed"
         self.out_dir = None
         self.extracted_hotspots = []
         self._peaks = self._get_peaks()
@@ -1286,9 +1488,9 @@ class Extractor(object):
             -_features: islands and probes at feature point locations
         """
 
+        pymol_out = pymol_imports()
         if mode == "peaks":
             out_dir = Helper.get_out_dir(join(out_dir))
-            pymol_out = 'from pymol import cmd\nfrom pymol.cgo import *\n'
             for i, peak in enumerate(self.peaks):
                 score = "{0:.2f}".format(self.hotspot_result.super_grids["apolar"].value_at_point(peak))
                 sphere = 'score_{0} = [COLOR, 1.00, 1.000, 0.000] + ' \
@@ -1303,7 +1505,6 @@ class Extractor(object):
 
         elif mode == "best_islands":
             out_dir = Helper.get_out_dir(join(out_dir, "best_islands"))
-            pymol_out = 'from pymol import cmd\nfrom pymol.cgo import *\n'
             thresholds = []
             for i, extracted in enumerate(self.extracted_hotspots):
                 extracted.best_island.write(join(out_dir, "island_{}.grd".format(i)))

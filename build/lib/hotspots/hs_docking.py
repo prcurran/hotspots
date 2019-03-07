@@ -13,6 +13,7 @@ More information about the CSD python API is available:
 More information about the GOLD method is available:
     - Development and Validation of a Genetic Algorithm for Flexible Docking G. Jones, P. Willett, R. C. Glen, A. R. Leach and R. Taylor, J. Mol. Biol., 267, 727-748, 1997 [DOI: 10.1006/jmbi.1996.0897]
 """
+from __future__ import print_function
 import os
 import tempfile
 
@@ -21,7 +22,7 @@ from ccdc import docking
 from ccdc import io
 from ccdc import molecule
 from ccdc.utilities import _private_importer
-from hotspots.result import Extractor
+from hotspots.result import Extractor, Results
 
 with _private_importer():
     import DockingLib
@@ -41,13 +42,13 @@ class DockerSettings(docking.Docker.Settings):
     >>> from hotspots.calculation import Runner
     >>> from hotspots.hs_docking import DockerSettings
 
-    >>> protein = Protein.from_file(<path_to_protein>)
+    >>> protein = Protein.from_file("1hcl.pdb")
 
     >>> runner = Runner()
     >>> hs = runner.from_protein(protein)
 
-    >>> docker.settings.add_protein_file(<path_to_protein>)
-    >>> docker.settings.add_ligand_file(<path_to_ligands>, ndocks=25)
+    >>> docker.settings.add_protein_file("1hcl.pdb")
+    >>> docker.settings.add_ligand_file("dock_me.mol2", ndocks=25)
     >>> constraints = docker.settings.HotspotHBondConstraint.from_hotspot(protein=docker.settings.proteins[0], hr=hs)
     >>> docker.settings.add_constraint(constraints)
     >>> docker.dock()
@@ -83,6 +84,20 @@ class DockerSettings(docking.Docker.Settings):
             super(self.__class__, self).__init__(_constraint)
 
         @staticmethod
+        def from_file(path, protein, weight, min_hbond_score=0.2, max=2):
+            """
+            create a hotspot constraint from file
+
+            :return:
+            """
+            constraints = Results.ConstraintData.read(path)
+
+            return [DockerSettings.HotspotHBondConstraint(atoms=[protein.atoms[index]],
+                                                          weight=float(weight),
+                                                          min_hbond_score=float(min_hbond_score))
+                    for i, index in enumerate(constraints.score_by_index.values()) if i < max]
+
+        @staticmethod
         def create(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001, cutoff=14):
             """
             creates a :class:`hotspots.hs_docking.HotspotHBondConstraint`
@@ -90,7 +105,7 @@ class DockerSettings(docking.Docker.Settings):
             :param `ccdc.protein.Protein` protein: the protein to be used for docking
             :param `hotspots.calculation.Result` hr: a result from Fragment Hotspot Maps
             :param int max_constraints: max number of constraints
-            :param float weight: the factor by which the atoms Fragment Hotspot Map score will be multiplied
+            :param float weight: the constraint weight (default to be determined)
             :param float min_hbond_score: float between 0.0 (bad) and 1.0 (good) determining the minimum hydrogen bond quality in the solutions.
             :param cutoff: minimum score required to assign the constraint
             :return list: list of :class:`hotspots.hs_docking.HotspotHBondConstraint`
@@ -106,7 +121,7 @@ class DockerSettings(docking.Docker.Settings):
                        and _is_solvent_accessible(coords, atm, min_distance=2)
                        }
 
-            print atm_dic
+            print(atm_dic)
 
             if len(atm_dic) > max_constraints:
                 scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
@@ -114,7 +129,7 @@ class DockerSettings(docking.Docker.Settings):
                 scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
 
             return [DockerSettings.HotspotHBondConstraint(atoms=[atm_dic[s]],
-                                                          weight=weight * s,
+                                                          weight=weight,
                                                           min_hbond_score=min_hbond_score)
                     for s in scores if s > cutoff]
 
@@ -123,6 +138,14 @@ class DockerSettings(docking.Docker.Settings):
                 self.weight, self.min_hbond_score, ' '.join(str(a.index + 1) for a in self.atoms)
             )
             return s
+
+    def add_fitting_points_from_file(self, path='fit_pts.mol2'):
+        """
+        creates fitting pts from a .mol2 file
+
+        :param str path: path to fitting pts file
+        """
+        self.fitting_points_file = path
 
     def add_fitting_points(self, hr, volume=400, threshold=17, mode='threshold'):
         """
@@ -169,6 +192,7 @@ class DockerSettings(docking.Docker.Settings):
 def _is_solvent_accessible(protein_coords, atm, min_distance=2):
     """
     given a protein and an atom of a protein, determine if the atom is accessible to solvent
+
     :param protein:
     :param atm:
     :return:
