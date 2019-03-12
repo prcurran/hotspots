@@ -84,7 +84,7 @@ class DockerSettings(docking.Docker.Settings):
             super(self.__class__, self).__init__(_constraint)
 
         @staticmethod
-        def from_file(path, protein, weight, min_hbond_score=0.2, max=2):
+        def from_file(path, protein, weight, min_hbond_score=0.001, max=2):
             """
             create a hotspot constraint from file
 

@@ -349,8 +349,20 @@ class Results(object):
         standardise constrain read and write (required for the GOLD optimisation)
 
         """
-        def __init__(self, score_by_index):
+        def __init__(self, score_by_index, prot=None):
             self.score_by_index = OrderedDict(score_by_index)
+            self.protein = prot
+
+        def to_molecule(self, protein=None):
+            if self.protein is None:
+                if protein is None:
+                    raise AttributeError("Give me a protein")
+            mol = Molecule(identifier="constraints")
+            for score, index in self.score_by_index.items():
+                atm = self.protein.atoms[index]
+                atm.label = str(score)
+                mol.add_atom(atm)
+            return mol
 
         def write(self, path):
             f = open(path, "wb")
@@ -693,7 +705,7 @@ class Results(object):
         for b in bin_keys:
             del atm_dic[b]
 
-        return self.ConstraintData(atm_dic)
+        return self.ConstraintData(atm_dic, self.protein)
 
     def map_values(self):
         """
