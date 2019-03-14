@@ -25,7 +25,43 @@ from ccdc.cavity import Cavity
 from ccdc.io import MoleculeWriter
 from ccdc.molecule import Molecule, Atom
 
+
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
+
+
+def _generate_usr_moment(fcoords_list):
+    """
+    PRIVATE EXPERIMENTAL FEATURE
+
+    Modification of Adrian Schreyer's code https://bitbucket.org/aschreyer/usrcat
+
+    More information on the USR algorithm:
+        - https://doi.org/10.1098/rspa.2007.1823
+
+    :param grds:
+
+    :return:
+    """
+    from usrcat.geometry import usr_moments, usr_moments_with_existing
+
+    all_coords = np.concatenate([c for c in fcoords_list if len(c) != 0])
+    #np.vstack(fcoords_list)
+    (ctd, cst, fct, ftf), om = usr_moments(all_coords)
+
+    for fcoords in fcoords_list:
+
+        # initial zeroed out USRCAT feature moments
+        fm = np.zeros(12)
+
+        # only attempt to generate moments if there are enough atoms available!
+        if len(fcoords):
+            fm = usr_moments_with_existing(fcoords, ctd, cst, fct, ftf)
+
+        # append feature moments to the existing ones
+        om = np.append(om, fm)
+
+    return np.array([om])
+
 
 
 class Helper(object):

@@ -47,9 +47,9 @@ from skimage import feature
 from hotspots.grid_extension import Grid, _GridEnsemble
 from hotspots.hs_utilities import Figures
 from hotspots.template_strings import pymol_imports
-from hs_pharmacophore import PharmacophoreModel
-from hs_utilities import Helper
-from atomic_hotspot_calculation import AtomicHotspot, _AtomicHotspotResult
+from hotspots.hs_utilities import Helper
+from hotspots.hs_pharmacophore import PharmacophoreModel
+from hotspots.atomic_hotspot_calculation import AtomicHotspot, _AtomicHotspotResult
 
 
 class _Scorer(Helper):
@@ -706,6 +706,25 @@ class Results(object):
             del atm_dic[b]
 
         return self.ConstraintData(atm_dic, self.protein)
+
+    def _usr_moment(self, threshold=14):
+        """
+        PRIVATE
+        This is some experimental code and requires seperate installation of USR
+        generates USR moments for shape analysis
+        :return:
+        """
+        try:
+            from hs_utilities import _generate_usr_moment
+
+            coords_list = [np.array(g.coordinates(threshold=threshold))
+                           for p, g in self.super_grids.items()
+                           if p != "negative" and p != "positive"]
+
+            return _generate_usr_moment(fcoords_list=coords_list)
+
+        except ImportError:
+            print("To use this feature you must have USR installed")
 
     def map_values(self):
         """
