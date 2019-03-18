@@ -98,7 +98,7 @@ a) Latest stable release (recommended for most users):
     or 
     pip install https://github.com/prcurran/hotspots/archive/v1.x.x.zip
 
-b) Very Latest code
+b) Very latest code
     
     mkdir ./hotspots_code
     git clone git@github.com:prcurran/hotspots.git
