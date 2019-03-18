@@ -1,6 +1,5 @@
-numpy==1.15.4
+numpy>=1.15.4
 csd-python-api>=2.0.0
-rdkit==2018.09.1
 matplotlib==2.2.3
 scipy
 sklearn
