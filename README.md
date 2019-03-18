@@ -81,19 +81,31 @@ Install RDKit:
 The standalone CSD-Python-API installer from is available [here](https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87).
 
 Install the Python CSD API:
-
-     conda install -n hotspots csd-python-api-2.x.x-linux-py2.7-conda.tar.bz2
-
+     
+     unzip csd-python-api-2.1.0-linux-64-py2.7-conda
+     conda install -n hotspots -c <path to ccdc_conda_channel> csd-python-api
 
  5 Install Hotspots		
 ------------------------------------------------		
 
- Install Hotspots v1.x.x:		
+Install Hotspots v1.x.x:
 
-    conda activate hotspots		
-    pip install https://github.com/prcurran/hotspots/archive/v1.x.x.zip		
+a) Latest stable release (recommended for most users):
 
+    conda activate hotspots
+    
+    pip install hotspots
+    or 
+    pip install https://github.com/prcurran/hotspots/archive/v1.x.x.zip
 
+b) Very Latest code
+    
+    mkdir ./hotspots_code
+    git clone git@github.com:prcurran/hotspots.git
+    conda activate hotspots
+    cd hotspots_code
+    pip install hotspots_code
+    
  NB: dependencies should install automatically. If they do not, please see setup.py for the package requirements!
 
 
