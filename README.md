@@ -6,7 +6,6 @@
 [![License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/prcurran/fragment_hotspot_maps/blob/master/LICENSE)	
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/prcurran/fragment_hotspot_maps.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/prcurran/fragment_hotspot_maps/alerts/)	
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/prcurran/fragment_hotspot_maps.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/prcurran/fragment_hotspot_maps/context:python)	
-[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/prcurran/fragment_hotspot_maps.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/prcurran/fragment_hotspot_maps/context:javascript)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/fragmenthotspots/community)
 
 
