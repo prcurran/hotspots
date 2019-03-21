@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Hotspot IO API &mdash; Hotspots API 1.0.0 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/logo_test.png"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Result API" href="result_api.html" />
+    <link rel="prev" title="Hotspot Calculation API" href="calculation_api.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Hotspots API
+          
+
+          
+            
+            <img src="_static/logo_test.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atomic_hotspot_calculation_api.html">Atomic Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calculation_api.html">Hotspot Calculation API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Hotspot IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="result_api.html">Result API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_docking_api.html">Hotspot Docking API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_utilities_api.html">Hotspot Utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Hotspots API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Hotspot IO API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/hs_io_api.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-hotspots.hs_io">
+<span id="hotspot-io-api"></span><h1>Hotspot IO API<a class="headerlink" href="#module-hotspots.hs_io" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#module-hotspots.hs_io" title="hotspots.hs_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.hs_io</span></code></a> module was created to facilitate easy reading and
+writing of Fragment Hotspot Map results.</p>
+<p>There are multiple components to a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Result</span></code> including, the
+protein, interaction grids and buriedness grid. It is therefore tedious to manually
+read/write using the various class readers/writers. The Hotspots I/O organises this
+for the user and can handle single <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Result</span></code> or lists of
+<code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Result</span></code>.</p>
+<p>The main classes of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.io</span></code> module are:</p>
+<ul class="simple">
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.io.HotspotWriter</span></code></li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.io.HotspotReader</span></code></li>
+</ul>
+<dl class="class">
+<dt id="hotspots.hs_io.HotspotReader">
+<em class="property">class </em><code class="descclassname">hotspots.hs_io.</code><code class="descname">HotspotReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to organise the reading of a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Result</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – path to the result directory (can be .zip directory)</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="hotspots.hs_io.HotspotReader.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>identifier=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotReader.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotReader.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates a single or list of <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Result</span></code> instance(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>identifier</strong> (<em>str</em>) – for directories containing multiple Fragment Hotspot Map results,</td>
+</tr>
+</tbody>
+</table>
+<p>identifier is the subdirectory for which a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Result</span></code> is requried</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><cite>hotspots.result.Result</cite> a Fragment Hotspot Map result</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.hs_io</span> <span class="k">import</span> <span class="n">HotspotReader</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;&lt;path_to_results_directory&gt;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">HotspotReader</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hotspots.hs_io.HotspotWriter">
+<em class="property">class </em><code class="descclassname">hotspots.hs_io.</code><code class="descname">HotspotWriter</code><span class="sig-paren">(</span><em>path</em>, <em>visualisation='pymol'</em>, <em>grid_extension='.grd'</em>, <em>zip_results=True</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to handle the writing of a :class`hotspots.result.Result`. Additionally, creation of the
+PyMol visualisation scripts are handled here.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<em>str</em>) – path to output directory</li>
+<li><strong>visualisation</strong> (<em>str</em>) – “pymol” or “ngl” currently only PyMOL available</li>
+<li><strong>grid_extension</strong> (<em>str</em>) – “.grd”, “.ccp4” and “.acnt” supported</li>
+<li><strong>zip_results</strong> (<em>bool</em>) – If True, the result directory will be compressed. (recommended)</li>
+<li><strong>settings</strong> (<a class="reference internal" href="#hotspots.hs_io.HotspotWriter.Settings" title="hotspots.hs_io.HotspotWriter.Settings"><em>hotspots.hs_io.HotspotWriter.Settings</em></a>) – settings</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="hotspots.hs_io.HotspotWriter.Settings">
+<em class="property">class </em><code class="descname">Settings</code><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotWriter.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotWriter.Settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to hold the <a class="reference internal" href="#hotspots.hs_io.HotspotWriter" title="hotspots.hs_io.HotspotWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_io.HotspotWriter</span></code></a> settings</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.hs_io.HotspotWriter.compress">
+<code class="descname">compress</code><span class="sig-paren">(</span><em>archive_name</em>, <em>delete_directory=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotWriter.compress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotWriter.compress" title="Permalink to this definition">¶</a></dt>
+<dd><p>compresses the output directory created for this <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.HotspotResults</span></code> instance, and
+removes the directory by default. The zipped file can be loaded directly into a new
+<code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.HotspotResults</span></code> instance using the
+<code class="xref py py-func docutils literal notranslate"><span class="pre">from_zip_dir()</span></code> function</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>archive_name</strong> (<em>str</em>) – file path</li>
+<li><strong>delete_directory</strong> (<em>bool</em>) – remove the out directory once it has been zipped</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.hs_io.HotspotWriter.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>hr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_io.html#HotspotWriter.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_io.HotspotWriter.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>writes the Fragment Hotspot Maps result to the output directory and create the pymol visualisation file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hr</strong> (<em>hotspots.result.Result</em>) – a Fragment Hotspot Maps result or list of results</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.hs_io</span> <span class="k">import</span> <span class="n">HotspotWriter</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;1hcl&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out_dir</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">path_to_out</span><span class="o">&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">HotspotWriter</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="result_api.html" class="btn btn-neutral float-right" title="Result API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="calculation_api.html" class="btn btn-neutral float-left" title="Hotspot Calculation API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Chris Radoux, Peter Curran and Mihaela Smilova
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

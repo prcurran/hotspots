@@ -692,7 +692,7 @@ class Results(object):
         with io.MoleculeWriter("cenroid.mol2") as w:
             w.write(mol)
 
-    def docking_constraint_atoms(self, max_constraints=5, point=None):
+    def docking_constraint_atoms(self, max_constraints=10, accessible_cutoff=0.001, max_distance=4):
         """
         creates a dictionary of constraints
 
@@ -700,11 +700,6 @@ class Results(object):
         :return dic: score by atom
         """
 
-        #
-        #
-        # binding site, acceptors
-        #
-        #
         from hotspots.hs_utilities import Helper
         from scipy.spatial import distance
 
@@ -719,21 +714,28 @@ class Results(object):
         for r in remove:
             p.remove_residue(r.identifier)
 
-        donors = {b.coordinates: b.label for a in p.atoms if a.is_donor for b in a.neighbours if b.atomic_number==1}
-        acceptors = {a.coordinates: a.label for a in p.atoms if a.is_acceptor}
+        donors = {a.coordinates: a.label for a in p.atoms
+                  if (a.atomic_number == 1 and a.neighbours[0].is_donor and a.solvent_accessible_surface() > accessible_cutoff)
+                  }
 
+        acceptors = {a.coordinates: a.label for a in p.atoms
+                     if a.is_acceptor and a.solvent_accessible_surface() > accessible_cutoff
+                     }
         pairs = {"acceptor": donors,
                  "donor": acceptors}
 
         constraint_dic = {}
+
         for feature in self.features:
             centoid = [feature.grid.centroid()]
             coords = pairs[feature.feature_type].keys()
-            min_coord = coords[int(np.argmin(distance.cdist(coords,
-                                                        centoid,
-                                                        'euclidean')))]
+            all_distances = distance.cdist(coords, centoid, 'euclidean')
+            ind = int(np.argmin(all_distances))
+            min_coord = coords[ind]
             atm_index = int(pairs[feature.feature_type][min_coord])
-            constraint_dic.update({feature.score_value: atm_index})
+
+            if all_distances[ind] < max_distance:
+                constraint_dic.update({feature.score_value: atm_index})
 
         if len(constraint_dic) > max_constraints:
             scores = sorted([f[0] for f in constraint_dic.items()], reverse=True)[:max_constraints]
