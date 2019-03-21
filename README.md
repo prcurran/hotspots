@@ -78,7 +78,7 @@ Install RDKit:
  
  	conda install -n hotspots -c rdkit rdkit
 
-The standalone CSD-Python-API installer from is available [here](https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87).
+The latest standalone CSD-Python-API installer from is available [here](https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87).
 
 Install the Python CSD API:
      
@@ -93,7 +93,7 @@ Install Hotspots v1.x.x:
 a) Latest stable release (recommended for most users):
 
     conda activate hotspots
-    
+ 
     pip install hotspots
     or 
     pip install https://github.com/prcurran/hotspots/archive/v1.x.x.zip

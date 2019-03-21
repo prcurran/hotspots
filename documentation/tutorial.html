@@ -205,7 +205,7 @@ If you have any queries regarding this package please contact us (<a class="refe
 <h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="step-1-install-csds-2019">
 <h4>Step 1: Install CSDS 2019<a class="headerlink" href="#step-1-install-csds-2019" title="Permalink to this headline">¶</a></h4>
-<p>Available from CCDC downloads page <a class="reference external" href="https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/">here</a>.</p>
+<p>The CSDS is available from <a class="reference external" href="https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/">here</a>.</p>
 <p>You will need a valid site number and confirmation code, this will have been emailed to you when you bought your CSDS 2019 license</p>
 <p>You may need to set the following environment variables:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CSDHOME</span><span class="o">=</span>&lt;path_to_CSDS_installation&gt;/CSD_2019
@@ -214,7 +214,7 @@ If you have any queries regarding this package please contact us (<a class="refe
 </div>
 <div class="section" id="step-2-install-ghecom">
 <h4>Step 2: Install Ghecom<a class="headerlink" href="#step-2-install-ghecom" title="Permalink to this headline">¶</a></h4>
-<p>Available from Ghecom download page <a class="reference external" href="http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html">here</a>.</p>
+<p>Ghecom is available from <a class="reference external" href="http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html">here</a>.</p>
 <p>“The source code of the ghecom is written in C, and developed and executed on
 the linux environment (actually on the Fedora Core).  For the installation,
 you need the gcc compiler.  If you do not want to use it, please change the
@@ -235,18 +235,42 @@ make
 </div>
 <div class="section" id="step-4-install-rdkit-and-csd-python-api">
 <h4>Step 4: Install RDKit and CSD python API<a class="headerlink" href="#step-4-install-rdkit-and-csd-python-api" title="Permalink to this headline">¶</a></h4>
-<p>Download the standalone CSD python API package from <a class="reference external" href="https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87">here</a>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda install -c rdkit -n hotspots_env rdkit
-conda install csd-python-api-2.x.x-linux-py2.7-conda.tar.bz2
+<p>Install RDKit:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda install -n hotspots -c rdkit rdkit
+</pre></div>
+</div>
+<p>The latest standalone CSD-Python-API installer from is available from <a class="reference external" href="https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87">here</a>.</p>
+<p>Install the Python CSD API:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>unzip csd-python-api-2.1.0-linux-64-py2.7-conda
+conda install -n hotspots -c &lt;path to ccdc_conda_channel&gt; csd-python-api
 </pre></div>
 </div>
 </div>
 <div class="section" id="step-5-install-hotspots-api">
 <h4>Step 5: Install Hotspots API<a class="headerlink" href="#step-5-install-hotspots-api" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span> activate hotspots_env
+<p>Install Hotspots v1.x.x:</p>
+<ol class="loweralpha simple">
+<li>Latest stable release (recommended for most users):</li>
+</ol>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda activate hotspots
 pip install hotspots
 </pre></div>
 </div>
+<p>or</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install https://github.com/prcurran/hotspots/archive/v1.x.x.zip
+</pre></div>
+</div>
+<ol class="loweralpha simple" start="2">
+<li>Very latest code</li>
+</ol>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir ./hotspots_code
+git clone git@github.com:prcurran/hotspots.git
+conda activate hotspots
+<span class="nb">cd</span> hotspots_code
+pip install hotspots_code
+</pre></div>
+</div>
+<p>NB: dependencies should install automatically. If they do not, please see setup.py for the package requirements!</p>
 <p>… and you’re ready to go!</p>
 </div>
 </div>

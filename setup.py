@@ -14,7 +14,7 @@ setup(
     author="Chris Radoux, Peter Curran, Mihaela Smilova",
     author_email="pcurran@ccdc.cam.ac.uk",
     license="MIT",
-    version="1.0.1",
+    version="1.0.2",
     url="https://github.com/prcurran/hotspots",
     packages=find_packages(),
     include_package_data=True,
