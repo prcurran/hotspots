@@ -9,6 +9,9 @@ h1.v1{
 }
 </style>
 <script src="ngl.js"></script>
+  <script src="main.js"></script>
+<script src="ngl_functions.js"></script>
+<script src="writer.js"></script>
 <script src="http://cdn.jsdelivr.net/jquery/2.1.4/jquery.js"></script>
   <script type="text/javascript" src="zip.js">
     zip.useWebWorkers=false
@@ -18,32 +21,73 @@ h1.v1{
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <link rel="stylesheet" href="mystyle.css">
-<h1 class="v1">Hotspot Viewer</h1>
 </head>
 <body>
 <div>
   <input type="file" id="load-file" name="structure_uploads" accept=".pdb, .mol2, .ccp4, .zip" multiple >
 </div>
-<div id="viewport" style>
-</div>
-<script src="main.js"></script>
-<script src="custom_functions.js"></script>
-<script src="writer.js"></script>
 
+
+<div id="viewport">
+</div>
+
+
+<! Container with sliders and toggles for map visualisations>
+<div class="map-visualisations" >
 <div class="slidecontainer">
   <p>Isolevel: Apolar
   <label id="apolar_label"></label>
-  <input type="range" min="0" max="50" value="14" class="slider" id="apolar_slider"></p>
+  <input type="range" min="0" max="25" value="14" class="slider" id="apolar_slider"></p>
   <br>
   <p>Isolevel: Acceptor
   <label id="acceptor_label"></label>
-  <input type="range" min="0" max="50" value="14" class="slider" id="acceptor_slider"></p>
+  <input type="range" min="0" max="25" value="14" class="slider" id="acceptor_slider"></p>
   <br>
   <p>Isolevel: Donor
   <label id="donor_label"></label>
-  <input type="range" min="0" max="50" value="14" class="slider" id="donor_slider"></p>
-  
+  <input type="range" min="0" max="25" value="14" class="slider" id="donor_slider"></p>
+
 </div>
+
+  <! Container for the surface representation toggles>
+  <div class="toggle_container">
+  <p> Surface <br>
+  <label class="switch_container" id="apolar_surface_toggle">
+  <input type="checkbox" checked="checked" id="apolar_surface_checkbox">
+  <span class="checkmark"></span>
+  </label>
+  <br>
+  <label class="switch_container" id="acceptor_surface_toggle">
+  <input type="checkbox" checked="checked" id="acceptor_surface_checkbox">
+  <span class="checkmark"></span>
+  </label>
+  <br>
+  <label class="switch_container" id="donor_surface_toggle">
+  <input type="checkbox" checked="checked" id="donor_surface_checkbox">
+  <span class="checkmark"></span>
+  </label>
+  </div>
+
+  <! Container for the dot representation toggles>
+  <div class="toggle_container">
+  <p> Dots<br>
+  <label class="switch_container" id="apolar_dot_toggle">
+  <input type="checkbox">
+  <span class="checkmark"></span>
+  </label>
+  <br>
+  <label class="switch_container" id="acceptor_dot_toggle">
+  <input type="checkbox">
+  <span class="checkmark"></span>
+  </label>
+  <br>
+  <label class="switch_container" id="donor_dot_toggle">
+  <input type="checkbox">
+  <span class="checkmark"></span>
+  </label>
+  </div>
+</div>
+
 
 </body>
 </html>

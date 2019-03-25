@@ -174,27 +174,45 @@ function onerror(message) {
 
         var slider_values = {}
 
+
         document.getElementById("apolar_slider").oninput=function(){
-            runFunctionOnAllObjects(set_isolevel,{"grid_type":"apolar", "isolevel": Number(this.value)})
+            runFunctionOnAllObjects(set_surface_isolevel,{"grid_type":"apolar", "isolevel": Number(this.value)})
             document.getElementById("apolar_label").innerHTML=this.value
             //console.log(this.value)
             slider_values.apolar = Number(this.value)
         }
 
         document.getElementById("acceptor_slider").oninput=function(){
-            runFunctionOnAllObjects(set_isolevel,{"grid_type":"acceptor", "isolevel": Number(this.value)})
+            runFunctionOnAllObjects(set_surface_isolevel,{"grid_type":"acceptor", "isolevel": Number(this.value)})
             document.getElementById("acceptor_label").innerHTML=this.value
             slider_values.acceptor = Number(this.value)
         }
 
         document.getElementById("donor_slider").oninput=function(){
-            runFunctionOnAllObjects(set_isolevel,{"grid_type":"donor", "isolevel": Number(this.value)})
+            runFunctionOnAllObjects(set_surface_isolevel,{"grid_type":"donor", "isolevel": Number(this.value)})
             document.getElementById("donor_label").innerHTML=this.value
             slider_values.donor = Number(this.value)
         }
         //console.log(slider_values)
         return slider_values
     }
+
+
+    function surface_checkbox_toggles(){
+        document.getElementById("apolar_surface_checkbox").oninput=function(){
+            runFunctionOnAllObjects(toggle_visibility, {visibility: this.checked, type:"surface", selection:"apolar"})
+            }
+
+        document.getElementById("acceptor_surface_checkbox").oninput=function(){
+            runFunctionOnAllObjects(toggle_visibility, {visibility: this.checked, type:"surface", selection:"acceptor"})
+            }
+
+        document.getElementById("donor_surface_checkbox").oninput=function(){
+            runFunctionOnAllObjects(toggle_visibility, {visibility: this.checked, type:"surface", selection:"donor"})
+            }
+        }
+
+
 
 
     function run(fname_list){
@@ -260,7 +278,7 @@ function onerror(message) {
             }
         });
         slider_values = get_slider_values()
-        //console.log(slider_values)
+        surface_checkbox_toggles()
     };
 
 
@@ -268,7 +286,7 @@ function onerror(message) {
 
 //create the NGL stage
     document.addEventListener("DOMContentLoaded", function () {
-        stage = new NGL.Stage("viewport", {backgroundColor: 'white'});
+        stage = new NGL.Stage("viewport", {backgroundColor: 'black'});
         var fname_list = []
         run(fname_list);
         });
@@ -279,6 +297,7 @@ window.onresize = function(){
     viewport.style.width = "100%";
     viewport.style.height = "100%";
 };
+
 
    
 
