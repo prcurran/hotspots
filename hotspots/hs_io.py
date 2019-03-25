@@ -22,6 +22,9 @@ import tempfile
 import zipfile
 from os import listdir
 from os.path import splitext, join, basename, dirname, isdir
+import pkg_resources
+#remove later!
+from glob import glob
 
 from ccdc import io
 from ccdc.protein import Protein
@@ -93,11 +96,12 @@ class HotspotWriter(Helper):
         if traceback:
             print(traceback)
 
-    def write(self, hr):
+    def write(self, hr, ngl=True):
         """
         writes the Fragment Hotspot Maps result to the output directory and create the pymol visualisation file
 
         :param `hotspots.result.Result` hr: a Fragment Hotspot Maps result or list of results
+        :param bool ngl: whether to generate a visualisation in the NGL viewer (in addition to the default Pymol).
 
         >>> from hotspots.calculation import Runner
         >>> from hotspots.hs_io import HotspotWriter
@@ -137,6 +141,7 @@ class HotspotWriter(Helper):
                     self._write_pharmacophore(hotspot.pharmacophore)
 
                 self._write_pymol(hotspot, False)
+                self._write_NGL()
 
             self.out_dir = dirname(self.out_dir)
             if self.zipped:
@@ -155,6 +160,7 @@ class HotspotWriter(Helper):
                 self.settings.pharmacophore = True
                 self._write_pharmacophore(hr.pharmacophore)
             self._write_pymol(hr, self.zipped)
+            self._write_NGL()
 
             if self.zipped:
                 self.compress(join(dirname(self.out_dir), self.container))
@@ -279,6 +285,17 @@ class HotspotWriter(Helper):
             pymol_out += h.pharmacophore._get_pymol_pharmacophore(lfile=f)
 
         return pymol_out
+
+    def write_NGL(self):
+        """
+        Outputs a hotspots visualiseation using the NGL viewer.
+        :return:
+        """
+        try:
+            js_scripts = pkg_resources.resource_filename("hotspots", "ngl_scripts/")
+        except OSError:
+            js_scripts = glob(join("ngl_scripts", "*"))
+
 
     def compress(self, archive_name, delete_directory=True):
         """
