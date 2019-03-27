@@ -1,19 +1,82 @@
 /* Functions needed for running the NGL script */
 
+// Representation and visualisation loading functions
+
+function proteinRepresentation(f,loaded_promises){
+     var promise_loaded=stage.loadFile( f ).then(function (o) {
+        o.addRepresentation("cartoon")
+        o.addRepresentation( "ball+stick", {
+            //Show ligands if present
+            sele: "(( not polymer or hetero ) and not ( water or ion ))",
+            scale: 0.5
+        })
+        o.autoView()
+        return o;
+    })
+
+    loaded_promises.push(promise_loaded);
+
+}
+
+
+function mapRepresentation(f,loaded_promises){
+    if (f.name.includes("acceptor")){
+        var c = "red"
+
+    }else if (f.name.includes("donor")){
+        var c = "blue"
+
+    }else if(f.name.includes("apolar")){
+        var c = "#FFF176"
+
+    }else if(f.name.includes("positive")){
+        var c = "magenta"
+
+    }else if(f.name.includes("negative")){
+        var c = "cyan"
+
+    }else{
+        console.log('Unrecognised probe type for', f.name)
+        return
+    }
+
+
+    var surface_properties={color: c,
+        isolevelType: "value",
+        isolevel: 14.0,
+        opacity: 0.9,
+        };
+
+    var dot_properties = {thresholdType:'value',
+        thresholdMin: 14.0,
+        color: c,
+        dotType:'sphere',
+        radius: 0.3,
+        opacity:1.0,
+        visible:false};
+
+
+    var promise_loaded=stage.loadFile( f ).then(function (o ) {
+        o.addRepresentation("surface", surface_properties)
+        o.addRepresentation("dot", dot_properties)
+        return o;
+     })
+
+    loaded_promises.push(promise_loaded)
+}
+
+
+// Creates NGL representations based on the type of file.
 function loadSingleFile(f,loaded_promises){
     console.log(f)
     var file_extension=f.name.split('.').pop()
-
     if (file_extension=='pdb'){
-
         proteinRepresentation(f,loaded_promises)
 
     }else if (file_extension=='ccp4'){
-
         mapRepresentation(f,loaded_promises);
 
     }else if (file_extension == 'zip'){
-
         unzipBlob(f, loadSingleFile, loaded_promises)
     }
     else{
@@ -56,7 +119,8 @@ function check_filename(fname){
 }
 
 
-/*Loading zip files - taken from zip.js documentation */
+//Loading zip files - taken from zip.js documentation
+
 function unzipBlob(blob,callback, loaded_promises) {
   zip.useWebWorkers = false
   // use a zip.BlobReader object to read zipped data stored into blob variable
@@ -89,82 +153,111 @@ function onerror(message) {
   console.error(message);
 }
 
+// Takes in loaded_promises as the parameter
+// TODO: fix bug with single unrecognised file
+function ensurePromisesAreLoaded(parameter){
+    var loaded_promises=parameter;
+    return new Promise(function (resolve, reject) {
+        (function waitForPromises(){
+            if (loaded_promises.length == expected_loaded_promises && loaded_promises.length > leftover_promises) return resolve();
+            setTimeout(waitForPromises, 5);
 
+            console.log("printing expected!", expected_loaded_promises, loaded_promises.length, leftover_promises)
+            })()
+        });
+    }
+
+function load(){
+    	document.getElementById("load-file").oninput=function(){
+            var all_files = $('#load-file')[0].files
+
+            // Check files were uploaded
+            if (all_files.length>0){
+
+                // Each NGL object has an associated promise, which are stored here.
+                var loaded_promises=[]
+
+                // Load files into initial promise, which starts chain of propagation
+                var load_new_files = new Promise(function(resolve,reject){
+                        for (var i=0; i< all_files.length; i++){
+                            loadSingleFile(all_files[i],loaded_promises)
+                            };
+                            resolve(loaded_promises.length);
+                    });
+
+                // In case nothing was loaded previously
+                if(typeof final_promise == "undefined"){
+                    //We need this to ensure all the files are loaded before the promise resolves
+                    expected_loaded_promises= count_expected_loaded_promises(all_files)
+                    leftover_promises = 0
+
+                    final_promise=load_new_files.then(function(fulfilled){
+                        final_promise=ensurePromisesAreLoaded(loaded_promises).then( function(fulfilled) {
+
+                            final_promise=Promise.all(loaded_promises).then(function(loaded_objects) {
+                                console.log(loaded_objects);
+                                return loaded_objects;
+                            })
+                            return final_promise;
+                        })
+                        return final_promise;
+                    })
+
+
+                } else {
+                    //in case further files are loaded
+                    ``
+                    console.log("loading more objects")
+
+                    // 1 final promise left from before, gets pushed as array of promises
+                    loaded_promises.push(final_promise)
+                    leftover_promises = 1
+                    expected_loaded_promises = leftover_promises + count_expected_loaded_promises(all_files)
+
+
+                    final_promise=load_new_files.then(function(fulfilled){
+                        final_promise=ensurePromisesAreLoaded(loaded_promises).then(function(fulfilled){
+
+                            final_promise=Promise.all(loaded_promises).then(function(loaded_objects) {
+                                for (var i=0; i<loaded_objects.length; i++){
+                                    if(loaded_objects[i].constructor === Array){
+                                        console.log(loaded_objects[i])
+                                        var old_array = loaded_objects[i]
+                                        loaded_objects.splice(i, 1)
+                                        break;
+                                    }
+                                }
+
+                                for(var j=0; j<old_array.length; j++){
+                                    loaded_objects.push(old_array[j])
+                                }
+
+                                return loaded_objects;
+                            })
+
+                            return final_promise;
+                        })
+                        return final_promise;
+                    })
+
+
+                }
+            }
+        }
+    }
+
+
+// For debugging.
 function log(loaded_objects){
     console.log(loaded_objects)
     return loaded_objects
 }
 
 
-/* Representation and visualisation functions*/
-
-function proteinRepresentation(f,loaded_promises){
-     var promise_loaded=stage.loadFile( f ).then(function (o) {
-        o.addRepresentation("cartoon")
-        o.addRepresentation( "ball+stick", {
-            //Show ligands if present
-            sele: "(( not polymer or hetero ) and not ( water or ion ))",
-            scale: 0.5
-        })
-        o.autoView()
-        return o;
-    })
-
-    loaded_promises.push(promise_loaded);
-
-}
-
-
-function mapRepresentation(f,loaded_promises){
-                if (f.name.includes("acceptor")){
-                    var c = "red"
-
-                }else if (f.name.includes("donor")){
-                    var c = "blue"
-
-                }else if(f.name.includes("apolar")){
-                    var c = "#FFF176"
-
-                }else if(f.name.includes("positive")){
-                    var c = "magenta"
-
-                }else if(f.name.includes("negative")){
-                    var c = "cyan"
-
-                }else{
-                    console.log('Unrecognised probe type for', f.name)
-                    return
-                }
-
-
-            var surface_properties={color: c,
-                isolevelType: "value",
-                isolevel: 14.0,
-                opacity: 0.9,
-                };
-
-            var dot_properties = {thresholdType:'value',
-                thresholdMin: 14.0,
-                color: c,
-                dotType:'sphere',
-                radius: 0.3,
-                opacity:1.0,
-                visible:false};
-
-
-            var promise_loaded=stage.loadFile( f ).then(function (o ) {
-                o.addRepresentation("surface", surface_properties);
-                o.addRepresentation("dot", dot_properties);
-                return o;
-             });
-
-            loaded_promises.push(promise_loaded);
-    };
-
-
+// Wrapper function for accesing objects within final_promise.
 
 function runFunctionOnAllObjects(func_to_run, external_parameter){
-    //func_to_run - any function from custom_functions.js
+    //func_to_run - any function that takes loaded_objects as first argument
     //object_array = [loaded_objects]
     try{
         final_promise=final_promise.then(function(object_array){
@@ -184,7 +277,7 @@ function runFunctionOnAllObjects(func_to_run, external_parameter){
 
 
 
-// Functions that interact with views
+// Functions that interact with views (used by viewer buttons).
 
 function set_surface_isolevel(loaded_objects, grid_params){
     /*
