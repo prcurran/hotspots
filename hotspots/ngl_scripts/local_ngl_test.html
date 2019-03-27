@@ -9,7 +9,7 @@ h1.v1{
 }
 </style>
 <script src="ngl.js"></script>
-  <script src="main.js"></script>
+  <script src="ngl_results_file.js"></script>
 <script src="ngl_functions.js"></script>
 <script src="writer.js"></script>
 <script src="http://cdn.jsdelivr.net/jquery/2.1.4/jquery.js"></script>
@@ -36,16 +36,16 @@ h1.v1{
 <div class="map-visualisations" >
 <div class="slidecontainer">
   <p>Isolevel: Apolar
-  <label id="apolar_label"></label>
-  <input type="range" min="0" max="25" value="14" class="slider" id="apolar_slider"></p>
+  <label id="apolar_label">14</label>
+  <input type="range" min="1" max="25" value="14" class="slider" id="apolar_slider"></p>
   <br>
   <p>Isolevel: Acceptor
-  <label id="acceptor_label"></label>
-  <input type="range" min="0" max="25" value="14" class="slider" id="acceptor_slider"></p>
+  <label id="acceptor_label">14</label>
+  <input type="range" min="1" max="25" value="14" class="slider" id="acceptor_slider"></p>
   <br>
   <p>Isolevel: Donor
-  <label id="donor_label"></label>
-  <input type="range" min="0" max="25" value="14" class="slider" id="donor_slider"></p>
+  <label id="donor_label">14</label>
+  <input type="range" min="1" max="25" value="14" class="slider" id="donor_slider"></p>
 
 </div>
 
@@ -72,17 +72,17 @@ h1.v1{
   <div class="toggle_container">
   <p> Dots<br>
   <label class="switch_container" id="apolar_dot_toggle">
-  <input type="checkbox">
+  <input type="checkbox" id="apolar_dot_checkbox">
   <span class="checkmark"></span>
   </label>
   <br>
   <label class="switch_container" id="acceptor_dot_toggle">
-  <input type="checkbox">
+  <input type="checkbox" id="acceptor_dot_checkbox">
   <span class="checkmark"></span>
   </label>
   <br>
   <label class="switch_container" id="donor_dot_toggle">
-  <input type="checkbox">
+  <input type="checkbox" id="donor_dot_checkbox">
   <span class="checkmark"></span>
   </label>
   </div>

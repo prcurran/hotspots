@@ -49,29 +49,28 @@ function onerror(message) {
   console.error(message);
 }
 
-    function loadSingleFile(f,loaded_promises, fname_list){
-            console.log(f)
-            var file_extension=f.name.split('.').pop()
-            console.log(file_extension)
-            //getBase64(file)
-            if (file_extension=='pdb'){
-                proteinRepresentation(f,loaded_promises)
-            }else if (file_extension=='ccp4'){
-                gridRepresentation(f,loaded_promises)
-            }else if (file_extension == 'zip'){
+function loadSingleFile(f,loaded_promises, fname_list){
+        console.log(f)
+        var file_extension=f.name.split('.').pop()
+        console.log(file_extension)
+        if (file_extension=='pdb'){
+            proteinRepresentation(f,loaded_promises)
+        }else if (file_extension=='ccp4'){
+            gridRepresentation(f,loaded_promises)
+        }else if (file_extension == 'zip'){
 
-                unzipBlob(f, loadSingleFile, loaded_promises, fname_list)
-            }
-            else{
-                alert("Unknown file extension")
-            }
-       };
+            unzipBlob(f, loadSingleFile, loaded_promises, fname_list)
+        }
+        else{
+            alert("Unknown file extension")
+        }
+   };
 
 
      function proteinRepresentation(f,loaded_promises){
             var promise_loaded;
             promise_loaded=stage.loadFile( f ).then(function (o) {
-                o.addRepresentation("cartoon", { color: "lightgrey" })
+                o.addRepresentation("cartoon")
                 o.addRepresentation( "ball+stick", {
                     sele: "(( not polymer or hetero ) and not ( water or ion ))",
                     scale: 0.5
@@ -85,52 +84,9 @@ function onerror(message) {
             };  
 
     function gridRepresentation(f,loaded_promises){
-            if (f.name.includes("frequency")){
-                var properties ={
-                thresholdType:"value",
-                thresholdMin:1,
-                dotType:'sphere',
-                color: 'black'
-                }
-                var promise_loaded
-                promise_loaded=stage.loadFile( f ).then(function (o) {
-                    o.addRepresentation("dot", properties);
-                    return o;
-                });
-            loaded_promises.push(promise_loaded)
-            return
-            }
 
-            else if(f.name.includes("ranges")){
-                if (f.name.includes("acceptor")){
-                    var colourscheme = "Reds"
-                }else if (f.name.includes("donor")){
-                    var colourscheme = "Blues"
-                }else{
-                    var colourscheme = "Purples"}
 
-                var properties = {thresholdType:'value',
-                thresholdMin: 0.000001,
-                colorScheme:'value',
-                colorScale:colourscheme,
-                dotType:'sphere',
-                radius: 0.3,
-                opacity:1.0 };
-
-                var promise_loaded
-                promise_loaded=stage.loadFile( f ).then(function (o) {
-                o.addRepresentation("dot", properties);
-                //o.reprList[0].setVisibility(false)
-
-                //o.autoView();
-
-                return o;
-                })
-            loaded_promises.push(promise_loaded)
-            return
-            }
-
-            else if(f.name.includes("donor")){
+            if(f.name.includes("donor")){
                 var properties={color: "blue",
                 isolevelType: "value",
                 isolevel: 14.00,
@@ -148,8 +104,6 @@ function onerror(message) {
                 var properties={color: "#FFF176",
                 isolevelType: "value",
                 isolevel: 14.00,
-                //wireframe: true,
-                //linewidth: 3,
                 opacity: 0.2
                 };
              }
@@ -212,7 +166,15 @@ function onerror(message) {
             }
         }
 
-
+    function ensurePromisesAreLoaded(parameter) {
+        var loaded_promises=parameter;
+        return new Promise(function (resolve, reject) {
+            (function waitForPromises(){
+                if (loaded_promises.length>0) return resolve();
+                setTimeout(waitForPromises, 5);
+                })();
+            });
+        }
 
 
     function run(fname_list){
@@ -223,20 +185,32 @@ function onerror(message) {
                 //loadSingleFile(all_files[i],loaded_promises)
 			//};
 
-            if(typeof final_promise == "undefined"){
 
-                for (var i=0; i< all_files.length; i++){
-                    loadSingleFile(all_files[i],loaded_promises, fname_list)
-                    fname_list.push(all_files[i].name)
-                };
+            if(typeof final_promise == "undefined"){
+				var load_new_files = new Promise(
+					function(resolve,reject){
+						for (var i=0; i< all_files.length; i++){
+							loadSingleFile(all_files[i],loaded_promises, fname_list)
+							fname_list.push(all_files[i].name)
+						};
+						resolve(loaded_promises.length);
+				});
+
                 //console.log(all_files.length)
                 console.log(loaded_promises)
-                console.log(fname_list)
+				final_promise=load_new_files.then(function(fulfilled){
+					final_promise=ensurePromisesAreLoaded(loaded_promises).then( function(fulfilled) {
+						console.log(loaded_promises.length)
+						final_promise=Promise.all(loaded_promises).then(function(loaded_objects) {
+							console.log(loaded_objects);
+							return loaded_objects;
+						});
+						return final_promise;
+					});
+					return final_promise;
+				});
 
-                final_promise=Promise.all(loaded_promises).then(function(loaded_objects) {
-                    console.log(loaded_objects);
-                    return loaded_objects;
-                });
+
                 console.log(final_promise)
 
             } else {
@@ -284,6 +258,7 @@ function onerror(message) {
 
 
 
+
 //create the NGL stage
     document.addEventListener("DOMContentLoaded", function () {
         stage = new NGL.Stage("viewport", {backgroundColor: 'black'});
@@ -291,12 +266,13 @@ function onerror(message) {
         run(fname_list);
         });
 
-//Attempt to dynamically resize the NGL viewer:
+/*
 window.onresize = function(){
     var viewport = document.getElementById('viewport');
     viewport.style.width = "100%";
     viewport.style.height = "100%";
 };
+*/
 
 
    
