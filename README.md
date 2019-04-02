@@ -156,7 +156,7 @@ used to perform the calculation:
 
     runner = Runner()
     # Only SuperStar jobs are parallelised (one job per processor). By default there are 3 jobs, when calculating charged interactions there are 5.
-    results = runner.from_pdb(prot, nprocesses=3)
+    results = runner.from_protein(prot, nprocesses=3)
 	
 
 Alternatively, for a quick calculation, you can supply a PDB code and we will
