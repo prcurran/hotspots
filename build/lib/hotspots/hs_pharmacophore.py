@@ -109,6 +109,28 @@ class PharmacophoreModel(Helper):
 
         self.dic = dic
 
+    def _usr_moment(self):
+        """
+        generates USR moments for shape analysis
+        :return:
+        """
+        try:
+            from hotspots.hs_utilities import _generate_usr_moment
+            type_dic = {"apolar" : [],
+                        "acceptor": [],
+                        "donor": [],
+                        "positive": [],
+                        "negative": []
+                        }
+
+            for feat in self.features:
+                type_dic[feat.feature_type].append(feat.feature_coordinates)
+
+            coords_list = [np.array(v) for v in type_dic.values() if len(v) != 0]
+            return _generate_usr_moment(fcoords_list=coords_list)
+        except ImportError:
+            print("To use this feature you must have USR installed")
+
     @property
     def features(self):
         """
@@ -372,6 +394,9 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
     def _cluster_ligands(n, ligands):
         """
         !!! OUT OF DATE !!!
+
+
+        Use clustering in cluster_img.py (Not public yet)
         :return:
         """
         cluster_dict = {a: [] for a in range(int(n))}

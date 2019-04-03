@@ -30,8 +30,8 @@ More information about Pharmit is available:
 from __future__ import print_function
 import csv
 import json
-import os
 import re
+import os
 import tempfile
 from os.path import basename, splitext, join, dirname
 
@@ -48,11 +48,26 @@ from hotspots.template_strings import pymol_arrow, pymol_imports, crossminer_fea
 from hotspots.pdb_python_api import Query, PDB, PDBResult
 
 from rdkit import Chem, DataStructs
-# from rdkit.Chem import MACCSkey, AllChem, Draw
-from rdkit.Chem import MACCSkeys
+from rdkit.Chem import MACCSkeys, AllChem
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from tqdm import tqdm
+import numba
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import hdbscan
+
+@numba.njit()
+def tanimoto_dist(a, b):
+    """
+    calculate the tanimoto distance between two fingerprint arrays
+    :param a:
+    :param b:
+    :return:
+    """
+    dotprod = np.dot(a, b)
+    tc = dotprod / (np.sum(a) + np.sum(b) - dotprod)
+    return 1.0 - tc
 
 
 class PharmacophoreModel(Helper):
@@ -116,7 +131,7 @@ class PharmacophoreModel(Helper):
         """
         try:
             from hotspots.hs_utilities import _generate_usr_moment
-            type_dic = {"apolar" : [],
+            type_dic = {"apolar": [],
                         "acceptor": [],
                         "donor": [],
                         "positive": [],
@@ -139,6 +154,21 @@ class PharmacophoreModel(Helper):
         :return: list of :class:`hotspots.hs_pharmacophore._PharmacophoreFeature instance
         """
         return self._features
+
+    def _comparision_dict(self):
+        """
+        converts pharmacophore into comparision dictionary
+
+        :return: dic
+        """
+        d = {}
+        self.rank_features(max_features=20)
+        rank_dic = {"apolar": 0, "donor": 0, "acceptor": 0, "negative":0, "positive":0}
+        for feat in self._features:
+            d.update({feat.score_value: [feat.feature_type, feat.feature_coordinates, rank_dic[feat.feature_type]]})
+            rank_dic[feat.feature_type] += 1
+
+        return d
 
     def rank_features(self, max_features=4, feature_threshold=0, force_apolar=True):
         """
@@ -264,7 +294,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         grd = Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0, _grid=None)
 
         for feat in filtered_features:
-            grd.set_sphere(point=feat.feature_coordinates,radius=self.settings.radius, value=1,scaling='None')
+            grd.set_sphere(point=feat.feature_coordinates, radius=self.settings.radius, value=1, scaling='None')
         return grd
 
     def _get_binding_site_residues(self):
@@ -299,7 +329,8 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         except:
             raise ImportError("Crossminer is only available to CSD-Discovery")
 
-        feature_definitions = {supported_features[fd.identifier]: fd for fd in Pharmacophore.feature_definitions.values()
+        feature_definitions = {supported_features[fd.identifier]: fd for fd in
+                               Pharmacophore.feature_definitions.values()
                                if fd.identifier in supported_features.keys()}
 
         model_features = []
@@ -381,41 +412,70 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             for l in entry.filtered_ligands:
                 try:
                     l.rdmol = Chem.MolFromSmiles(l.smiles)
+                    AllChem.Compute2DCoords(l.rdmol)
                     l.rdmol.SetProp("_Name", str(entry.identifier + "/" + l.chemical_id))
-                    l.fingerprint = MACCSkeys.GenMACCSKeys(l.rdmol)
+                    # l.fingerprint = MACCSkeys.GenMACCSKeys(l.rdmol)
+                    l.fingerprint = AllChem.GetMorganFingerprintAsBitVect(l.rdmol, 2)
                     if l.chemical_id not in uniques:
                         ligs.append(l)
                         uniques.append(l.chemical_id)
-                except AttributeError:
+                except:
                     continue
         return ligs
 
     @staticmethod
-    def _cluster_ligands(n, ligands):
+    def _cluster_ligands(ligands, t):
         """
-        !!! OUT OF DATE !!!
 
-
-        Use clustering in cluster_img.py (Not public yet)
         :return:
         """
-        cluster_dict = {a: [] for a in range(int(n))}
-        num = len(ligands)
-        sim = np.zeros((num, num))
-        for i in range(num):
-            for j in range(num):
-                sim[i, j] = DataStructs.FingerprintSimilarity(ligands[i].fingerprint,
-                                                              ligands[j].fingerprint)
+        def fingerprint_array(ligands):
+            X =[]
+            for l in ligands:
+                arr = np.zeros((0,))
+                DataStructs.ConvertToNumpyArray(l.fingerprint, arr)
+                X.append(arr)
+            return X
 
-        kmeans_model = KMeans(n_clusters=n, random_state=1).fit(sim)
-        labels = kmeans_model.labels_
-        s = silhouette_score(sim, labels, metric='euclidean')
+        cluster_dic = {}
 
-        for i, ident in enumerate(kmeans_model.labels_):
-            ligands[i].cluster_id = ident
-            cluster_dict[int(ident)].append(ligands[i])
+        # generate fingerprint array
+        X = fingerprint_array(ligands)
+        if len(X) < 2:
+            X = fingerprint_array(ligands)
+            if len(X) < 2:
+                raise ValueError("Fingerprint array must contain more than 1 entry")
 
-        return cluster_dict, s
+        # dimensionality reduction
+        tsne_X = TSNE(n_components=3, metric=tanimoto_dist).fit_transform(np.array(X, dtype=np.float32))
+
+        # clustering
+        cluster_tsne = hdbscan.HDBSCAN(min_cluster_size=2, gen_min_span_tree=True)
+        cluster_tsne.fit(tsne_X)
+
+        for i, label in enumerate(cluster_tsne.labels_):
+            if label == -1:
+                continue
+            else:
+                if label in cluster_dic:
+                    cluster_dic[label].append(ligands[i])
+                else:
+                    cluster_dic.update({label: [ligands[i]]})
+
+        x = [tsne_X.T[0][j] for j, l in enumerate(cluster_tsne.labels_) if l != -1]
+        y = [tsne_X.T[1][j] for j, l in enumerate(cluster_tsne.labels_) if l != -1]
+        hue = [l for j, l in enumerate(cluster_tsne.labels_) if l != -1]
+
+        plt.scatter(x, y, c=hue, cmap='RdBu')
+
+        plt.title("{} clusters".format(t))
+        plt.savefig("{}.png".format(t))
+        plt.close()
+        if len(cluster_dic) == 0:
+            print("NO CLUSTERS FOUND")
+            cluster_dic = {i: [ligands[i]] for i in range(0, len(ligands))}
+
+        return cluster_dic
 
     @staticmethod
     def _align_proteins(reference, reference_chain, targets):
@@ -438,6 +498,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             prot = Protein.from_file(t.fname)
             prot.detect_ligand_bonds()
             prot.add_hydrogens()
+            chain = None
             for l in prot.ligands:
                 if str(t.clustered_ligand) == str(l.identifier.split(":")[1][0:3]):
                     try:
@@ -446,14 +507,11 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                                              distance=6)
                         chain = bs.residues[0].identifier.split(":")[0]
                     except:
-                        break
-                    break
+                        chain = None
 
-                else:
-                    continue
-            if not chain:
+            if chain is None:
                 print("\n        {} failed! No chain detected".format(t.identifier))
-                break
+                continue
             try:
                 binding_site_superposition = Protein.ChainSuperposition()
                 (bs_rmsd, bs_transformation) = binding_site_superposition.superpose(reference[reference_chain],
@@ -463,7 +521,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                     if str(t.clustered_ligand) == str(lig.identifier.split(":")[1][0:3]):
                         if chain == str(lig.identifier.split(":")[0]):
                             aligned_ligands.append(lig)
-            except IndexError:
+            except:
                 print("\n        {} failed!".format(t.identifier))
                 continue
 
@@ -498,12 +556,12 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
                 for feature in self._features:
                     line += "{0},{1},{2},{3},{4},{5}".format(self.identifier,
-                                                            feature.feature_type,
-                                                            feature.feature_coordinates.x,
-                                                            feature.feature_coordinates.y,
-                                                            feature.feature_coordinates.z,
-                                                            feature.score_value
-                                                            )
+                                                             feature.feature_type,
+                                                             feature.feature_coordinates.x,
+                                                             feature.feature_coordinates.y,
+                                                             feature.feature_coordinates.z,
+                                                             feature.score_value
+                                                             )
                     if feature.projected_coordinates:
                         line += ",{0},{1},{2}".format(feature.projected_coordinates.x,
                                                       feature.projected_coordinates.y,
@@ -532,7 +590,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                 pymol_file.write(pymol_out)
 
             label = self.get_label(self)
-            with io.MoleculeWriter(join(dirname(fname),lfile)) as writer:
+            with io.MoleculeWriter(join(dirname(fname), lfile)) as writer:
                 writer.write(label)
 
         elif extension == ".json":
@@ -582,7 +640,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                 pharmit_file.write(json.dumps({"points": pts}))
 
         elif extension == ".mol2":
-            mol = Molecule(identifier = "pharmacophore_model")
+            mol = Molecule(identifier="pharmacophore_model")
             atom_dic = {"apolar": 'C',
                         "donor": 'N',
                         "acceptor": 'O',
@@ -595,7 +653,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                 label=str(feat.score_value))
                            for feat in self.features]
 
-            for a in  pseudo_atms:
+            for a in pseudo_atms:
                 mol.add_atom(a)
 
             with io.MoleculeWriter(fname) as w:
@@ -664,8 +722,9 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
         with open(fname) as f:
             file = f.read().split("FEATURE_LIBRARY_END")[1]
-            lines = [l for l in file.split("""\n\n""") if l != ""]
-            feature_list = [f for f in [_PharmacophoreFeature.from_crossminer(feature) for feature in lines] if f != None]
+            lines = [l for l in file.split("""\r\n\r\n""") if l != ""]
+            feature_list = [f for f in [_PharmacophoreFeature.from_crossminer(feature) for feature in lines] if
+                            f != None]
 
         return PharmacophoreModel(settings,
                                   identifier=identifier,
@@ -731,7 +790,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             all_feats = [f for l in detected for f in l]
 
             if not all_feats:
-                    continue
+                continue
 
             for f in all_feats:
                 feature_dic[cm_dic[fd.identifier]].set_sphere(f.spheres[0].centre, f.spheres[0].radius, 1)
@@ -752,7 +811,8 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                                       feature_type=feat,
                                                       feature_coordinates=coords,
                                                       projected_coordinates=projected_coordinates,
-                                                      score_value=feature_grd.value_at_coordinate(coords, position=False),
+                                                      score_value=feature_grd.value_at_coordinate(coords,
+                                                                                                  position=False),
                                                       vector=None,
                                                       settings=settings
                                                       )
@@ -763,6 +823,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                   features=features,
                                   protein=protein,
                                   dic=feature_dic)
+
     @staticmethod
     def _to_file(ligands, out_dir, fname="ligands.dat"):
         with open(os.path.join(out_dir, fname), "w") as f:
@@ -770,7 +831,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                 f.write("{},{},{}\n".format(l.structure_id, l.chemical_id, l.smiles))
 
     @staticmethod
-    def from_pdb(pdb_code, chain, out_dir=None, representatives=None, identifier="LigandBasedPharmacophore"):
+    def from_pdb(pdb_code, chain, representatives=None, identifier="LigandBasedPharmacophore"):
         """
         creates a Pharmacophore Model from a PDB code.
 
@@ -808,7 +869,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         temp = tempfile.mkdtemp()
         ref = PDBResult(pdb_code)
         ref.download(out_dir=temp, compressed=False)
-
+        all_ligands = None
         if representatives:
             print("Reading representative PDB codes ...")
             reps = []
@@ -822,15 +883,10 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         else:
             accession_id = PDBResult(pdb_code).protein.sub_units[0].accession_id
             results = PharmacophoreModel._run_query(accession_id)
-            ligands = PharmacophoreModel._get_ligands(results)
+            # return all_ligands
+            all_ligands = PharmacophoreModel._get_ligands(results)
 
-            top = os.path.dirname(os.path.dirname(out_dir))
-            PharmacophoreModel._to_file(ligands, top, fname="all_ligands.dat")
-
-            k = int(round(len(ligands) / 5))
-            if k < 2:
-                k = 2
-            cluster_dict, s = PharmacophoreModel._cluster_ligands(n=k, ligands=ligands)
+            cluster_dict = PharmacophoreModel._cluster_ligands(ligands=all_ligands, t=identifier)
             reps = [l[0] for l in cluster_dict.values() if len(l) != 0]
 
         targets = []
@@ -854,21 +910,12 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                                             reference_chain=chain,
                                                             targets=targets)
 
-        try:
-            with open(os.path.join(top, "silhouette.dat"), "w") as sfile:
-                sfile.write("{}".format(s))
-            PharmacophoreModel._to_file(reps, top, fname="representatives.dat")
+        p = PharmacophoreModel.from_ligands(ligands=ligands, identifier=identifier)
+        p.all_ligands = all_ligands
+        p.representatives = reps
+        p.aligned_ligands = ligands
 
-        except:
-            pass
-
-        if out_dir:
-            with io.MoleculeWriter(os.path.join(out_dir, "aligned_mols.mol2")) as w:
-                for l in ligands:
-                    w.write(l)
-
-        return PharmacophoreModel.from_ligands(ligands=ligands,
-                                               identifier=identifier)
+        return p
 
 
 class _PharmacophoreFeature(Helper):
@@ -884,7 +931,9 @@ class _PharmacophoreFeature(Helper):
     :param settings:
 
     """
-    def __init__(self, projected, feature_type, feature_coordinates, projected_coordinates, score_value, vector, settings):
+
+    def __init__(self, projected, feature_type, feature_coordinates, projected_coordinates, score_value, vector,
+                 settings):
         self._projected = projected
         self._feature_type = feature_type
         self._feature_coordinates = feature_coordinates
@@ -920,7 +969,6 @@ class _PharmacophoreFeature(Helper):
     @property
     def vector(self):
         return self._vector
-
 
     @staticmethod
     def from_hotspot(grid, probe, protein, settings):
@@ -986,13 +1034,14 @@ class _PharmacophoreFeature(Helper):
         vector = None
         settings = PharmacophoreModel.Settings()
 
-        feat = re.search(r"""PHARMACOPHORE_FEATURE (.+?)\n""", feature_str)
+        feat = re.search(r"""PHARMACOPHORE_FEATURE (.+?)\r""", feature_str)
         if feat.group(1) == "excluded_volume":
             pass
         else:
-            feature_type =  cm_feature_dict[feat.group(1)]
+            feature_type = cm_feature_dict[feat.group(1)]
 
-            spher = re.findall("""PHARMACOPHORE_SPHERE (.+?)\n""", feature_str)
+            spher = re.findall("""PHARMACOPHORE_SPHERE (.+?)\r""", feature_str)
+            print(spher)
 
             if len(spher) == 1:
                 coords = spher[0].split(" ")
@@ -1003,7 +1052,7 @@ class _PharmacophoreFeature(Helper):
 
             elif len(spher) == 2:
                 coords = spher[0].split(" ")
-                proj =  spher[1].split(" ")
+                proj = spher[1].split(" ")
                 feature_coordinates = Coordinates(float(coords[0]), float(coords[1]), float(coords[2]))
                 projected = True
                 projected_coordinates = Coordinates(float(proj[0]), float(proj[1]), float(proj[2]))
@@ -1012,7 +1061,8 @@ class _PharmacophoreFeature(Helper):
             else:
                 raise IOError("feature format not recognised")
 
-            return _PharmacophoreFeature(projected, feature_type, feature_coordinates, projected_coordinates, score, vector,
+            return _PharmacophoreFeature(projected, feature_type, feature_coordinates, projected_coordinates, score,
+                                         vector,
                                          settings)
 
     @staticmethod
@@ -1044,7 +1094,7 @@ class _PharmacophoreFeature(Helper):
                 if dist in near_atoms.keys():
                     near_atoms[dist].append(atm)
                 else:
-                    near_atoms.update({dist:[atm]})
+                    near_atoms.update({dist: [atm]})
             else:
                 continue
         if len(near_atoms.keys()) == 0:
@@ -1069,9 +1119,9 @@ class _PharmacophoreFeature(Helper):
             coords = grid.indices_to_point(indices[0][0], indices[0][1], indices[0][2])
             return max_value, Coordinates(coords[0], coords[1], coords[2])
         else:
-            coords = grid.indices_to_point(round(sum(i[0] for i in indices)/len(indices)),
-                                           round(sum(j[1] for j in indices)/len(indices)),
-                                           round(sum(k[2] for k in indices)/len(indices))
+            coords = grid.indices_to_point(round(sum(i[0] for i in indices) / len(indices)),
+                                           round(sum(j[1] for j in indices) / len(indices)),
+                                           round(sum(k[2] for k in indices) / len(indices))
                                            )
             return max_value, Coordinates(coords[0], coords[1], coords[2])
 
@@ -1099,9 +1149,9 @@ class _PharmacophoreFeature(Helper):
                     total_mass += grid_val
 
         coords = Coordinates(np.divide(weighted_x, total_mass),
-                                      np.divide(weighted_y, total_mass),
-                                      np.divide(weighted_z, total_mass)
-                                      )
+                             np.divide(weighted_y, total_mass),
+                             np.divide(weighted_z, total_mass)
+                             )
         score = grid.value_at_point(coords)
 
         return float(score), coords

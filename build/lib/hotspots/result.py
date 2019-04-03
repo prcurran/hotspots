@@ -47,9 +47,9 @@ from skimage import feature
 from hotspots.grid_extension import Grid, _GridEnsemble
 from hotspots.hs_utilities import Figures
 from hotspots.template_strings import pymol_imports
-from hs_pharmacophore import PharmacophoreModel
-from hs_utilities import Helper
-from atomic_hotspot_calculation import AtomicHotspot, _AtomicHotspotResult
+from hotspots.hs_utilities import Helper
+from hotspots.hs_pharmacophore import PharmacophoreModel
+from hotspots.atomic_hotspot_calculation import AtomicHotspot, _AtomicHotspotResult
 
 
 class _Scorer(Helper):
@@ -60,6 +60,7 @@ class _Scorer(Helper):
     :param obj: either `ccdc.molecule.Molecule` or `ccdc.protein.Protein`
     :param int tolerance: search distance
     """
+
     def __init__(self, hotspot_result, obj, tolerance):
         self.hotspot_result = hotspot_result
         self.object = obj
@@ -151,6 +152,7 @@ class _Scorer(Helper):
 
         :return:
         """
+
         def fetch_scores(atom, grid, tolerance=4):
             try:
                 return max(self.hotspot_result.super_grids[grid].get_near_scores(coordinate=atom.coordinates,
@@ -222,10 +224,8 @@ class _Scorer(Helper):
 
     def _score_feature(self, f):
 
-        ideal_coord = (f.coordinates[n] + 1.8*(f.protein_vector[n]) for n in xrange(0,2))
+        ideal_coord = (f.coordinates[n] + 1.8 * (f.protein_vector[n]) for n in xrange(0, 2))
         print(ideal_coord)
-
-
 
     def score_cavity(self):
         # TODO: return scored cavity _features, the score protein function should be enough tbh
@@ -233,7 +233,6 @@ class _Scorer(Helper):
 
         for f in cav.features:
             self._score_feature(f)
-
 
     def score_hotspot(self, threshold=5, percentile=50):
         """
@@ -343,14 +342,26 @@ class Results(object):
         if pharmacophore:
             self.pharmacophore = self.get_pharmacophore_model()
 
-
     class ConstraintData(object):
         """
         standardise constrain read and write (required for the GOLD optimisation)
 
         """
-        def __init__(self, score_by_index):
+
+        def __init__(self, score_by_index, prot=None):
             self.score_by_index = OrderedDict(score_by_index)
+            self.protein = prot
+
+        def to_molecule(self, protein=None):
+            if self.protein is None:
+                if protein is None:
+                    raise AttributeError("Give me a protein")
+            mol = Molecule(identifier="constraints")
+            for score, index in self.score_by_index.items():
+                atm = self.protein.atoms[index]
+                atm.label = str(score)
+                mol.add_atom(atm)
+            return mol
 
         def write(self, path):
             f = open(path, "wb")
@@ -512,7 +523,7 @@ class Results(object):
                 [g[x + i][y + j][z + k] for i in range(-tol, tol + 1) for j in range(-tol, tol + 1) for k in
                  range(-tol, tol + 1)])
             if loc_arr[loc_arr > 0].size != 0:
-                #print(np.mean(loc_arr[loc_arr > 0]))
+                # print(np.mean(loc_arr[loc_arr > 0]))
                 new_grid[x][y][z] = np.mean(loc_arr[loc_arr > 0])
 
         vfilter_point = np.vectorize(filter_point)
@@ -666,34 +677,117 @@ class Results(object):
                 mol.add_atom(atom=atm)
         return mol
 
-    def docking_constraint_atoms(self, max_constraints=5):
+    def _output_feature_centroid(self):
+        dic = {"apolar": "C",
+               "acceptor": "N",
+               "donor": "O"}
+        mol = Molecule(identifier="centroids")
+        for i, feat in enumerate(self.features):
+            coords = feat.grid.centroid()
+            mol.add_atom(Atom(atomic_symbol=dic[feat.feature_type],
+                              atomic_number=14,
+                              coordinates=coords,
+                              label=str(i)))
+        from ccdc import io
+        with io.MoleculeWriter("cenroid.mol2") as w:
+            w.write(mol)
+
+    def docking_constraint_atoms(self, max_constraints=10, accessible_cutoff=0.001, max_distance=4):
         """
         creates a dictionary of constraints
 
         :param int max_constraints: max number of constraints
         :return dic: score by atom
         """
-        for atm in self.protein.atoms:
-            atm.partial_charge = int(0)
-        prot = self.score(self.protein)
 
-        coords = np.array([a.coordinates for a in prot.atoms])
-        atm_dic = {atm.partial_charge: atm.index for atm in prot.atoms
-                   if type(atm.partial_charge) is float
-                   and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
-                   and self._is_solvent_accessible(coords, atm, min_distance=2)
-                   }
+        from hotspots.hs_utilities import Helper
+        from scipy.spatial import distance
 
-        if len(atm_dic) > max_constraints:
-            scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
+        point = self.super_grids['apolar'].centroid()
+        bs = self.protein.BindingSiteFromPoint(protein=self.protein, origin=point, distance=12.)
+        p = self.protein.copy()
+        for a in p.atoms:
+            a.label = str(a.index)
+
+        remove = set(p.residues) - set(bs.residues)
+
+        for r in remove:
+            p.remove_residue(r.identifier)
+
+        donors = {a.coordinates: a.label for a in p.atoms
+                  if (a.atomic_number == 1 and a.neighbours[0].is_donor and a.solvent_accessible_surface() > accessible_cutoff)
+                  }
+
+        acceptors = {a.coordinates: a.label for a in p.atoms
+                     if a.is_acceptor and a.solvent_accessible_surface() > accessible_cutoff
+                     }
+        pairs = {"acceptor": donors,
+                 "donor": acceptors}
+
+        constraint_dic = {}
+
+        for feature in self.features:
+            centoid = [feature.grid.centroid()]
+            coords = pairs[feature.feature_type].keys()
+            all_distances = distance.cdist(coords, centoid, 'euclidean')
+            ind = int(np.argmin(all_distances))
+            min_coord = coords[ind]
+            atm_index = int(pairs[feature.feature_type][min_coord])
+
+            if all_distances[ind] < max_distance:
+                constraint_dic.update({feature.score_value: atm_index})
+
+        if len(constraint_dic) > max_constraints:
+            scores = sorted([f[0] for f in constraint_dic.items()], reverse=True)[:max_constraints]
         else:
-            scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
+            scores = sorted([f[0] for f in constraint_dic.items()], reverse=True)
 
-        bin_keys = set(atm_dic.keys()) - set(scores)
+        bin_keys = set(constraint_dic.keys()) - set(scores)
         for b in bin_keys:
-            del atm_dic[b]
+            del constraint_dic[b]
 
-        return self.ConstraintData(atm_dic)
+        return self.ConstraintData(constraint_dic, self.protein)
+
+            # for atm in self.protein.atoms:
+            #     atm.partial_charge = int(0)
+            # prot = self.score(self.protein)
+            #
+            # coords = np.array([a.coordinates for a in prot.atoms])
+            # atm_dic = {atm.partial_charge: atm.index for atm in prot.atoms
+            #            if type(atm.partial_charge) is float
+            #            and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
+            #            and self._is_solvent_accessible(coords, atm, min_distance=2)
+            #            }
+            #
+            # if len(atm_dic) > max_constraints:
+            #     scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
+            # else:
+            #     scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
+            #
+            # bin_keys = set(atm_dic.keys()) - set(scores)
+            # for b in bin_keys:
+            #     del atm_dic[b]
+            #
+            # return self.ConstraintData(atm_dic, self.protein)
+
+    def _usr_moment(self, threshold=14):
+        """
+        PRIVATE
+        This is some experimental code and requires seperate installation of USR
+        generates USR moments for shape analysis
+        :return:
+        """
+        try:
+            from hs_utilities import _generate_usr_moment
+
+            coords_list = [np.array(g.coordinates(threshold=threshold))
+                           for p, g in self.super_grids.items()
+                           if p != "negative" and p != "positive"]
+
+            return _generate_usr_moment(fcoords_list=coords_list)
+
+        except ImportError:
+            print("To use this feature you must have USR installed")
 
     def map_values(self):
         """
@@ -797,8 +891,8 @@ class Results(object):
                     g = ss_dict[shortest]
 
                 feat.superstar_results.append(_AtomicHotspotResult(identifier=r.identifier,
-                                                                  grid=g,
-                                                                  buriedness=None)
+                                                                   grid=g,
+                                                                   buriedness=None)
                                               )
 
                 score.append(g.grid_score(threshold=1, percentile=50))
@@ -1229,8 +1323,8 @@ class Extractor(object):
         features_in_vol = {p: g * (g & common_best_island) for p, g in mask_dic.items()}
         location = features_in_vol["apolar"]
         features = self.hotspot_result._get_features(interaction_dict=features_in_vol,
-                                         threshold=threshold,
-                                         min_feature_gp=settings.min_feature_gp)
+                                                     threshold=threshold,
+                                                     min_feature_gp=settings.min_feature_gp)
         return location, features
 
     @staticmethod
@@ -1310,7 +1404,6 @@ class Extractor(object):
     #             super_profile.append(result)
     #
     #         feat.superstar_profile = super_profile
-
 
     @property
     def single_grid(self):
@@ -1451,7 +1544,7 @@ class Extractor(object):
         self.extracted_hotspots = [value for (key, value) in sorted(extracted_hotspots_by_rank.items())]
 
         for i, hs in enumerate(self.extracted_hotspots):
-            hs.identifier = hs.score_value #"rank_{}".format(hs.rank)
+            hs.identifier = hs.score_value  # "rank_{}".format(hs.rank)
             print("rank", hs.rank, "score", hs.score_value)
 
     def _select_cavity_grids(self, cavs):

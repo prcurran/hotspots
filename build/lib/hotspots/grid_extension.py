@@ -38,6 +38,15 @@ class Grid(utilities.Grid):
     """
     A class to extend a `ccdc.utilities.Grid` this provides grid methods required in the Fragment Hotspot Maps algorithm
     """
+    def coordinates(self, threshold=1):
+        nx, ny, nz = self.nsteps
+        return [self.indices_to_point(i, j, k)
+                for i in range(nx)
+                for j in range(ny)
+                for k in range(nz)
+                if self.value(i, j, k) >= threshold]
+
+
     def grid_value_by_coordinates(self, threshold=1):
         """
         returns a dictionary of grid point values by coordinates
@@ -656,6 +665,7 @@ class Grid(utilities.Grid):
 
         else:
             return score
+
 
 utilities.Grid = Grid
 

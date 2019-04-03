@@ -15,8 +15,8 @@ import tempfile
 from os import mkdir
 from os.path import exists, join, abspath
 
-import matplotlib as mpl
-mpl.use('TkAgg')
+# import matplotlib as mpl
+# mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
 import numpy as np
