@@ -692,7 +692,7 @@ class Results(object):
         with io.MoleculeWriter("cenroid.mol2") as w:
             w.write(mol)
 
-    def docking_constraint_atoms(self, max_constraints=10, accessible_cutoff=0.001, max_distance=4):
+    def docking_constraint_atoms(self, max_constraints=10, accessible_cutoff=0.001, max_distance=4, threshold=14, min_size = 15):
         """
         creates a dictionary of constraints
 
@@ -702,10 +702,11 @@ class Results(object):
 
         from hotspots.hs_utilities import Helper
         from scipy.spatial import distance
-
+        self.protein.add_hydrogens()
         point = self.super_grids['apolar'].centroid()
         bs = self.protein.BindingSiteFromPoint(protein=self.protein, origin=point, distance=12.)
         p = self.protein.copy()
+
         for a in p.atoms:
             a.label = str(a.index)
 
@@ -715,27 +716,30 @@ class Results(object):
             p.remove_residue(r.identifier)
 
         donors = {a.coordinates: a.label for a in p.atoms
-                  if (a.atomic_number == 1 and a.neighbours[0].is_donor and a.solvent_accessible_surface() > accessible_cutoff)
-                  }
+                  if a.atomic_number == 1 and a.neighbours[0].is_donor and a.solvent_accessible_surface() > accessible_cutoff}
 
         acceptors = {a.coordinates: a.label for a in p.atoms
                      if a.is_acceptor and a.solvent_accessible_surface() > accessible_cutoff
                      }
+
         pairs = {"acceptor": donors,
                  "donor": acceptors}
 
         constraint_dic = {}
 
         for feature in self.features:
-            centoid = [feature.grid.centroid()]
-            coords = pairs[feature.feature_type].keys()
-            all_distances = distance.cdist(coords, centoid, 'euclidean')
-            ind = int(np.argmin(all_distances))
-            min_coord = coords[ind]
-            atm_index = int(pairs[feature.feature_type][min_coord])
+            if (feature.grid > threshold).count_grid() > min_size:
+                centoid = [feature.grid.centroid()]
+                coords = pairs[feature.feature_type].keys()
 
-            if all_distances[ind] < max_distance:
-                constraint_dic.update({feature.score_value: atm_index})
+                all_distances = distance.cdist(coords, centoid, 'euclidean')
+                ind = int(np.argmin(all_distances))
+                min_coord = coords[ind]
+
+                atm_index = int(pairs[feature.feature_type][min_coord])
+
+                if all_distances[ind] < max_distance:
+                    constraint_dic.update({feature.score_value: atm_index})
 
         if len(constraint_dic) > max_constraints:
             scores = sorted([f[0] for f in constraint_dic.items()], reverse=True)[:max_constraints]
@@ -745,6 +749,8 @@ class Results(object):
         bin_keys = set(constraint_dic.keys()) - set(scores)
         for b in bin_keys:
             del constraint_dic[b]
+
+        constraint_dic = OrderedDict(reversed(list(constraint_dic.items())))
 
         return self.ConstraintData(constraint_dic, self.protein)
 
@@ -1047,7 +1053,7 @@ class Extractor(object):
             :param threshold:
             :return: int
             """
-            island = self.mask.get_best_island(threshold, mode="score", peak=self.peak)
+            island = self.mask.get_best_island(threshold, mode="count", peak=self.peak)
             if island is None:
                 return 999999
             points = (island > threshold).count_grid()
@@ -1082,25 +1088,32 @@ class Extractor(object):
             :return:
             """
             x0 = np.array([14])
-            optimize.Bounds(0, 50)
-            ret = optimize.minimize_scalar(self._count_island_points, x0, bounds=(0, 50), method='bounded')
+            #optimize.Bounds(0, 50)
+
+            # set options={'disp': True} for debugging
+            # ret = optimize.minimize_scalar(self._count_island_points, x0, bounds=(0, 50), method='bounded', tol=0.1,
+            #                                options={'disp': True})
+            ret = optimize.minimize_scalar(self._count_island_points,  method='brent', tol=0.1,
+                                           options={'disp': True})
+            print(ret.fun)
             threshold = ret.x
+            print(threshold)
             if threshold > 48:
                 threshold = 1
-            best_island = self.mask.get_best_island(threshold=threshold, mode='score', peak=self.peak)
-
+            best_island = self.mask.get_best_island(threshold=threshold, mode='count', peak=self.peak)
+            print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
             # If threshold is close to zero, keep all grid points
             try:
                 best_island = (best_island > threshold) * best_island
             except TypeError:
                 best_island = self.mask
 
-            if best_island.count_grid() > self.settings._num_gp:
-                threshold += 0.01
-                best_island = (best_island > threshold) * best_island
+            # if best_island.count_grid() > self.settings._num_gp:
+            #     threshold += 0.01
+            #     best_island = (best_island > threshold) * best_island
 
-            threshold, best_island = self._reselect_points(threshold=threshold)
-            print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
+            # threshold, best_island = self._reselect_points(threshold=threshold)
+            # print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
             return threshold, best_island
 
     def __init__(self, hr, settings=None):

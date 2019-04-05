@@ -110,28 +110,30 @@ class DockerSettings(docking.Docker.Settings):
             :param cutoff: minimum score required to assign the constraint
             :return list: list of :class:`hotspots.hs_docking.HotspotHBondConstraint`
             """
-            for atm in protein.atoms:
-                atm.partial_charge = int(0)
-            prot = hr.score(protein)
+            # for atm in protein.atoms:
+            #     atm.partial_charge = int(0)
+            # prot = hr.score(protein)
+            #
+            # coords = np.array([a.coordinates for a in prot.atoms])
+            # atm_dic = {atm.partial_charge: atm for atm in prot.atoms
+            #            if type(atm.partial_charge) is float
+            #            and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
+            #            and _is_solvent_accessible(coords, atm, min_distance=2)
+            #            }
+            #
+            # print(atm_dic)
+            #
+            # if len(atm_dic) > max_constraints:
+            #     scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
+            # else:
+            #     scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
 
-            coords = np.array([a.coordinates for a in prot.atoms])
-            atm_dic = {atm.partial_charge: atm for atm in prot.atoms
-                       if type(atm.partial_charge) is float
-                       and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
-                       and _is_solvent_accessible(coords, atm, min_distance=2)
-                       }
+            constraints = hr.docking_constraint_atoms(max_constraints=max_constraints)
 
-            print(atm_dic)
-
-            if len(atm_dic) > max_constraints:
-                scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
-            else:
-                scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
-
-            return [DockerSettings.HotspotHBondConstraint(atoms=[atm_dic[s]],
+            return [DockerSettings.HotspotHBondConstraint(atoms=[protein.atoms[index]],
                                                           weight=weight,
                                                           min_hbond_score=min_hbond_score)
-                    for s in scores if s > cutoff]
+                    for s, index in constraints.score_by_index.items() if s > cutoff]
 
         def _to_string(self):
             s = '%.4f %.4f %s' % (

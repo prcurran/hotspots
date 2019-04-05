@@ -321,33 +321,33 @@ class Grid(utilities.Grid):
                         if island.contains_point(peak):
                             g = (island > threshold) * island
                             rank = g.count_grid()
-                            island_by_rank.update({rank: island})
+                            island_by_rank.update({rank: g})
                         else:
                             continue
                     else:
                         g = (island > threshold) * island
                         rank = g.count_grid()
-                        island_by_rank.update({rank: island})
+                        island_by_rank.update({rank: g})
 
-            elif mode == "score":
-                for island in islands:
-                    if peak:
-                        if island.contains_point(peak):
-                            nx, ny, nz = island.nsteps
-                            island_points = [island.value(i, j, k)
-                                             for i in range(nx) for j in range(ny) for k in range(nz)
-                                             if island.value(i, j, k) >= threshold]
-                            rank = sum(island_points)
-                            island_by_rank.update({rank: island})
-                        else:
-                            continue
-                    else:
-                        nx, ny, nz = island.nsteps
-                        island_points = [island.value(i, j, k)
-                                         for i in range(nx) for j in range(ny) for k in range(nz)
-                                         if island.value(i, j, k) >= threshold]
-                        rank = sum(island_points)
-                        island_by_rank.update({rank: island})
+            # elif mode == "score":
+            #     for island in islands:
+            #         if peak:
+            #             if island.contains_point(peak):
+            #                 nx, ny, nz = island.nsteps
+            #                 island_points = [island.value(i, j, k)
+            #                                  for i in range(nx) for j in range(ny) for k in range(nz)
+            #                                  if island.value(i, j, k) >= threshold]
+            #                 rank = sum(island_points)
+            #                 island_by_rank.update({rank: island})
+            #             else:
+            #                 continue
+            #         else:
+            #             nx, ny, nz = island.nsteps
+            #             island_points = [island.value(i, j, k)
+            #                              for i in range(nx) for j in range(ny) for k in range(nz)
+            #                              if island.value(i, j, k) >= threshold]
+            #             rank = sum(island_points)
+            #             island_by_rank.update({rank: island})
 
             else:
                 raise IOError("mode not supported")
@@ -356,6 +356,7 @@ class Grid(utilities.Grid):
                 return None
             else:
                 rank = sorted(island_by_rank.keys(), reverse=True)[0]
+                print("threshold:", threshold, "count:", sorted(island_by_rank.keys(), reverse=True))
                 return island_by_rank[rank]
 
     def minimal(self):
