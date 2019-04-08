@@ -1069,51 +1069,71 @@ class Extractor(object):
             points = (self.top_island > threshold).count_grid()
             return abs(self.settings._num_gp - points)
 
-        def _reselect_points(self, threshold):
+        def _grow(self, best_island):
             """
-            looks within the top islands bounding box for other points above threshold.
-            :param threshold: float, island threshold
+            *experimental*
+            fixes joining islands problem, this has not been tested use with caution :) .
+
+
+            :param best_island:
             :return:
             """
-            self.top_island = self.mask.get_best_island(threshold=threshold, mode="score", peak=self.peak)
-            new_threshold = optimize.fminbound(self._count_grid_points, 0, 30, xtol=0.01)
-            best_island = (self.top_island > new_threshold) * self.top_island
 
-            return new_threshold, best_island
+            inner = self.mask.common_boundaries(best_island)
+            num_gp = inner.count_grid()
 
-        def optimize_island_threshold(self):
+            grown = Grid.grow(inner, self.mask)     # adding points above 80th percentile as default,
+                                                    # this hasn't been played with
+            while num_gp < self.settings._num_gp:
+                # iterate over the growth cycle
+                grown = Grid.grow(inner, self.mask)
+                diff = grown > inner
+
+                if diff.count_grid() < 10:
+                    break
+
+                inner = grown
+                num_gp = inner.count_grid()
+                print(num_gp, 'out of', self.settings._num_gp)
+
+            tmp_best_island = inner * self.mask
+            g_vals = tmp_best_island.grid_values()
+            g_vals[::-1].sort()
+
+            try:
+                threshold = g_vals[self.settings._num_gp]
+            except IndexError:
+                threshold = g_vals.min()
+
+            return threshold, grown
+
+        def optimize_island_threshold(self, tolerance=0.1):
             """
             finds the island threshold for a grid which returns the desired volume
 
             :return:
             """
-            x0 = np.array([14])
-            #optimize.Bounds(0, 50)
-
             # set options={'disp': True} for debugging
-            # ret = optimize.minimize_scalar(self._count_island_points, x0, bounds=(0, 50), method='bounded', tol=0.1,
-            #                                options={'disp': True})
+
             ret = optimize.minimize_scalar(self._count_island_points,  method='brent', tol=0.1,
                                            options={'disp': True})
-            print(ret.fun)
             threshold = ret.x
-            print(threshold)
             if threshold > 48:
                 threshold = 1
             best_island = self.mask.get_best_island(threshold=threshold, mode='count', peak=self.peak)
             print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
+
             # If threshold is close to zero, keep all grid points
             try:
                 best_island = (best_island > threshold) * best_island
             except TypeError:
                 best_island = self.mask
 
-            # if best_island.count_grid() > self.settings._num_gp:
-            #     threshold += 0.01
-            #     best_island = (best_island > threshold) * best_island
+            if abs((best_island.count_grid() - self.settings._num_gp) / self.settings._num_gp) > tolerance:
+                print("Percentage error=", abs((best_island.count_grid() - self.settings._num_gp) / self.settings._num_gp) * 100)
+                threshold, best_island = self._grow(best_island)
 
-            # threshold, best_island = self._reselect_points(threshold=threshold)
-            # print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
+            print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
             return threshold, best_island
 
     def __init__(self, hr, settings=None):
@@ -1271,61 +1291,61 @@ class Extractor(object):
             hr.rank = hr._rank_features()
             return hr
 
-    def _grow_from_seed(self, single_grid, mask_dic, settings, prot, seed=None):
-        """
-        *experimental*
-
-        create a Extracted Hotspot object from HotspotResult object
-
-        :param single_grid:
-        :param mask_dic:
-        :param settings:
-        :param prot:
-        :param seed:
-        :return:
-        """
-
-        inner = single_grid.copy_and_clear()
-        inner.set_sphere(point=seed, radius=1, value=20, scaling='None')
-        # mask = (sphere & single_grid) * single_grid
-
-        # optimiser = _Results.Optimiser(mask=mask, settings=settings, peak=seed)
-        # threshold, best_island = optimiser.optimize_island_threshold()
-        num_gp = inner.count_grid()
-        grown = Grid.grow(inner, single_grid)
-        while num_gp < settings._num_gp:
-
-            grown = Grid.grow(inner, single_grid)
-            diff = grown > inner
-            if diff.count_grid() < 10:
-                break
-            inner = grown
-            num_gp = inner.count_grid()
-            print(num_gp, 'out of', settings._num_gp)
-
-        tmp_best_island = inner * single_grid
-        g_vals = tmp_best_island.grid_values()
-        g_vals[::-1].sort()
-        try:
-            threshold = g_vals[settings._num_gp]
-        except IndexError:
-            threshold = g_vals.min()
-
-        best_island = grown
-
-        if best_island is not None:
-            location, features = self._get_interaction_type(mask_dic, best_island, threshold, settings)
-            grd_dict = self._get_grid_dict(location, features, settings)
-
-            hr = Results(super_grids=grd_dict, protein=prot)
-
-            hr.threshold = threshold
-            hr.best_island = best_island.minimal()
-            hr.location = location
-            hr.features = features
-            hr.score_value = hr.score()
-            hr.rank = hr._rank_features()
-            return hr
+    # def _grow_from_seed(self, single_grid, mask_dic, settings, prot, seed=None):
+    #     """
+    #     *experimental*
+    #
+    #     create a Extracted Hotspot object from HotspotResult object
+    #
+    #     :param single_grid:
+    #     :param mask_dic:
+    #     :param settings:
+    #     :param prot:
+    #     :param seed:
+    #     :return:
+    #     """
+    #
+    #     inner = single_grid.copy_and_clear()
+    #     inner.set_sphere(point=seed, radius=1, value=20, scaling='None')
+    #     # mask = (sphere & single_grid) * single_grid
+    #
+    #     # optimiser = _Results.Optimiser(mask=mask, settings=settings, peak=seed)
+    #     # threshold, best_island = optimiser.optimize_island_threshold()
+    #     num_gp = inner.count_grid()
+    #     grown = Grid.grow(inner, single_grid)
+    #     while num_gp < settings._num_gp:
+    #
+    #         grown = Grid.grow(inner, single_grid)
+    #         diff = grown > inner
+    #         if diff.count_grid() < 10:
+    #             break
+    #         inner = grown
+    #         num_gp = inner.count_grid()
+    #         print(num_gp, 'out of', settings._num_gp)
+    #
+    #     tmp_best_island = inner * single_grid
+    #     g_vals = tmp_best_island.grid_values()
+    #     g_vals[::-1].sort()
+    #     try:
+    #         threshold = g_vals[settings._num_gp]
+    #     except IndexError:
+    #         threshold = g_vals.min()
+    #
+    #     best_island = grown
+    #
+    #     if best_island is not None:
+    #         location, features = self._get_interaction_type(mask_dic, best_island, threshold, settings)
+    #         grd_dict = self._get_grid_dict(location, features, settings)
+    #
+    #         hr = Results(super_grids=grd_dict, protein=prot)
+    #
+    #         hr.threshold = threshold
+    #         hr.best_island = best_island.minimal()
+    #         hr.location = location
+    #         hr.features = features
+    #         hr.score_value = hr.score()
+    #         hr.rank = hr._rank_features()
+    #         return hr
 
     def _get_interaction_type(self, mask_dic, best_island, threshold, settings):
         """

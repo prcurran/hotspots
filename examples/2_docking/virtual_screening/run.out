@@ -1,0 +1,18 @@
+Setting up GOLD environment...
+GOLD Version 5.7.0
+Running:
+ 
+     "/local/pcurran/CCDC/Discovery_2019/GOLD/gold/d_linux_64/bin/gold_linux_64" "/home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/akt1/docking/0/hs_gold.conf"
+
+Setting up GOLD environment...
+GOLD Version 5.7.0
+Running:
+ 
+     "/local/pcurran/CCDC/Discovery_2019/GOLD/gold/d_linux_64/bin/gold_linux_64" "/home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/akt1/docking/10/hs_gold.conf"
+
+Setting up GOLD environment...
+GOLD Version 5.7.0
+Running:
+ 
+     "/local/pcurran/CCDC/Discovery_2019/GOLD/gold/d_linux_64/bin/gold_linux_64" "/home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/akt1/docking/100/hs_gold.conf"
+

@@ -592,13 +592,11 @@ class Grid(utilities.Grid):
         :param template:
         :return:
         """
-        expand = inner.max_value_of_neighbours().max_value_of_neighbours() > 0.1   # remove very small values
+        expand = inner.max_value_of_neighbours() > 0.1   # remove very small values
         outer = expand.__mul__(-inner) * template
-        #test = expand*template
         threshold = np.percentile(a=outer.grid_values(threshold=1), q=int(percentile))
 
         return inner.__add__(outer > threshold)
-        #return template * ( > threshold)
 
     def get_peaks(self, min_distance=6, cutoff=2):
         """
