@@ -448,7 +448,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                 raise ValueError("Fingerprint array must contain more than 1 entry")
 
         # dimensionality reduction
-        tsne_X = TSNE(n_components=3, metric=tanimoto_dist).fit_transform(np.array(X, dtype=np.float32))
+        tsne_X = TSNE(n_components=2, metric=tanimoto_dist).fit_transform(np.array(X, dtype=np.float32))
 
         # clustering
         cluster_tsne = hdbscan.HDBSCAN(min_cluster_size=2, gen_min_span_tree=True)
@@ -467,7 +467,16 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         y = [tsne_X.T[1][j] for j, l in enumerate(cluster_tsne.labels_) if l != -1]
         hue = [l for j, l in enumerate(cluster_tsne.labels_) if l != -1]
 
+        seen = [-1]
+        sx = []
+        sy = []
+        for k, l in enumerate(cluster_tsne.labels_):
+            if not l in seen:
+                sx.append(tsne_X.T[0][k])
+                sy.append(tsne_X.T[1][k])
+
         plt.scatter(x, y, c=hue, cmap='RdBu')
+        plt.scatter(sx, sy, marker="x")
 
         plt.title("{} clusters".format(t))
         plt.savefig("{}.png".format(t))
@@ -982,9 +991,18 @@ class _PharmacophoreFeature(Helper):
         :param `hotspots.hs_pharmacophore.PharmacophoreModel.Settings` settings: settings
         :return: :class:`hotspots.hs_pharmacophore._PharmacophoreFeature`
         """
+
+        def score_feature(grid, threshold=14, percentile=50):
+            """
+            returns
+            :return:
+            """
+            return grid.grid_score(threshold=threshold, percentile=percentile)
+
         feature_type = probe
         if probe == "apolar":
             score, feature_coordinates = _PharmacophoreFeature.get_centroid(grid)
+            score = score_feature(grid)
             projected = False
             projected_coordinates = None
             vector = None
@@ -993,6 +1011,7 @@ class _PharmacophoreFeature(Helper):
             vector = None
             projected_coordinates = None
             score, feature_coordinates = _PharmacophoreFeature.get_maxima(grid)
+            score = score_feature(grid)
             if probe == "donor" or probe == "acceptor":
 
                 projected = True

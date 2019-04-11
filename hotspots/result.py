@@ -1069,7 +1069,7 @@ class Extractor(object):
             points = (self.top_island > threshold).count_grid()
             return abs(self.settings._num_gp - points)
 
-        def _grow(self, best_island):
+        def _grow(self, best_island, tolerance=0.1):
             """
             *experimental*
             fixes joining islands problem, this has not been tested use with caution :) .
@@ -1084,7 +1084,7 @@ class Extractor(object):
 
             grown = Grid.grow(inner, self.mask)     # adding points above 80th percentile as default,
                                                     # this hasn't been played with
-            while num_gp < self.settings._num_gp:
+            while (abs(num_gp - self.settings._num_gp)) / self.settings._num_gp > tolerance:
                 # iterate over the growth cycle
                 grown = Grid.grow(inner, self.mask)
                 diff = grown > inner
@@ -1115,7 +1115,7 @@ class Extractor(object):
             """
             # set options={'disp': True} for debugging
 
-            ret = optimize.minimize_scalar(self._count_island_points,  method='brent', tol=0.1,
+            ret = optimize.minimize_scalar(self._count_island_points,  method='brent', tol=0.0001,
                                            options={'disp': True})
             threshold = ret.x
             if threshold > 48:
@@ -1129,7 +1129,12 @@ class Extractor(object):
             except TypeError:
                 best_island = self.mask
 
-            if abs((best_island.count_grid() - self.settings._num_gp) / self.settings._num_gp) > tolerance:
+            while ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) < 0:
+                # ensure underestimation
+                threshold += 0.1
+                best_island = (best_island > threshold) * best_island
+
+            if ((self.settings._num_gp - best_island.count_grid() ) / self.settings._num_gp) > tolerance:
                 print("Percentage error=", abs((best_island.count_grid() - self.settings._num_gp) / self.settings._num_gp) * 100)
                 threshold, best_island = self._grow(best_island)
 
