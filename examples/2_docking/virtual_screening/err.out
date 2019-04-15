@@ -9,10 +9,12 @@ Traceback (most recent call last):
     o.dock()
   File "virtual_screening.py", line 74, in dock
     max_constraints=1)
-  File "/home/pcurran/github_packages/hotspots/hotspots/hs_docking.py", line 136, in create
-    for s, index in constraints.score_by_index.items() if s > cutoff]
-  File "/home/pcurran/github_packages/hotspots/hotspots/hs_docking.py", line 74, in __init__
-    not (a.atomic_number == 1 and a.neighbours[0].is_donor) and
+  File "/home/pcurran/github_packages/hotspots/hotspots/hs_docking.py", line 131, in create
+    constraints = hr.docking_constraint_atoms(max_constraints=max_constraints)
+  File "/home/pcurran/github_packages/hotspots/hotspots/result.py", line 721, in docking_constraint_atoms
+    donors = {x.coordinates: x.label for x in [a for a in p.atoms if a.atomic_number == 1]
+  File "/home/pcurran/github_packages/hotspots/hotspots/result.py", line 722, in <dictcomp>
+    if x.neighbours[0].is_donor and x.solvent_accessible_surface() > accessible_cutoff}
 IndexError: tuple index out of range
 Traceback (most recent call last):
   File "virtual_screening.py", line 100, in <module>
@@ -21,8 +23,10 @@ Traceback (most recent call last):
     o.dock()
   File "virtual_screening.py", line 74, in dock
     max_constraints=1)
-  File "/home/pcurran/github_packages/hotspots/hotspots/hs_docking.py", line 136, in create
-    for s, index in constraints.score_by_index.items() if s > cutoff]
-  File "/home/pcurran/github_packages/hotspots/hotspots/hs_docking.py", line 74, in __init__
-    not (a.atomic_number == 1 and a.neighbours[0].is_donor) and
+  File "/home/pcurran/github_packages/hotspots/hotspots/hs_docking.py", line 131, in create
+    constraints = hr.docking_constraint_atoms(max_constraints=max_constraints)
+  File "/home/pcurran/github_packages/hotspots/hotspots/result.py", line 721, in docking_constraint_atoms
+    donors = {x.coordinates: x.label for x in [a for a in p.atoms if a.atomic_number == 1]
+  File "/home/pcurran/github_packages/hotspots/hotspots/result.py", line 722, in <dictcomp>
+    if x.neighbours[0].is_donor and x.solvent_accessible_surface() > accessible_cutoff}
 IndexError: tuple index out of range

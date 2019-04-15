@@ -702,21 +702,24 @@ class Results(object):
 
         from hotspots.hs_utilities import Helper
         from scipy.spatial import distance
-        self.protein.add_hydrogens()
+        #self.protein.add_hydrogens()
         point = self.super_grids['apolar'].centroid()
-        bs = self.protein.BindingSiteFromPoint(protein=self.protein, origin=point, distance=12.)
+        # bs = self.protein.BindingSiteFromPoint(protein=self.protein, origin=point, distance=12.)
         p = self.protein.copy()
+        #
+        # for a in p.atoms:
+        #     a.label = str(a.index)
+        #
+        # remove = set(p.residues) - set(bs.residues)
+        #
+        # for r in remove:
+        #     p.remove_residue(r.identifier)
+        # from ccdc import io
+        # with io.MoleculeWriter("bs.pdb") as w:
+        #     w.write(p)
 
-        for a in p.atoms:
-            a.label = str(a.index)
-
-        remove = set(p.residues) - set(bs.residues)
-
-        for r in remove:
-            p.remove_residue(r.identifier)
-
-        donors = {a.coordinates: a.label for a in p.atoms
-                  if a.atomic_number == 1 and a.neighbours[0].is_donor and a.solvent_accessible_surface() > accessible_cutoff}
+        donors = {x.coordinates: x.label for x in [a for a in p.atoms if a.atomic_number == 1]
+                  if x.neighbours[0].is_donor and x.solvent_accessible_surface() > accessible_cutoff}
 
         acceptors = {a.coordinates: a.label for a in p.atoms
                      if a.is_acceptor and a.solvent_accessible_surface() > accessible_cutoff

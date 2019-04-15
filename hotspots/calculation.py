@@ -36,6 +36,7 @@ from hotspots.grid_extension import Grid
 from hotspots.hs_utilities import Helper
 from hotspots.pdb_python_api import PDBResult
 from hotspots.result import Results
+from hotspots.protoss import Protoss
 from tqdm import tqdm
 
 
@@ -880,7 +881,7 @@ class Runner(object):
 
         print("Sampling complete\n")
 
-    def _prepare_protein(self):
+    def _prepare_protein(self, protoss=False):
         """
         default protein preparation settings on the protein
         :return:
@@ -889,7 +890,9 @@ class Runner(object):
         for lig in self.protein.ligands:
             self.protein.remove_ligand(lig.identifier)
         self.protein.remove_all_metals()
-        self.protein.add_hydrogens()
+
+        if protoss is False:
+            self.protein.add_hydrogens()
 
     def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method='ghecom',
                      cavities=None, nprocesses=1, settings=None, buriedness_grid=None):
@@ -941,7 +944,7 @@ class Runner(object):
                        buriedness=self.buriedness)
 
     def from_pdb(self, pdb_code, charged_probes=False, probe_size=7, buriedness_method='ghecom', nprocesses=3,
-                 cavities=False, settings=None):
+                 cavities=False, settings=None, protoss=True):
         """
         generates a result from a pdb code
 
@@ -961,11 +964,18 @@ class Runner(object):
         Result()
 
         """
+
         tmp = tempfile.mkdtemp()
-        PDBResult(identifier=pdb_code).download(out_dir=tmp)
-        fname = join(tmp, "{}.pdb".format(pdb_code))
-        self.protein = Protein.from_file(fname)
-        self._prepare_protein()
+        if protoss is True:
+            protoss = Protoss(out_dir=tmp)
+            self.protein = protoss.add_hydrogens().protein
+
+        else:
+            PDBResult(identifier=pdb_code).download(out_dir=tmp)
+            fname = join(tmp, "{}.pdb".format(pdb_code))
+            self.protein = Protein.from_file(fname)
+
+        self._prepare_protein(protoss)
         self.charged_probes = charged_probes
         self.probe_size = probe_size
         self.buriedness_method = buriedness_method

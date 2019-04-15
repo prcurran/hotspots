@@ -45,7 +45,7 @@ class Organiser(argparse.ArgumentParser):
     def dock(self):
         docker = Docker()
         docker.settings = DockerSettings()
-        docker.settings.add_protein_file(os.path.join(self.args.path, "protein.pdb"))
+        docker.settings.add_protein_file(os.path.join(self.args.path, "3cqw.pdb"))
         docker.settings.binding_site = docker.settings.BindingSiteFromLigand(protein=docker.settings.proteins[0],
                                                                              ligand=MoleculeReader(
                                                                                  os.path.join(self.args.path,
