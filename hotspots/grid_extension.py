@@ -993,6 +993,7 @@ class _GridEnsemble(object):
         :param probe_name:
         :return:
         """
+        print(mode)
         self.out_dir = out_dir
         self.prot_name = prot_name
         self.probe = probe_name
