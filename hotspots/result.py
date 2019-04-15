@@ -592,7 +592,7 @@ class Results(object):
         return hr
 
     @staticmethod
-    def from_grid_ensembles(res_list, prot_name, charged=False):
+    def from_grid_ensembles(res_list, prot_name, charged=False, ensemble_mode="mean"):
         """
         *Experimental feature*
 
@@ -603,7 +603,8 @@ class Results(object):
 
         :param res_list: list of `hotspots.result.Results`
         :param str prot_name: str
-        :param str out_dir: path to output directory
+        :param str charged: whether charged probes get included in the calculation
+        :param str ensemble_mode: defines how to combine the grids. Accepted values: "max", "mean".
         :return: a :class:`hotspots.result.Results` instance
         """
         if charged:
@@ -616,7 +617,7 @@ class Results(object):
         for p in probe_list:
             grid_list_p = [r.super_grids[p].minimal() for r in res_list]
             ens = _GridEnsemble()
-            grid_dic[p] = ens.from_grid_list(grid_list_p, getcwd(), prot_name, p)
+            grid_dic[p] = ens.from_grid_list(grid_list_p, getcwd(), prot_name, p, mode=ensemble_mode)
 
         hr = Results(grid_dic, protein=res_list[0].protein)
         return hr
