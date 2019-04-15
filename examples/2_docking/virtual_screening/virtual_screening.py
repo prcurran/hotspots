@@ -51,7 +51,7 @@ class Organiser(argparse.ArgumentParser):
                                                                                  os.path.join(self.args.path,
                                                                                               "crystal_ligand.mol2"))[0])
         docker.settings.fitness_function = 'plp'
-        docker.settings.autoscale = 100.
+        docker.settings.autoscale = 10.
         docker.settings.output_directory = tempfile.mkdtemp()
         docker.settings.output_file = "docked_ligands.mol2"
 
