@@ -32,7 +32,7 @@ from grid_extension import Grid
 from hotspots.result import Results
 from hotspots.hs_utilities import Helper
 from hotspots.template_strings import pymol_imports, pymol_arrow, pymol_protein, pymol_grids, pymol_display_settings, \
-    pymol_load_zip, pymol_labels, pymol_mesh
+    pymol_load_zip, pymol_labels, pymol_mesh, write_ngl_html_launcher, write_ngl_results_file
 
 
 class HotspotWriter(Helper):
@@ -141,7 +141,6 @@ class HotspotWriter(Helper):
                     self._write_pharmacophore(hotspot.pharmacophore)
 
                 self._write_pymol(hotspot, False)
-                self._write_NGL()
 
             self.out_dir = dirname(self.out_dir)
             if self.zipped:
@@ -160,7 +159,7 @@ class HotspotWriter(Helper):
                 self.settings.pharmacophore = True
                 self._write_pharmacophore(hr.pharmacophore)
             self._write_pymol(hr, self.zipped)
-            self._write_NGL()
+            self._write_NGL(hr, self.zipped)
 
             if self.zipped:
                 self.compress(join(dirname(self.out_dir), self.container))
@@ -286,9 +285,9 @@ class HotspotWriter(Helper):
 
         return pymol_out
 
-    def write_NGL(self):
+    def _write_NGL(self, hr, zipped=False):
         """
-        Outputs a hotspots visualiseation using the NGL viewer.
+        Outputs a hotspots visualiseation using the NGL viewer. May not work on zipped lists of hotspots!
         :return:
         """
         try:
@@ -296,6 +295,20 @@ class HotspotWriter(Helper):
         except OSError:
             js_scripts = glob(join("ngl_scripts", "*"))
 
+        maps = hr.super_grids.keys()
+        launcher = write_ngl_html_launcher(maps)
+        ngl_script = write_ngl_results_file(maps)
+
+        if zipped:
+            out = dirname(self.out_dir)
+        else:
+            out = self.out_dir
+
+        with open('{}/launch_ngl_viewer.html'.format(out), 'w') as html_file:
+            html_file.write(launcher)
+
+        with open('{}/launch_ngl_viewer.html'.format(out), 'w') as ngl_file:
+            ngl_file.write(ngl_script)
 
     def compress(self, archive_name, delete_directory=True):
         """

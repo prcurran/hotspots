@@ -825,3 +825,146 @@ def colourmap(scheme="inferno"):
               [9.87052509e-01, 9.91437853e-01, 7.49504188e-01]]
 
     return cm
+
+
+def write_ngl_html_slider(map_type):
+    out_str = ("<p>Isolevel: {0}\n"
+               "  <label id=\"{1}_label\">14</label>\n"
+               "  <input type=\"range\" min=\"1\" max=\"25\" value=\"14\" class=\"slider\" id=\"{1}_slider\"></p>\n"
+               "  <br>").format(map_type.capitalize(), map_type)
+    return out_str
+
+
+def write_ngl_html_toggle(map_type, representation_type):
+    out_str = ("<label class=\"switch_container\" id=\"{0}_{1}_toggle\">\n"
+               "  <input type=\"checkbox\" checked=\"checked\" id=\"{0}_surface_checkbox\">\n"
+               "  <span class=\"checkmark\"></span>\n"
+               "  </label>\n"
+               "  <br>").format(map_type, representation_type)
+    return out_str
+
+
+def write_ngl_html_launcher(script_location, maps):
+
+    slider_string = ""
+    surface_string = ""
+    dot_string = ""
+    for m in maps:
+        slider_string += write_ngl_html_slider(m)
+        surface_string += write_ngl_html_toggle(m, "surface")
+        dot_string += write_ngl_html_toggle(m, "dot")
+
+    out_str = ("<html>\n"
+               "<head>\n"
+               "<style>\n"
+               "div {\n"
+               "  margin: 20px;\n"
+               "}\n"
+               "h1.v1{\n"
+               "  margin-left:20px;\n"
+               "}\n"
+               "</style>\n"
+               "<script src=\"{0}\"></script>\n"
+               "  <script src=\"ngl_results_file.js\"></script>\n"
+               "<script src=\"{1}\"></script>\n"
+               "<script src=\"http://cdn.jsdelivr.net/jquery/2.1.4/jquery.js\"></script>\n"
+               "  <script type=\"text/javascript\" src=\"{2}\">\n"
+               "    zip.useWebWorkers=false\n"
+               "  </script>\n"
+               "  <script type=\"text/javascript\" src=\"{3}\">\n"
+               "  <script type=\"text/javascript\" src=\"{4}\">\n"
+               "<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\" integrity=\"sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\" crossorigin=\"anonymous\"></script>\n"
+               "<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\" integrity=\"sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u\" crossorigin=\"anonymous\">\n"
+               "<link rel=\"stylesheet\" href=\"{5}\">\n"
+               "</head>\n"
+               "<body>\n"
+               "<div>\n"
+               "  <input type=\"file\" id=\"load-file\" name=\"structure_uploads\" accept=\".pdb, .mol2, .ccp4, .zip\" multiple >\n"
+               "</div>\n"
+               "\n"
+               "\n"
+               "<div id=\"viewport\">\n"
+               "</div>\n"
+               "\n"
+               "\n"
+               "<! Container with sliders and toggles for map visualisations>\n"
+               "<div class=\"map-visualisations\" >\n"
+               "<div class=\"slidecontainer\">\n"
+               "{6}"
+               "\n"
+               "</div>\n"
+               "\n"
+               "  <! Container for the surface representation toggles>\n"
+               "  <div class=\"toggle_container\">\n"
+               "  <p> Surface <br>\n"
+               "{7}"
+               "  </div>\n"
+               "\n"
+               "  <! Container for the dot representation toggles>\n"
+               "  <div class=\"toggle_container\">\n"
+               "  <p> Dots<br>\n"
+               "{8}"
+               "  </div>\n"
+               "</div>\n"
+               "\n"
+               "\n"
+               "</body>\n"
+               "</html>").format(join(script_location, "ngl.js"),
+                                 join(script_location, "ngl_functions.js"),
+                                 join(script_location, "zip.js"),
+                                 join(script_location, "inflate.js"),
+                                 join(script_location, "deflate.js"),
+                                 join(script_location, "hotspots.css"),
+                                 slider_string,
+                                 surface_string,
+                                 dot_string)
+    return out_str
+
+def write_ngl_results_sliders(map_type):
+    out_str = ("    document.getElementById(\"{0}_slider\").oninput=function(){\n"
+               "        runFunctionOnAllObjects(set_surface_isolevel,{\"grid_type\":\"{0}\", \"isolevel\": Number(this.value)})\n"
+               "        runFunctionOnAllObjects(set_dot_threshold,{\"grid_type\":\"{0}\", \"threshold_min\": Number(this.value)})\n"
+               "        document.getElementById(\"{0}_label\").innerHTML=this.value\n"
+               "\n"
+               "    }").format(map_type)
+    return out_str
+
+
+def write_ngl_results_checkboxes(map_type, representation_type):
+    out_str = ("     document.getElementById(\"{0}_{1}_checkbox\").oninput=function(){\n"
+               "        runFunctionOnAllObjects(toggle_visibility, {visibility: this.checked, type:\"{1}\", selection:\"{0}\"})\n"
+               "        }").format(map_type, representation_type)
+    return out_str
+
+def write_ngl_results_file(maps):
+
+    slider_string = ""
+    checkbox_string = ""
+
+    for m in maps:
+        slider_string += write_ngl_results_sliders(m)
+        for rep in ["surface", "dot"]:
+            checkbox_string += write_ngl_results_checkboxes(m, rep)
+
+    out_str = ("function get_slider_values(){\n"
+               " {0}   \n"
+               "}\n"
+               "\n"
+               "\n"
+               "function checkbox_toggles(){\n"
+               " {1} \n"
+               "}\n"
+               "\n"
+               "\n"
+               "//create the NGL stage\n"
+               "document.addEventListener(\"DOMContentLoaded\", function () {\n"
+               "    stage = new NGL.Stage(\"viewport\", {backgroundColor: 'black'});\n"
+               "    load()\n"
+               "    get_slider_values()\n"
+               "    checkbox_toggles()\n"
+               "})").format(slider_string, checkbox_string)
+    return out_str
+
+
+
+

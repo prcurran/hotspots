@@ -4,15 +4,15 @@
 
 function proteinRepresentation(f,loaded_promises){
      var promise_loaded=stage.loadFile( f ).then(function (o) {
-        o.addRepresentation("cartoon")
+        o.addRepresentation("cartoon");
         o.addRepresentation( "ball+stick", {
             //Show ligands if present
             sele: "(( not polymer or hetero ) and not ( water or ion ))",
             scale: 0.5
-        })
-        o.autoView()
+        });
+        o.autoView();
         return o;
-    })
+    });
 
     loaded_promises.push(promise_loaded);
 
@@ -20,25 +20,26 @@ function proteinRepresentation(f,loaded_promises){
 
 
 function mapRepresentation(f,loaded_promises){
+    var c = null;
     if (f.name.includes("acceptor")){
-        var c = "red"
+        c = "red";
 
     }else if (f.name.includes("donor")){
-        var c = "blue"
+        c = "blue";
 
     }else if(f.name.includes("apolar")){
-        var c = "#FFF176"
+        c = "#FFF176";
 
     }else if(f.name.includes("positive")){
-        var c = "magenta"
+        c = "cyan";
 
     }else if(f.name.includes("negative")){
-        var c = "cyan"
+        c = "magenta";
 
     }else{
-        console.log('Unrecognised probe type for', f.name)
-        return
-    }
+        console.log('Unrecognised probe type for', f.name);
+        return;
+    };
 
 
     var surface_properties={color: c,
@@ -60,57 +61,57 @@ function mapRepresentation(f,loaded_promises){
         o.addRepresentation("surface", surface_properties)
         o.addRepresentation("dot", dot_properties)
         return o;
-     })
+     });
 
-    loaded_promises.push(promise_loaded)
+    loaded_promises.push(promise_loaded);
 }
 
 
 // Creates NGL representations based on the type of file.
 function loadSingleFile(f,loaded_promises){
-    console.log(f)
-    var file_extension=f.name.split('.').pop()
+    console.log(f);
+    var file_extension=f.name.split('.').pop();
     if (file_extension=='pdb'){
-        proteinRepresentation(f,loaded_promises)
+        proteinRepresentation(f,loaded_promises);
 
     }else if (file_extension=='ccp4'){
         mapRepresentation(f,loaded_promises);
 
     }else if (file_extension == 'zip'){
-        unzipBlob(f, loadSingleFile, loaded_promises)
+        unzipBlob(f, loadSingleFile, loaded_promises);
     }
     else{
-        console.log("Unknown file extension")
+        console.log("Unknown file extension");
         return
     }
 };
 
 // Counts how many files we expect to load
 function count_expected_loaded_promises(all_files){
-   count = 0
+   count = 0;
    for (var i=0; i< all_files.length; i++){
-        var curr_name = all_files[i].name
+        var curr_name = all_files[i].name;
 
         if (curr_name.includes(".pdb")){
-            count+=1
+            count+=1;
 
         }else if (curr_name.includes(".ccp4")){
             if (curr_name.includes(".buriedness")){
-                count +=1
+                count +=1;
             }
-        }else continue
+        }else continue;
 
    }
-   return count
+   return count;
 }
 
 // Checks if file will be loaded based on the filename
 function check_filename(fname){
-    if (fname.includes(".pdb")){return true
+    if (fname.includes(".pdb")){return true;
 
     }else if (fname.includes(".ccp4")){
 
-        if(!fname.includes("buriedness")){return true
+        if(!fname.includes("buriedness")){return true;
 
         }else{ return false}
 
@@ -122,7 +123,7 @@ function check_filename(fname){
 //Loading zip files - taken from zip.js documentation
 
 function unzipBlob(blob,callback, loaded_promises) {
-  zip.useWebWorkers = false
+  zip.useWebWorkers = false;
   // use a zip.BlobReader object to read zipped data stored into blob variable
   zip.createReader(new zip.BlobReader(blob), function(zipReader) {
     // get entries from the zip file
@@ -142,9 +143,9 @@ function unzipBlob(blob,callback, loaded_promises) {
                 zipReader.close();
                 callback(file,loaded_promises)
           }.bind({fname: element.filename}))
-          //console.log(a)
+
       });
-     //zipReader.close();
+     zipReader.close();
     });
   }, onerror);
 };
@@ -159,23 +160,22 @@ function ensurePromisesAreLoaded(parameter){
     var loaded_promises=parameter;
     return new Promise(function (resolve, reject) {
         (function waitForPromises(){
-            if (loaded_promises.length == expected_loaded_promises && loaded_promises.length > leftover_promises) return resolve();
+            if (loaded_promises.length === expected_loaded_promises && loaded_promises.length > leftover_promises) return resolve();
             setTimeout(waitForPromises, 5);
-
-            console.log("printing expected!", expected_loaded_promises, loaded_promises.length, leftover_promises)
+            console.log("printing expected!", expected_loaded_promises, loaded_promises.length, leftover_promises);
             })()
         });
     }
 
 function load(){
     	document.getElementById("load-file").oninput=function(){
-            var all_files = $('#load-file')[0].files
+            var all_files = $('#load-file')[0].files;
 
             // Check files were uploaded
             if (all_files.length>0){
 
                 // Each NGL object has an associated promise, which are stored here.
-                var loaded_promises=[]
+                var loaded_promises=[];
 
                 // Load files into initial promise, which starts chain of propagation
                 var load_new_files = new Promise(function(resolve,reject){
@@ -188,8 +188,8 @@ function load(){
                 // In case nothing was loaded previously
                 if(typeof final_promise == "undefined"){
                     //We need this to ensure all the files are loaded before the promise resolves
-                    expected_loaded_promises= count_expected_loaded_promises(all_files)
-                    leftover_promises = 0
+                    expected_loaded_promises= count_expected_loaded_promises(all_files);
+                    leftover_promises = 0;
 
                     final_promise=load_new_files.then(function(fulfilled){
                         final_promise=ensurePromisesAreLoaded(loaded_promises).then( function(fulfilled) {
@@ -207,12 +207,12 @@ function load(){
                 } else {
                     //in case further files are loaded
                     ``
-                    console.log("loading more objects")
+                    console.log("loading more objects");
 
                     // 1 final promise left from before, gets pushed as array of promises
-                    loaded_promises.push(final_promise)
-                    leftover_promises = 1
-                    expected_loaded_promises = leftover_promises + count_expected_loaded_promises(all_files)
+                    loaded_promises.push(final_promise);
+                    leftover_promises = 1;
+                    expected_loaded_promises = leftover_promises + count_expected_loaded_promises(all_files);
 
 
                     final_promise=load_new_files.then(function(fulfilled){
@@ -221,7 +221,6 @@ function load(){
                             final_promise=Promise.all(loaded_promises).then(function(loaded_objects) {
                                 for (var i=0; i<loaded_objects.length; i++){
                                     if(loaded_objects[i].constructor === Array){
-                                        console.log(loaded_objects[i])
                                         var old_array = loaded_objects[i]
                                         loaded_objects.splice(i, 1)
                                         break;
