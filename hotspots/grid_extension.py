@@ -728,25 +728,6 @@ class _GridEnsemble(object):
 
         return common_grids
 
-    def relu(self, num):
-        if num > 0:
-            return int(num)
-        else:
-            return 0
-
-    def pad_array(self, array, origin_diff, far_diff):
-        """
-        Takes a numpy array and pads it with the number of points specified by origin_diff
-        :param array:
-        :param origin_diff:
-        :param far_diff:
-        :return: numpy array
-        """
-        # Padding both arrays to make them the same size:
-        arr = np.pad(array, ((self.relu(origin_diff[0]), self.relu(-far_diff[0])),
-                           (self.relu(origin_diff[1]), self.relu(-far_diff[1])),
-                           (self.relu(origin_diff[2]), self.relu(-far_diff[2]))), "constant", constant_values=0)
-        return arr
 
     def get_4D_results_array(self, grid_list):
         """
@@ -755,72 +736,13 @@ class _GridEnsemble(object):
          :return:
          """
         # Initialise the array
-        ensemble_array = None
-        self.spacing = grid_list[0].spacing
-        # Needed for converting between Cartesian coordinates and indices.
-        rec_spacing = 1.0 / self.spacing
+        common_grids = self._common_grids_from_grid_list(grid_list)
+        common_arrays = [cg.get_array() for cg in common_grids]
+        ensemble_array = np.stack(common_arrays, axis=3)
+        self.results_array = ensemble_array
 
-        # Fill in ensemble array; i counts the number of grids that have been added.
-        i = 0
-        for g in grid_list:
-            # Check the spacing of the grid. If different, continue and add to log.
-            if g.spacing != self.spacing:
-                print("Grid at {} has wrong spacing (found {}, expected {})".format(p, g.spacing, self.spacing))
-                # TODO: Make sure that we know we have not included this path for back-referencing the ensemble!
-                continue
-            # Counter i keeps track of how many grids we have added
-            i += 1
-
-            # Get the dimensions of the grid:
-            curr_dims = np.array(g.bounding_box)
-            # Convert to numpy array
-            arr = g.get_array()
-
-            # Create the ensemble
-            if i == 1:
-                # Store the dimensions of the ensemble
-                ens_dims = curr_dims
-                # Put in as first element of the ensemble array
-                ensemble_array = arr
-
-            elif i == 2:
-                origin_diff = (curr_dims[0] - ens_dims[0])*rec_spacing
-                far_diff = ((curr_dims[1] - ens_dims[1]))*rec_spacing
-                # Padding both arrays to make them the same size (and so stackable):
-                arr = self.pad_array(arr, origin_diff, far_diff)
-                ensemble_array = self.pad_array(ensemble_array, -origin_diff, -far_diff)
-                # Stacking 2 3D arrays creates a 4D array.
-                ensemble_array = np.stack((ensemble_array, arr), axis=-1)
-                # Update the ensemble dimensions
-                ens_dims[0] = np.minimum(ens_dims[0], curr_dims[0])
-                ens_dims[1] = np.maximum(ens_dims[1], curr_dims[1])
-
-            else:
-                origin_diff = (curr_dims[0] - ens_dims[0])*rec_spacing
-                far_diff = (curr_dims[1] - ens_dims[1])*rec_spacing
-
-                # Padding both arrays to make them the same size:
-                arr = self.pad_array(arr, origin_diff, far_diff)
-                # Ensemble array is now 4D.
-                ensemble_array = np.pad(ensemble_array, ((self.relu(-origin_diff[0]), self.relu(far_diff[0])),
-                                                         (self.relu(-origin_diff[1]), self.relu(far_diff[1])),
-                                                         (self.relu(-origin_diff[2]), self.relu(far_diff[2])), (0, 0)),
-                                        "constant", constant_values=0)
-                # Np.stack stacks along a new axis, but ensemble_array is already 4D, so use np.append instead.
-                # When using np.append, arrays have to be the same dimension, so we expand arr with an empty 4th dimension.
-                arr = np.expand_dims(arr, axis=3)
-                ensemble_array = np.append(ensemble_array, arr, axis=3)
-                # Update the ensemble dimensions
-                ens_dims[0] = np.minimum(ens_dims[0], curr_dims[0])
-                ens_dims[1] = np.maximum(ens_dims[1], curr_dims[1])
-
-
-            self.results_array = ensemble_array
-            # Get the indices in the ensemble where we have nonzeros
-            max_array = np.max(self.results_array, axis=-1)
-            self.nonzeros = max_array.nonzero()
-            self.common_grid_origin = tuple(ens_dims[0])
-            self.common_grid_far_corner = tuple(ens_dims[1])
+        max_array = np.max(self.results_array, axis=-1)
+        self.nonzeros = max_array.nonzero()
 
 
     #### Functions for analysing ensemble data #####
@@ -990,10 +912,9 @@ class _GridEnsemble(object):
         self.prot_name = prot_name
         self.probe = probe_name
 
-        common_grids = self._common_grids_from_paths()
-        # grid_list = [Grid.from_file(p) for p in self.path_list]
+        grid_list = [Grid.from_file(p) for p in self.path_list]
         # self.get_alternative_results_array(grid_list)
-        self._get_results_array(common_grids)
+        self.get_4D_results_array(grid_list)
 
         return self.output_grid(mode, save=False)
 
@@ -1014,7 +935,6 @@ class _GridEnsemble(object):
 
         # common_grids = self._common_grids_from_grid_list(grid_list)
         self.get_4D_results_array(grid_list)
-        # self.get_alternative_results_array(grid_list)
         print(self.common_grid_origin, self.common_grid_far_corner)
 
         return self.output_grid(mode, save=False)
