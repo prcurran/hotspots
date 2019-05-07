@@ -68,17 +68,16 @@ class TestEnsembleSyntheticData(unittest.TestCase):
         self.grid_paths = glob(join(self.tmp_dir, "test_apolar_*.ccp4"))
         print(self.grid_paths)
         self.grid_ensemble = _GridEnsemble()
-        self.grid_ensemble = _GridEnsemble()
         self.max_grid = self.grid_ensemble.from_grid_list(self.grid_list, os.getcwd(), "test", "apolar")
-        self.values = self.grid_ensemble.results_array[self.grid_ensemble.results_array.nonzero()]
+        self.values = self.grid_ensemble.results_array[self.grid_ensemble.nonzeros]
 
     def test_from_hotspot_maps(self):
         # hard coded because 988 values in test set - perhaps there's a better way to test this?
         grid_ensemble = _GridEnsemble()
         max_grid = grid_ensemble.from_hotspot_maps(self.grid_paths, os.getcwd(), "test", "apolar")
         values = grid_ensemble.results_array[grid_ensemble.nonzeros]
-        self.assertEqual(len(values),
-                         988,
+        self.assertEqual(values.shape,
+                         (988, 10),
                          msg="Check number of values")
         self.assertEqual(grid_ensemble.tup_max_length,
                          len(self.grid_paths),
@@ -87,10 +86,10 @@ class TestEnsembleSyntheticData(unittest.TestCase):
     def test_from_grid_list(self):
         grid_ensemble = _GridEnsemble()
         max_grid = grid_ensemble.from_grid_list(self.grid_list, os.getcwd(), "test", "apolar")
-        values = grid_ensemble.results_array[grid_ensemble.results_array.nonzero()]
-        self.assertEqual(len(values),
-                         988,
-                         msg="Check number of values")
+        values = grid_ensemble.results_array[grid_ensemble.nonzeros]
+        self.assertEqual(values.shape,
+                         (988, 10),
+                         msg="Check number of values: expected: {}, observed {}".format((988, 10), values.shape))
         self.assertEqual(grid_ensemble.tup_max_length,
                          len(self.grid_list),
                          msg="Check tup_max_length assigned")
@@ -98,14 +97,16 @@ class TestEnsembleSyntheticData(unittest.TestCase):
     def test_get_gridpoint_max(self):
 
         maxes = self.grid_ensemble.get_gridpoint_max()
-        self.assertEqual(len(maxes),len(self.values), msg="Check get_max has correct number of values")
+        self.assertEqual(len(maxes),self.values.shape[0], msg="Check get_max has correct number of values")
         arr_max = np.array(maxes)
-        arr_vals = np.array([self.values[i][0] for i in range(len(self.values))])
+        arr_vals = np.array([self.values[i][0] for i in range(self.values.shape[0])])
         self.assertTrue(np.array_equal(arr_max, arr_vals), msg="Check get_max")
 
     def test_get_gridpoint_means(self):
         means = self.grid_ensemble.get_gridpoint_means()
-        self.assertEqual(len(means), len(self.values), msg="Check get_max has correct number of values")
+        self.assertEqual(len(means),
+                         self.values.shape[0],
+                         msg="Check get_gridpoint_means has correct number of values: expected {} observed {}".format(self.values.shape[0], len(means)))
         arr_mean = np.array(means)
         arr_vals = np.array([self.values[i][0] for i in range(len(self.values))])
         self.assertTrue(np.allclose(arr_mean, arr_vals), msg="Check get_means")
@@ -113,7 +114,7 @@ class TestEnsembleSyntheticData(unittest.TestCase):
     def test_get_gridpoint_means_spread(self):
         means = self.grid_ensemble.get_gridpoint_means_spread()
         self.assertIsInstance(means, list)
-        self.assertEqual(len(means), len(self.values)*10)
+        self.assertEqual(len(means), len(self.values.flatten()))
 
     def test_get_gridpoint_ranges(self):
         ranges = self.grid_ensemble.get_gridpoint_ranges()
