@@ -128,12 +128,12 @@ class DockerSettings(docking.Docker.Settings):
             # else:
             #     scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
 
-            constraints = hr.docking_constraint_atoms(max_constraints=max_constraints)
+            constraints = hr.docking_constraint_atoms(p=protein, max_constraints=max_constraints)
 
-            return [DockerSettings.HotspotHBondConstraint(atoms=[protein.atoms[index]],
+            return [DockerSettings.HotspotHBondConstraint(atoms=[protein.atoms[constraints.score_by_index[a]]],
                                                           weight=weight,
                                                           min_hbond_score=min_hbond_score)
-                    for s, index in constraints.score_by_index.items() if s > cutoff]
+                    for a in constraints.score_by_index.keys() if a > cutoff]
 
         def _to_string(self):
             s = '%.4f %.4f %s' % (

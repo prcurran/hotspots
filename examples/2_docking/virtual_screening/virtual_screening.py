@@ -33,25 +33,35 @@ class Organiser(argparse.ArgumentParser):
         )
 
         self.add_argument(
+            'hotspot',
+            help='path to directory containing Hotspot data.\n For example: "/home/usr/diverse/akt1"'
+        )
+
+        self.add_argument(
             'weight',
             help='penalty for not making the Hotspot protein hydrogen bond constraint"'
         )
 
         self.args = self.parse_args()
-        self.hotspot = HotspotReader(os.path.join(self.args.path, "hotspot", "out.zip")).read()
+        self.hotspot = HotspotReader(os.path.join(self.args.hotspot, "hotspot", "out.zip")).read()
         for p, g in self.hotspot.super_grids.items():
             self.hotspot.super_grids[p] = g.max_value_of_neighbours()
 
     def dock(self):
         docker = Docker()
         docker.settings = DockerSettings()
-        docker.settings.add_protein_file(os.path.join(self.args.path, "3cqw.pdb"))
+
+        pfile = os.path.join(self.args.hotspot, "protein.mol2")
+        with MoleculeWriter(pfile) as w:
+            w.write(self.hotspot.protein)
+        docker.settings.add_protein_file(pfile)
+
         docker.settings.binding_site = docker.settings.BindingSiteFromLigand(protein=docker.settings.proteins[0],
                                                                              ligand=MoleculeReader(
                                                                                  os.path.join(self.args.path,
                                                                                               "crystal_ligand.mol2"))[0])
         docker.settings.fitness_function = 'plp'
-        docker.settings.autoscale = 10.
+        docker.settings.autoscale = 1
         docker.settings.output_directory = tempfile.mkdtemp()
         docker.settings.output_file = "docked_ligands.mol2"
 
@@ -67,10 +77,11 @@ class Organiser(argparse.ArgumentParser):
         docker.settings.add_ligand_file(os.path.join(self.args.path, "decoys_final.mol2"), ndocks=5)
 
         if int(self.args.weight) != 0:
+            print(len(docker.settings.proteins[0].atoms))
             constraints = docker.settings.HotspotHBondConstraint.create(protein=docker.settings.proteins[0],
                                                                         hr=self.hotspot,
                                                                         weight=int(self.args.weight),
-                                                                        min_hbond_score=0.2,
+                                                                        min_hbond_score=0.05,
                                                                         max_constraints=1)
 
             print(constraints)

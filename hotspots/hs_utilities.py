@@ -184,7 +184,7 @@ class Helper(object):
                             if island.count_grid() > min_size_dict[p]:
                                 interaction_types.append(atom_dic[p])
                                 coordinates.append(island.centroid())
-                                scores.append(island.grid_score(threshold=threshold, percentile=50))
+                                scores.append(max(island.grid_values(threshold=threshold)))
             except AttributeError:
                 print("object not supported")
 

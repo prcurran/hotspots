@@ -106,7 +106,7 @@ class _Scorer(Helper):
                              "dummy": "dummy"}
 
         cavities = Helper.cavity_from_protein(self.object)
-
+        print(cavities)
         for cavity in cavities:
             for feature in cavity.features:
                 # all cavity residues
@@ -133,6 +133,7 @@ class _Scorer(Helper):
                             score = 0
                         else:
                             score = max(score)
+
                         prot.atoms[feature.atom.index].partial_charge = score
 
                         # score hydrogen atoms (important for GOLD)
@@ -336,7 +337,7 @@ class Results(object):
         self.protein = protein
         self.buriedness = buriedness
         self.pharmacophore = None
-        self.features = self._get_features(interaction_dict=super_grids)
+        self._features = self._get_features(interaction_dict=super_grids)
         self.identifier = None
 
         if pharmacophore:
@@ -381,16 +382,18 @@ class Results(object):
         purpose: enables feature ranking
         """
 
-        def __init__(self, feature_type, grid):
+        def __init__(self, feature_type, grid, threshold):
             """
 
             :param feature_type:
             :param grid:
+            :param threshold:
             """
             self._feature_type = feature_type
             self._grid = grid
             self._feature_coordinates = grid.centroid()
             self._count = (grid > 0).count_grid()
+            self._threshold = threshold
             self._score_value = self.score_feature()
             self._sphere = None
 
@@ -426,13 +429,31 @@ class Results(object):
         def rank(self):
             return self._rank
 
-        def score_feature(self, threshold=14, percentile=99):
+        @property
+        def threshold(self):
+            return self._threshold
+
+        # def score_feature(self, threshold=14, percentile=99):
+        #     """
+        #     returns
+        #     :return:
+        #     """
+        #     return self.grid.grid_score(threshold=threshold,
+        #                                 percentile=percentile)
+        def score_feature(self):
             """
             returns
             :return:
             """
-            return self.grid.grid_score(threshold=threshold,
-                                        percentile=percentile)
+            return max(self.grid.grid_values(threshold=self.threshold))
+
+    @property
+    def features(self):
+        return self._features
+
+    @features.setter
+    def features(self, threshold):
+        self._features = self._get_features(self.super_grids, threshold=threshold)
 
     def tractability_map(self):
         """
@@ -692,7 +713,7 @@ class Results(object):
         with io.MoleculeWriter("cenroid.mol2") as w:
             w.write(mol)
 
-    def docking_constraint_atoms(self, max_constraints=10, accessible_cutoff=0.001, max_distance=4, threshold=14, min_size = 15):
+    def docking_constraint_atoms(self, p=None, max_constraints=10, accessible_cutoff=0.001, max_distance=4, threshold=14, min_size = 15):
         """
         creates a dictionary of constraints
 
@@ -702,26 +723,39 @@ class Results(object):
 
         from hotspots.hs_utilities import Helper
         from scipy.spatial import distance
-        #self.protein.add_hydrogens()
-        point = self.super_grids['apolar'].centroid()
-        # bs = self.protein.BindingSiteFromPoint(protein=self.protein, origin=point, distance=12.)
-        p = self.protein.copy()
-        #
-        # for a in p.atoms:
-        #     a.label = str(a.index)
-        #
-        # remove = set(p.residues) - set(bs.residues)
-        #
-        # for r in remove:
-        #     p.remove_residue(r.identifier)
-        # from ccdc import io
-        # with io.MoleculeWriter("bs.pdb") as w:
-        #     w.write(p)
 
-        donors = {x.coordinates: x.label for x in [a for a in p.atoms if a.atomic_number == 1]
+        def check_hydrogens(protein):
+            """check hydrogens have neighbours"""
+            if 0 in set([len(a.neighbours) for a in protein.atoms if a.atomic_number == 1]):
+                print("WARNING HYDROGENS READDED THIS MAY CAUSE ISSUES")
+                protein.add_hydrogens()
+
+        print(len(self.protein.atoms))
+
+        if p is None:
+            check_hydrogens(self.protein)
+            protein = self.protein.copy()
+        else:
+            check_hydrogens(p)
+            protein = p.copy()
+
+        point = self.super_grids['apolar'].centroid()
+        bs = protein.BindingSiteFromPoint(protein=protein, origin=point, distance=12.)
+
+        for a in protein.atoms:
+            a.label = str(a.index)
+
+        remove = set(protein.residues) - set(bs.residues)
+
+        for r in remove:
+            protein.remove_residue(r.identifier)
+
+        print(len(self.protein.atoms))
+
+        donors = {x.coordinates: x.label for x in [a for a in protein.atoms if a.atomic_number == 1]
                   if x.neighbours[0].is_donor and x.solvent_accessible_surface() > accessible_cutoff}
 
-        acceptors = {a.coordinates: a.label for a in p.atoms
+        acceptors = {a.coordinates: a.label for a in protein.atoms
                      if a.is_acceptor and a.solvent_accessible_surface() > accessible_cutoff
                      }
 
@@ -753,7 +787,7 @@ class Results(object):
         for b in bin_keys:
             del constraint_dic[b]
 
-        constraint_dic = OrderedDict(reversed(list(constraint_dic.items())))
+        constraint_dic = OrderedDict(reversed(constraint_dic.items()))
 
         return self.ConstraintData(constraint_dic, self.protein)
 
@@ -921,7 +955,7 @@ class Results(object):
             if len(g.islands(threshold=threshold)) > 0:
                 for island in g.islands(threshold=threshold):
                     if (island > threshold).count_grid() > min_feature_gp and probe not in excluded:
-                        f.append(Results._HotspotFeature(probe, island))
+                        f.append(Results._HotspotFeature(probe, island, threshold))
         return f
 
     def _rank_features(self):
@@ -1084,16 +1118,16 @@ class Extractor(object):
 
             inner = self.mask.common_boundaries(best_island)
             num_gp = inner.count_grid()
-
+            print((self.settings._num_gp - num_gp) / self.settings._num_gp)
             grown = Grid.grow(inner, self.mask)     # adding points above 80th percentile as default,
                                                     # this hasn't been played with
-            while (abs(num_gp - self.settings._num_gp)) / self.settings._num_gp > tolerance:
-                # iterate over the growth cycle
+            while ((self.settings._num_gp - num_gp) / self.settings._num_gp) > tolerance:
+                # iterate over the growth cycle until target is reached
                 grown = Grid.grow(inner, self.mask)
                 diff = grown > inner
 
-                if diff.count_grid() < 10:
-                    break
+                # if diff.count_grid() < 10:
+                #     break
 
                 inner = grown
                 num_gp = inner.count_grid()
@@ -1119,7 +1153,9 @@ class Extractor(object):
             # set options={'disp': True} for debugging
 
             ret = optimize.minimize_scalar(self._count_island_points,  method='brent', tol=0.0001,
-                                           options={'disp': True})
+                                           options={'disp': True,
+                                                    'xtol': 0.000001}
+                                           )
             threshold = ret.x
             if threshold > 48:
                 threshold = 1
@@ -1137,9 +1173,9 @@ class Extractor(object):
                 threshold += 0.1
                 best_island = (best_island > threshold) * best_island
 
-            if ((self.settings._num_gp - best_island.count_grid() ) / self.settings._num_gp) > tolerance:
-                print("Percentage error=", abs((best_island.count_grid() - self.settings._num_gp) / self.settings._num_gp) * 100)
-                threshold, best_island = self._grow(best_island)
+            if ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) > tolerance:
+                print("Percentage error=", abs((self.settings._num_gp - best_island.count_grid() ) / self.settings._num_gp) * 100)
+                threshold, best_island = self._grow(best_island, tolerance=tolerance)
 
             print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
             return threshold, best_island
@@ -1294,8 +1330,10 @@ class Extractor(object):
             hr.threshold = threshold
             hr.best_island = best_island.minimal()
             hr.location = location
-            hr.features = features
+
+            hr.features = threshold
             hr.score_value = hr.score()
+
             hr.rank = hr._rank_features()
             return hr
 

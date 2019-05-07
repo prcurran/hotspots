@@ -470,10 +470,13 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         seen = [-1]
         sx = []
         sy = []
-        for k, l in enumerate(cluster_tsne.labels_):
-            if not l in seen:
-                sx.append(tsne_X.T[0][k])
-                sy.append(tsne_X.T[1][k])
+        for k, l in enumerate(cluster_pca.labels_):
+            if l in seen:
+                continue
+            else:
+                sx.append(pca.T[0][k])
+                sy.append(pca.T[1][k])
+                seen.append(l)
 
         plt.scatter(x, y, c=hue, cmap='RdBu')
         plt.scatter(sx, sy, marker="x")
@@ -724,21 +727,73 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         :return: :class:`hotspots.hs_pharmacophore.PharmacophoreModel`
 
         """
+        # self, projected, feature_type, feature_coordinates, projected_coordinates, score_value, vector,
+        #                  settings)
+        cm_feature_dict = {"ring": "apolar",
+                           "ring_planar_projected": "apolar",
+                           "ring_non_planar": "apolar",
+                           "hydrophobic": "apolar",
+                           "donor_ch_projected": "donor",
+                           "donor_projected": "donor",
+                           "donor": "donor",
+                           "acceptor_projected": "acceptor",
+                           "acceptor": "acceptor",
+                           "negative": "",
+                           "positive": "",
+                           }
         if not settings:
             settings = PharmacophoreModel.Settings()
 
         if identifier is None:
             identifier = basename(fname).split(".")[0]
 
-        with open(fname) as f:
-            file = f.read().split("FEATURE_LIBRARY_END")[1]
-            lines = [l for l in file.split("""\r\n\r\n""") if l != ""]
-            feature_list = [f for f in [_PharmacophoreFeature.from_crossminer(feature) for feature in lines] if
-                            f != None]
+        # get feature information
+        query = Pharmacophore.Query.from_file(fname)
+
+        features = []
+        for f in query.features:
+            print(f.spheres[0].centre.point())
+            centre = f.spheres[0].centre.point()
+            if len(f.spheres) > 1:
+                projected = True
+                p = f.spheres[1].centre.point()
+                features.append(_PharmacophoreFeature(projected=projected,
+                                                      feature_type=cm_feature_dict[f.identifier],
+                                                      feature_coordinates=Coordinates(float(centre[0]),
+                                                                                      float(centre[1]),
+                                                                                      float(centre[2])
+                                                                                      ),
+                                                      projected_coordinates=Coordinates(float(p[0]),
+                                                                                        float(p[1]),
+                                                                                        float(p[2])
+                                                                                        ),
+                                                      score_value=1,
+                                                      vector=None,
+                                                      settings=settings)
+                                )
+            else:
+                projected = False
+                features.append(_PharmacophoreFeature(projected=projected,
+                                                      feature_type=cm_feature_dict[f.identifier],
+                                                      feature_coordinates=Coordinates(float(centre[0]),
+                                                                                      float(centre[1]),
+                                                                                      float(centre[2])
+                                                                                      ),
+                                                      projected_coordinates=None,
+                                                      score_value=1,
+                                                      vector=None,
+                                                      settings=settings)
+                                )
+
+        # with open(fname) as f:
+        #     file = f.read().split("FEATURE_LIBRARY_END")[1]
+        #     lines = [l for l in file.split("""\r\n\r\n""") if l != ""]
+        #     feature_list = [f for f in [_PharmacophoreFeature.from_crossminer(feature) for feature in lines] if
+        #                     f != None]
 
         return PharmacophoreModel(settings,
                                   identifier=identifier,
-                                  features=feature_list,
+                                  features=features,
                                   protein=protein)
 
     @staticmethod
@@ -839,6 +894,21 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         with open(os.path.join(out_dir, fname), "w") as f:
             for l in ligands:
                 f.write("{},{},{}\n".format(l.structure_id, l.chemical_id, l.smiles))
+
+
+    @staticmethod
+    def siena(pdb_list):
+        """
+        creates a Pharmacophore Model from a PDB code using a binding site search
+
+        :param pdb_list:
+        :return:
+        """
+
+        
+
+        return 0
+
 
     @staticmethod
     def from_pdb(pdb_code, chain, representatives=None, identifier="LigandBasedPharmacophore"):

@@ -968,7 +968,7 @@ class Runner(object):
         tmp = tempfile.mkdtemp()
         if protoss is True:
             protoss = Protoss(out_dir=tmp)
-            self.protein = protoss.add_hydrogens().protein
+            self.protein = protoss.add_hydrogens(pdb_code).protein
 
         else:
             PDBResult(identifier=pdb_code).download(out_dir=tmp)
