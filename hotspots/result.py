@@ -445,7 +445,7 @@ class Results(object):
             returns
             :return:
             """
-            return max(self.grid.grid_values(threshold=self.threshold))
+            return self.grid.extrema[1]
 
     @property
     def features(self):
@@ -955,6 +955,7 @@ class Results(object):
             if len(g.islands(threshold=threshold)) > 0:
                 for island in g.islands(threshold=threshold):
                     if (island > threshold).count_grid() > min_feature_gp and probe not in excluded:
+                        print(island.extrema[1])
                         f.append(Results._HotspotFeature(probe, island, threshold))
         return f
 
@@ -1048,7 +1049,7 @@ class Extractor(object):
             self.island_max_size = island_max_size
             self.pharmacophore = pharmacophore
             self.mode = None
-            self.mvon = True
+            self.mvon = False
 
         @property
         def _num_gp(self):
@@ -1095,6 +1096,23 @@ class Extractor(object):
                 return 999999
             points = (island > threshold).count_grid()
             return abs(self.settings._num_gp - points)
+
+        def _raw_count_island_points(self, threshold):
+            """
+            For a given island, the difference between the target number of grid points and the actual number of
+             grid points is returned
+
+             -ve = too many points
+             +ve = too few points
+
+            :param threshold:
+            :return: int
+            """
+            island = self.mask.get_best_island(threshold, mode="count", peak=self.peak)
+            if island is None:
+                return 999999
+            points = (island > threshold).count_grid()
+            return 800 - points
 
         def _count_grid_points(self, threshold):
             """
@@ -1144,41 +1162,112 @@ class Extractor(object):
 
             return threshold, grown
 
-        def optimize_island_threshold(self, tolerance=0.1):
+        def optimize_island_threshold(self, tolerance=0.1, start_threshold=25):
             """
+            TEST
+            1) step down from 25 find a pair of best islands
             finds the island threshold for a grid which returns the desired volume
 
             :return:
             """
-            # set options={'disp': True} for debugging
+            from skimage.morphology import reconstruction
 
-            ret = optimize.minimize_scalar(self._count_island_points,  method='brent', tol=0.0001,
-                                           options={'disp': True,
-                                                    'xtol': 0.000001}
-                                           )
-            threshold = ret.x
-            if threshold > 48:
-                threshold = 1
-            best_island = self.mask.get_best_island(threshold=threshold, mode='count', peak=self.peak)
-            print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
+            # find inital fragment volume hard coded as 800
+            while self._raw_count_island_points(threshold=start_threshold) > 0:
+                start_threshold -= 1
 
-            # If threshold is close to zero, keep all grid points
-            try:
-                best_island = (best_island > threshold) * best_island
-            except TypeError:
-                best_island = self.mask
+            large_island = self.mask.get_best_island(threshold=start_threshold, mode='count', peak=self.peak)
+            small_island = self.mask.get_best_island(threshold=start_threshold + 1, mode='count', peak=self.peak)
+            reconstruct_pts = 0
 
-            while ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) < 0:
-                # ensure underestimation
-                threshold += 0.1
-                best_island = (best_island > threshold) * best_island
+            while reconstruct_pts < self.settings._num_gp:
+                # ensure same dimensions (precaution: not sure if required)
+                c_small_island = large_island.common_boundaries(small_island)
 
-            if ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) > tolerance:
-                print("Percentage error=", abs((self.settings._num_gp - best_island.count_grid() ) / self.settings._num_gp) * 100)
-                threshold, best_island = self._grow(best_island, tolerance=tolerance)
+                seed = c_small_island.get_array()
+                mask = large_island.get_array()
+                # flood connected peaks
+                reconstruct = reconstruction(seed=seed, mask=mask, method='dilation')
+                small_island = Grid.array_to_grid(reconstruct, large_island.copy_and_clear())
 
-            print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
-            return threshold, best_island
+                reconstruct_pts = ((small_island > 0) * small_island).count_grid()
+                print("pts:", reconstruct_pts, "target:", self.settings._num_gp, "threshold:", start_threshold)
+                start_threshold -= 1
+                large_island = self.mask.get_best_island(threshold=start_threshold, mode='count', peak=self.peak)
+
+            print([i.extrema[1] for i in small_island.islands(threshold=18)])
+            return start_threshold, small_island
+
+            # large_island.write("/home/pcurran/reconstruct/large.grd")
+            # c_small_island.write("/home/pcurran/reconstruct/c_small_island.grd")
+            # g.write("/home/pcurran/reconstruct/reconstruct.grd")
+
+
+
+            # ret = optimize.minimize_scalar(self._count_island_points,  method='brent', tol=0.0001,
+            #                                options={'disp': True,
+            #                                         'xtol': 0.000001}
+            #                                )
+            # threshold = ret.x
+            # if threshold > 48:
+            #     threshold = 1
+            # best_island = self.mask.get_best_island(threshold=threshold, mode='count', peak=self.peak)
+            # print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
+            #
+            # # If threshold is close to zero, keep all grid points
+            # try:
+            #     best_island = (best_island > threshold) * best_island
+            # except TypeError:
+            #     best_island = self.mask
+            #
+            # while ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) < 0:
+            #     # ensure underestimation
+            #     threshold += 0.1
+            #     best_island = (best_island > threshold) * best_island
+            #
+            # if ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) > tolerance:
+            #     print("Percentage error=", abs((self.settings._num_gp - best_island.count_grid() ) / self.settings._num_gp) * 100)
+            #     threshold, best_island = self._grow(best_island, tolerance=tolerance)
+            #
+            # print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
+            #
+            #
+            # return threshold, best_island
+
+        # def optimize_island_threshold(self, tolerance=0.1):
+        #     """
+        #     finds the island threshold for a grid which returns the desired volume
+        #
+        #     :return:
+        #     """
+        #     # set options={'disp': True} for debugging
+        #     ret = optimize.minimize_scalar(self._count_island_points,  method='brent', tol=0.0001,
+        #                                    options={'disp': True,
+        #                                             'xtol': 0.000001}
+        #                                    )
+        #     threshold = ret.x
+        #     if threshold > 48:
+        #         threshold = 1
+        #     best_island = self.mask.get_best_island(threshold=threshold, mode='count', peak=self.peak)
+        #     print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
+        #
+        #     # If threshold is close to zero, keep all grid points
+        #     try:
+        #         best_island = (best_island > threshold) * best_island
+        #     except TypeError:
+        #         best_island = self.mask
+        #
+        #     while ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) < 0:
+        #         # ensure underestimation
+        #         threshold += 0.1
+        #         best_island = (best_island > threshold) * best_island
+        #
+        #     if ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) > tolerance:
+        #         print("Percentage error=", abs((self.settings._num_gp - best_island.count_grid() ) / self.settings._num_gp) * 100)
+        #         threshold, best_island = self._grow(best_island, tolerance=tolerance)
+        #
+        #     print("target = {}, actual = {}".format(self.settings._num_gp, best_island.count_grid()))
+        #     return threshold, best_island
 
     def __init__(self, hr, settings=None):
         if settings is None:
@@ -1190,7 +1279,7 @@ class Extractor(object):
         self.out_dir = None
         self.extracted_hotspots = None
 
-        if self.settings.mvon:
+        if self.settings.mvon is True:
             hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
 
         try:
@@ -1237,6 +1326,7 @@ class Extractor(object):
         self._peaks = None
         self.settings.mode = "global"
 
+        print("???????", self.single_grid.extrema[1])
         e = self._from_hotspot(self.single_grid,
                                self.masked_dic,
                                self.settings,
@@ -1320,7 +1410,7 @@ class Extractor(object):
 
         optimiser = Extractor._Optimiser(mask=mask, settings=settings, peak=seed)
         threshold, best_island = optimiser.optimize_island_threshold()
-
+        print("???????", best_island.extrema[1])
         if best_island is not None:
             location, features = self._get_interaction_type(mask_dic, best_island, threshold, settings)
             grd_dict = self._get_grid_dict(location, features, settings)

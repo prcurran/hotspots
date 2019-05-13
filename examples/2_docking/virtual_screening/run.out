@@ -16,3 +16,17 @@ Running:
  
      "/local/pcurran/CCDC/Discovery_2019/GOLD/gold/d_linux_64/bin/gold_linux_64" "/home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/search_efficiency_1/akt1/docking/10/hs_gold.conf"
 
+Starting GOLD with conf file /home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/search_efficiency_1/akt1/docking/0/hs_gold.conf
+5338
+5338
+5338
+[<hotspots.hs_docking.HotspotHBondConstraint object at 0x7f3731f1ced0>]
+Starting GOLD with conf file /home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/search_efficiency_1/akt1/docking/100/hs_gold.conf
+5338
+5338
+5338
+[<hotspots.hs_docking.HotspotHBondConstraint object at 0x7f12598b4ed0>]
+Starting GOLD with conf file /home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/search_efficiency_1/akt1/docking/10/hs_gold.conf
+python virtual_screening.py /home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/search_efficiency_1/akt1 /home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/ 10
+python virtual_screening.py /home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/search_efficiency_1/akt1 /home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/ 100
+python virtual_screening.py /home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/search_efficiency_1/akt1 /home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/ 0

@@ -71,6 +71,31 @@ def tanimoto_dist(a, b):
     return 1.0 - tc
 
 
+class Ligand(object):
+    """
+
+    """
+    def __init__(self, ccdc_mol, rdkit_mol, fingerprint, chem_id):
+        self.ccdc_mol = ccdc_mol
+        self.rdmol = rdkit_mol
+        self.fingerprint = fingerprint
+        self.chemical_id = chem_id
+
+    @staticmethod
+    def from_file(path):
+        """
+
+
+        :param path:
+        :return:
+        """
+        ccdc_mol = io.MoleculeReader(path)[0]
+        rdkit_mol = Chem.SDMolSupplier(path)[0]
+        fingerprint = AllChem.GetMorganFingerprintAsBitVect(rdkit_mol, 2)
+        chem_id = ccdc_mol.identifier
+        return Ligand(ccdc_mol, rdkit_mol, fingerprint, chem_id)
+
+
 class PharmacophoreModel(Helper):
     """
     A class to handle a Pharmacophore Model
@@ -156,14 +181,14 @@ class PharmacophoreModel(Helper):
         """
         return self._features
 
-    def _comparision_dict(self):
+    def _comparision_dict(self, feature_threshold=0):
         """
         converts pharmacophore into comparision dictionary
 
         :return: dic
         """
         d = {}
-        self.rank_features(max_features=20)
+        self.rank_features(max_features=20, feature_threshold=feature_threshold)
         rank_dic = {"apolar": 0, "donor": 0, "acceptor": 0, "negative":0, "positive":0}
         for feat in self._features:
             d.update({feat.score_value: [feat.feature_type, feat.feature_coordinates, rank_dic[feat.feature_type]]})
@@ -470,23 +495,34 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         seen = [-1]
         sx = []
         sy = []
-        for k, l in enumerate(cluster_pca.labels_):
+        for k, l in enumerate(cluster_tsne.labels_):
             if l in seen:
                 continue
             else:
-                sx.append(pca.T[0][k])
-                sy.append(pca.T[1][k])
+                sx.append(tsne_X.T[0][k])
+                sy.append(tsne_X.T[1][k])
                 seen.append(l)
 
-        plt.scatter(x, y, c=hue, cmap='RdBu')
-        plt.scatter(sx, sy, marker="x")
+        plt.scatter(x, y, c=hue, cmap='RdBu', alpha=0.7)
+        plt.scatter(sx, sy, c="black", marker="x")
 
         plt.title("{} clusters".format(t))
         plt.savefig("{}.png".format(t))
         plt.close()
+
         if len(cluster_dic) == 0:
             print("NO CLUSTERS FOUND")
-            cluster_dic = {i: [ligands[i]] for i in range(0, len(ligands))}
+            try:
+                unique = {}
+                for l in ligands:
+                    hetid = l.chemical_id.split("_")[0]
+                    if not hetid in unique:
+                        unique.update({hetid: l})
+
+                ligands = unique.values()
+                cluster_dic = {i: [ligands[i]] for i in range(0, len(ligands))}
+            except:
+                cluster_dic = {i: [ligands[i]] for i in range(0, len(ligands))}
 
         return cluster_dic
 
@@ -680,7 +716,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             raise TypeError("""""{}" output file type is not currently supported.""".format(extension))
 
     @staticmethod
-    def from_hotspot(result, identifier="id_01", threshold=5, settings=None):
+    def from_hotspot(result, identifier="id_01", threshold=5, min_island_size=5, settings=None):
         """
         creates a pharmacophore model from a Fragment Hotspot Map result
 
@@ -707,7 +743,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
         feature_list = [_PharmacophoreFeature.from_hotspot(island, probe, result.protein, settings)
                         for probe, g in result.super_grids.items()
-                        for island in g.islands(threshold) if island.count_grid() >= 5]
+                        for island in g.islands(threshold) if island.count_grid() >= min_island_size]
 
         return PharmacophoreModel(settings,
                                   identifier=identifier,
@@ -897,18 +933,35 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
 
     @staticmethod
-    def siena(pdb_list):
+    def _from_siena(pdb, ligand, mode, identifier, out_dir=None):
         """
         creates a Pharmacophore Model from a PDB code using a binding site search
+
+        (Previously this was done through from_pdb however doing a binding site search is much cleaner)
 
         :param pdb_list:
         :return:
         """
 
-        
+        from hotspots.siena import Search
+        searcher = Search()
+        ensemble = searcher.create_ensemble(pdb_code=pdb,
+                                            ligand=ligand,
+                                            mode=mode)
 
-        return 0
+        if out_dir is None:
+            out_dir = tempfile.mkdtemp()
 
+        ensemble.save(out_dir=out_dir)
+        ligands = [Ligand.from_file(path=os.path.join(out_dir, "ligands", f))
+                   for f in os.listdir(os.path.join(out_dir, "ligands")) if f.split(".")[1] == "sdf"]
+
+        cluster_dict = PharmacophoreModel._cluster_ligands(ligands=ligands, t=identifier)
+        reps = [l[0].ccdc_mol for l in cluster_dict.values() if len(l) != 0]
+
+        p = PharmacophoreModel.from_ligands(ligands=reps, identifier=identifier)
+        p.representatives = reps
+        return p
 
     @staticmethod
     def from_pdb(pdb_code, chain, representatives=None, identifier="LigandBasedPharmacophore"):
@@ -1072,7 +1125,8 @@ class _PharmacophoreFeature(Helper):
         feature_type = probe
         if probe == "apolar":
             score, feature_coordinates = _PharmacophoreFeature.get_centroid(grid)
-            score = score_feature(grid)
+            #turn on for median score
+            #score = score_feature(grid)
             projected = False
             projected_coordinates = None
             vector = None
@@ -1081,7 +1135,8 @@ class _PharmacophoreFeature(Helper):
             vector = None
             projected_coordinates = None
             score, feature_coordinates = _PharmacophoreFeature.get_maxima(grid)
-            score = score_feature(grid)
+            # turn on for median score
+            #score = score_feature(grid)
             if probe == "donor" or probe == "acceptor":
 
                 projected = True
@@ -1203,6 +1258,7 @@ class _PharmacophoreFeature(Helper):
         :return:
         """
         max_value = grid.extrema[1]
+        print(max_value)
         indices = grid.indices_at_value(max_value)
 
         if len(indices) == 1:

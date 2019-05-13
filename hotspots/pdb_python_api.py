@@ -233,8 +233,39 @@ class _Protein(object):
             return self.data["chain"]["id"]
 
         @property
+        def taxonomy(self):
+            t = self.data["Taxonomy"]
+            if type(t) is list:
+                return [a["name"] for a in t]
+            else:
+                return t["name"]
+
+        @property
+        def name(self):
+            try:
+                if type(self.data["macroMolecule"]) is list:
+                    print(self.data["macroMolecule"])
+                    upr = [a["name"] for a in self.data["macroMolecule"] if a["accession"]["id"] != "P00720"]
+                    return upr[0]
+                else:
+                    return self.data["macroMolecule"]["name"]
+
+            except KeyError:
+                return None
+
+        @property
         def accession_id(self):
-            return self.data["macroMolecule"]["accession"]["id"]
+            try:
+                if type(self.data["macroMolecule"]) is list:
+                    print(self.data["macroMolecule"])
+                    upr = [a["accession"]["id"] for a in self.data["macroMolecule"] if a["accession"]["id"] != "P00720"]
+                    return upr[0]
+                else:
+                    return self.data["macroMolecule"]["accession"]["id"]
+
+            except KeyError:
+                return None
+
 
     def __init__(self, data):
         """
@@ -358,6 +389,22 @@ class PDBResult(object):
 
         url = request(base_url + info_type_dict[info_type] + self.identifier)
         return urlopen(url)
+
+    def custom(self, field="classification"):
+        """
+        return custom information
+        link: https://www.rcsb.org/pdb/results/reportField.do
+
+
+        :param field:
+        :return:
+        """
+        extension = "/customReport.xml?pdbids={}&customReportColumns={}&service=wsfile&format=xml".format(self.identifier, field)
+        url = request(base_url + extension)
+
+        x = (urlopen(url))
+        data = xmltodict.parse(x.read(), attr_prefix='', dict_constructor=dict)
+        return data["dataset"]["record"]["dimStructure.{}".format(field)]
 
     @property
     def descriptions(self):

@@ -447,6 +447,19 @@ class Grid(utilities.Grid):
                 continue
 
     @staticmethod
+    def array_to_grid(array, blank):
+        """"""
+        grid = blank.copy_and_clear()
+        indices = np.nonzero(array)
+        values = array[indices]
+        as_triads = zip(*indices)
+
+        for (i, j, k), v in zip(as_triads, values):
+            grid._grid.set_value(int(i), int(j), int(k), v)
+
+        return grid
+
+    @staticmethod
     def from_array(fname):
         """
         creates a grid from array
