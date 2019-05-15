@@ -24,6 +24,10 @@ import time
 from os import system, environ
 from os.path import join
 
+from scipy import ndimage
+from skimage.morphology import  ball
+from skimage.transform import resize
+
 import numpy as np
 import pkg_resources
 from ccdc.cavity import Cavity
@@ -38,6 +42,114 @@ from hotspots.pdb_python_api import PDBResult
 from hotspots.result import Results
 from hotspots.protoss import Protoss
 from tqdm import tqdm
+
+class ExpBuriedness(object):
+
+    def __init__(self, prot, out_grid,max_probe_radius = 11):
+
+        self.prot = prot
+        self.out_grid = out_grid
+        self.max_probe = max_probe_radius
+        self.probe_selem_dict = self._generate_probe_selem()
+        self.protein_grid = self._from_molecule(prot)
+        self.protein_grid.write(('prot_g.grd'))
+
+
+    def _generate_probe_selem(self):
+        '''
+        Generates a set of structuring elements (i.e. probe spheres) starting from a 3x3 cross (0.5 A radius) probe up
+        to the max probe radius
+        :return:
+        '''
+
+        probe_selem_dict = {}
+
+        # Small probe
+
+        probe_selem_dict[2] = ball(2)
+        # r= probe radius
+        for r in range(3,self.max_probe +1):
+            probe_selem_dict[r] = ball(r)
+
+
+
+        return probe_selem_dict
+
+    def _from_molecule(self, mol, scaling=1):
+        """
+        generate a molecule mask where gp within the vdw radius of the molecule heavy atoms are set to 1.0
+        :param mol: `ccdc.molecule.Molecule`
+        :param padding: int
+        :param scaling: float
+        :return: `hotspots.grid_extension.Grid`
+        """
+
+        coords = [a.coordinates for a in mol.atoms]
+        g = Grid.initalise_grid(coords=coords, padding= 2, spacing=1)
+
+        for probe in sorted(self.probe_selem_dict.keys(), reverse=True):
+            for a in mol.heavy_atoms:
+                g.set_sphere(point=a.coordinates,
+                             radius=probe * scaling,
+                             value=probe,
+                             mode='replace',
+                             scaling='None')
+
+        for a in mol.heavy_atoms:
+            g.set_sphere(point=a.coordinates,
+                         radius=a.vdw_radius,
+                         value=100,
+                         mode='replace',
+                         scaling='None')
+
+        return g
+
+    def _close_grid(self, g, probe):
+
+        g_array = g.get_array().astype(int)
+        closed_array = ndimage.binary_erosion(g_array, structure=self.probe_selem_dict[probe])
+        return Grid.array_to_grid(closed_array.astype(int), g)
+
+    def _multiscale_closing(self,g):
+
+
+        #probe_sizes.reverse()
+        all_g = None
+        prot_mask = g > 90
+
+        for probe in sorted(self.probe_selem_dict.keys())[1:]:
+            if all_g is None:
+                all_g = prot_mask.copy()
+
+            probe_mask = ((g < probe+0.1) & (g>0)) | (prot_mask)
+
+
+            probe_mask = self._close_grid(probe_mask,probe)
+            novel = (-all_g) * (g>0)
+            all_g += (probe_mask * novel * (self.max_probe - probe))
+
+        return all_g * (prot_mask < 1)
+
+    def _open_grid(self, g, probe):
+
+        g_array = g.get_array().astype(int)
+        opened_array = ndimage.binary_opening(g_array, structure=self.probe_selem_dict[probe])
+        return Grid.array_to_grid(opened_array.astype(int), g)
+
+    def buriedness_grid(self):
+
+        closed_g = self._multiscale_closing(self.protein_grid)
+        out_g = self._open_grid(closed_g,2) * closed_g
+        out_array = out_g.get_array()
+        scaled_g = Grid.initalise_grid(self.out_grid.bounding_box, padding=0, spacing=0.5)
+
+        scaled_array = resize(out_array, scaled_g.nsteps ,anti_aliasing=False)
+
+
+
+        # Future tweaking here
+        final_array = scaled_array
+        return Grid.array_to_grid(final_array.astype(int), scaled_g)
 
 
 class Buriedness(object):
@@ -678,6 +790,9 @@ class Runner(object):
             else:
                 raise OSError('Ghecom is only supported on linux')
 
+        elif method == 'ghecom_internal':
+            self._buriedness_method = method
+
         elif method == 'ligsite':
             if sys.platform == 'linux' or sys.platform == 'linux2':
                 print("RECOMMENDATION: you have chosen LIGSITE as buriedness method, ghecom is recommended")
@@ -860,6 +975,12 @@ class Runner(object):
             b = Buriedness(protein=self.protein,
                            out_grid=out_grid)
             self.buriedness = b.calculate().grid
+        elif self.buriedness_method.lower() == 'ghecom_internal' and self.buriedness is None:
+            print("    method: Internal version Ghecom")
+            out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
+            b = ExpBuriedness(prot=self.protein, out_grid=out_grid)
+            self.buriedness = b.buriedness_grid()
+
         elif self.buriedness_method.lower() == 'ligsite' and self.buriedness is None:
             print("    method: LIGSITE")
             self.buriedness = Grid.get_single_grid(grd_dict={s.identifier: s.buriedness for s in self.superstar_grids},

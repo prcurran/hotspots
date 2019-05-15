@@ -572,7 +572,7 @@ class Grid(utilities.Grid):
         return g > 0.1
 
     @staticmethod
-    def initalise_grid(coords, padding=1):
+    def initalise_grid(coords, padding=1, spacing=0.5):
         """
         creates a fresh grid using a list of coordinates to define the grid limits
         :param coords: list
@@ -595,7 +595,7 @@ class Grid(utilities.Grid):
                                  y=round(max(y) + padding),
                                  z=round(max(z) + padding))
 
-        return Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0, _grid=None)
+        return Grid(origin=origin, far_corner=far_corner, spacing=spacing, default=0, _grid=None)
 
     @staticmethod
     def grow(inner, template, percentile= 80):
