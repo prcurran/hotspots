@@ -154,8 +154,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'FragmentHotspotMaps', u'Fragment Hotspot Maps Documentation',
-     author, 'FragmentHotspotMaps', 'One line description of project.',
-     'Miscellaneous'),
+     author, 'FragmentHotspotMaps'),
 ]
 
 
