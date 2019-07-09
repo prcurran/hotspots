@@ -36,7 +36,7 @@ from ccdc.io import MoleculeWriter, MoleculeReader
 from ccdc.molecule import Molecule, Coordinates
 from ccdc.protein import Protein
 from ccdc.utilities import PushDir
-from hotspots.atomic_hotspot_calculation import AtomicHotspot
+from hotspots.atomic_hotspot_calculation import _AtomicHotspot
 from hotspots.grid_extension import Grid
 from hotspots.hs_utilities import Helper
 from hotspots.pdb_python_api import PDBResult
@@ -955,7 +955,7 @@ class Runner(object):
         :return:
         """
         print("Start atomic hotspot detection\n        Processors: {}".format(self.nprocesses))
-        a = AtomicHotspot()
+        a = _AtomicHotspot()
         a.settings.atomic_probes = {"apolar": "AROMATIC CH CARBON",
                                     "donor": "UNCHARGED NH NITROGEN",
                                     "acceptor": "CARBONYL OXYGEN"}

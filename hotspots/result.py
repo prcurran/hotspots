@@ -49,7 +49,7 @@ from hotspots.hs_utilities import Figures
 from hotspots.template_strings import pymol_imports
 from hotspots.hs_utilities import Helper
 from hotspots.hs_pharmacophore import PharmacophoreModel
-from hotspots.atomic_hotspot_calculation import AtomicHotspot, _AtomicHotspotResult
+from hotspots.atomic_hotspot_calculation import _AtomicHotspot, _AtomicHotspotResult
 
 
 class _Scorer(Helper):
@@ -343,7 +343,7 @@ class Results(object):
         if pharmacophore:
             self.pharmacophore = self.get_pharmacophore_model()
 
-    class ConstraintData(object):
+    class _ConstraintData(object):
         """
         standardise constrain read and write (required for the GOLD optimisation)
 
@@ -374,7 +374,7 @@ class Results(object):
             f = open(path, "rb")
             d = pickle.load(f)
             f.close()
-            return Results.ConstraintData(d)
+            return Results._ConstraintData(d)
 
     class _HotspotFeature(object):
         """
@@ -455,56 +455,56 @@ class Results(object):
     def features(self, threshold):
         self._features = self._get_features(self.super_grids, threshold=threshold)
 
-    def tractability_map(self):
-        """
-        generate the best volume and labels with the median value. A median > 14 is more likely to be tractable
-
-        :return: a :class:`hotspots.result.Results` instance
-        """
-        extractor_settings = Extractor.Settings()
-        extractor_settings.cutoff = 5
-        extractor_settings.island_max_size = 500
-
-        extractor = Extractor(self, settings=extractor_settings)
-        extractor.extract_best_volume(volume=500)
-        # hist = extractor.extracted_hotspots[0].map_values()
-        #
-        # all_points = []
-        # for x in hist.values():
-        #     all_points += x.flatten().tolist()
-        #
-        # all_points = all_points[all_points != 0]
-        # print(all_points)
-        best_vol = extractor.extracted_hotspots[0]
-        best_vol.identifier = best_vol.score()
-
-        return best_vol
-
-    def all_tractability_maps(self):
-        """
-        generate the best volume and labels with the median value. A median > 14 is more likely to be tractable
-
-        :return: a :class:`hotspots.result.Results` instance
-        """
-        extractor_settings = Extractor.Settings()
-        extractor_settings.cutoff = 5
-        extractor_settings.island_max_size = 500
-
-        extractor = Extractor(self, settings=extractor_settings)
-        extractor.extract_all_volumes(volume=500)
-        extracted = []
-        for cav in extractor.extracted_hotspots:
-            hist = cav.map_values()
-            all_points = []
-            for x in hist.values():
-                all_points += x.flatten().tolist()
-
-            all_points = all_points[all_points != 0]
-            best_vol = cav
-            best_vol.identifier = np.median(all_points)
-            extracted.append(best_vol)
-
-        return extracted
+    # def tractability_map(self):
+    #     """
+    #     generate the best volume and labels with the median value. A median > 14 is more likely to be tractable
+    #
+    #     :return: a :class:`hotspots.result.Results` instance
+    #     """
+    #     extractor_settings = Extractor.Settings()
+    #     extractor_settings.cutoff = 5
+    #     extractor_settings.island_max_size = 500
+    #
+    #     extractor = Extractor(self, settings=extractor_settings)
+    #     extractor.extract_best_volume(volume=500)
+    #     # hist = extractor.extracted_hotspots[0].map_values()
+    #     #
+    #     # all_points = []
+    #     # for x in hist.values():
+    #     #     all_points += x.flatten().tolist()
+    #     #
+    #     # all_points = all_points[all_points != 0]
+    #     # print(all_points)
+    #     best_vol = extractor.extracted_hotspots[0]
+    #     best_vol.identifier = best_vol.score()
+    #
+    #     return best_vol
+    #
+    # def all_tractability_maps(self):
+    #     """
+    #     generate the best volume and labels with the median value. A median > 14 is more likely to be tractable
+    #
+    #     :return: a :class:`hotspots.result.Results` instance
+    #     """
+    #     extractor_settings = Extractor.Settings()
+    #     extractor_settings.cutoff = 5
+    #     extractor_settings.island_max_size = 500
+    #
+    #     extractor = Extractor(self, settings=extractor_settings)
+    #     extractor.extract_all_volumes(volume=500)
+    #     extracted = []
+    #     for cav in extractor.extracted_hotspots:
+    #         hist = cav.map_values()
+    #         all_points = []
+    #         for x in hist.values():
+    #             all_points += x.flatten().tolist()
+    #
+    #         all_points = all_points[all_points != 0]
+    #         best_vol = cav
+    #         best_vol.identifier = np.median(all_points)
+    #         extracted.append(best_vol)
+    #
+    #     return extracted
 
     def score(self, obj=None, tolerance=2):
         """
@@ -676,7 +676,7 @@ class Results(object):
         else:
             return True
 
-    def docking_fitting_pts(self, _best_island=None, threshold=17):
+    def _docking_fitting_pts(self, _best_island=None, threshold=17):
         """
 
         :return:
@@ -713,7 +713,7 @@ class Results(object):
         with io.MoleculeWriter("cenroid.mol2") as w:
             w.write(mol)
 
-    def docking_constraint_atoms(self, p=None, max_constraints=10, accessible_cutoff=0.001, max_distance=4, threshold=14, min_size = 15):
+    def _docking_constraint_atoms(self, p=None, max_constraints=10, accessible_cutoff=0.001, max_distance=4, threshold=14, min_size = 15):
         """
         creates a dictionary of constraints
 
@@ -789,7 +789,7 @@ class Results(object):
 
         constraint_dic = OrderedDict(reversed(constraint_dic.items()))
 
-        return self.ConstraintData(constraint_dic, self.protein)
+        return self._ConstraintData(constraint_dic, self.protein)
 
             # for atm in self.protein.atoms:
             #     atm.partial_charge = int(0)
@@ -840,21 +840,21 @@ class Results(object):
         """
         return {p: g.get_array() for p, g in self.super_grids.items()}
 
-    def histogram(self, fpath="histogram.png"):
-        """
-        get histogram of zero grid points for the Fragment Hotspot Result
-
-        :param fpath: path to output file
-        :return: data, plot
-
-        >>> result
-        <hotspots.result.Results object at 0x000000001B657940>
-        >>> plt = result.histogram()
-        >>> plt.show()
-        """
-        data, plt = Figures.histogram(self)
-        plt.savefig(fpath)
-        return data, plt
+    # def histogram(self, fpath="histogram.png"):
+    #     """
+    #     get histogram of zero grid points for the Fragment Hotspot Result
+    #
+    #     :param fpath: path to output file
+    #     :return: data, plot
+    #
+    #     >>> result
+    #     <hotspots.result.Results object at 0x000000001B657940>
+    #     >>> plt = result.histogram()
+    #     >>> plt.show()
+    #     """
+    #     data, plt = Figures.histogram(self)
+    #     plt.savefig(fpath)
+    #     return data, plt
 
     # def get_2D_diagram(self, ligand, fpath="diagram.png", title=False):
     #     """
@@ -866,81 +866,81 @@ class Results(object):
     #     """
     #     Figures._2D_diagram(hr, ligand, title=False, output="diagram.png")
 
-    def _get_superstar_profile(self, feature_radius=1.5, nthreads=6, features=None, best_volume=None):
-        """
-        *experimental feature*
-
-        enable calculation to different superstar probes at hotspot features. Perhaps a better understanding
-        of the nature of each feature can be gained from doing this or perhaps it just adds noise.
-
-        :return:
-        """
-        # set additional object properties
-        if features:
-            self.features = features
-        else:
-            self.features = self._get_features(threshold=5, min_feature_size=6)
-
-        if best_volume:
-            self.best_volume = best_volume
-        else:
-            self.best_volume = Grid.get_single_grid(self.super_grids, mask=False)
-
-        self.feature_spheres = self.best_volume.copy_and_clear()
-        for feat in self.features:
-            self.feature_spheres.set_sphere(point=feat.feature_coordinates,
-                                            radius=feature_radius,
-                                            value=1,
-                                            scaling="None"
-                                            )
-
-        # superstar run
-        centroid = [self.best_volume.centroid()]
-        a = AtomicHotspot()
-        a.settings.atomic_probes = ["carbonyl_oxygen", "carboxylate", "pyramidal_r3n", "water_oxygen"]
-
-        self.superstar_result = a.calculate(protein=self.protein,
-                                            nthreads=nthreads,
-                                            cavity_origins=centroid)
-
-        self.ss = []
-
-        # find overlap
-        for r in self.superstar_result:
-            common_spheres, common_result = Grid.common_grid([self.feature_spheres, r.grid])
-            r.grid = (common_spheres & common_result) * common_result
-
-        # assign island to Hotspot Feature
-        feat_id = []
-        ss_id = []
-        score = []
-        import pandas as pd
-
-        for i, feat in enumerate(self.features):
-
-            for r in self.superstar_result:
-                feat_id.append(i)
-                ss_id.append(r.identifier)
-
-                ss_dict = {Helper.get_distance(feat.feature_coordinates, island.centroid()): island
-                           for island in r.grid.islands(threshold=1)
-                           if Helper.get_distance(feat.feature_coordinates, island.centroid()) < 1}
-
-                if len(ss_dict) == 0:
-                    g = r.grid.copy_and_clear()
-
-                else:
-                    shortest = sorted([f[0] for f in ss_dict.items()], reverse=False)[0]
-                    g = ss_dict[shortest]
-
-                feat.superstar_results.append(_AtomicHotspotResult(identifier=r.identifier,
-                                                                   grid=g,
-                                                                   buriedness=None)
-                                              )
-
-                score.append(g.grid_score(threshold=1, percentile=50))
-
-        return pd.DataFrame({"feature_id": feat_id, "interaction": ss_id, "score": score})
+    # def _get_superstar_profile(self, feature_radius=1.5, nthreads=6, features=None, best_volume=None):
+    #     """
+    #     *experimental feature*
+    #
+    #     enable calculation to different superstar probes at hotspot features. Perhaps a better understanding
+    #     of the nature of each feature can be gained from doing this or perhaps it just adds noise.
+    #
+    #     :return:
+    #     """
+    #     # set additional object properties
+    #     if features:
+    #         self.features = features
+    #     else:
+    #         self.features = self._get_features(threshold=5, min_feature_size=6)
+    #
+    #     if best_volume:
+    #         self.best_volume = best_volume
+    #     else:
+    #         self.best_volume = Grid.get_single_grid(self.super_grids, mask=False)
+    #
+    #     self.feature_spheres = self.best_volume.copy_and_clear()
+    #     for feat in self.features:
+    #         self.feature_spheres.set_sphere(point=feat.feature_coordinates,
+    #                                         radius=feature_radius,
+    #                                         value=1,
+    #                                         scaling="None"
+    #                                         )
+    #
+    #     # superstar run
+    #     centroid = [self.best_volume.centroid()]
+    #     a = _AtomicHotspot()
+    #     a.settings.atomic_probes = ["carbonyl_oxygen", "carboxylate", "pyramidal_r3n", "water_oxygen"]
+    #
+    #     self.superstar_result = a.calculate(protein=self.protein,
+    #                                         nthreads=nthreads,
+    #                                         cavity_origins=centroid)
+    #
+    #     self.ss = []
+    #
+    #     # find overlap
+    #     for r in self.superstar_result:
+    #         common_spheres, common_result = Grid.common_grid([self.feature_spheres, r.grid])
+    #         r.grid = (common_spheres & common_result) * common_result
+    #
+    #     # assign island to Hotspot Feature
+    #     feat_id = []
+    #     ss_id = []
+    #     score = []
+    #     import pandas as pd
+    #
+    #     for i, feat in enumerate(self.features):
+    #
+    #         for r in self.superstar_result:
+    #             feat_id.append(i)
+    #             ss_id.append(r.identifier)
+    #
+    #             ss_dict = {Helper.get_distance(feat.feature_coordinates, island.centroid()): island
+    #                        for island in r.grid.islands(threshold=1)
+    #                        if Helper.get_distance(feat.feature_coordinates, island.centroid()) < 1}
+    #
+    #             if len(ss_dict) == 0:
+    #                 g = r.grid.copy_and_clear()
+    #
+    #             else:
+    #                 shortest = sorted([f[0] for f in ss_dict.items()], reverse=False)[0]
+    #                 g = ss_dict[shortest]
+    #
+    #             feat.superstar_results.append(_AtomicHotspotResult(identifier=r.identifier,
+    #                                                                grid=g,
+    #                                                                buriedness=None)
+    #                                           )
+    #
+    #             score.append(g.grid_score(threshold=1, percentile=50))
+    #
+    #     return pd.DataFrame({"feature_id": feat_id, "interaction": ss_id, "score": score})
 
     @staticmethod
     def _get_features(interaction_dict, threshold=5, min_feature_gp=6, excluded=("apolar")):

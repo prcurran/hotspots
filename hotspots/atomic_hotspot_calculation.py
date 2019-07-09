@@ -44,7 +44,7 @@ def _run_job(args):
     return temp_dir, jobname
 
 
-class AtomicHotspot(object):
+class _AtomicHotspot(object):
     """
     A class for handling the calculation of Atomic Hotspots using SuperStar
     """
@@ -290,7 +290,7 @@ class AtomicHotspot(object):
 
         >>> from pdb_python_api import PDBResult
         >>> from ccdc.protein import Protein
-        >>> from hotspots.atomic_hotspot_calculation import AtomicHotspot
+        >>> from hotspots.atomic_hotspot_calculation import _AtomicHotspot
 
         >>> if __name__ == "__main__":
         >>>     # NB: main guard required for multiprocessing on windows!
@@ -299,7 +299,7 @@ class AtomicHotspot(object):
         >>>     protein.add_hydrogens()
         >>>     protein.remove_all_waters()
 
-        >>>     a = AtomicHotspot()
+        >>>     a = _AtomicHotspot()
         >>>     a.settings.atomic_probes = {"apolar": "AROMATIC CH CARBON",
         >>>                                 "donor": "UNCHARGED NH NITROGEN",
         >>>                                 "acceptor": "CARBONYL OXYGEN"}

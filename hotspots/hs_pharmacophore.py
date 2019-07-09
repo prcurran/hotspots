@@ -71,7 +71,7 @@ def tanimoto_dist(a, b):
     return 1.0 - tc
 
 
-class Ligand(object):
+class _Ligand(object):
     """
 
     """
@@ -93,7 +93,7 @@ class Ligand(object):
         rdkit_mol = Chem.SDMolSupplier(path)[0]
         fingerprint = AllChem.GetMorganFingerprintAsBitVect(rdkit_mol, 2)
         chem_id = ccdc_mol.identifier
-        return Ligand(ccdc_mol, rdkit_mol, fingerprint, chem_id)
+        return _Ligand(ccdc_mol, rdkit_mol, fingerprint, chem_id)
 
 
 class PharmacophoreModel(Helper):
@@ -953,7 +953,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             out_dir = tempfile.mkdtemp()
 
         ensemble.save(out_dir=out_dir)
-        ligands = [Ligand.from_file(path=os.path.join(out_dir, "ligands", f))
+        ligands = [_Ligand.from_file(path=os.path.join(out_dir, "ligands", f))
                    for f in os.listdir(os.path.join(out_dir, "ligands")) if f.split(".")[1] == "sdf"]
 
         cluster_dict = PharmacophoreModel._cluster_ligands(ligands=ligands, t=identifier)

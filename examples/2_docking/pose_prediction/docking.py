@@ -237,7 +237,7 @@ class Organiser(argparse.ArgumentParser):
 
             for constraint in constraints:
                 docker.settings.add_constraint(constraint)
-            docker.settings.add_fitting_points(hr=bv)
+            docker.settings.generate_fitting_points(hr=bv)
 
             mol = Molecule(identifier="constraints")
             for constraint in constraints:

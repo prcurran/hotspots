@@ -84,13 +84,13 @@ class DockerSettings(docking.Docker.Settings):
             super(self.__class__, self).__init__(_constraint)
 
         @staticmethod
-        def from_file(path, protein, weight, min_hbond_score=0.001, max=2):
+        def _from_file(path, protein, weight, min_hbond_score=0.001, max=2):
             """
             create a hotspot constraint from file
 
             :return:
             """
-            constraints = Results.ConstraintData.read(path)
+            constraints = Results._ConstraintData.read(path)
 
             return [DockerSettings.HotspotHBondConstraint(atoms=[protein.atoms[index]],
                                                           weight=float(weight),
@@ -98,7 +98,7 @@ class DockerSettings(docking.Docker.Settings):
                     for i, index in enumerate(constraints.score_by_index.values()) if i < max]
 
         @staticmethod
-        def create(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001, cutoff=14):
+        def create(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001, cutoff=10):
             """
             creates a :class:`hotspots.hs_docking.HotspotHBondConstraint`
 
@@ -128,7 +128,7 @@ class DockerSettings(docking.Docker.Settings):
             # else:
             #     scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
 
-            constraints = hr.docking_constraint_atoms(p=protein, max_constraints=max_constraints)
+            constraints = hr._docking_constraint_atoms(p=protein, max_constraints=max_constraints)
 
             return [DockerSettings.HotspotHBondConstraint(atoms=[protein.atoms[constraints.score_by_index[a]]],
                                                           weight=weight,
@@ -141,7 +141,7 @@ class DockerSettings(docking.Docker.Settings):
             )
             return s
 
-    def add_fitting_points_from_file(self, path='fit_pts.mol2'):
+    def _add_fitting_points_from_file(self, path='fit_pts.mol2'):
         """
         creates fitting pts from a .mol2 file
 
@@ -149,7 +149,7 @@ class DockerSettings(docking.Docker.Settings):
         """
         self.fitting_points_file = path
 
-    def add_fitting_points(self, hr, volume=400, threshold=17, mode='threshold'):
+    def generate_fitting_points(self, hr, volume=400, threshold=17, mode='threshold'):
         """
         uses the Fragment Hotspot Maps to generate GOLD fitting points.
 

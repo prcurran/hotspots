@@ -1,0 +1,629 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>hotspots.hs_io &mdash; Hotspots API 1.0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/logo_test.png"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Hotspots API
+          
+
+          
+            
+            <img src="../../_static/logo_test.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calculation_api.html">Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_io_api.html">Hotspot IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../result_api.html">Result API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_docking_api.html">Hotspot Docking API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_utilities_api.html">Hotspot Utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Hotspots API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>hotspots.hs_io</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for hotspots.hs_io</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The :mod:`hotspots.hs_io` module was created to facilitate easy reading and</span>
+<span class="sd">writing of Fragment Hotspot Map results.</span>
+
+<span class="sd">There are multiple components to a :class:`hotspots.result.Result` including, the</span>
+<span class="sd">protein, interaction grids and buriedness grid. It is therefore tedious to manually</span>
+<span class="sd">read/write using the various class readers/writers. The Hotspots I/O organises this</span>
+<span class="sd">for the user and can handle single :class:`hotspots.result.Result` or lists of</span>
+<span class="sd">:class:`hotspots.result.Result`.</span>
+
+
+<span class="sd">The main classes of the :mod:`hotspots.io` module are:</span>
+
+<span class="sd">- :class:`hotspots.io.HotspotWriter`</span>
+<span class="sd">- :class:`hotspots.io.HotspotReader`</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">listdir</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">isdir</span>
+
+<span class="kn">from</span> <span class="nn">ccdc</span> <span class="k">import</span> <span class="n">io</span>
+<span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
+<span class="kn">from</span> <span class="nn">grid_extension</span> <span class="k">import</span> <span class="n">Grid</span>
+<span class="kn">from</span> <span class="nn">hotspots.result</span> <span class="k">import</span> <span class="n">Results</span>
+<span class="kn">from</span> <span class="nn">hotspots.hs_utilities</span> <span class="k">import</span> <span class="n">Helper</span>
+<span class="kn">from</span> <span class="nn">hotspots.template_strings</span> <span class="k">import</span> <span class="n">pymol_imports</span><span class="p">,</span> <span class="n">pymol_arrow</span><span class="p">,</span> <span class="n">pymol_protein</span><span class="p">,</span> <span class="n">pymol_grids</span><span class="p">,</span> <span class="n">pymol_display_settings</span><span class="p">,</span> \
+    <span class="n">pymol_load_zip</span><span class="p">,</span> <span class="n">pymol_labels</span><span class="p">,</span> <span class="n">pymol_mesh</span>
+
+
+<div class="viewcode-block" id="HotspotWriter"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotWriter">[docs]</a><span class="k">class</span> <span class="nc">HotspotWriter</span><span class="p">(</span><span class="n">Helper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to handle the writing of a :class`hotspots.result.Result`. Additionally, creation of the</span>
+<span class="sd">    PyMol visualisation scripts are handled here.</span>
+
+<span class="sd">    :param str path: path to output directory</span>
+<span class="sd">    :param str visualisation: &quot;pymol&quot; or &quot;ngl&quot; currently only PyMOL available</span>
+<span class="sd">    :param str grid_extension: &quot;.grd&quot;, &quot;.ccp4&quot; and &quot;.acnt&quot; supported</span>
+<span class="sd">    :param bool zip_results: If True, the result directory will be compressed. (recommended)</span>
+<span class="sd">    :param `hotspots.hs_io.HotspotWriter.Settings` settings: settings</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HotspotWriter.Settings"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotWriter.Settings">[docs]</a>    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A class to hold the :class:`hotspots.hs_io.HotspotWriter` settings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grid_extension</span> <span class="o">=</span> <span class="s2">&quot;.grd&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bg_color</span> <span class="o">=</span> <span class="s2">&quot;white&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">surface</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">surface_trim_factor</span> <span class="o">=</span> <span class="mi">13</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">organic_sticks</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isosurface_threshold</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">17</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grids</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transparency</span> <span class="o">=</span> <span class="mf">0.2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grid_labels</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">supported_grids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="s2">&quot;.ccp4&quot;</span><span class="p">,</span> <span class="s2">&quot;.acnt&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pharmacophore_labels</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pharmacophore_format</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.py&quot;</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">visualisation</span><span class="o">=</span><span class="s2">&quot;pymol&quot;</span><span class="p">,</span> <span class="n">grid_extension</span><span class="o">=</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="n">zip_results</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
+
+        <span class="k">if</span> <span class="n">grid_extension</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">supported_grids</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grid_extension</span> <span class="o">=</span> <span class="n">grid_extension</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grid_extension</span> <span class="o">=</span> <span class="s2">&quot;.grd&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Invalid grid file format provided. Default: &#39;.grd&#39; will be used&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">visualisation</span> <span class="o">=</span> <span class="n">visualisation</span>
+        <span class="k">if</span> <span class="n">visualisation</span> <span class="o">==</span> <span class="s2">&quot;ngl&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">visualisation</span> <span class="o">=</span> <span class="n">visualisation</span>
+            <span class="k">if</span> <span class="n">grid_extension</span> <span class="o">!=</span> <span class="s2">&quot;.ccp4&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grid_extension</span> <span class="o">=</span> <span class="s2">&quot;.ccp4&quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Grids must be .ccp4 format for visualisation with NGLViewer&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span> <span class="o">=</span> <span class="n">zip_results</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">traceback</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HotspotWriter.write"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotWriter.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        writes the Fragment Hotspot Maps result to the output directory and create the pymol visualisation file</span>
+
+<span class="sd">        :param `hotspots.result.Result` hr: a Fragment Hotspot Maps result or list of results</span>
+
+<span class="sd">        &gt;&gt;&gt; from hotspots.calculation import Runner</span>
+<span class="sd">        &gt;&gt;&gt; from hotspots.hs_io import HotspotWriter</span>
+
+<span class="sd">        &gt;&gt;&gt; r = Runner</span>
+<span class="sd">        &gt;&gt;&gt; result = r.from_pdb(&quot;1hcl&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; out_dir = &lt;path_to_out&gt;</span>
+<span class="sd">        &gt;&gt;&gt; with HotspotWriter(out_dir) as w:</span>
+<span class="sd">        &gt;&gt;&gt;     w.write(result)</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grids</span> <span class="o">=</span> <span class="n">hr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="s2">&quot;hotspot_boundaries&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">number_of_hotspots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hr</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_protein</span><span class="p">(</span><span class="n">hr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">hr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># hts = [h.hotspot_result for h in hr]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_pymol</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">hotspot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hr</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">isosurface_threshold</span> <span class="o">=</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">hotspot</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+
+                <span class="n">bi</span> <span class="o">=</span> <span class="p">(</span><span class="n">Grid</span><span class="o">.</span><span class="n">super_grid</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">hotspot</span><span class="o">.</span><span class="n">best_island</span><span class="p">)</span><span class="o">.</span><span class="n">max_value_of_neighbours</span><span class="p">()</span>
+                      <span class="o">&gt;</span> <span class="n">hotspot</span><span class="o">.</span><span class="n">threshold</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_write_grids</span><span class="p">(</span><span class="n">hotspot</span><span class="o">.</span><span class="n">super_grids</span><span class="p">,</span> <span class="n">buriedness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="n">bi</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_write_protein</span><span class="p">(</span><span class="n">hotspot</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">hotspot</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_write_pharmacophore</span><span class="p">(</span><span class="n">hotspot</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_write_pymol</span><span class="p">(</span><span class="n">hotspot</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grids</span> <span class="o">=</span> <span class="n">hr</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="s2">&quot;out&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">number_of_hotspots</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_grids</span><span class="p">(</span><span class="n">hr</span><span class="o">.</span><span class="n">super_grids</span><span class="p">,</span> <span class="n">buriedness</span><span class="o">=</span><span class="n">hr</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_protein</span><span class="p">(</span><span class="n">hr</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">hr</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_write_pharmacophore</span><span class="p">(</span><span class="n">hr</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_pymol</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="nf">_write_grids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid_dict</span><span class="p">,</span> <span class="n">buriedness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        writes grids to output directory</span>
+<span class="sd">        :param grid_dict:</span>
+<span class="sd">        :param buriedness:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grid_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grid_extension</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">out_dir</span><span class="p">:</span>
+                <span class="n">g</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">g</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">buriedness</span><span class="p">:</span>
+            <span class="n">buriedness</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;buriedness</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grid_extension</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">mesh</span><span class="p">:</span>
+            <span class="n">mesh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;mesh</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grid_extension</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grid_labels</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;label_threshold_</span><span class="si">{}</span><span class="s2">.mol2&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">threshold</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span><span class="n">grid_dict</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span>
+                      <span class="k">for</span> <span class="n">threshold</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">isosurface_threshold</span><span class="p">}</span>
+
+            <span class="k">for</span> <span class="n">fname</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">MoleculeWriter</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_write_protein</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prot</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        writes protein to output directory</span>
+<span class="sd">        :param prot:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">out_dir</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;protein.pdb&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;protein.pdb&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">MoleculeWriter</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_write_pharmacophore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pharmacophore</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        writes pharmacophore to output directory</span>
+<span class="sd">        :param pharmacophore:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;pharmacophore&quot;</span> <span class="o">+</span> <span class="n">fmat</span><span class="p">)</span> <span class="k">for</span> <span class="n">fmat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">pharmacophore_format</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+            <span class="n">pharmacophore</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+
+        <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span><span class="n">pharmacophore</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">MoleculeWriter</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;label_threshold_</span><span class="si">{}</span><span class="s2">.mol2&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pharmacophore</span><span class="o">.</span><span class="n">identifier</span><span class="p">)))</span> \
+                <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_write_pymol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hr</span><span class="p">,</span> <span class="n">zipped</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs PyMol python script to automatically display FH results</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pymol_out</span> <span class="o">=</span> <span class="n">pymol_imports</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">:</span>
+            <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_arrow</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">zipped</span><span class="p">:</span>
+            <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_load_zip</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">))</span>
+
+        <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_protein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hr</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hr</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">isosurface_threshold</span> <span class="o">=</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+                <span class="n">pymol_out</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pymol_hotspot</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_mesh</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pymol_out</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pymol_hotspot</span><span class="p">(</span><span class="n">hr</span><span class="p">)</span>
+
+        <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_display_settings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">zipped</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/pymol_results_file.py&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pymol_file</span><span class="p">:</span>
+            <span class="n">pymol_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pymol_out</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_pymol_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        core pymol sequence</span>
+<span class="sd">        :param h: HotspotResult object</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pymol_out</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">grid_labels</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">isosurface_threshold</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">fname</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s2">&quot;label_threshold_</span><span class="si">{}</span><span class="s2">.mol2&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;label_threshold_</span><span class="si">{}</span><span class="s2">.mol2&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_labels</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="n">fname</span><span class="p">,</span>
+                                          <span class="n">objname</span><span class="o">=</span><span class="s2">&quot;label_threshold_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+        <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">pymol_grids</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s2">&quot;label_threshold_</span><span class="si">{}</span><span class="s2">.mol2&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">pharmacophore</span><span class="o">.</span><span class="n">identifier</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="s2">&quot;label_threshold_</span><span class="si">{}</span><span class="s2">.mol2&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">pharmacophore</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
+
+            <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">h</span><span class="o">.</span><span class="n">pharmacophore</span><span class="o">.</span><span class="n">_get_pymol_pharmacophore</span><span class="p">(</span><span class="n">lfile</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pymol_out</span>
+
+<div class="viewcode-block" id="HotspotWriter.compress"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotWriter.compress">[docs]</a>    <span class="k">def</span> <span class="nf">compress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">archive_name</span><span class="p">,</span> <span class="n">delete_directory</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        compresses the output directory created for this :class:`hotspots.HotspotResults` instance, and</span>
+<span class="sd">        removes the directory by default. The zipped file can be loaded directly into a new</span>
+<span class="sd">        :class:`hotspots.HotspotResults` instance using the</span>
+<span class="sd">        :func:`~hotspots.Hotspots.from_zip_dir` function</span>
+
+<span class="sd">        :param str archive_name: file path</span>
+<span class="sd">        :param bool delete_directory: remove the out directory once it has been zipped</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">archive_name</span> <span class="o">=</span> <span class="n">archive_name</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">make_archive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archive_name</span><span class="p">,</span> <span class="s1">&#39;zip&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">archive_loc</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.zip&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archive_name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">delete_directory</span><span class="p">:</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HotspotReader"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotReader">[docs]</a><span class="k">class</span> <span class="nc">HotspotReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to organise the reading of a :class:`hotspots.result.Result`</span>
+
+<span class="sd">    :param str path: path to the result directory (can be .zip directory)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_supported_interactions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;apolar&quot;</span><span class="p">,</span> <span class="s2">&quot;donor&quot;</span><span class="p">,</span> <span class="s2">&quot;acceptor&quot;</span><span class="p">,</span> <span class="s2">&quot;positive&quot;</span><span class="p">,</span> <span class="s2">&quot;negative&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_supported_grids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="s2">&quot;.ccp4&quot;</span><span class="p">,</span> <span class="s2">&quot;.acnt&quot;</span><span class="p">,</span> <span class="s2">&quot;.dat&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_not_hs_dir</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;best_islands&quot;</span><span class="p">,</span> <span class="s2">&quot;peaks&quot;</span><span class="p">,</span> <span class="s2">&quot;ins&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">path</span>
+
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;.zip&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_from_zip</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="o">=</span> <span class="n">path</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_extensions</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="k">if</span> <span class="n">f</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">!=</span> <span class="s2">&quot;.py&quot;</span><span class="p">])</span>
+
+        <span class="n">pfiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="k">if</span> <span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.pdb&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pfiles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING! </span><span class="si">{}</span><span class="s2"> has been used as default protein&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="s2">&quot;protein.pdb&quot;</span><span class="p">)))</span>
+            <span class="n">pfiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="s2">&quot;protein.pdb&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="n">pfiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hs_dir</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span>
+                       <span class="k">if</span> <span class="n">isdir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span> <span class="ow">and</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_not_hs_dir</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_path_from_zip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        writes files to temp dir, returns base dir</span>
+<span class="sd">        :param self:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">hs_zip</span><span class="p">:</span>
+            <span class="n">hs_zip</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+        <span class="c1"># d = splitext(basename(self._path))</span>
+
+        <span class="k">return</span> <span class="n">base</span>
+
+    <span class="k">def</span> <span class="nf">_get_grids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sub_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        create a grid dictorionary</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sub_dir</span><span class="p">:</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="n">sub_dir</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="n">listdir</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_extensions</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="k">if</span> <span class="n">f</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">f</span> <span class="o">!=</span> <span class="s1">&#39;.py&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span>
+
+        <span class="k">if</span> <span class="s2">&quot;.dat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extensions</span><span class="p">:</span>
+            <span class="n">grid_dic</span> <span class="o">=</span> <span class="p">{</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">Grid</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span>
+                                      <span class="k">if</span> <span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.grd&quot;</span>
+                                      <span class="ow">and</span> <span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supported_interactions</span><span class="p">]}</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">buriedness</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="s2">&quot;buriedness.dat&quot;</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+                <span class="n">buriedness</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extensions</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_supported_grids</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">grid_dic</span> <span class="o">=</span> <span class="p">{</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">Grid</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+                            <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span>
+                                          <span class="k">if</span> <span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">ext</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                                          <span class="ow">and</span> <span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supported_interactions</span><span class="p">]}</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">buriedness</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;buriedness</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ext</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+                    <span class="n">buriedness</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Opps, something went wrong.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">grid_dic</span><span class="p">,</span> <span class="n">buriedness</span>
+
+<div class="viewcode-block" id="HotspotReader.read"><a class="viewcode-back" href="../../hs_io_api.html#hotspots.hs_io.HotspotReader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        creates a single or list of :class:`hotspots.result.Result` instance(s)</span>
+
+<span class="sd">        :param str identifier: for directories containing multiple Fragment Hotspot Map results,</span>
+<span class="sd">        identifier is the subdirectory for which a :class:`hotspots.result.Result` is requried</span>
+
+<span class="sd">        :return: `hotspots.result.Result` a Fragment Hotspot Map result</span>
+
+<span class="sd">        &gt;&gt;&gt; from hotspots.hs_io import HotspotReader</span>
+
+<span class="sd">        &gt;&gt;&gt; path = &quot;&lt;path_to_results_directory&gt;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; result = HotspotReader(path).read()</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hs_dir</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grids</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">Results</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                           <span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span>
+                           <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hrs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">identifier</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grids</span><span class="p">(</span><span class="n">sub_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">identifier</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">Results</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                               <span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span>
+                               <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hs_dir</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grids</span><span class="p">(</span><span class="n">sub_dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">)</span>
+                    <span class="n">hrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Results</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                                       <span class="n">super_grids</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_dic</span><span class="p">,</span>
+                                       <span class="n">buriedness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buriedness</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">hrs</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Chris Radoux, Peter Curran and Mihaela Smilova
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
