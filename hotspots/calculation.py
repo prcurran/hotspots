@@ -980,7 +980,22 @@ class Runner(object):
             print("    method: Internal version Ghecom")
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
             b = ExpBuriedness(prot=self.protein, out_grid=out_grid)
-            self.buriedness = b.buriedness_grid()
+            g_temp = b.buriedness_grid()
+
+            # for s in self.superstar_grids:
+            #     print("pre",s.buriedness.extrema)
+            # ligsite = self.superstar_grids[0].buriedness#Grid.get_single_grid(grd_dict={s.identifier: s.buriedness for s in self.superstar_grids},
+            #                                        #mask=False)
+            #
+            # print('ligsite extrema', ligsite.extrema)
+            # l = ligsite.gaussian(sigma=0.5) *0.2
+            #
+            # print('ligsite extrema', l.extrema)
+            #
+            # common_grids = Grid.common_grid([g_temp, l])
+
+            self.buriedness = g_temp #common_grids[0] * common_grids[1]
+
 
         elif self.buriedness_method.lower() == 'ligsite' and self.buriedness is None:
             print("    method: LIGSITE")

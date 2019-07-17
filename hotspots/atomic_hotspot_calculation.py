@@ -421,8 +421,10 @@ class _AtomicHotspotResult(object):
         buriedness_path = join(temp_dir, jobname + ".ligsite.acnt")
 
         if exists(buriedness_path):
-            b = Grid.from_file(buriedness_path)
-            buriedness = _AtomicHotspotResult._correct_ligsite(grid, b)
+            b_grid = Grid.from_file(buriedness_path)
+            print('ligsite extrema', b_grid.extrema)
+            # b.write('buriedness_broken.grd')
+            buriedness = _AtomicHotspotResult._correct_ligsite(grid, b_grid)
 
         else:
             print(buriedness_path)
