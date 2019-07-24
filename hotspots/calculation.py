@@ -46,8 +46,7 @@ from tqdm import tqdm
 
 class ExpBuriedness(object):
 
-    def __init__(self, prot, out_grid,max_probe_radius = 11):
-
+    def __init__(self, prot, out_grid, max_probe_radius=11):
         self.prot = prot
         self.out_grid = out_grid
         self.max_probe = max_probe_radius
@@ -55,14 +54,12 @@ class ExpBuriedness(object):
         self.protein_grid = self._from_molecule(prot)
         self.protein_grid.write(('prot_g.grd'))
 
-
     def _generate_probe_selem(self):
-        '''
+        """
         Generates a set of structuring elements (i.e. probe spheres) starting from a 3x3 cross (0.5 A radius) probe up
         to the max probe radius
         :return:
-        '''
-
+        """
         probe_selem_dict = {}
 
         # Small probe
@@ -71,8 +68,6 @@ class ExpBuriedness(object):
         # r= probe radius
         for r in range(3,self.max_probe +1):
             probe_selem_dict[r] = ball(r)
-
-
 
         return probe_selem_dict
 
@@ -967,35 +962,25 @@ class Runner(object):
                                            nthreads=self.nprocesses,
                                            cavity_origins=self.cavities)
 
+        if self.clear_tmp == True:
+            shutil.rmtree(a.settings.temp_dir)
+
         print("Atomic hotspot detection complete\n")
 
-        print("Start buriedness calcualtion")
+        print("Start buriedness calculation")
         if self.buriedness_method.lower() == 'ghecom' and self.buriedness is None:
             print("    method: Ghecom")
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
             b = Buriedness(protein=self.protein,
                            out_grid=out_grid)
             self.buriedness = b.calculate().grid
+            shutil.rmtree(b.settings.working_directory)
+
         elif self.buriedness_method.lower() == 'ghecom_internal' and self.buriedness is None:
             print("    method: Internal version Ghecom")
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
             b = ExpBuriedness(prot=self.protein, out_grid=out_grid)
-            g_temp = b.buriedness_grid()
-
-            # for s in self.superstar_grids:
-            #     print("pre",s.buriedness.extrema)
-            # ligsite = self.superstar_grids[0].buriedness#Grid.get_single_grid(grd_dict={s.identifier: s.buriedness for s in self.superstar_grids},
-            #                                        #mask=False)
-            #
-            # print('ligsite extrema', ligsite.extrema)
-            # l = ligsite.gaussian(sigma=0.5) *0.2
-            #
-            # print('ligsite extrema', l.extrema)
-            #
-            # common_grids = Grid.common_grid([g_temp, l])
-
-            self.buriedness = g_temp #common_grids[0] * common_grids[1]
-
+            self.buriedness = b.buriedness_grid()
 
         elif self.buriedness_method.lower() == 'ligsite' and self.buriedness is None:
             print("    method: LIGSITE")
@@ -1030,6 +1015,54 @@ class Runner(object):
 
         if protoss is False:
             self.protein.add_hydrogens()
+
+    def from_superstar(self, protein, superstar_grids, buriedness, charged_probes=False, probe_size=7,
+                        settings=None, clear_tmp=False):
+        """
+        calculate hotspot maps from precalculated superstar maps. This enables more effective parallelisation and reuse
+        of object such as the Buriedness grids
+
+        :param protein: a :class:`ccdc.protein.Protein` instance
+        :param superstar_grids: a :class:`hotspots.atomic_hotspot_calculation._AtomicHotspotResult` instance
+        :param buriedness: a :class:`hotspots.grid_extension.Grid` instance
+        :param bool charged_probes: If True, include positive and negative probes
+        :param int probe_size: Size of probe in number of heavy atoms (3-8 atoms)
+        :param settings: `hotspots.calculation.Runner.Settings` settings: holds the sampler settings
+        :param bool clear_tmp: If True, clear the temporary directory
+        :return:
+        """
+        start = time.time()
+        self.super_grids = {}
+        self.superstar_grids = superstar_grids
+        self.probe_types = [p.identifier for p in self.superstar_grids]
+        self.buriedness = buriedness
+
+        self.protein = protein
+        self.charged_probes = charged_probes
+        self.probe_size = probe_size
+        self.clear_tmp = clear_tmp
+
+        if settings is None:
+            self.sampler_settings = self.Settings()
+        else:
+            self.sampler_settings = settings
+
+        self.weighted_grids = self._get_weighted_maps()
+
+        print("Start sampling")
+        grid_dict = {w.identifier: w.grid for w in self.weighted_grids}
+
+        for probe in self.probe_types:
+            self._get_out_maps(probe, grid_dict)
+
+        self.super_grids = {p: g[0] for p, g in self.out_grids.items()}
+
+        print("Sampling complete\n")
+        print("Runtime = {}seconds".format(time.time() - start))
+
+        return Results(super_grids=self.super_grids,
+                       protein=self.protein,
+                       buriedness=self.buriedness)
 
     def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method='ghecom',
                      cavities=None, nprocesses=1, settings=None, buriedness_grid=None, clear_tmp=False):
@@ -1067,6 +1100,9 @@ class Runner(object):
         self.probe_size = probe_size
         self.buriedness_method = buriedness_method
         self.cavities = cavities
+        self.clear_tmp = clear_tmp
+
+        print(self.cavities)
         self.nprocesses = nprocesses
         if settings is None:
             self.sampler_settings = self.Settings()
@@ -1118,6 +1154,7 @@ class Runner(object):
         self.charged_probes = charged_probes
         self.probe_size = probe_size
         self.buriedness_method = buriedness_method
+        self.clear_tmp = clear_tmp
         self.cavities = None
         if cavities is True:
             self.cavities = Cavity.from_pdb_file(fname)

@@ -63,6 +63,7 @@ class HotspotWriter(Helper):
             self.pharmacophore = False
             self.pharmacophore_labels = True
             self.pharmacophore_format = [".py"]
+            self.container = 'out'
 
     def __init__(self, path, visualisation="pymol", grid_extension=".grd", zip_results=True, settings=None):
         if settings is None:
@@ -112,10 +113,10 @@ class HotspotWriter(Helper):
         """
         if isinstance(hr, list):
             self.settings.grids = hr[0].super_grids.keys()
-            self.container = "hotspot_boundaries"
+            self.settings.container = "hotspot_boundaries"
             self.number_of_hotspots = len(hr)
 
-            self.out_dir = Helper.get_out_dir(join(self.path, self.container))
+            self.out_dir = Helper.get_out_dir(join(self.path, self.settings.container))
 
             self._write_protein(hr[0].protein)
             if hr[0].pharmacophore:
@@ -124,7 +125,7 @@ class HotspotWriter(Helper):
             self._write_pymol(hr, self.zipped)
 
             for i, hotspot in enumerate(hr):
-                self.out_dir = Helper.get_out_dir(join(self.path, self.container, str(i)))
+                self.out_dir = Helper.get_out_dir(join(self.path, self.settings.container, str(i)))
                 self.settings.isosurface_threshold = [round(hotspot.threshold, 1)]
 
                 bi = (Grid.super_grid(2, hotspot.best_island).max_value_of_neighbours()
@@ -140,14 +141,14 @@ class HotspotWriter(Helper):
 
             self.out_dir = dirname(self.out_dir)
             if self.zipped:
-                self.compress(join(dirname(self.out_dir), self.container))
+                self.compress(join(dirname(self.out_dir), self.settings.container))
 
         else:
             self.settings.grids = hr.super_grids.keys()
-            self.container = "out"
+            # self.settings.container = "out"
             self.number_of_hotspots = 1
 
-            self.out_dir = Helper.get_out_dir(join(self.path, self.container))
+            self.out_dir = Helper.get_out_dir(join(self.path, self.settings.container))
             self._write_grids(hr.super_grids, buriedness=hr.buriedness)
             self._write_protein(hr.protein)
 
@@ -157,7 +158,7 @@ class HotspotWriter(Helper):
             self._write_pymol(hr, self.zipped)
 
             if self.zipped:
-                self.compress(join(dirname(self.out_dir), self.container))
+                self.compress(join(dirname(self.out_dir), self.settings.container))
 
     def _write_grids(self, grid_dict, buriedness=None, mesh=None, out_dir=None):
         """
