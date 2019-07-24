@@ -52,7 +52,7 @@ class ExpBuriedness(object):
         self.max_probe = max_probe_radius
         self.probe_selem_dict = self._generate_probe_selem()
         self.protein_grid = self._from_molecule(prot)
-        self.protein_grid.write(('prot_g.grd'))
+
 
     def _generate_probe_selem(self):
         """
@@ -81,7 +81,7 @@ class ExpBuriedness(object):
         """
 
         coords = [a.coordinates for a in mol.atoms]
-        g = Grid.initalise_grid(coords=coords, padding= 2, spacing=1)
+        g = Grid.initalise_grid(coords=coords, padding= 15, spacing=1)
 
         for probe in sorted(self.probe_selem_dict.keys(), reverse=True):
             for a in mol.heavy_atoms:
@@ -98,7 +98,12 @@ class ExpBuriedness(object):
                          mode='replace',
                          scaling='None')
 
-        return g
+        out_bound_box = self.out_grid.bounding_box
+        origin_indices = g.point_to_indices(out_bound_box[0])
+        far_indices = g.point_to_indices(out_bound_box[1])
+        region = origin_indices + far_indices
+        print(region)
+        return g.sub_grid(region)
 
     def _close_grid(self, g, probe):
 
