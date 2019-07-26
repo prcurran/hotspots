@@ -18,15 +18,13 @@ from __future__ import print_function, division
 import multiprocessing
 import operator
 import random
+import shutil
 import sys
 import tempfile
 import time
-import shutil
+from functools import reduce
 from os import system, environ
 from os.path import join
-from functools import reduce
-
-
 
 import numpy as np
 import pkg_resources
@@ -35,17 +33,18 @@ from ccdc.io import MoleculeWriter, MoleculeReader
 from ccdc.molecule import Molecule, Coordinates
 from ccdc.protein import Protein
 from ccdc.utilities import PushDir
+from scipy import ndimage
+from skimage.morphology import ball
+from skimage.transform import resize
+# from hotspots.protoss import Protoss
+from tqdm import tqdm
+
 from hotspots.atomic_hotspot_calculation import _AtomicHotspot
 from hotspots.grid_extension import Grid
 from hotspots.hs_utilities import Helper
 from hotspots.pdb_python_api import PDBResult
 from hotspots.result import Results
-#from hotspots.protoss import Protoss
-from tqdm import tqdm
 
-from scipy import ndimage
-from skimage.morphology import  ball
-from skimage.transform import resize
 
 class ExpBuriedness(object):
 

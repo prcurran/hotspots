@@ -29,7 +29,7 @@ setup(
                       'scipy',
                       'sklearn',
                       'scikit-image',
-                      'hdbscan'
+                      'hdbscan',
                       'pandas',
                       'futures',
                       'cython==0.29.5',
