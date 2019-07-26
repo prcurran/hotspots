@@ -26,10 +26,12 @@ from ccdc import utilities
 from hotspots.hs_utilities import Helper
 from scipy import ndimage
 from skimage import feature
+from skimage.morphology import ball
 from os.path import join, basename
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import pickle
+from functools import reduce
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -127,6 +129,7 @@ class Grid(utilities.Grid):
         else:
             return np.percentile(values, percentile)
 
+
     def indices_to_point(self, i, j, k):
         """
         return x,y,z coordinate for a given grid index
@@ -201,6 +204,19 @@ class Grid(utilities.Grid):
                 for k in range(nz):
                     array[i, j, k] += self.value(i, j, k)
         return array
+
+    def dilate_by_atom(self):
+
+        g_array = self.get_array()
+        selem = ball(radius=2)
+        print(selem)
+
+        dilated = ndimage.grey_dilation(g_array, structure=selem)
+
+        return self.array_to_grid(dilated,self)
+
+
+
 
     def restricted_volume(self, volume=75):
         """
@@ -455,7 +471,8 @@ class Grid(utilities.Grid):
         as_triads = zip(*indices)
 
         for (i, j, k), v in zip(as_triads, values):
-            grid._grid.set_value(int(i), int(j), int(k), v)
+
+            grid._grid.set_value(int(i), int(j), int(k), float(v))
 
         return grid
 

@@ -1014,6 +1014,7 @@ class Extractor(object):
 
         if self.settings.mvon is True:
             hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
+            #hr.super_grids.update({probe: g.dilate_by_atom() for probe, g in hr.super_grids.items()})
 
         try:
             hr.super_grids["negative"] = hr.super_grids["negative"].deduplicate(hr.super_grids["acceptor"],
@@ -1055,13 +1056,15 @@ class Extractor(object):
         current_num_gp = self.best_island.count_grid()
         grown = Grid.grow(self.best_island, self._single_grid)
 
-        while abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance:
+        f = 0
+        while f<100 and abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance:
 
             print((self.settings._num_gp - current_num_gp) / self.settings._num_gp)
             grown = Grid.grow(self.best_island, self._single_grid)
             self.best_island = grown
             current_num_gp = self.best_island.count_grid()
             print(current_num_gp, 'out of', self.settings._num_gp)
+            f +=1
 
         tmp_best_island = self.best_island * self._single_grid
         g_vals = tmp_best_island.grid_values()
@@ -1104,7 +1107,7 @@ class Extractor(object):
         :return `hotspots.result.Results`: A fresh result object
         """
         self.settings.volume = volume
-        threshold = self._step_down(30)
+        threshold = self._step_down(40)
         threshold = self._grow()
         self.threshold = threshold
         print("Final score threshold is: {} ".format(self.threshold))

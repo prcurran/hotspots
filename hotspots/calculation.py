@@ -24,10 +24,9 @@ import time
 import shutil
 from os import system, environ
 from os.path import join
+from functools import reduce
 
-from scipy import ndimage
-from skimage.morphology import  ball
-from skimage.transform import resize
+
 
 import numpy as np
 import pkg_resources
@@ -41,8 +40,12 @@ from hotspots.grid_extension import Grid
 from hotspots.hs_utilities import Helper
 from hotspots.pdb_python_api import PDBResult
 from hotspots.result import Results
-from hotspots.protoss import Protoss
+#from hotspots.protoss import Protoss
 from tqdm import tqdm
+
+from scipy import ndimage
+from skimage.morphology import  ball
+from skimage.transform import resize
 
 class ExpBuriedness(object):
 
@@ -310,7 +313,7 @@ class _SampleGrid(object):
         :return: list of tup
         """
 
-        return [coord[i] + trans[i] for i in xrange(0, len(trans))]
+        return [coord[i] + trans[i] for i in range(0, len(trans))]
 
     def sample(self, coordinate_list, trans):
         """
@@ -665,7 +668,7 @@ class Runner(object):
                 for priority_atom_point in translate_points:
 
                     translation = [priority_atom_point[i] - priority_atom_coordinates[i]
-                                   for i in xrange(0, len(priority_atom_coordinates))]
+                                   for i in range(0, len(priority_atom_coordinates))]
 
                     score = self.sample_pose(translation, active_coordinates_dic, probe)
                     if score < 1:
@@ -1124,7 +1127,7 @@ class Runner(object):
                        buriedness=self.buriedness)
 
     def from_pdb(self, pdb_code, charged_probes=False, probe_size=7, buriedness_method='ghecom', nprocesses=3,
-                 cavities=False, settings=None, protoss=True, clear_tmp=False):
+                 cavities=False, settings=None,clear_tmp=False):
         """
         generates a result from a pdb code
 
@@ -1144,16 +1147,17 @@ class Runner(object):
         Result()
 
         """
+        protoss = False
 
         tmp = tempfile.mkdtemp()
-        if protoss is True:
-            protoss = Protoss(out_dir=tmp)
-            self.protein = protoss.add_hydrogens(pdb_code).protein
-
-        else:
-            PDBResult(identifier=pdb_code).download(out_dir=tmp)
-            fname = join(tmp, "{}.pdb".format(pdb_code))
-            self.protein = Protein.from_file(fname)
+        # if  protoss is True:
+        #     protoss = Protoss(out_dir=tmp)
+        #     self.protein = protoss.add_hydrogens(pdb_code).protein
+        #
+        # else:
+        PDBResult(identifier=pdb_code).download(out_dir=tmp)
+        fname = join(tmp, "{}.pdb".format(pdb_code))
+        self.protein = Protein.from_file(fname)
 
         self._prepare_protein(protoss)
         self.charged_probes = charged_probes

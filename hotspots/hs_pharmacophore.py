@@ -52,13 +52,13 @@ from rdkit.Chem import MACCSkeys, AllChem
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from tqdm import tqdm
-import numba
+
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 import hdbscan
 
 
-@numba.njit()
+
 def tanimoto_dist(a, b):
     """
     calculate the tanimoto distance between two fingerprint arrays
