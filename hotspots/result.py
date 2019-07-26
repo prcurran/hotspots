@@ -318,7 +318,7 @@ class _Scorer(Helper):
             return "apolar"
 
 
-class Results(object):
+class Results(Helper):
     """
     A class to handle the results of the Fragment Hotspot Map calcation and to organise subsequent analysis
 
@@ -653,6 +653,35 @@ class Results(object):
         :return: a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance
         """
         return PharmacophoreModel.from_hotspot(self, identifier=identifier, threshold=threshold)
+
+    def percentage_matched_atoms(self, mol, threshold, match_atom_types=True, score_threshold=0):
+        """
+        for a given molecule, the 'percentage match' is given by the percentage of atoms
+        which overlap with the hotspot result (over a given overlap threshol)
+
+        :param mol:
+        :param threshold:
+        :param match_atom_types:
+        :param score_threshold:
+        :return:
+        """
+
+        matched_atom_count = 0
+        if match_atom_types:
+            for n, g in self.super_grids.items():
+                # if an atom is a donor and acceptor consider overlap twice
+                atms = [a for a in mol.heavy_atoms if self.get_atom_type(a) == n
+                        or ((n == 'donor' or n == 'acceptor') and self.get_atom_type(a) == 'doneptor')]
+
+                matched = g.matched_atoms(atoms=atms, threshold=threshold)
+                matched_atom_count += len(matched)
+        else:
+            sg = Grid.get_single_grid(self.super_grids, mask=False)
+            matched = sg.matched_atoms(atoms=mol.heavy_atoms, threshold=threshold)
+            matched_atom_count += len(matched)
+
+        print("heavy atoms matched: {}/{}".format(matched_atom_count, len(mol.heavy_atoms)))
+        return round((matched_atom_count / len(mol.heavy_atoms)) * 100, 1)
 
     @staticmethod
     def _is_solvent_accessible(protein_coords, atm, min_distance=2):

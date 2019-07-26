@@ -200,14 +200,19 @@ class Helper(object):
             mol.add_atom(a)
         return mol
 
-    def get_atom_type(self, atom):
+    @staticmethod
+    def get_atom_type(atom):
         """
         return the atom classification
 
         :param atom:
         :return:
         """
-        if atom.is_donor and atom.is_acceptor:
+        if atom.is_donor and \
+                atom.atomic_symbol == 'N' and \
+                len([a for a in atom.neighbours if a.atomic_symbol == 'H']) >= 2:
+            return "donor"
+        elif atom.is_donor and atom.is_acceptor:
             return "doneptor"
         elif atom.is_acceptor:
             return "acceptor"

@@ -115,6 +115,24 @@ class HotspotPipeline(object):
 
         subprocess.call(cmd, shell=sys.platform != 'win32')
 
+    def _protonate_backup(self):
+        """
+        if pdb2pqr fails, just use the CSD python API.
+        (Sometimes, missing atoms on the end of loops cause pdb2pqr to fall over.)
+
+        :return:
+        """
+
+        # input
+        prot = Protein.from_file(self.biological_assembly)
+
+        # task
+        prot.add_hydrogens()
+
+        # output
+        with io.MoleculeWriter(self.protonated) as writer:
+            writer.write(prot)
+
     def _remove_wat_lig(self):
         """
         removes no structural ligands and solvents from the protein. Hotspot method requires the cavitiy to be empty
@@ -469,9 +487,12 @@ class HotspotPipeline(object):
 
         if not os.path.exists(self.biological_assembly) or rerun:
             self._download_pdb()
+        try:
+            if not os.path.exists(self.protonated) or rerun:
+                self._protonate()
+        except:
+            pass
 
-        if not os.path.exists(self.protonated) or rerun:
-            self._protonate()
 
         if not os.path.exists(self.no_wat) or rerun:
             self._remove_wat_lig()
@@ -530,7 +551,7 @@ def main():
             )
 
             hp.run(rerun=False)
-            if index >= 1:
+            if index >= 2:
                 break
 
 
