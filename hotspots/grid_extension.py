@@ -559,15 +559,46 @@ class Grid(utilities.Grid):
         else:
             return reduce(operator.add, mask_dic.values(), blank).minimal()
 
+    def _mutually_inclusive(self, other):
+        """
+
+        :param other:
+        :return:
+        """
+        g, h = Grid.common_grid(grid_list=[self, other], padding=1)
+        return g & h
+
+    def matched_atoms(self, atoms, threshold=30):
+        """
+        for a given atom, the percentage overlap with the grid is calculated. If the overlap
+        is over a threshold the atom identifier is returned in a list
+
+        :param list atoms: list of `ccdc.molecule.Atoms`
+        :param int threshold: percentage overlap threshold
+        :return list: list of str
+        """
+        g = Grid.initalise_grid(coords=[a.coordinates for a in atoms])
+        passed_atoms = {}
+
+        for a in atoms:
+            h = g.copy_and_clear()
+            h.set_sphere(point=a.coordinates, radius=a.vdw_radius, value=1, scaling='None')
+            overlap = self._mutually_inclusive(other=h)
+            perc_overlap = (overlap.count_grid()/ (h > 0).count_grid()) * 100
+            if perc_overlap > threshold:
+                common_a, common_b = Grid.common_grid([self, overlap])
+                passed_atoms[a.label] = (common_a * common_b).extrema[1]
+
+        return passed_atoms
+
     def percentage_overlap(self, other):
         """
         find the percentage overlap of this grid with other.
         :param other: `hotspots.grid_extension.Grid`
         :return:`hotspots.grid_extension.Grid`
         """
-        g, h = Grid.common_grid(grid_list=[self, other], padding=1)
+        overlap = self._mutually_inclusive(other=other).count_grid()
         vol = (g > 0).count_grid()
-        overlap = (g & h).count_grid()
         return (overlap / vol) * 100
 
     @staticmethod
