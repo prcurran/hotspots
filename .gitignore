@@ -1,5 +1,5 @@
 
-hotspots/examples/7_pipeline/pdb_files*
+examples/7_pipeline/pdb_files*
 *.pyc
 .idea
 .idea/*
