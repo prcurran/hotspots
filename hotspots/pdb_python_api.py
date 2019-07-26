@@ -13,7 +13,7 @@ import sys
 import shutil
 
 import xmltodict
-from data import common_solvents
+from hotspots.data import common_solvents
 from tqdm import tqdm
 
 if sys.version_info.major == 2:

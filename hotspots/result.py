@@ -39,14 +39,11 @@ import numpy as np
 from ccdc.cavity import Cavity
 from ccdc.molecule import Molecule, Atom
 from ccdc.protein import Protein
-from hotspots.atomic_hotspot_calculation import _AtomicHotspot, _AtomicHotspotResult
+from scipy.stats import percentileofscore
+
 from hotspots.grid_extension import Grid, _GridEnsemble
 from hotspots.hs_pharmacophore import PharmacophoreModel
-from hotspots.hs_utilities import Figures
 from hotspots.hs_utilities import Helper
-from hotspots.template_strings import pymol_imports
-from scipy import optimize
-from scipy.stats import percentileofscore
 
 
 class _Scorer(Helper):
@@ -747,7 +744,6 @@ class Results(Helper):
         :return dic: score by atom
         """
 
-        from hotspots.hs_utilities import Helper
         from scipy.spatial import distance
 
         def check_hydrogens(protein):
@@ -918,6 +914,7 @@ class Extractor(object):
 
         if self.settings.mvon is True:
             hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
+            #hr.super_grids.update({probe: g.dilate_by_atom() for probe, g in hr.super_grids.items()})
 
         try:
             hr.super_grids["negative"] = hr.super_grids["negative"].deduplicate(hr.super_grids["acceptor"],
@@ -958,13 +955,15 @@ class Extractor(object):
         self.best_island = self._single_grid.common_boundaries(self.best_island)
         current_num_gp = self.best_island.count_grid()
 
-        while abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance:
+        f = 0
+        while f<100 and abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance:
 
             print((self.settings._num_gp - current_num_gp) / self.settings._num_gp)
             grown = Grid.grow(self.best_island, self._single_grid)
             self.best_island = grown
             current_num_gp = self.best_island.count_grid()
             print(current_num_gp, 'out of', self.settings._num_gp)
+            f +=1
 
         tmp_best_island = self.best_island * self._single_grid
         g_vals = tmp_best_island.grid_values()
@@ -1006,7 +1005,7 @@ class Extractor(object):
         :return `hotspots.result.Results`: A fresh result object
         """
         self.settings.volume = volume
-        self._step_down(30)
+        self._step_down(40)
         self.threshold = self._grow()
 
         print("Final score threshold is: {} ".format(self.threshold))

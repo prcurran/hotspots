@@ -314,7 +314,7 @@ class _AtomicHotspot(object):
             temp_dirs = []
             cmds = []
             env_str = [self.settings.superstar_env] * len(self.settings.atomic_probes) * len(cavity_origins)
-            jobnames = self.settings.atomic_probes.keys() * len(cavity_origins)
+            jobnames = list(self.settings.atomic_probes.keys()) * len(cavity_origins)
 
             for i, cavity_origin in enumerate(cavity_origins):
                 out = (join(self.settings.temp_dir, str(i)))

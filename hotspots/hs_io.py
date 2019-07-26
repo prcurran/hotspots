@@ -25,7 +25,7 @@ from os.path import splitext, join, basename, dirname, isdir
 
 from ccdc import io
 from ccdc.protein import Protein
-from grid_extension import Grid
+from hotspots.grid_extension import Grid
 from hotspots.result import Results
 from hotspots.hs_utilities import Helper
 from hotspots.template_strings import pymol_imports, pymol_arrow, pymol_protein, pymol_grids, pymol_display_settings, \
@@ -112,7 +112,7 @@ class HotspotWriter(Helper):
 
         """
         if isinstance(hr, list):
-            self.settings.grids = hr[0].super_grids.keys()
+            self.settings.grids = list(hr[0].super_grids.keys())
             self.settings.container = "hotspot_boundaries"
             self.number_of_hotspots = len(hr)
 
@@ -144,7 +144,7 @@ class HotspotWriter(Helper):
                 self.compress(join(dirname(self.out_dir), self.settings.container))
 
         else:
-            self.settings.grids = hr.super_grids.keys()
+            self.settings.grids = list(hr.super_grids.keys())
             # self.settings.container = "out"
             self.number_of_hotspots = 1
 
