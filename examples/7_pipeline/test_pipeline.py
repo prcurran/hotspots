@@ -3,7 +3,13 @@ import pickle
 import shutil
 import subprocess
 import sys
-from urllib2 import urlopen as urlopen
+
+
+PY3 = sys.version > '3'
+if PY3:
+    import urllib.request as urllib2
+else:
+    import urllib2
 
 import pandas as pd
 from ccdc import io
@@ -96,10 +102,10 @@ class HotspotPipeline(object):
         # task
         url = "https://files.rcsb.org/download/{}.pdb1".format(self.pdb)
         print(url)
-        pdbfile = urlopen(url).read()
+        pdbfile = urllib2.urlopen(url).read()
 
         # output
-        with open(self.biological_assembly, 'w') as out_file:
+        with open(self.biological_assembly, 'wb') as out_file:
             out_file.write(pdbfile)
 
     def _protonate(self):
@@ -165,10 +171,10 @@ class HotspotPipeline(object):
 
         url = "https://files.rcsb.org/download/{}.pdb1".format(self.protein_id[i])
         print(url)
-        pdbfile = urlopen(url).read()
+        pdbfile = urllib2.urlopen(url).read()
 
         # output
-        with open(self.other_pdbs[i], 'w') as out_file:
+        with open(self.other_pdbs[i], 'wb') as out_file:
             out_file.write(pdbfile)
 
     def _align_other_to_main(self, i):
