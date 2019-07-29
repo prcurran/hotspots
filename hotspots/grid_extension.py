@@ -598,7 +598,7 @@ class Grid(utilities.Grid):
         :return:`hotspots.grid_extension.Grid`
         """
         overlap = self._mutually_inclusive(other=other).count_grid()
-        vol = (g > 0).count_grid()
+        vol = (self > 0).count_grid()
         return (overlap / vol) * 100
 
     @staticmethod

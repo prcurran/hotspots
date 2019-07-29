@@ -956,8 +956,7 @@ class Extractor(object):
         current_num_gp = self.best_island.count_grid()
 
         f = 0
-        while f<100 and abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance:
-
+        while f < 100 and abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance:
             print((self.settings._num_gp - current_num_gp) / self.settings._num_gp)
             grown = Grid.grow(self.best_island, self._single_grid)
             self.best_island = grown
@@ -973,6 +972,8 @@ class Extractor(object):
             threshold = g_vals[self.settings._num_gp]
         except IndexError:
             threshold = g_vals.min()
+
+        assert abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) < tolerance
 
         return threshold
 
@@ -1005,6 +1006,9 @@ class Extractor(object):
         :return `hotspots.result.Results`: A fresh result object
         """
         self.settings.volume = volume
+
+        assert self.single_grid.count_grid() >= self.settings._num_gp
+
         self._step_down(40)
         self.threshold = self._grow()
 

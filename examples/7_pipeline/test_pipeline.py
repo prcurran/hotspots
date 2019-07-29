@@ -52,44 +52,42 @@ class HotspotPipeline(object):
         self.buriedness_method = buriedness_method
         self.protein_id = protein_id
         self.ligand_id = [l.split("_") for l in ligand_id]
-
         # outputs
 
         # directories
-        self.working_dir_base_base = create_directory("pdb_files/{}".format(self.pdb[1:3]))
-        self.working_dir_base = create_directory("pdb_files/{}/{}".format(self.pdb[1:3], self.pdb))
-        self.working_dir = create_directory("pdb_files/{}/{}/{}".format(self.pdb[1:3], self.pdb,
-                                                                        self.buriedness_method))
+        self.working_dir_base_base = create_directory(os.path.join("pdb_files", self.pdb[1:3]))
+        self.working_dir_base = create_directory(os.path.join("pdb_files", self.pdb[1:3], self.pdb))
+        self.working_dir = create_directory(os.path.join("pdb_files", self.pdb[1:3], self.pdb, self.buriedness_method))
 
         # files
 
         # 'hotspot' protein files
-        self.biological_assembly = "{}/biological_assembly.pdb".format(self.working_dir_base)
-        self.protonated = "{}/protonated.pdb".format(self.working_dir_base)
-        self.no_wat = "{}/protonated_no_wat.pdb".format(self.working_dir_base)
-        self.buriedness = "{}/buriedness_{}.grd".format(self.working_dir, self.buriedness_method)
+        self.log_file = os.path.join(self.working_dir_base_base, "{}_{}.log".format(self.pdb, self.buriedness_method))
+        self.biological_assembly = os.path.join(self.working_dir_base, "biological_assembly.pdb")
+        self.protonated = os.path.join(self.working_dir_base, "protonated.pdb")
+        self.no_wat = os.path.join(self.working_dir_base, "protonated_no_wat.pdb")
+        self.buriedness = os.path.join(self.working_dir, "buriedness_{}.grd".format(self.buriedness_method))
 
         # 'other' protein files
-        self.other_pdbs = ["{}/{}.pdb".format(self.working_dir_base, p) for p in self.protein_id]
-        self.aligned_pdbs = ["{}/{}_aligned_to_{}.pdb".format(self.working_dir_base, p, self.pdb)
-                             for p in self.protein_id]
+        self.other_pdbs = {p: os.path.join(self.working_dir_base, "{}.pdb".format(p)) for p in self.protein_id}
+        self.aligned_pdbs = {p: os.path.join(self.working_dir_base, "{}_aligned_to_{}.pdb".format(p, self.pdb))
+                             for p in self.protein_id}
 
-        self.extracted_ligands = [["{}/{}_from_{}.mol2".format(self.working_dir_base, self.protein_id[i], j)
-                                   for j in self.ligand_id[i]]
-                                  for i in range(len(self.protein_id))]
+        self.extracted_ligands = {pid: {j: os.path.join(self.working_dir_base, "{}.mol2".format(j))
+                                        for j in self.ligand_id[i]}
+                                  for i, pid in enumerate(self.protein_id)}
 
-        self.volumes = [["{}/{}_from_{}.volume".format(self.working_dir_base, self.protein_id[i], j)
-                         for j in self.ligand_id[i]]
-                        for i in range(len(self.protein_id))]
+        self.ligand_volume = {pid: {j: os.path.join(self.working_dir_base_base, "{}.volume".format(j))
+                                    for j in self.ligand_id[i]}
+                              for i, pid in enumerate(self.protein_id)}
 
-        self.overlap = ["{}/{}_volume_overlap.percentage".format(self.working_dir, lig_id)
-                        for p in self.ligand_id for lig_id in p]
+        self.cavity_rank = os.path.join(self.working_dir, "cavity.rank")
 
         # these get set during the run depending on the number of cavities detected
         self.cavities = []
         self.superstar = []
         self.hotspot = []
-        self.bcv = []
+        self.bcv = {}
         self.all_overlaps = []
 
     def _download_pdb(self):
@@ -120,6 +118,9 @@ class HotspotPipeline(object):
                                                                                            self.protonated)
 
         subprocess.call(cmd, shell=sys.platform != 'win32')
+
+        if not os.path.exists(self.protonated):
+            raise RuntimeError("PDB2PQR protonation failed")
 
     def _protonate_backup(self):
         """
@@ -160,7 +161,7 @@ class HotspotPipeline(object):
         with io.MoleculeWriter(self.no_wat) as w:
             w.write(prot)
 
-    def _download_other_pdb(self, i):
+    def _download_other_pdb(self, other_id):
         """
         download the pdb from the RCSB. pdb1 indicates the protein is the biologial assembly
 
@@ -169,81 +170,83 @@ class HotspotPipeline(object):
 
         # task
 
-        url = "https://files.rcsb.org/download/{}.pdb1".format(self.protein_id[i])
+        url = "https://files.rcsb.org/download/{}.pdb1".format(self.protein_id[other_id])
         print(url)
         pdbfile = urllib2.urlopen(url).read()
 
         # output
-        with open(self.other_pdbs[i], 'wb') as out_file:
+        with open(self.other_pdbs[other_id], 'wb') as out_file:
             out_file.write(pdbfile)
 
-    def _align_other_to_main(self, i):
+    def _align_other_to_main(self, other_id):
         """
         aligns 'other' proteins to 'hotspot' protein. alignment done per chain
 
-        :param i: position in list of 'other' proteins
+        :param str other_id: position in list of 'other' proteins
         :return:
         """
         # input
         hotspot = Protein.from_file(self.no_wat)
-        other = Protein.from_file(self.other_pdbs[i])
-        ligs = self.ligand_id[i]
-        print(ligs)
+        other = Protein.from_file(self.other_pdbs[other_id])
 
         # task
-        hotspot_chain = [c.identifier for c in hotspot.chains][0]       # this might cause problems
+        hotspot_chain = [c.identifier for c in hotspot.chains][0]           # take first chain
 
         other.add_hydrogens()
         other.detect_ligand_bonds()
-        print(other.ligands)
-        for l in other.ligands:
-            print(l.identifier)
-        relevant = [l for l in other.ligands if ligs[0] in l.identifier]
-        print(relevant)                                         # multiple binders of interest will be in same chain
+
+        relevant = [l for l in other.ligands
+                    for a in self.ligand_id
+                    for b in a
+                    if b in l.identifier.split(":")[1][0:3]]                # align other PDB by relevant ligand's chain
+
         other_chain = relevant[0].identifier.split(":")[0]
 
         binding_site_superposition = Protein.ChainSuperposition()
         bs_rmsd, bs_transformation = binding_site_superposition.superpose(hotspot[hotspot_chain],
                                                                           other[other_chain])
 
-        print('RMSD: ', bs_rmsd)
+        self._log_message("Alignment RMSD: {}".format(bs_rmsd))
 
         # output
-        with io.MoleculeWriter(self.aligned_pdbs[i]) as writer:
+        with io.MoleculeWriter(self.aligned_pdbs[other_id]) as writer:
             writer.write(other)
 
-        mod_ligs = ["{}:{}".format(other_chain, lig) for lig in ligs]
-        out_ligs = [l for l in other.ligands for mod_lig in mod_ligs if mod_lig in l.identifier]
-        if len(out_ligs) > 1:
-            print("More than 1 extracted ligand")
+    def extract_ligands(self, other_id, lig_id):
+        """
+        extracts the relevant ligand(s) from the aligned PDB to a mol2 file
 
-        for mol in out_ligs:
-            for path in self.extracted_ligands[i]:
-                if mol.identifier.split(":")[1][0:3] in path:
-                    with io.MoleculeWriter(path) as writer:
-                        writer.write(mol)
+        :param str other_id: position in list of 'other' proteins
+        :return:
+        """
+        # inputs
+        other = Protein.from_file(self.aligned_pdbs[other_id])
 
-    def _get_ligand_volume(self, i):
+        # tasks
+        relevant = [l for l in other.ligands if lig_id in l.identifier.split(":")[1][0:3]]
+
+        # output
+        with io.MoleculeWriter(self.extracted_ligands[lig_id]) as writer:
+            writer.write(relevant[0])                               # if more than one ligand detected, output the first
+
+    def _get_ligand_volume(self, other_id, lig_id):
         """
         from a ligand, output a molecular volume in A^3
 
         :param i: position in list of 'other' proteins
         :return:
         """
-
         # inputs
-        ligands = [io.MoleculeReader(path)[0] for path in self.extracted_ligands[i]]
+        ligand = io.MoleculeReader(self.extract_ligands(other_id=other_id, lig_id=lig_id))[0]
 
         # tasks
-        for ligand in ligands:
-            g = Grid.from_molecule(ligand)
-            vol = g.count_grid() * (g.spacing ** 3)
+        g = Grid.from_molecule(ligand)
+        vol = g.count_grid() * (g.spacing ** 3)
+        print(vol)
 
-            # output
-            for path in self.volumes[i]:
-                if ligand.identifier.split(":")[1][0:3] in path:
-                    with open(path, 'wb') as f:
-                        f.write(str(vol))
+        # output
+        with open(self.ligand_volume[lig_id], 'w') as f:
+            f.write(str(vol))
 
     def _get_buriedness_grid(self):
         """
@@ -306,22 +309,15 @@ class HotspotPipeline(object):
                 pickle.dump(origin, handle)
 
         # update attr
-        self.cavities = [os.path.join(p, "cavity_origin.pkl") for p in cav_dic.keys()]
-        self.superstar = [os.path.join(p, "superstar") for p in cav_dic.keys()]
-        self.hotspot = [os.path.join(p, "hotspot") for p in cav_dic.keys()]
-
-        vols = []
-        for a, prot in enumerate(self.volumes):
-            for b, ligand in enumerate(prot):
-                with open(ligand, 'rb') as f:
-                    vols.append((float(f.read()), self.ligand_id[a][b]))
-
-        self.bcv_dir = [os.path.join(p, "bcv") for p in cav_dic.keys()]
-
-        self.bcv = [[os.path.join(p, "bcv", "volume_{}".format(info[1])) for info in vols]
-                    for p in cav_dic.keys()]
-
-        self.all_overlaps = [os.path.join(b, "volume_overlap.percentage") for cav in self.bcv for b in cav]
+        self.cavities = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "cavity_origin.pkl") for p in range(len(cav_dic))]
+        self.superstar = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "superstar") for p in range(len(cav_dic))]
+        self.hotspot = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "hotspot") for p in range(len(cav_dic))]
+        self.bcv = {i: {k: os.path.join(self.working_dir, "cavity_{}".format(i), "bcv",  "volume_{}".format(k))
+                        for j in self.ligand_id for k in j} for i in range(len(cav_dic))}
+        self.all_overlaps = {i: {pid: {k: os.path.join(self.working_dir, "cavity_{}".format(i), "bcv",  "overlap_{}.percentage".format(k))
+                                       for k in self.ligand_id[j]}
+                                 for j, pid in enumerate(self.protein_id)}
+                             for i in range(len(cav_dic))}
 
     def _get_superstar(self, cav_id=None):
         """
@@ -332,7 +328,6 @@ class HotspotPipeline(object):
         :param cav_id:
         :return:
         """
-
         # input
         prot = Protein.from_file(self.no_wat)
         with open(self.cavities[cav_id], 'rb') as handle:
@@ -344,13 +339,10 @@ class HotspotPipeline(object):
                                     "donor": "UNCHARGED NH NITROGEN",
                                     "acceptor": "CARBONYL OXYGEN"}
 
-        self.superstar_grids = a.calculate(prot,
-                                           nthreads=None,
-                                           cavity_origins=[cavity_origin])
+        self.superstar_grids = a.calculate(prot, nthreads=None, cavity_origins=[cavity_origin])
 
         sr = Results(protein=prot,
-                     super_grids={result.identifier: result.grid for result in self.superstar_grids}
-                     )
+                     super_grids={result.identifier: result.grid for result in self.superstar_grids})
 
         #  outputs
         if not os.path.exists(self.superstar[cav_id]):
@@ -378,7 +370,6 @@ class HotspotPipeline(object):
         sr = HotspotReader(path=os.path.join(self.superstar[cav_id], "out.zip")).read()
         superstar = [_AtomicHotspotResult(identifier=ident, grid=grid, buriedness=None)
                      for ident, grid in sr.super_grids.items()]
-
         buriedness = Grid.from_file(self.buriedness)
 
         # tasks
@@ -400,7 +391,7 @@ class HotspotPipeline(object):
         with HotspotWriter(self.hotspot[cav_id], zip_results=True) as writer:
             writer.write(hr)
 
-    def _get_bcv(self, cav_id):
+    def _get_bcv(self, cav_id, lig_id):
         """
         generate a BCV for each cavity, and each required volume
 
@@ -409,146 +400,216 @@ class HotspotPipeline(object):
         """
         # inputs
         hr = HotspotReader(path=os.path.join(self.hotspot[cav_id], "out.zip")).read()
-        vols = {}
-        for a, prot in enumerate(self.volumes):
-            for b, ligand in enumerate(prot):
-                with open(ligand, 'rb') as f:
-                    vols.update({float(f.read()): self.ligand_id[a][b]})
+        with open(self.ligand_volume[lig_id], 'r') as f:
+            target_volume = f.read()
 
-        # tasks
-        for vol, ident in vols.items():
-            try:
-                e = Extractor(hr)
-                bcv = e.extract_volume(volume=int(float(vol)))
+        # task
+        extractor = Extractor(hr)
+        bcv = extractor.extract_volume(volume=int(float(target_volume)))
 
-                # output
-                for path in self.bcv[cav_id]:
-                    if ident in path:
+        # output
+        out = self.bcv[cav_id][lig_id]
 
-                        for b in self.bcv_dir:
-                            if not os.path.exists(b):
-                                os.mkdir(b)
+        create_directory(os.path.dirname(out))
+        create_directory(out)
 
-                        if not os.path.exists(path):
-                            os.mkdir(path)
+        with HotspotWriter(path=out, grid_extension=".grd", zip_results=True) as writer:
+            writer.write(bcv)
 
-                        with HotspotWriter(path=path, grid_extension=".grd", zip_results=True) as writer:
-                            writer.write(bcv)
-            except:
-                continue
-
-    def _get_volume_overlap(self):
+    def _get_volume_overlap(self, cav_id, other_id, lig_id):
         """
         find the highest median bcv from all cavities, calculate percentage over between the best bcv
         and each query ligand
 
         :return:
         """
-
         # inputs
-        mols = [io.MoleculeReader(p)[0] for q in self.extracted_ligands for p in q]
-        bcvs = []
+        mol = io.MoleculeReader(self.extracted_ligands[other_id][lig_id])[0]
+        path = os.path.join(self.bcv[cav_id][lig_id], "out.zip")
+        if os.path.exists(path):
+            hr = HotspotReader(path).read()
 
-        for i, cav in enumerate(self.bcv):
-            for j, bcv in enumerate(cav):
-                try:
-                    hr = HotspotReader(path=os.path.join(bcv, "out.zip")).read()
-                    bcvs.append(hr)
-                except:
-                    bcvs.append(None)
-                sg = Grid.get_single_grid(hr.super_grids, mask=False)
+            # tasks
+            sg = Grid.get_single_grid(hr.super_grids, mask=False)
+            other = Grid.from_molecule(mol)
+            overlap = sg.percentage_overlap(other=other)
+            print(overlap)
 
-                for m in self.ligand_id:
-                    for mol in m:
-                        if mol in bcv:
-                            for e in self.extracted_ligands:
-                                for extracted in e:
-                                    if mol in extracted:
-                                        molecule = io.MoleculeReader(extracted)[0]
-                                        molecule_grid = Grid.from_molecule(mol=molecule)
+            # output
+            with open(self.all_overlaps[cav_id][other_id][lig_id], 'w') as writer:
+                writer.write(str(overlap))
+        else:
+            print("no BCV for cavity {}, BCV {}".format(cav_id, lig_id))
 
-                                        perc_overlap = sg.percentage_overlap(molecule_grid)
+    def _rank_cavities(self):
+        """
+        rank the best continuous volumes by ligands
 
-                                        with open(self.all_overlaps[i+j], 'wb') as writer:
-                                            writer.write(str(perc_overlap))
+        :return:
+        """
+        # inputs
+        obj_dic = {}
+        for cav_id, lig_dic in self.bcv.items():
+            for lig_id, path in lig_dic.items():
+                if os.path.exists(os.path.join(path, "out.zip")):
+                    if cav_id not in obj_dic:
+                        obj_dic.update({cav_id: {}})
+                    obj_dic[cav_id].update({lig_id: HotspotReader(os.path.join(path, "out.zip")).read()})
+
+        print(obj_dic)
 
         # tasks
+        lines = []
+        cavs = obj_dic.keys()
+        ligands = set([lig for cav in cavs for lig in obj_dic[cav].keys()])
 
-        bcv_by_score = {b.score(): b for b in [x for x in bcvs if x is not None]}
-        print(bcv_by_score)
-        top = bcv_by_score[sorted(bcv_by_score.keys(), reverse=True)[0]]
-        sg = Grid.get_single_grid(top.super_grids, mask=False)
+        for ligand in ligands:
+            cav_by_score = {obj_dic[cav_id][ligand].score(): cav_id for cav_id in cavs}
+            top_cavity = cav_by_score[sorted(cav_by_score.keys(), reverse=True)[0]]
+            lines.append("{}: {}\n".format(lig_id, top_cavity))
 
-        for mol in mols:
-            other = Grid.from_molecule(mol)
-            po = sg.percentage_overlap(other=other)
-            # output
+        # output
+        with open(self.cavity_rank, "w") as writer:
+            writer.writelines(lines)
 
-            for path in self.overlap:
-                if mol.identifier.split(":")[1][0:3] in path:
-                    with open(path, "wb") as writer:
-                        writer.write(str(po))
+    def _log_message(self, message=""):
+        m = "{}\n".format(message)
+        with open(self.log_file, 'a') as f:
+            f.write(m)
 
     def run(self, rerun=False):
+        p = ",".join(self.protein_id)
+        l = ",".join([l for prot in self.ligand_id for l in prot])
+        lines = ["#\n",
+                 "PDB file used: {}\n".format(self.pdb),
+                 "Buriedness method used: {}\n".format(self.buriedness_method),
+                 "ligands {} from {} respectively\n".format(l, p),
+                 "#\n"
+                 ]
 
-        if not os.path.exists(self.biological_assembly) or rerun:
-            self._download_pdb()
+        with open(self.log_file, 'w+') as f:
+            f.writelines(lines)
+
+        try:
+            if not os.path.exists(self.biological_assembly) or rerun:
+                self._download_pdb()
+            self._log_message("PDB Download: passed, ID = {}".format(self.pdb))
+        except:
+            self._log_message("PDB Download: failed, ID = {}".format(self.pdb))
+
         try:
             if not os.path.exists(self.protonated) or rerun:
                 self._protonate()
+            self._log_message("Protonation_1: passed")
         except:
-            pass
+            self._log_message("Protonation_1: failed")
 
+            try:
+                self._protonate_backup()
+                self._log_message("Protonation_2: passed")
+            except:
+                self._log_message("Protonation_2: failed")
 
-        if not os.path.exists(self.no_wat) or rerun:
-            self._remove_wat_lig()
+        try:
+            if not os.path.exists(self.no_wat) or rerun:
+                self._remove_wat_lig()
+            self._log_message("Remove ligands: passed")
 
-        for i, path in enumerate(self.other_pdbs):
+        except:
+            self._log_message("Remove ligands: passed")
+
+        for other_id, path in self.other_pdbs.items():
             if not os.path.exists(path) or rerun:
-                self._download_other_pdb(i)
+                try:
+                    self._download_other_pdb(other_id)
+                    self._log_message("PDB download: passed, ID = {}".format(other_id))
+                except:
+                    self._log_message("PDB download: failed, ID = {}".format(other_id))
 
-        for i, path in enumerate(self.aligned_pdbs):
-            paths = [os.path.exists(extracted)
-                     for extracted in self.extracted_ligands[i]]
-            paths.append(os.path.exists(path))
+        for other_id, path in self.aligned_pdbs.items():
+            if not os.path.exists(path) or rerun:
+                try:
+                    self._align_other_to_main(other_id)
+                    self._log_message("Alignment: passed, ID = {}".format(other_id))
+                except:
+                    self._log_message("PDB download: failed, ID = {}".format(other_id))
 
-            if not all(paths) or rerun:
-                self._align_other_to_main(i)
+        for other_id, lig_dic in self.extracted_ligands.items():
+            for lig_id, path in lig_dic.items():
+                if not os.path.exists(path) or rerun:
+                    try:
+                        self.extract_ligands(other_id=other_id, lig_id=lig_id)
+                        self._log_message("Ligand Extracted: passed, ID = {}".format(lig_id))
+                    except:
+                        self._log_message("Ligand Extracted: failed, ID = {}".format(lig_id))
 
-        for i, paths in enumerate(self.volumes):
-            if not all([os.path.exists(p) for p in paths]) or rerun:
-                self._get_ligand_volume(i)
+        for other_id, lig_dic in self.ligand_volume.items():
+            for lig_id, path in lig_dic.items():
+                if not os.path.exists(path) or rerun:
+                    try:
+                        self._get_ligand_volume(other_id=other_id, lig_id=lig_id)
+                        self._log_message("Ligand Volume: passed, ID = {}".format(lig_id))
+                    except:
+                        self._log_message("Ligand Volume: failed, ID = {}".format(lig_id))
 
         if not os.path.exists(self.buriedness) or rerun:
-            self._get_buriedness_grid()
+            try:
+                self._get_buriedness_grid()
+                self._log_message("Buriedness calculation: passed")
+            except:
+                self._log_message("Buriedness calculation: failed")
 
-        self._get_cavities(min_vol=200)
+        try:
+            self._get_cavities(min_vol=200)
+            self._log_message("Cavity calculation: passed")
+        except:
+            self._log_message("Cavity calculation: failed")
 
         for i, path in enumerate(self.superstar):
             if not os.path.exists(os.path.join(path, "out.zip")) or rerun:
-                self._get_superstar(cav_id=i)
+                try:
+                    self._get_superstar(cav_id=i)
+                    self._log_message("SuperStar calculation: passed, ID = cavity_{}".format(i))
+                except:
+                    self._log_message("SuperStar calculation: failed, ID = cavity_{}".format(i))
 
         for i, path in enumerate(self.hotspot):
             if not os.path.exists(os.path.join(path, "out.zip")) or rerun:
-                self._get_hotspot(cav_id=i)
+                try:
+                    self._get_hotspot(cav_id=i)
+                    self._log_message("Hotspot calculation: passed, ID = cavity_{}".format(i))
+                except:
+                    self._log_message("SuperStar calculation: failed, ID = cavity_{}".format(i))
 
-        for i, paths in enumerate(self.bcv):
-            if not all([os.path.exists(os.path.join(path, "out.zip")) for path in paths]) or rerun:
-                self._get_bcv(cav_id=i)
+        for cav_id, lig_dic in self.bcv.items():
+            for lig_id, path in lig_dic.items():
+                if not os.path.exists(path) or rerun:
+                    try:
+                        self._get_bcv(cav_id=cav_id, lig_id=lig_id)
+                        self._log_message("BCV calculation: passed, CAV_ID = {}, LIG_ID = {}".format(cav_id, lig_id))
+                    except:
+                        self._log_message("BCV calculation: failed, CAV_ID = {}, LIG_ID = {}".format(cav_id, lig_id))
 
-        if not all([os.path.exists(overlap) for overlap in self.overlap] +
-                   [os.path.exists(all_overlap) for all_overlap in self.all_overlaps]) or rerun:
-            self._get_volume_overlap()
+        for cav_id, prot_dic in self.all_overlaps.items():
+            for prot_id, lig_dic in prot_dic.items():
+                for lig_id, path in lig_dic.items():
+                    if not os.path.exists(path) or rerun:
+                        try:
+                            self._get_volume_overlap(cav_id=cav_id, other_id=prot_id, lig_id=lig_id)
+                            self._log_message("Volume overlap calculation: passed")
+                        except:
+                            self._log_message("Volume overlap calculation: failed")
 
+        if not os.path.exists(self.cavity_rank):
+            self._rank_cavities()
 
 def main():
-
     # inputs
     df = pd.read_csv("readme.csv", index_col=0)
     buriedness_methods = ['ligsite', 'ghecom', 'ghecom_internal']
 
     for index, row in df.iterrows():
-        print row.apo, index
+        print(row.apo, index)
         for bm in buriedness_methods:
             hp = HotspotPipeline(pdb=row.apo,
                                  buriedness_method=bm,
@@ -567,13 +628,16 @@ def test():
     #                      protein_id=['2W1D', '2W1G'],
     #                      ligand_id=['L0D', 'L0G'])
 
-    hp = HotspotPipeline(pdb='1YES',
-                         buriedness_method='ligsite',
-                         protein_id=['2QFO', '2QG0'],
-                         ligand_id=['A13_A51', 'A94'])
+    buriedness_methods = ['ligsite', 'ghecom', 'ghecom_internal']
+    for bm in buriedness_methods:
+        hp = HotspotPipeline(pdb='3bqd',
+                             buriedness_method=bm,
+                             protein_id=['3BQD'],
+                             ligand_id=['DAY'])
 
-    hp.run(rerun=False)
+        hp.run(rerun=False)
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    test()
