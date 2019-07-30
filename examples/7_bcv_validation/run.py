@@ -26,7 +26,7 @@ def main():
         vars.append("python pipeline.py {} {} {}".format(pdb, ",".join(proteins), ",".join(ligands)))
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        executor.submit(job, vars[0])
+        executor.submit(job, vars)
 
 
 if __name__ == "__main__":
