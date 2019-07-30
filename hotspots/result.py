@@ -100,7 +100,7 @@ class _Scorer(Helper):
                              "dummy": "dummy"}
 
         cavities = Helper.cavity_from_protein(self.object)
-        print(cavities)
+
         for cavity in cavities:
             for feature in cavity.features:
                 # all cavity residues
@@ -220,7 +220,6 @@ class _Scorer(Helper):
     @staticmethod
     def _score_feature(f):
         ideal_coord = (f.coordinates[n] + 1.8 * (f.protein_vector[n]) for n in xrange(0, 2))
-        print(ideal_coord)
 
     def score_cavity(self):
         # TODO: return scored cavity _features, the score protein function should be enough tbh
@@ -648,7 +647,7 @@ class Results(Helper):
         """
         return PharmacophoreModel.from_hotspot(self, identifier=identifier, threshold=threshold)
 
-    def percentage_matched_atoms(self, mol, threshold, match_atom_types=True, score_threshold=0):
+    def percentage_matched_atoms(self, mol, threshold, match_atom_types=True):
         """
         for a given molecule, the 'percentage match' is given by the percentage of atoms
         which overlap with the hotspot result (over a given overlap threshol)
@@ -656,12 +655,11 @@ class Results(Helper):
         :param mol:
         :param threshold:
         :param match_atom_types:
-        :param score_threshold:
         :return:
         """
-
         matched_atom_count = 0
         if match_atom_types:
+            atom_type_dic = {}
             for n, g in self.super_grids.items():
                 # if an atom is a donor and acceptor consider overlap twice
                 atms = [a for a in mol.heavy_atoms if self.get_atom_type(a) == n
@@ -669,13 +667,18 @@ class Results(Helper):
 
                 matched = g.matched_atoms(atoms=atms, threshold=threshold)
                 matched_atom_count += len(matched)
+                atom_type_dic.update({n:len(matched)})
+
+            print("heavy atoms matched: {}/{}".format(matched_atom_count, len(mol.heavy_atoms)))
+            print("breakdown by atom type", str(atom_type_dic))
+            return round((matched_atom_count / len(mol.heavy_atoms)) * 100, 1), atom_type_dic
         else:
             sg = Grid.get_single_grid(self.super_grids, mask=False)
             matched = sg.matched_atoms(atoms=mol.heavy_atoms, threshold=threshold)
             matched_atom_count += len(matched)
 
-        print("heavy atoms matched: {}/{}".format(matched_atom_count, len(mol.heavy_atoms)))
-        return round((matched_atom_count / len(mol.heavy_atoms)) * 100, 1)
+            print("heavy atoms matched: {}/{}".format(matched_atom_count, len(mol.heavy_atoms)))
+            return round((matched_atom_count / len(mol.heavy_atoms)) * 100, 1)
 
     @staticmethod
     def _is_solvent_accessible(protein_coords, atm, min_distance=2):
@@ -957,7 +960,6 @@ class Extractor(object):
 
         f = 0
         while f < 100 and abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance:
-            print((self.settings._num_gp - current_num_gp) / self.settings._num_gp)
             grown = Grid.grow(self.best_island, self._single_grid)
             self.best_island = grown
             current_num_gp = self.best_island.count_grid()
@@ -971,7 +973,7 @@ class Extractor(object):
         try:
             threshold = g_vals[self.settings._num_gp]
         except IndexError:
-            threshold = g_vals.min()
+            threshold = min(g_vals)
 
         assert abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) < tolerance
 
@@ -986,7 +988,6 @@ class Extractor(object):
         """
         for threshold in range(int(start_threshold * 2), 0, -1):
             threshold *= 0.5
-            print(threshold)
             self.best_island = self._single_grid.get_best_island(threshold)
 
             if self.best_island is not None and self.best_island.count_grid() > self.settings._num_gp:
