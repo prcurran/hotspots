@@ -11,7 +11,7 @@ def main():
         ligands = list(df.loc[df['apo'] == pdb]['fragment_ID']) + list(df.loc[df['apo'] == pdb]['lead_ID'])
         proteins = list(df.loc[df['apo'] == pdb]['fragment']) + list(df.loc[df['apo'] == pdb]['lead'])
 
-        cmd = "bsub test_pipeline.py {} {} {} {}".format(
+        cmd = "bsub -n 1 test_pipeline.py {} {} {} {}".format(
                                                         prefix,
                                                         pdb,
                                                         ",".join(proteins),
