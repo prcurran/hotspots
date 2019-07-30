@@ -665,9 +665,11 @@ class Results(Helper):
                 atms = [a for a in mol.heavy_atoms if self.get_atom_type(a) == n
                         or ((n == 'donor' or n == 'acceptor') and self.get_atom_type(a) == 'doneptor')]
 
-                matched = g.matched_atoms(atoms=atms, threshold=threshold)
-                matched_atom_count += len(matched)
-                atom_type_dic.update({n:len(matched)})
+                if len(atms) > 0:
+
+                    matched = g.matched_atoms(atoms=atms, threshold=threshold)
+                    matched_atom_count += len(matched)
+                    atom_type_dic.update({n:len(matched)})
 
             print("heavy atoms matched: {}/{}".format(matched_atom_count, len(mol.heavy_atoms)))
             print("breakdown by atom type", str(atom_type_dic))
@@ -959,7 +961,7 @@ class Extractor(object):
         current_num_gp = self.best_island.count_grid()
 
         f = 0
-        while f < 100 and abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance:
+        while f < 100 and abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance and self.settings._num_gp >= current_num_gp:
             grown = Grid.grow(self.best_island, self._single_grid)
             self.best_island = grown
             current_num_gp = self.best_island.count_grid()

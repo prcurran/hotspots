@@ -1,0 +1,13 @@
+#
+PDB file used: 1J2E
+Buriedness method used: ligsite
+ligands B2Y,7AC from 3CCB,3CCC respectively
+#
+Remove ligands: passed
+Cavity calculation: passed
+BCV calculation: failed, CAV_ID = 1, LIG_ID = 7AC
+BCV calculation: failed, CAV_ID = 1, LIG_ID = B2Y
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed

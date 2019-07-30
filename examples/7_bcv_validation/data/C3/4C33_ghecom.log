@@ -1,0 +1,34 @@
+#
+PDB file used: 4C33
+Buriedness method used: ghecom
+ligands GVG,GVH,GVP,M05 from 2UW3,2UVX,2UW7,2VO6 respectively
+#
+Remove ligands: passed
+Cavity calculation: passed
+BCV calculation: failed, CAV_ID = 0, LIG_ID = M05
+BCV calculation: failed, CAV_ID = 0, LIG_ID = GVG
+BCV calculation: failed, CAV_ID = 1, LIG_ID = GVH
+BCV calculation: failed, CAV_ID = 1, LIG_ID = M05
+BCV calculation: failed, CAV_ID = 1, LIG_ID = GVG
+BCV calculation: failed, CAV_ID = 2, LIG_ID = GVH
+BCV calculation: failed, CAV_ID = 2, LIG_ID = M05
+BCV calculation: failed, CAV_ID = 2, LIG_ID = GVG
+BCV calculation: failed, CAV_ID = 2, LIG_ID = GVP
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed

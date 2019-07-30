@@ -231,7 +231,7 @@ class HotspotPipeline(object):
                                     "donor": "UNCHARGED NH NITROGEN",
                                     "acceptor": "CARBONYL OXYGEN"}
 
-        self.superstar_grids = a.calculate(prot, nthreads=None, cavity_origins=[cavity_origin])
+        self.superstar_grids = a.calculate(prot, nthreads=1, cavity_origins=[cavity_origin])
 
         sr = Results(protein=prot,
                      super_grids={result.identifier: result.grid for result in self.superstar_grids})
@@ -482,14 +482,20 @@ def main():
     buriedness_methods = ['ligsite', 'ghecom', 'ghecom_internal']
 
     for method in buriedness_methods:
-        hp = HotspotPipeline(
-                             apo=sys.argv[1],
-                             buriedness_method=method,
-                             protein_id=sys.argv[2].split(","),
-                             ligand_id=sys.argv[3].split(",")
-        )
 
-        hp.run(rerun=False)
+        try:
+
+            hp = HotspotPipeline(
+                                 apo=sys.argv[1],
+                                 buriedness_method=method,
+                                 protein_id=sys.argv[2].split(","),
+                                 ligand_id=sys.argv[3].split(",")
+            )
+
+            hp.run(rerun=False)
+
+        except:
+            continue
 
 
 if __name__ == '__main__':

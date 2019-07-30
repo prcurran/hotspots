@@ -1,0 +1,13 @@
+#
+PDB file used: 4ZIM
+Buriedness method used: ghecom
+ligands 5B1,5B3 from 3E62,3E64 respectively
+#
+Remove ligands: passed
+Cavity calculation: passed
+BCV calculation: failed, CAV_ID = 4, LIG_ID = 5B1
+BCV calculation: failed, CAV_ID = 4, LIG_ID = 5B3
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed

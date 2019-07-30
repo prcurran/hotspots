@@ -1,0 +1,64 @@
+#
+PDB file used: 3B7S
+Buriedness method used: ligsite
+ligands ACT,22F,25P from 3FU0,3FH7 respectively
+#
+Remove ligands: passed
+Cavity calculation: passed
+BCV calculation: failed, CAV_ID = 0, LIG_ID = 25P
+BCV calculation: failed, CAV_ID = 1, LIG_ID = 25P
+BCV calculation: failed, CAV_ID = 1, LIG_ID = 22F
+BCV calculation: failed, CAV_ID = 1, LIG_ID = ACT
+BCV calculation: failed, CAV_ID = 2, LIG_ID = 25P
+BCV calculation: failed, CAV_ID = 2, LIG_ID = 22F
+BCV calculation: failed, CAV_ID = 2, LIG_ID = ACT
+BCV calculation: failed, CAV_ID = 3, LIG_ID = 25P
+BCV calculation: failed, CAV_ID = 3, LIG_ID = 22F
+BCV calculation: failed, CAV_ID = 3, LIG_ID = ACT
+BCV calculation: failed, CAV_ID = 4, LIG_ID = 25P
+BCV calculation: failed, CAV_ID = 4, LIG_ID = 22F
+BCV calculation: failed, CAV_ID = 4, LIG_ID = ACT
+BCV calculation: failed, CAV_ID = 5, LIG_ID = 25P
+BCV calculation: failed, CAV_ID = 5, LIG_ID = 22F
+BCV calculation: failed, CAV_ID = 5, LIG_ID = ACT
+BCV calculation: failed, CAV_ID = 6, LIG_ID = 25P
+BCV calculation: failed, CAV_ID = 6, LIG_ID = 22F
+BCV calculation: failed, CAV_ID = 6, LIG_ID = ACT
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Volume overlap analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
+Match atom analysis: passed
