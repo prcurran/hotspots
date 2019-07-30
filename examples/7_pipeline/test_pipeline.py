@@ -38,7 +38,7 @@ def create_directory(path):
 
 class HotspotPipeline(object):
 
-    def __init__(self, pdb, buriedness_method, protein_id, ligand_id):
+    def __init__(self, prefix, pdb, buriedness_method, protein_id, ligand_id):
         """
         Initilising the HotspotPipeline object will set the structure of the output files. If an alternative
         naming scheme is required, change here.
@@ -55,9 +55,9 @@ class HotspotPipeline(object):
         # outputs
 
         # directories
-        self.working_dir_base_base = create_directory(os.path.join("pdb_files", self.pdb[1:3]))
-        self.working_dir_base = create_directory(os.path.join("pdb_files", self.pdb[1:3], self.pdb))
-        self.working_dir = create_directory(os.path.join("pdb_files", self.pdb[1:3], self.pdb, self.buriedness_method))
+        self.working_dir_base_base = create_directory(os.path.join(prefix, "pdb_files", self.pdb[1:3]))
+        self.working_dir_base = create_directory(os.path.join(self.working_dir_base_base, self.pdb))
+        self.working_dir = create_directory(os.path.join(self.working_dir_base, self.buriedness_method))
 
         # files
 
@@ -603,41 +603,20 @@ class HotspotPipeline(object):
         if not os.path.exists(self.cavity_rank):
             self._rank_cavities()
 
+
 def main():
     # inputs
-    df = pd.read_csv("readme.csv", index_col=0)
     buriedness_methods = ['ligsite', 'ghecom', 'ghecom_internal']
 
-    for index, row in df.iterrows():
-        print(row.apo, index)
-        for bm in buriedness_methods:
-            hp = HotspotPipeline(pdb=row.apo,
-                                 buriedness_method=bm,
-                                 protein_id=[row.fragment, row.lead],
-                                 ligand_id=[row.fragment_ID, row.lead_ID]
-            )
+    for method in buriedness_methods:
+        hp = HotspotPipeline(prefix=sys.argv[1],
+                             pdb=sys.argv[2],
+                             buriedness_method=method,
+                             protein_id=sys.argv[3].split(","),
+                             ligand_id=sys.argv[4].split(","))
 
-            hp.run(rerun=False)
-            if index >= 2:
-                break
-
-
-def test():
-    # hp = HotspotPipeline(pdb='4J8N',
-    #                      buriedness_method='ligsite',
-    #                      protein_id=['2W1D', '2W1G'],
-    #                      ligand_id=['L0D', 'L0G'])
-
-    buriedness_methods = ['ligsite', 'ghecom', 'ghecom_internal']
-    for bm in buriedness_methods:
-        hp = HotspotPipeline(pdb='3bqd',
-                             buriedness_method=bm,
-                             protein_id=['3BQD'],
-                             ligand_id=['DAY'])
-
-        hp.run(rerun=False)
+        hp.run(rerun=True)
 
 
 if __name__ == '__main__':
-    # main()
-    test()
+    main()
