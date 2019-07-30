@@ -3,7 +3,8 @@ import pandas as pd
 
 
 def main():
-    prefix = "/hps/nobackup/research/chembl/hotspots/bcv_validation"
+    # prefix = "/hps/nobackup/research/chembl/hotspots/bcv_validation"
+    prefix = "/vagrant/github_pkgs/hotspots/examples/7_pipeline"
     df = pd.read_csv("inputs.csv")
     hot_pdbs = set(df['apo'])
 
