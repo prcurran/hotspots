@@ -55,6 +55,7 @@ class HotspotPipeline(object):
         # outputs
 
         # directories
+        create_directory(os.path.join(prefix, "pdb_files"))
         self.working_dir_base_base = create_directory(os.path.join(prefix, "pdb_files", self.pdb[1:3]))
         self.working_dir_base = create_directory(os.path.join(self.working_dir_base_base, self.pdb))
         self.working_dir = create_directory(os.path.join(self.working_dir_base, self.buriedness_method))
