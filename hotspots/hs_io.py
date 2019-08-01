@@ -330,6 +330,15 @@ class HotspotReader(object):
         self.hs_dir = [d for d in self._files
                        if isdir(join(self._base, d)) and d not in self._not_hs_dir]
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        try:
+            shutil.rmtree(self._base)
+        except:
+            pass
+
     def _path_from_zip(self):
         """
         writes files to temp dir, returns base dir
@@ -400,6 +409,7 @@ class HotspotReader(object):
         """
         if len(self.hs_dir) == 0:
             self.grid_dic, self.buriedness = self._get_grids()
+            shutil.rmtree(self._base)
             return Results(protein=self.protein,
                            super_grids=self.grid_dic,
                            buriedness=self.buriedness)
@@ -417,4 +427,6 @@ class HotspotReader(object):
                     hrs.append(Results(protein=self.protein,
                                        super_grids=self.grid_dic,
                                        buriedness=self.buriedness))
+
+            shutil.rmtree(self._base)
             return hrs

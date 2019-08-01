@@ -5,9 +5,3 @@ ligands DEE,7DE from 1Y2B,1Y2K respectively
 #
 Remove ligands: passed
 Cavity calculation: passed
-BCV calculation: failed, CAV_ID = 1, LIG_ID = DEE
-BCV calculation: failed, CAV_ID = 1, LIG_ID = 7DE
-Volume overlap analysis: passed
-Volume overlap analysis: passed
-Match atom analysis: passed
-Match atom analysis: passed

@@ -5,9 +5,3 @@ ligands N5B,LZ1,292,LZE from 1VYZ,2VTA,1VYW,2VU3 respectively
 #
 Remove ligands: passed
 Cavity calculation: passed
-BCV calculation: failed, CAV_ID = 1, LIG_ID = N5B
-BCV calculation: failed, CAV_ID = 1, LIG_ID = 292
-Volume overlap analysis: passed
-Volume overlap analysis: passed
-Match atom analysis: passed
-Match atom analysis: passed

@@ -1,6 +1,7 @@
 #
 PDB file used: 1PRG
 Buriedness method used: ghecom_internal
-ligands ETO,ET1 from 3ET0,3ET3 respectively
+ligands ET0,ET1 from 3ET0,3ET3 respectively
 #
 Remove ligands: passed
+Cavity calculation: passed

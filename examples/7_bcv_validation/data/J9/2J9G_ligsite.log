@@ -5,9 +5,3 @@ ligands L22,L23 from 2W70,2W71 respectively
 #
 Remove ligands: passed
 Cavity calculation: passed
-BCV calculation: failed, CAV_ID = 0, LIG_ID = L22
-BCV calculation: failed, CAV_ID = 0, LIG_ID = L23
-Volume overlap analysis: passed
-Volume overlap analysis: passed
-Match atom analysis: passed
-Match atom analysis: passed

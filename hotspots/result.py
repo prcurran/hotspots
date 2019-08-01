@@ -669,7 +669,7 @@ class Results(Helper):
 
                     matched = g.matched_atoms(atoms=atms, threshold=threshold)
                     matched_atom_count += len(matched)
-                    atom_type_dic.update({n:len(matched)})
+                    atom_type_dic.update({n: matched})
 
             print("heavy atoms matched: {}/{}".format(matched_atom_count, len(mol.heavy_atoms)))
             print("breakdown by atom type", str(atom_type_dic))
@@ -948,7 +948,7 @@ class Extractor(object):
     def masked_dic(self):
         return self._masked_dic
 
-    def _grow(self, tolerance=0.1):
+    def _grow(self, tolerance=0.2):
         """
         A single grid is iteratively inflated, and the top 20% of neighbouring grid points added until the volume
         is with the tolerance of the target volume.
@@ -966,7 +966,7 @@ class Extractor(object):
             self.best_island = grown
             current_num_gp = self.best_island.count_grid()
             print(current_num_gp, 'out of', self.settings._num_gp)
-            f +=1
+            f += 1
 
         tmp_best_island = self.best_island * self._single_grid
         g_vals = tmp_best_island.grid_values()

@@ -5,21 +5,9 @@ ligands L12,3IP,WBT,L11 from 1W84,1W7H,1WBT,1W83 respectively
 #
 Remove ligands: passed
 Cavity calculation: passed
-BCV calculation: failed, CAV_ID = 1, LIG_ID = L11
-BCV calculation: failed, CAV_ID = 2, LIG_ID = WBT
-BCV calculation: failed, CAV_ID = 2, LIG_ID = L11
-BCV calculation: failed, CAV_ID = 2, LIG_ID = L12
-BCV calculation: failed, CAV_ID = 2, LIG_ID = 3IP
+BCV calculation: failed, CAV_ID = 3, LIG_ID = WBT
 BCV calculation: failed, CAV_ID = 3, LIG_ID = L11
 Volume overlap analysis: passed
 Volume overlap analysis: passed
-Volume overlap analysis: passed
-Volume overlap analysis: passed
-Volume overlap analysis: passed
-Volume overlap analysis: passed
-Match atom analysis: passed
-Match atom analysis: passed
-Match atom analysis: passed
-Match atom analysis: passed
 Match atom analysis: passed
 Match atom analysis: passed

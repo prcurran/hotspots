@@ -3,6 +3,7 @@ import pickle
 import shutil
 import sys
 
+import pandas as pd
 from ccdc import io
 from ccdc.cavity import Cavity
 from ccdc.protein import Protein
@@ -109,6 +110,9 @@ class HotspotPipeline(object):
         other = Protein.from_file(self.other_pdbs[other_id])
 
         # tasks
+        other.detect_ligand_bonds()
+        print([a.identifier for a in other.ligands])
+        print(other_id, lig_id)
         relevant = [l for l in other.ligands if lig_id in l.identifier.split(":")[1][0:3]]
 
         # output
@@ -184,19 +188,29 @@ class HotspotPipeline(object):
         cavs = [c for c in Cavity.from_pdb_file(self.apo_prep) if c.volume > min_vol]
 
         # task, output
+        cav_volume_dic = {os.path.join(self.working_dir, 'cavity_{}'.format(i), "cavity.volume"): c.volume
+                   for i, c in enumerate(cavs)}
+
         cav_dic = {os.path.join(self.working_dir, 'cavity_{}'.format(i)): Helper.cavity_centroid(c)
                    for i, c in enumerate(cavs)}
 
+        for path, vol in cav_volume_dic.items():
+            with open(os.path.join(path), 'w') as f:
+                f.write(str(vol))
+
         for path, origin in cav_dic.items():
             create_directory(path)
-
             with open(os.path.join(path, "cavity_origin.pkl"), 'wb') as handle:
                 pickle.dump(origin, handle)
 
         # update attr
+        self.cavities_volumes = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "cavity.volume") for p in
+                                range(len(cav_dic))]
         self.cavities = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "cavity_origin.pkl") for p in range(len(cav_dic))]
         self.superstar = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "superstar") for p in range(len(cav_dic))]
         self.hotspot = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "hotspot") for p in range(len(cav_dic))]
+        self.cavity_score = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "cavity.score") for p in range(len(cav_dic))]
+
         self.bcv = {i: {pid: {k: os.path.join(self.working_dir, "cavity_{}".format(i), "bcv",  "volume_{}".format(k))
                               for k in self.ligand_id[j]}
                         for j, pid in enumerate(self.protein_id)}
@@ -231,7 +245,7 @@ class HotspotPipeline(object):
                                     "donor": "UNCHARGED NH NITROGEN",
                                     "acceptor": "CARBONYL OXYGEN"}
 
-        self.superstar_grids = a.calculate(prot, nthreads=1, cavity_origins=[cavity_origin])
+        self.superstar_grids = a.calculate(prot, nthreads=None, cavity_origins=[cavity_origin])
 
         sr = Results(protein=prot,
                      super_grids={result.identifier: result.grid for result in self.superstar_grids})
@@ -357,6 +371,20 @@ class HotspotPipeline(object):
         else:
             print("no BCV for cavity {}, BCV {}".format(cav_id, lig_id))
 
+    def _score_cavity(self, cav_id):
+        """
+        score the cavity using the hotspot score
+
+        :param cav_id:
+        :return:
+        """
+        print(self.apo)
+        hr = HotspotReader(os.path.join(self.hotspot[cav_id], "out.zip")).read()
+        s = hr.score()
+
+        with open(self.cavity_score[cav_id], "w") as f:
+            f.write(str(s))
+
     def _rank_cavities(self):
         """
         rank the best continuous volumes by ligands
@@ -364,28 +392,37 @@ class HotspotPipeline(object):
         :return:
         """
         # inputs
-        obj_dic = {}
-        for cav_id, prot_dic in self.bcv.items():
-            for prot_id, lig_dic in prot_dic.items():
-                for lig_id, path in lig_dic.items():
-                    if os.path.exists(os.path.join(path, "out.zip")):
-                        if cav_id not in obj_dic:
-                            obj_dic.update({cav_id: {}})
-                        obj_dic[cav_id].update({lig_id: HotspotReader(os.path.join(path, "out.zip")).read()})
+        cavity_by_score = {}
+        for i in range(len(self.cavity_score)):
+            with open(self.cavity_score[i], "r") as f:
+                cavity_by_score.update({f.read():i})
 
-        # tasks
-        lines = []
-        cavs = obj_dic.keys()
-        ligands = set([lig for cav in cavs for lig in obj_dic[cav].keys()])
+        # task
+        top = sorted(cavity_by_score.keys(), reverse=True)
 
-        for ligand in ligands:
-            cav_by_score = {obj_dic[cav_id][ligand].score(): cav_id for cav_id in cavs}
-            top_cavity = cav_by_score[sorted(cav_by_score.keys(), reverse=True)[0]]
-            lines.append("{}: {}\n".format(ligand, top_cavity))
+        # obj_dic = {}
+        # for cav_id, prot_dic in self.bcv.items():
+        #     for prot_id, lig_dic in prot_dic.items():
+        #         for lig_id, path in lig_dic.items():
+        #             if os.path.exists(os.path.join(path, "out.zip")):
+        #                 if cav_id not in obj_dic:
+        #                     obj_dic.update({cav_id: {}})
+        #                 obj_dic[cav_id].update({lig_id: HotspotReader(os.path.join(path, "out.zip")).read()})
+        #
+        # # tasks
+        # lines = []
+        # cavs = obj_dic.keys()
+        # ligands = set([lig for cav in cavs for lig in obj_dic[cav].keys()])
+        # print(obj_dic)
+        #
+        # for ligand in ligands:
+        #     cav_by_score = {obj_dic[cav_id][ligand].score(): cav_id for cav_id in cavs if ligand in obj_dic[cav_id]}
+        #     top_cavity = cav_by_score[sorted(cav_by_score.keys(), reverse=True)[0]]
+        #     lines.append("{}: {}\n".format(ligand, top_cavity))
 
         # output
         with open(self.cavity_rank, "w") as writer:
-            writer.writelines(lines)
+            writer.write(str(top))
 
     def _log_message(self, message=""):
         m = "{}\n".format(message)
@@ -473,8 +510,181 @@ class HotspotPipeline(object):
                         self._log_message("Match atom analysis: passed")
 
         # step 11: rank cavities
+        for i, path in enumerate(self.cavity_score):
+            if not os.path.exists(path):
+                self._score_cavity(cav_id=i)
+
         if not os.path.exists(self.cavity_rank):
             self._rank_cavities()
+
+    def _cav_volume(self, cav):
+        if os.path.exists(self.cavities_volumes[cav]):
+            with open(self.cavities_volumes[cav], "r") as f:
+                vol = f.read()
+            return float(vol)
+        else:
+            return "NaN"
+
+    def _step_1_status(self):
+        if os.path.exists(self.apo_prep):
+            return 1
+        else:
+            return 0
+
+    def _step_2_status(self, other_id, lig_id):
+        if os.path.exists(self.extracted_ligands[other_id][lig_id]):
+            return 1
+        else:
+            return 0
+
+    def _step_3_status(self, other_id, lig_id):
+        if os.path.exists(self.ligand_volume[other_id][lig_id]):
+            return 1
+        else:
+            return 0
+
+    def _step_4_status(self):
+        if os.path.exists(self.buriedness):
+            return 1
+        else:
+            return 0
+
+    def _step_5_status(self, cav):
+        if os.path.exists(self.cavities[cav]):
+            return 1
+        else:
+            return 0
+
+    def _step_6_status(self, cav):
+        if os.path.exists(os.path.join(self.superstar[cav], "out.zip")):
+            return 1
+        else:
+            return 0
+
+    def _step_7_status(self, cav):
+        if os.path.exists(os.path.join(self.hotspot[cav], "out.zip")):
+            return 1
+        else:
+            return 0
+
+    def _step_8_status(self, cav, other_id, lig_id):
+        if os.path.exists(os.path.join(self.bcv[cav][other_id][lig_id], "out.zip")):
+            return 1
+        else:
+            return 0
+
+    def _step_9_status(self, cav, other_id, lig_id):
+        if os.path.exists(self.all_overlaps[cav][other_id][lig_id]):
+            return 1
+        else:
+            return 0
+
+    def _step_10_status(self, cav, other_id, lig_id):
+        if os.path.exists(self.matched[cav][other_id][lig_id]):
+            return 1
+        else:
+            return 0
+
+    def _step_11_status(self):
+        if os.path.exists(self.cavity_rank):
+            return 1
+        else:
+            return 0
+
+    def status(self):
+        """
+        report the status of the calculations
+
+        :return:
+        """
+        keys = ["apo", "buriedness_method", "cavity_id", "other_id", "ligand_id", "cav_vol", "apo_prep", "extract_ligand",
+                "extract_vol", "calculate_buriedness", "cavity_detection", "calculate_superstar", "calculate_hotspots", "calculate_bcv",
+                "volume_overlap", "matched_atoms", "cavity_rank"]
+        data = []
+        self._get_cavities(min_vol=200)
+
+        s1 = self._step_1_status()
+        s4 = self._step_4_status()
+        s11 = self._step_11_status()
+
+        for cav in range(len(self.cavities)):
+            vol = self._cav_volume(cav)
+            s5 = self._step_5_status(cav)
+            s6 = self._step_6_status(cav)
+            s7 = self._step_7_status(cav)
+            for i, prot_id in enumerate(self.protein_id):
+                for lig_id in self.ligand_id[i]:
+                    s2 = self._step_2_status(prot_id, lig_id)
+                    s3 = self._step_3_status(prot_id, lig_id)
+                    s8 = self._step_8_status(cav, prot_id, lig_id)
+                    s9 = self._step_9_status(cav, prot_id, lig_id)
+                    s10 = self._step_10_status(cav, prot_id, lig_id)
+
+                    data.append([self.apo, self.buriedness_method, cav, prot_id, lig_id, vol, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11])
+
+        return pd.DataFrame(dict(zip(keys, (zip(*data)))))
+
+    def _get_vol_data(self, cav, other_id, lig_id):
+        """
+        extract the volume data
+
+        :param int cav: cavity identifier
+        :param str other_id: protein identifier
+        :param str lig_id: ligand identifier
+        :return:
+        """
+        if os.path.exists(self.all_overlaps[cav][other_id][lig_id]):
+            with open(self.all_overlaps[cav][other_id][lig_id], "r") as f:
+                vol = f.read()
+            return float(vol)
+        else:
+            return 0.0
+
+    def _is_top_cavity(self, cav):
+        """
+        determine if top ranked cavity
+
+        :param cav:
+        :return:
+        """
+        if os.path.exists(self.cavity_rank):
+            with open(self.cavity_rank, "r") as f:
+                c = dict([y for y in [x.split(":") for x in f.read().split("\n")] if len(y) > 1])
+                concensus = list(set(c.values()))
+                if len(concensus) > 1:
+                    print(self.apo)
+                    print(concensus)
+                    raise IOError('Take a look Pedro')
+
+                else:
+                    if int(cav) == int(concensus[0]):
+                        return True
+                    else:
+                        return False
+            return 1
+        else:
+            return "NAN"
+
+    def analysis(self):
+        """
+        report the volume analysis
+
+        :return:
+        """
+        keys = ["apo", "buriedness_method", "cavity_id", "other_id", "ligand_id", "bcv_calc", "top_cavity", "volume_overlap"]
+        data = []
+        self._get_cavities(min_vol=200)
+
+        for cav in range(len(self.cavities)):
+            v1 = self._is_top_cavity(cav)
+            for i, prot_id in enumerate(self.protein_id):
+                for lig_id in self.ligand_id[i]:
+                    s8 = self._step_8_status(cav, prot_id, lig_id)
+
+                    v2 = self._get_vol_data(cav, prot_id, lig_id)
+                    data.append([self.apo, self.buriedness_method, cav, prot_id, lig_id, s8, v1, v2])
+
+        return pd.DataFrame(dict(zip(keys, (zip(*data)))))
 
 
 def main():
@@ -483,19 +693,29 @@ def main():
 
     for method in buriedness_methods:
 
-        try:
+        # try:
+        #
+        #     hp = HotspotPipeline(
+        #                          apo=sys.argv[1],
+        #                          buriedness_method=method,
+        #                          protein_id=sys.argv[2].split(","),
+        #                          ligand_id=sys.argv[3].split(",")
+        #     )
+        #
+        #     hp.run(rerun=False)
+        #
+        # except:
+        #     continue
 
-            hp = HotspotPipeline(
-                                 apo=sys.argv[1],
-                                 buriedness_method=method,
-                                 protein_id=sys.argv[2].split(","),
-                                 ligand_id=sys.argv[3].split(",")
-            )
 
-            hp.run(rerun=False)
+        hp = HotspotPipeline(
+                             apo=sys.argv[1],
+                             buriedness_method=method,
+                             protein_id=sys.argv[2].split(","),
+                             ligand_id=sys.argv[3].split(",")
+        )
 
-        except:
-            continue
+        hp.run(rerun=False)
 
 
 if __name__ == '__main__':

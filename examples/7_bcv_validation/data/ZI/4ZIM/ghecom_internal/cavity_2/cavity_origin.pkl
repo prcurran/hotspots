@@ -8,8 +8,8 @@ c__builtin__
 tuple
 p2
 (F14.0
-F19.0
-F3.0
+F20.0
+F2.0
 tp3
 tp4
 Rp5

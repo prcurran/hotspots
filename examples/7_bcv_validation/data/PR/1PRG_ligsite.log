@@ -1,6 +1,10 @@
 #
 PDB file used: 1PRG
 Buriedness method used: ligsite
-ligands ETO,ET1 from 3ET0,3ET3 respectively
+ligands ET0,ET1 from 3ET0,3ET3 respectively
 #
 Remove ligands: passed
+Cavity calculation: passed
+BCV calculation: failed, CAV_ID = 2, LIG_ID = ET1
+Volume overlap analysis: passed
+Match atom analysis: passed

@@ -5,9 +5,3 @@ ligands L0D,L0G from 2W1D,2W1G respectively
 #
 Remove ligands: passed
 Cavity calculation: passed
-BCV calculation: failed, CAV_ID = 0, LIG_ID = L0G
-BCV calculation: failed, CAV_ID = 0, LIG_ID = L0D
-Volume overlap analysis: passed
-Volume overlap analysis: passed
-Match atom analysis: passed
-Match atom analysis: passed
