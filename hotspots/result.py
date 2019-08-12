@@ -647,6 +647,30 @@ class Results(Helper):
         """
         return PharmacophoreModel.from_hotspot(self, identifier=identifier, threshold=threshold)
 
+    def atomic_volume_overlap(self, mol):
+        """
+        for a given mol, return a dictionary of dictionaries containing the percentage overlap of each atoms
+        VDW radius with the Hotspot Grids.
+
+        {"donor": {"atomic_label": percentage_overlap}
+
+        :param mol:
+        :return:
+        """
+
+        atom_type_dic = {}
+        for n, g in self.super_grids.items():
+            # if an atom is a donor and acceptor consider overlap twice
+            atms = [a for a in mol.heavy_atoms
+                    if self.get_atom_type(a) == n
+                    or ((n == 'donor' or n == 'acceptor') and self.get_atom_type(a) == 'doneptor')]
+
+            if len(atms) > 0:
+                overlap_dic = {a.label: g.atomic_overlap(atom=a, return_grid=False) for a in atms}
+                atom_type_dic.update({n: overlap_dic})
+        print(str(atom_type_dic))
+        return atom_type_dic
+
     def percentage_matched_atoms(self, mol, threshold, match_atom_types=True):
         """
         for a given molecule, the 'percentage match' is given by the percentage of atoms
@@ -962,13 +986,13 @@ class Extractor(object):
 
         f = 0
         while f < 100 and abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance and self.settings._num_gp >= current_num_gp:
-            grown = Grid.grow(self.best_island, self._single_grid)
+            grown = Grid.grow(self.best_island, self.single_grid)
             self.best_island = grown
             current_num_gp = self.best_island.count_grid()
             print(current_num_gp, 'out of', self.settings._num_gp)
             f += 1
 
-        tmp_best_island = self.best_island * self._single_grid
+        tmp_best_island = self.best_island * self.single_grid
         g_vals = tmp_best_island.grid_values()
         g_vals[::-1].sort()
 
@@ -977,7 +1001,7 @@ class Extractor(object):
         except IndexError:
             threshold = min(g_vals)
 
-        assert abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) < tolerance
+        # assert abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) < tolerance
 
         return threshold
 
@@ -996,7 +1020,7 @@ class Extractor(object):
                 threshold += 0.5
                 break
 
-        self.best_island = self._single_grid.get_best_island(threshold)
+        self.best_island = self.single_grid.get_best_island(threshold)
 
         return threshold
 

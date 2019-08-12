@@ -220,6 +220,11 @@ class HotspotPipeline(object):
                                  for j, pid in enumerate(self.protein_id)}
                              for i in range(len(cav_dic))}
 
+        self.atomic_overlaps = {i: {pid: {k: os.path.join(self.working_dir, "cavity_{}".format(i), "bcv",  "atomic_overlap_{}.dat".format(k))
+                                       for k in self.ligand_id[j]}
+                                 for j, pid in enumerate(self.protein_id)}
+                             for i in range(len(cav_dic))}
+
         self.matched = {i: {pid: {k: os.path.join(self.working_dir, "cavity_{}".format(i), "bcv",  "atom_match_{}.percentage".format(k))
                                        for k in self.ligand_id[j]}
                                  for j, pid in enumerate(self.protein_id)}
@@ -346,6 +351,37 @@ class HotspotPipeline(object):
         else:
             print("no BCV for cavity {}, BCV {}".format(cav_id, lig_id))
 
+    def _get_atomic_overlap(self, cav_id, other_id, lig_id):
+        """
+        find the highest median bcv from all cavities, calculate percentage over between the best bcv
+        and each query ligand
+
+        :return:
+        """
+        # inputs
+        mol = io.MoleculeReader(self.extracted_ligands[other_id][lig_id])[0]
+        path = os.path.join(self.bcv[cav_id][other_id][lig_id], "out.zip")
+        if os.path.exists(path):
+            hr = HotspotReader(path).read()
+
+            # tasks
+            out = hr.atomic_volume_overlap(mol)
+
+        else:
+            print("no BCV for cavity {}, BCV {}".format(cav_id, lig_id))
+            out = {"donor": {}, "acceptor": {}, "apolar": {}}
+            for a in mol.heavy_atoms:
+                t = Helper.get_atom_type(a)
+                if t == "doneptor":
+                    out["donor"].update({a.label: 0.0})
+                    out["acceptor"].update({a.label: 0.0})
+                else:
+                    out[t].update({a.label: 0.0})
+
+        # output
+        with open(self.atomic_overlaps[cav_id][other_id][lig_id], 'w') as writer:
+            writer.write(str(out))
+
     def _get_matched_atoms(self, cav_id, other_id, lig_id):
         """
 
@@ -398,293 +434,71 @@ class HotspotPipeline(object):
                 cavity_by_score.update({f.read():i})
 
         # task
-        top = sorted(cavity_by_score.keys(), reverse=True)
-
-        # obj_dic = {}
-        # for cav_id, prot_dic in self.bcv.items():
-        #     for prot_id, lig_dic in prot_dic.items():
-        #         for lig_id, path in lig_dic.items():
-        #             if os.path.exists(os.path.join(path, "out.zip")):
-        #                 if cav_id not in obj_dic:
-        #                     obj_dic.update({cav_id: {}})
-        #                 obj_dic[cav_id].update({lig_id: HotspotReader(os.path.join(path, "out.zip")).read()})
-        #
-        # # tasks
-        # lines = []
-        # cavs = obj_dic.keys()
-        # ligands = set([lig for cav in cavs for lig in obj_dic[cav].keys()])
-        # print(obj_dic)
-        #
-        # for ligand in ligands:
-        #     cav_by_score = {obj_dic[cav_id][ligand].score(): cav_id for cav_id in cavs if ligand in obj_dic[cav_id]}
-        #     top_cavity = cav_by_score[sorted(cav_by_score.keys(), reverse=True)[0]]
-        #     lines.append("{}: {}\n".format(ligand, top_cavity))
+        top = sorted(cavity_by_score.keys(), reverse=True)[0]
 
         # output
         with open(self.cavity_rank, "w") as writer:
-            writer.write(str(top))
-
-    def _log_message(self, message=""):
-        m = "{}\n".format(message)
-        with open(self.log_file, 'a') as f:
-            f.write(m)
+            writer.write(str(cavity_by_score[top]))
 
     def run(self, rerun=False):
-        p = ",".join(self.protein_id)
-        l = ",".join([l for prot in self.ligand_id for l in prot])
-        lines = ["#\n",
-                 "PDB file used: {}\n".format(self.apo),
-                 "Buriedness method used: {}\n".format(self.buriedness_method),
-                 "ligands {} from {} respectively\n".format(l, p),
-                 "#\n"
-                 ]
-
-        with open(self.log_file, 'w+') as f:
-            f.writelines(lines)
-
         # step 1: prepare protein
         self._prep_protein()
-        self._log_message("Remove ligands: passed")
 
         # step 2: extract ligands from "other" proteins
         for other_id, lig_dic in self.extracted_ligands.items():
             for lig_id, path in lig_dic.items():
                 if not os.path.exists(path) or rerun:
                     self.extract_ligands(other_id=other_id, lig_id=lig_id)
-                    self._log_message("Ligand Extracted: passed, ID = {}".format(lig_id))
 
         # step 3: get extracted ligand volumes
-        for other_id, lig_dic in self.ligand_volume.items():
-            for lig_id, path in lig_dic.items():
-                if not os.path.exists(path) or rerun:
+                if not os.path.exists(self.ligand_volume[other_id][lig_id]) or rerun:
                     self._get_ligand_volume(other_id=other_id, lig_id=lig_id)
-                    self._log_message("Ligand Volume: passed, ID = {}".format(lig_id))
 
         # step 4: calculate pocket buriedness
         if not os.path.exists(self.buriedness) or rerun:
             self._get_buriedness_grid()
-            self._log_message("Buriedness calculation: passed")
 
         # step 5: cavity detection
         self._get_cavities(min_vol=200)
-        self._log_message("Cavity calculation: passed")
 
         # step 6: superstar calculation
-        for i, path in enumerate(self.superstar):
-            if not os.path.exists(os.path.join(path, "out.zip")) or rerun:
-                self._get_superstar(cav_id=i)
-                self._log_message("SuperStar calculation: passed, ID = cavity_{}".format(i))
+        for cav_id, prot_dic in self.bcv.items():
+            if not os.path.exists(os.path.join(self.superstar[cav_id], "out.zip")) or rerun:
+                self._get_superstar(cav_id=cav_id)
 
         # step 7: hotspot calculation
-        for i, path in enumerate(self.hotspot):
-            if not os.path.exists(os.path.join(path, "out.zip")) or rerun:
-                self._get_hotspot(cav_id=i)
-                self._log_message("Hotspot calculation: passed, ID = cavity_{}".format(i))
+            if not os.path.exists(os.path.join(self.hotspot[cav_id], "out.zip")) or rerun:
+                self._get_hotspot(cav_id=cav_id)
+
+        # step 7a: score cavities
+            if not os.path.exists(self.cavity_score[cav_id]):
+                self._score_cavity(cav_id=cav_id)
 
         # step 8: bcv calculatuion
-        for cav_id, prot_dic in self.bcv.items():
             for prot_id, lig_dic in prot_dic.items():
                 for lig_id, path in lig_dic.items():
-                    if not os.path.exists(path) or rerun:
+                    if not os.path.exists(self.bcv[cav_id][prot_id][lig_id]) or rerun:
                         try:
                             self._get_bcv(cav_id=cav_id, other_id=prot_id, lig_id=lig_id)
-                            self._log_message("BCV calculation: passed, CAV_ID = {}, LIG_ID = {}".format(cav_id, lig_id))
                         except:
-                            self._log_message(
-                                "BCV calculation: failed, CAV_ID = {}, LIG_ID = {}".format(cav_id, lig_id))
+                            continue
 
         # step 9: overlap analysis
-        for cav_id, prot_dic in self.all_overlaps.items():
-            for prot_id, lig_dic in prot_dic.items():
-                for lig_id, path in lig_dic.items():
-                    if not os.path.exists(path) or rerun:
+                    if not os.path.exists(self.all_overlaps[cav_id][prot_id][lig_id]) or rerun:
                         self._get_volume_overlap(cav_id=cav_id, other_id=prot_id, lig_id=lig_id)
-                        self._log_message("Volume overlap analysis: passed")
+
+        # step 9a: atomic overlap analysis
+                    print("Atomic Overlap {}".format(self.apo))
+                    if not os.path.exists(self.atomic_overlaps[cav_id][prot_id][lig_id] or rerun):
+                        self._get_atomic_overlap(cav_id=cav_id, other_id=prot_id, lig_id=lig_id)
 
         # step 10: atom match analysis
-        for cav_id, prot_dic in self.matched.items():
-            for prot_id, lig_dic in prot_dic.items():
-                for lig_id, path in lig_dic.items():
-                    if not os.path.exists(path) or rerun:
+                    if not os.path.exists(self.matched[cav_id][prot_id][lig_id]) or rerun:
                         self._get_matched_atoms(cav_id=cav_id, other_id=prot_id, lig_id=lig_id)
-                        self._log_message("Match atom analysis: passed")
 
-        # step 11: rank cavities
-        for i, path in enumerate(self.cavity_score):
-            if not os.path.exists(path):
-                self._score_cavity(cav_id=i)
-
+        # step 11: get cavity rank
         if not os.path.exists(self.cavity_rank):
             self._rank_cavities()
-
-    def _cav_volume(self, cav):
-        if os.path.exists(self.cavities_volumes[cav]):
-            with open(self.cavities_volumes[cav], "r") as f:
-                vol = f.read()
-            return float(vol)
-        else:
-            return "NaN"
-
-    def _step_1_status(self):
-        if os.path.exists(self.apo_prep):
-            return 1
-        else:
-            return 0
-
-    def _step_2_status(self, other_id, lig_id):
-        if os.path.exists(self.extracted_ligands[other_id][lig_id]):
-            return 1
-        else:
-            return 0
-
-    def _step_3_status(self, other_id, lig_id):
-        if os.path.exists(self.ligand_volume[other_id][lig_id]):
-            return 1
-        else:
-            return 0
-
-    def _step_4_status(self):
-        if os.path.exists(self.buriedness):
-            return 1
-        else:
-            return 0
-
-    def _step_5_status(self, cav):
-        if os.path.exists(self.cavities[cav]):
-            return 1
-        else:
-            return 0
-
-    def _step_6_status(self, cav):
-        if os.path.exists(os.path.join(self.superstar[cav], "out.zip")):
-            return 1
-        else:
-            return 0
-
-    def _step_7_status(self, cav):
-        if os.path.exists(os.path.join(self.hotspot[cav], "out.zip")):
-            return 1
-        else:
-            return 0
-
-    def _step_8_status(self, cav, other_id, lig_id):
-        if os.path.exists(os.path.join(self.bcv[cav][other_id][lig_id], "out.zip")):
-            return 1
-        else:
-            return 0
-
-    def _step_9_status(self, cav, other_id, lig_id):
-        if os.path.exists(self.all_overlaps[cav][other_id][lig_id]):
-            return 1
-        else:
-            return 0
-
-    def _step_10_status(self, cav, other_id, lig_id):
-        if os.path.exists(self.matched[cav][other_id][lig_id]):
-            return 1
-        else:
-            return 0
-
-    def _step_11_status(self):
-        if os.path.exists(self.cavity_rank):
-            return 1
-        else:
-            return 0
-
-    def status(self):
-        """
-        report the status of the calculations
-
-        :return:
-        """
-        keys = ["apo", "buriedness_method", "cavity_id", "other_id", "ligand_id", "cav_vol", "apo_prep", "extract_ligand",
-                "extract_vol", "calculate_buriedness", "cavity_detection", "calculate_superstar", "calculate_hotspots", "calculate_bcv",
-                "volume_overlap", "matched_atoms", "cavity_rank"]
-        data = []
-        self._get_cavities(min_vol=200)
-
-        s1 = self._step_1_status()
-        s4 = self._step_4_status()
-        s11 = self._step_11_status()
-
-        for cav in range(len(self.cavities)):
-            vol = self._cav_volume(cav)
-            s5 = self._step_5_status(cav)
-            s6 = self._step_6_status(cav)
-            s7 = self._step_7_status(cav)
-            for i, prot_id in enumerate(self.protein_id):
-                for lig_id in self.ligand_id[i]:
-                    s2 = self._step_2_status(prot_id, lig_id)
-                    s3 = self._step_3_status(prot_id, lig_id)
-                    s8 = self._step_8_status(cav, prot_id, lig_id)
-                    s9 = self._step_9_status(cav, prot_id, lig_id)
-                    s10 = self._step_10_status(cav, prot_id, lig_id)
-
-                    data.append([self.apo, self.buriedness_method, cav, prot_id, lig_id, vol, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11])
-
-        return pd.DataFrame(dict(zip(keys, (zip(*data)))))
-
-    def _get_vol_data(self, cav, other_id, lig_id):
-        """
-        extract the volume data
-
-        :param int cav: cavity identifier
-        :param str other_id: protein identifier
-        :param str lig_id: ligand identifier
-        :return:
-        """
-        if os.path.exists(self.all_overlaps[cav][other_id][lig_id]):
-            with open(self.all_overlaps[cav][other_id][lig_id], "r") as f:
-                vol = f.read()
-            return float(vol)
-        else:
-            return 0.0
-
-    def _is_top_cavity(self, cav):
-        """
-        determine if top ranked cavity
-
-        :param cav:
-        :return:
-        """
-        if os.path.exists(self.cavity_rank):
-            with open(self.cavity_rank, "r") as f:
-                c = dict([y for y in [x.split(":") for x in f.read().split("\n")] if len(y) > 1])
-                concensus = list(set(c.values()))
-                if len(concensus) > 1:
-                    print(self.apo)
-                    print(concensus)
-                    raise IOError('Take a look Pedro')
-
-                else:
-                    if int(cav) == int(concensus[0]):
-                        return True
-                    else:
-                        return False
-            return 1
-        else:
-            return "NAN"
-
-    def analysis(self):
-        """
-        report the volume analysis
-
-        :return:
-        """
-        keys = ["apo", "buriedness_method", "cavity_id", "other_id", "ligand_id", "bcv_calc", "top_cavity", "volume_overlap"]
-        data = []
-        self._get_cavities(min_vol=200)
-
-        for cav in range(len(self.cavities)):
-            v1 = self._is_top_cavity(cav)
-            for i, prot_id in enumerate(self.protein_id):
-                for lig_id in self.ligand_id[i]:
-                    s8 = self._step_8_status(cav, prot_id, lig_id)
-
-                    v2 = self._get_vol_data(cav, prot_id, lig_id)
-                    data.append([self.apo, self.buriedness_method, cav, prot_id, lig_id, s8, v1, v2])
-
-        return pd.DataFrame(dict(zip(keys, (zip(*data)))))
 
 
 def main():

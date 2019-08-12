@@ -5,6 +5,3 @@ ligands BZ2,BZ3,FG3 from 3IMG,3IUE respectively
 #
 Remove ligands: passed
 Cavity calculation: passed
-BCV calculation: passed, CAV_ID = 2, LIG_ID = FG3
-Volume overlap analysis: passed
-Match atom analysis: passed

@@ -568,6 +568,21 @@ class Grid(utilities.Grid):
         g, h = Grid.common_grid(grid_list=[self, other], padding=1)
         return g & h
 
+    def atomic_overlap(self, atom, return_grid=True):
+
+        g = Grid.initalise_grid(coords=[atom.coordinates])
+
+        h = g.copy_and_clear()
+        h.set_sphere(point=atom.coordinates, radius=atom.vdw_radius, value=1, scaling='None')
+        overlap = self._mutually_inclusive(other=h)
+        perc_overlap = (overlap.count_grid() / (h > 0).count_grid()) * 100
+
+        if return_grid is True:
+            return perc_overlap, overlap
+
+        else:
+            return perc_overlap
+
     def matched_atoms(self, atoms, threshold=30):
         """
         for a given atom, the percentage overlap with the grid is calculated. If the overlap
@@ -577,14 +592,11 @@ class Grid(utilities.Grid):
         :param int threshold: percentage overlap threshold
         :return list: list of str
         """
-        g = Grid.initalise_grid(coords=[a.coordinates for a in atoms])
         passed_atoms = {}
 
         for a in atoms:
-            h = g.copy_and_clear()
-            h.set_sphere(point=a.coordinates, radius=a.vdw_radius, value=1, scaling='None')
-            overlap = self._mutually_inclusive(other=h)
-            perc_overlap = (overlap.count_grid()/ (h > 0).count_grid()) * 100
+            perc_overlap, overlap = self.atomic_overlap(atom=a, return_grid=True)
+
             if perc_overlap > threshold:
                 common_a, common_b = Grid.common_grid([self, overlap])
                 passed_atoms[a.label] = (common_a * common_b).extrema[1]

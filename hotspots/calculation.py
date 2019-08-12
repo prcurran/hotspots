@@ -1119,14 +1119,12 @@ class Runner(object):
         self.super_grids = {p: g[0] for p, g in self.out_grids.items()}
         print("Runtime = {}seconds".format(time.time() - start))
 
-        if clear_tmp == True:
-            shutil.rmtree(tmp)
         return Results(super_grids=self.super_grids,
                        protein=self.protein,
                        buriedness=self.buriedness)
 
     def from_pdb(self, pdb_code, charged_probes=False, probe_size=7, buriedness_method='ghecom', nprocesses=3,
-                 cavities=False, settings=None,clear_tmp=False):
+                 cavities=False, settings=None, clear_tmp=False):
         """
         generates a result from a pdb code
 
