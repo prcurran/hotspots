@@ -23,7 +23,7 @@ setup(
     long_description_content_type='text/markdown',
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
-    install_requires=['numpy>=1.15.4',
+    install_requires=['numpy',
                       'csd-python-api>=2.0.0',
                       'matplotlib==2.2.3',
                       'scipy',
@@ -32,7 +32,6 @@ setup(
                       'hdbscan',
                       'pandas',
                       'futures',
-                      'cython==0.29.5',
                       'tqdm==4.31.1',
                       'xmltodict==0.12.0'],
     package_data={
