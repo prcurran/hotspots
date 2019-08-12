@@ -25,7 +25,7 @@ setup(
     # installed or upgraded on the target machine
     install_requires=['numpy',
                       'csd-python-api>=2.0.0',
-                      'matplotlib==2.2.3',
+                      'matplotlib',
                       'scipy',
                       'sklearn',
                       'scikit-image',
