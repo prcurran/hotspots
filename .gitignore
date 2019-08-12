@@ -1,5 +1,5 @@
 
-examples/7_bcv_validation/pdb_files*
+examples/7_bcv_validation/data*
 examples/7_bcv_validation/results*
 *.pyc
 .idea
