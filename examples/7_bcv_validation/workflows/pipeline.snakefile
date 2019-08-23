@@ -27,7 +27,7 @@ rule submit:
         with open(input.jobs, 'r') as f:
             cmd = f.read()
 
-        print(cmd)
+        os.system(cmd)
 
         with open(output.done, 'w') as w:
             w.write(cmd)
