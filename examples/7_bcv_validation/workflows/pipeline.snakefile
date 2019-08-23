@@ -16,3 +16,15 @@ rule make_job:
         cmd = "python pipeline.py {} {} {}".format(pdb, ",".join(proteins), ",".join(ligands))
         with open(output, 'w') as f:
             f.write(cmd)
+
+rule submit:
+    input:
+        jobs = expand('data/{ypdb}', ypdb=map(ypdb, all_apos))
+
+    run:
+        print(open('data/{wildcard.pdbpref}/{pdbid}/job.sh').read())
+
+
+
+
+
