@@ -307,10 +307,6 @@ class HotspotPipeline(object):
         :return:
         """
         # input
-        if cav_id != 'global':
-            cav_num = cav_id.split("_")[1]
-        else:
-            cav_num = None
 
         prot = Protein.from_file(self.apo_prep)
 
@@ -338,7 +334,7 @@ class HotspotPipeline(object):
             os.mkdir(self.superstar[cav_id])
 
         if cav_num is not None:
-            out = os.path.join(a.settings.temp_dir, cav_num)
+            out = os.path.join(a.settings.temp_dir, str(0))
         else:
             out = a.settings.temp_dir
 
