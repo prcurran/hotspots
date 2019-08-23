@@ -309,6 +309,8 @@ class HotspotPipeline(object):
         # input
         if cav_id != 'global':
             cav_num = cav_id.split("_")[1]
+        else:
+            cav_num = None
 
         prot = Protein.from_file(self.apo_prep)
 
