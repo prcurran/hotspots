@@ -9,9 +9,9 @@ rule make_job:
 
     run:
         df = pd.read_csv("results/inputs.csv")
-        ligands = list(df.loc[df['apo'] == '{wildcard.pdbid}']['fragment_ID']) + list(df.loc[df['apo'] == '{wildcard.pdbid}']['lead_ID'])
-        proteins = list(df.loc[df['apo'] == '{wildcard.pdbid}']['fragment']) + list(df.loc[df['apo'] == '{wildcard.pdbid}']['lead'])
-        cmd = "python pipeline.py {} {} {}".format('{wildcard.pdbid}', ",".join(proteins), ",".join(ligands))
+        ligands = list(df.loc[df['apo'] == '{wildcards.pdbid}']['fragment_ID']) + list(df.loc[df['apo'] == '{wildcards.pdbid}']['lead_ID'])
+        proteins = list(df.loc[df['apo'] == '{wildcards.pdbid}']['fragment']) + list(df.loc[df['apo'] == '{wildcards.pdbid}']['lead'])
+        cmd = "python pipeline.py {} {} {}".format('{wildcards.pdbid}', ",".join(proteins), ",".join(ligands))
         with open(output.out_file, 'w') as f:
             f.write(cmd)
 
@@ -20,7 +20,7 @@ rule submit:
         jobs = 'data/{pdbpref}/{pdbid}/job.sh'
 
     run:
-        print(open('data/{wildcard.pdbpref}/{pdbid}/job.sh').read())
+        print(open('data/{wildcards.pdbpref}/{wildcards.pdbid}/job.sh').read())
 
 
 
