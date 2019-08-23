@@ -11,7 +11,7 @@ rule make_job:
         df = pd.read_csv("results/inputs.csv")
         ligands = list(df.loc[df['apo'] == '{wildcards.pdbid}']['fragment_ID']) + list(df.loc[df['apo'] == '{wildcards.pdbid}']['lead_ID'])
         proteins = list(df.loc[df['apo'] == '{wildcards.pdbid}']['fragment']) + list(df.loc[df['apo'] == '{wildcards.pdbid}']['lead'])
-        cmd = "python pipeline.py {} {} {}".format('{wildcards.pdbid}', ",".join(proteins), ",".join(ligands))
+        cmd = "python pipeline.py {} {} {}".format({wildcards.pdbid}, ",".join(proteins), ",".join(ligands))
         with open(output.out_file, 'w') as f:
             f.write(cmd)
 
