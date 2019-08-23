@@ -669,9 +669,9 @@ class HotspotPipeline(object):
 
 def main():
     # inputs
-    # buriedness_methods = ['ligsite', 'ghecom', 'ghecom_internal']
+    buriedness_methods = ['ligsite', 'ghecom', 'ghecom_internal']
 
-    buriedness_methods = ['ghecom']
+    #buriedness_methods = ['ghecom']
 
     for method in buriedness_methods:
 
