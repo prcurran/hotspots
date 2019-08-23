@@ -1,3 +1,0 @@
-
-include: 'imports.snakefile'
-include: 'pipeline.snakefile'

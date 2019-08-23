@@ -1,0 +1,3 @@
+
+include: 'workflows/imports.snakefile'
+include: 'workflows/pipeline.snakefile'
