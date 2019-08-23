@@ -5,14 +5,14 @@ rule bcv_validation_devel:
 
 rule make_job:
     output:
-        'data/{pdbpref}/{pdbid}/job.sh'
+        out_file = 'data/{pdbpref}/{pdbid}/job.sh'
 
     run:
         df = pd.read_csv("results/inputs.csv")
         ligands = list(df.loc[df['apo'] == '{wildcard.pdbid}']['fragment_ID']) + list(df.loc[df['apo'] == '{wildcard.pdbid}']['lead_ID'])
         proteins = list(df.loc[df['apo'] == '{wildcard.pdbid}']['fragment']) + list(df.loc[df['apo'] == '{wildcard.pdbid}']['lead'])
         cmd = "python pipeline.py {} {} {}".format('{wildcard.pdbid}', ",".join(proteins), ",".join(ligands))
-        with open(output, 'w') as f:
+        with open(output.out_file, 'w') as f:
             f.write(cmd)
 
 rule submit:
