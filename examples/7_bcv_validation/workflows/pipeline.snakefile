@@ -17,4 +17,3 @@ rule make_job:
         cmd = "python pipeline.py {} {} {}".format(pdb, ",".join(proteins), ",".join(ligands)))
         with open(output, 'w') as f:
             f.write(cmd)
-
