@@ -333,7 +333,7 @@ class HotspotPipeline(object):
         if not os.path.exists(self.superstar[cav_id]):
             os.mkdir(self.superstar[cav_id])
 
-        if cav_num is not None:
+        if cavity_id is not 'global':
             out = os.path.join(a.settings.temp_dir, str(0))
         else:
             out = a.settings.temp_dir
