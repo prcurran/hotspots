@@ -6,7 +6,7 @@ rule bcv_validation_devel:
 
 rule make_job:
     output:
-        expand('data/{xpdb}/job.sh', ypdb=map(xpdb, all_apos))
+        expand('data/{ypdb}/job.sh', ypdb=map(xpdb, all_apos))
 
     run:
         df = pd.read_csv(input.df)
