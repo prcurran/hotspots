@@ -1,11 +1,11 @@
 
 rule bcv_validation_devel:
     input:
-        jobs = expand('data/{ypdb}/job.sh', ypdb=map(ypdb, all_apos))
+        expand('data/{ypdb}/job.sh', ypdb=map(ypdb, all_apos))
 
 rule make_job:
     output:
-        expand('data/{ypdb}/job.sh', ypdb=map(xpdb, all_apos))
+        'data/{pdbpref}/{pdbid}/job.sh'
 
     run:
         df = pd.read_csv("results/inputs.csv")
@@ -17,7 +17,7 @@ rule make_job:
 
 rule submit:
     input:
-        jobs = expand('data/{ypdb}', ypdb=map(ypdb, all_apos))
+        jobs = 'data/{pdbpref}/{pdbid}/job.sh'
 
     run:
         print(open('data/{wildcard.pdbpref}/{pdbid}/job.sh').read())
