@@ -1,7 +1,7 @@
 
 rule bcv_validation_devel:
     input:
-        jobs = expand('data/{ypdb}', ypdb=map(ypdb, all_apos))
+        jobs = expand('data/{ypdb}/job.sh', ypdb=map(ypdb, all_apos))
 
 rule make_job:
     output:
