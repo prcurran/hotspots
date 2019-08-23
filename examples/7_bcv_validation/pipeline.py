@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, print_function
 
 import os
 import pickle
@@ -475,7 +475,7 @@ class HotspotPipeline(object):
 
             with open(self.hot_lig_overlaps[cav_id][other_id][lig_id], 'w') as writer:
                 hot_lig = [str((a / lig_vol) * 100) for a in hot_overlap]
-                print hot_lig
+                print(hot_lig)
                 writer.write(",".join(hot_lig))
 
             with open(self.hot_hot_overlaps[cav_id][other_id][lig_id], 'w') as writer:

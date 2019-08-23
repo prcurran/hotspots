@@ -1,7 +1,8 @@
 
 rule bcv_validation_devel:
     input:
-        expand('data/{ypdb}/job.sh', ypdb=map(ypdb, all_apos))
+        expand('data/{ypdb}/job.sh', ypdb=map(ypdb, all_apos)) +
+        expand(
 
 rule make_job:
     output:
@@ -19,10 +20,14 @@ rule submit:
     input:
         jobs = 'data/{pdbpref}/{pdbid}/job.sh'
 
+    output:
+        done = 'data/{pdbpref}/{pdbid}/done.txt'
+
     run:
-        print(open('data/{wildcards.pdbpref}/{wildcards.pdbid}/job.sh').read())
+        with open(input.jobs, 'r') as f:
+            cmd = f.read()
 
+        print(cmd)
 
-
-
-
+        with open(output.done, 'w') as w:
+            w.write(cmd)
