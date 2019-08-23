@@ -8,7 +8,9 @@ def all_pdbs():
 
     return list(set(df['apo']))
 
-def xpdb(pdbid): return '%s/%s' % (pdbpref(pdbid), pdbid) # e.g. '2fdu' => 'fd/2fdu'
+def xpdb(pdbid): return '{0}/{1}/{1}.pdb'.format(pdbpref(pdbid), pdbid) # e.g. '2fdu' => 'fd/2fdu'
+
+def ypdb(pdbid): return '{0}/{1}'.format(pdbpref(pdbid), pdbid) # e.g. '2fdu' => 'fd/2fdu'
 
 def pdbpref(pdbid): return pdbid[1:3] # e.g. '2fdu' => 'fd'
 

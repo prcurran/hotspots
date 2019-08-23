@@ -2,11 +2,11 @@
 rule bcv_validation_devel:
     input:
         df = "results/inputs.csv",
-        apo = expand('data/{xpdb}/{pdbid}.pdb', xpdb=map(xpdb, all_apos), pdbid=all_apos)
+        apo = expand('data/{xpdb}', xpdb=map(xpdb, all_apos))
 
 rule make_job:
     output:
-        expand('data/{xpdb}/job.sh', xpdb=map(xpdb, all_apos))
+        expand('data/{xpdb}/job.sh', ypdb=map(xpdb, all_apos))
 
     run:
         df = pd.read_csv(input.df)
