@@ -21,31 +21,30 @@ from hotspots.grid_extension import Grid
 
 class Hot(HotspotPipeline):
     def _get_ligand_cavity(self):
-        self.ligand_cavity = os.path.join(self.working_dir, "ligand_cavity.dat")
-        tolerance = 0
-        lc = []
-        mols = [MoleculeReader(path)[0] for other_id, lig_dic in self.extracted_ligands.items()
-                for l, path in lig_dic.items()]
-
-        point = [round(np.mean([a.coordinates.x for mol in mols for a in mol.heavy_atoms])),
-                 round(np.mean([a.coordinates.y for mol in mols for a in mol.heavy_atoms])),
-                 round(np.mean([a.coordinates.z for mol in mols for a in mol.heavy_atoms]))]
-
-        cavs = Cavity.from_pdb_file(self.apo_prep)
-
-        for i, c in enumerate(cavs):
-
-            mini = c.bounding_box[0]
-            maxi = c.bounding_box[1]
-            if all([mini.x - tolerance < point[0] < maxi.x + tolerance,
-                    mini.y - tolerance < point[1] < maxi.y + tolerance,
-                    mini.z - tolerance < point[2] < maxi.z + tolerance]):
-
-                lc.append(int(i))
-
-        with open(self.ligand_cavity, "w") as f:
-            for cav_id in lc:
-                f.write(str(cav_id))
+        # self.ligand_cavity = os.path.join(self.working_dir, "ligand_cavity.dat")
+        # tolerance = 0
+        # lc = []
+        # mols = [MoleculeReader(path)[0] for other_id, lig_dic in self.extracted_ligands.items()
+        #         for l, path in lig_dic.items()]
+        #
+        # point = [round(np.mean([a.coordinates.x for mol in mols for a in mol.heavy_atoms])),
+        #          round(np.mean([a.coordinates.y for mol in mols for a in mol.heavy_atoms])),
+        #          round(np.mean([a.coordinates.z for mol in mols for a in mol.heavy_atoms]))]
+        #
+        # cavs = Cavity.from_pdb_file(self.apo_prep)
+        #
+        # for i, c in enumerate(cavs):
+        #
+        #     mini = c.bounding_box[0]
+        #     maxi = c.bounding_box[1]
+        #     if all([mini.x - tolerance < point[0] < maxi.x + tolerance,
+        #             mini.y - tolerance < point[1] < maxi.y + tolerance,
+        #             mini.z - tolerance < point[2] < maxi.z + tolerance]):
+        #
+        #         lc.append(int(i))
+        #
+        with open(self.ligand_cavity, "r") as f:
+            lc = f.read().split(",")
 
         if len(lc) < 1:
             print("no ligand cavity for {}".format(self.apo))
@@ -196,26 +195,41 @@ class Hot(HotspotPipeline):
         return pd.DataFrame(dict(zip(keys, (zip(*data)))))
 
     def bcv_effect(self):
-        pdb = []
-        hot = []
-        bcv = []
+        def get_val(path):
+            if os.path.exists(path):
+                with open(path, 'r') as f:
+                    val = f.read()
+                    print(path, val.split(","))
+                return val.split(",")
+            else:
+                return None
+        thresholds = [10, 14, 17]
+        li = []
+        pr = []
+        x = []
+        y = []
+        s = []
         self._get_cavities(min_vol=200)
         for cav in range(len(self.cavities)):
             lc = self._get_ligand_cavity()
             print(lc)
             if int(cav) in lc:
-                print(self.hotspot[cav])
-                ahr = HotspotReader(os.path.join(self.hotspot[cav], "out.zip")).read()
-                a = Grid.get_single_grid(ahr.super_grids, mask=False)
-                for i, prot_id in enumerate(self.protein_id):
-                    for lig_id in self.ligand_id[i]:
-                        bhr = HotspotReader(os.path.join(self.bcv[cav][prot_id][lig_id], "out.zip")).read()
-                        b = Grid.get_single_grid(bhr.super_grids, mask=False)
-                        pdb.append(self.apo)
-                        hot.append(a.count_grid())
-                        bcv.append(b.count_grid())
-
-        return pdb, hot, bcv
+                # major volume on X, minor volume on y
+                for prot_id, lig_dic in self.hot_lig_overlaps[cav].items():
+                    print(lig_dic)
+                    for lig_id, path in lig_dic.items():
+                        li.append(lig_id)
+                        pr.append(prot_id)
+                        x.append(get_val(self.bcv_lig_overlaps[cav][prot_id][lig_id])[0])
+                        y.append(get_val(self.bcv_hot_overlaps[cav][prot_id][lig_id])[0])
+                        s.append('bcv')
+                        for i, t in enumerate(thresholds):
+                            li.append(lig_id)
+                            pr.append(prot_id)
+                            x.append(get_val(self.hot_lig_overlaps[cav][prot_id][lig_id])[i])
+                            y.append(get_val(self.hot_hot_overlaps[cav][prot_id][lig_id])[i])
+                            s.append(str(t))
+        return li, pr, x, y, s
 
 
 def main():
@@ -289,25 +303,44 @@ def table():
 def bcv_effect():
     print("here")
     method = 'ghecom'
-    df = pd.read_csv("inputs.csv")
+    df = pd.read_csv("results/inputs.csv")
     hot_pdbs = set(df['apo'])
     print(hot_pdbs)
-    p = []
-    h = []
-    b = []
+
+    ligand = []
+    protein = []
+    x = []
+    y = []
+    score = []
+    apo = []
+
     for i, pdb in enumerate(list(hot_pdbs)):
+
+        target = list(df.loc[df['apo'] == pdb]['name'])[0]
+        print(target)
+
         ligands = list(df.loc[df['apo'] == pdb]['fragment_ID']) + list(df.loc[df['apo'] == pdb]['lead_ID'])
         proteins = list(df.loc[df['apo'] == pdb]['fragment']) + list(df.loc[df['apo'] == pdb]['lead'])
-
         hp = Hot(apo=pdb, buriedness_method=method, protein_id=proteins, ligand_id=ligands)
         print(hp)
-        pdbcode, hot, bcv = hp.bcv_effect()
-        p.extend(pdbcode)
-        h.extend(hot)
-        b.extend(bcv)
 
-    f = pd.DataFrame({"pdb": p, "hotspot": h, "bcv": b})
-    f.to_csv("bcv_effect.csv")
+        li, pr, xa, ya, s = hp.bcv_effect()
+        ligand.extend(li)
+        protein.extend(pr)
+        x.extend(xa)
+        y.extend(ya)
+        score.extend(s)
+        apo.extend([target] * len(xa))
+
+    f = pd.DataFrame({'ligand': ligand,
+                      'protein': protein,
+                      'x': x,
+                      'y': y,
+                      'score': score,
+                      'apo': apo})
+
+    f.to_csv("hot_vs_bcv.csv")
+
 
 if __name__ == "__main__":
     # table()

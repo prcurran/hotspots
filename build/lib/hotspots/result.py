@@ -996,6 +996,15 @@ class Extractor(object):
         g_vals = tmp_best_island.grid_values()
         g_vals[::-1].sort()
 
+        try:
+            threshold = g_vals[self.settings._num_gp]
+        except IndexError:
+            threshold = min(g_vals)
+
+        # assert abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) < tolerance
+
+        return threshold
+
     def _step_down(self, start_threshold):
         """
         Returns the maximum threshold for which the "best island" volume is smaller than the target volume
@@ -1027,12 +1036,10 @@ class Extractor(object):
 
         assert self.single_grid.count_grid() >= self.settings._num_gp
 
-        threshold = self._step_down(40)
-        self._grow()
+        self._step_down(40)
+        self.threshold = self._grow()
 
-        print("Final score threshold is: {} ".format(threshold))
+        print("Final score threshold is: {} ".format(self.threshold))
 
         grid_dict = self.best_island.inverse_single_grid(self._masked_dic)
-        r = Results(super_grids=grid_dict, protein=self.hotspot_result.protein)
-        r.step_threshold = threshold
-        return r
+        return Results(super_grids=grid_dict, protein=self.hotspot_result.protein)

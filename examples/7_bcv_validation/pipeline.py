@@ -1,7 +1,10 @@
+from __future__ import division
+
 import os
 import pickle
 import shutil
 import sys
+import time
 
 import pandas as pd
 from ccdc import io
@@ -54,7 +57,6 @@ class HotspotPipeline(object):
         # files
 
         # 'hotspot' protein files
-        self.log_file = os.path.join(self.working_dir_base_base, "{}_{}.log".format(self.apo, self.buriedness_method))
         self.apo_protein = os.path.join(self.working_dir_base, "{}.pdb".format(self.apo))
         self.apo_prep = os.path.join(self.working_dir_base, "{}_prep.pdb".format(self.apo))
         self.buriedness = os.path.join(self.working_dir, "buriedness_{}.grd".format(self.buriedness_method))
@@ -64,19 +66,39 @@ class HotspotPipeline(object):
         self.extracted_ligands = {pid: {j: os.path.join(self.working_dir_base, "{}.mol2".format(j))
                                         for j in self.ligand_id[i]}
                                   for i, pid in enumerate(self.protein_id)}
-
         self.ligand_volume = {pid: {j: os.path.join(self.working_dir_base_base, "{}.volume".format(j))
                                     for j in self.ligand_id[i]}
                               for i, pid in enumerate(self.protein_id)}
 
+        # global
+        self.working_dir = create_directory(os.path.join(self.working_dir, "global"))
+
+
+        # analysis files
         self.cavity_rank = os.path.join(self.working_dir, "cavity.rank")
+        self.ligand_cavity = os.path.join(self.working_dir, "ligand_cavity.dat")
 
         # these get set during the run depending on the number of cavities detected
+        self.runs = ["global"]     # + cavities
         self.cavities = []
-        self.superstar = []
-        self.hotspot = []
+        self.cavities_volumes = []
+        self.cavities = {}
+        self.bounding_box = []
+
+        self.superstar = {}
+        self.hotspot = {}
         self.bcv = {}
-        self.all_overlaps = []
+        self.superstar_time = {}
+        self.hotspot_time = {}
+        self.bcv_time = {}
+        self.bcv_threshold = {}
+
+        self.bcv_lig_overlaps = {}
+        self.bcv_hot_overlaps = {}
+        self.hot_lig_overlaps = {}
+        self.hot_hot_overlaps = {}
+
+        self.matched = {}
 
     def _prep_protein(self):
         """
@@ -187,48 +209,81 @@ class HotspotPipeline(object):
         # inputs
         cavs = [c for c in Cavity.from_pdb_file(self.apo_prep) if c.volume > min_vol]
 
-        # task, output
-        cav_volume_dic = {os.path.join(self.working_dir, 'cavity_{}'.format(i), "cavity.volume"): c.volume
-                   for i, c in enumerate(cavs)}
+        # task
+        for i in range(len(cavs)):
+            create_directory(path=os.path.join(self.working_dir, 'cavity_{}'.format(i)))
 
         cav_dic = {os.path.join(self.working_dir, 'cavity_{}'.format(i)): Helper.cavity_centroid(c)
                    for i, c in enumerate(cavs)}
+
+        cav_volume_dic = {os.path.join(self.working_dir, 'cavity_{}'.format(i), "cavity.volume"): c.volume
+                   for i, c in enumerate(cavs)}
+
+        cav_bb = {os.path.join(self.working_dir, 'cavity_{}'.format(i), "bounding_box.pkl"): c.bounding_box
+                   for i, c in enumerate(cavs)}
+
+        # output
+        for path, origin in cav_dic.items():
+            with open(os.path.join(path, "cavity_origin.pkl"), 'wb') as handle:
+                pickle.dump(origin, handle)
 
         for path, vol in cav_volume_dic.items():
             with open(os.path.join(path), 'w') as f:
                 f.write(str(vol))
 
-        for path, origin in cav_dic.items():
-            create_directory(path)
-            with open(os.path.join(path, "cavity_origin.pkl"), 'wb') as handle:
-                pickle.dump(origin, handle)
+        for path, bb in cav_bb.items():
+            with open(os.path.join(path), 'wb') as h:
+                pickle.dump(bb, h)
 
         # update attr
-        self.cavities_volumes = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "cavity.volume") for p in
-                                range(len(cav_dic))]
-        self.cavities = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "cavity_origin.pkl") for p in range(len(cav_dic))]
-        self.superstar = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "superstar") for p in range(len(cav_dic))]
-        self.hotspot = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "hotspot") for p in range(len(cav_dic))]
-        self.cavity_score = [os.path.join(self.working_dir, 'cavity_{}'.format(p), "cavity.score") for p in range(len(cav_dic))]
+        self.runs += ["cavity_{}".format(i) for i in range(len(cavs))]
 
-        self.bcv = {i: {pid: {k: os.path.join(self.working_dir, "cavity_{}".format(i), "bcv",  "volume_{}".format(k))
+        self.cavities = {"cavity_{}".format(p): os.path.join(self.working_dir, 'cavity_{}'.format(p), "cavity_origin.pkl")
+                         for p in range(len(cav_dic))}
+        self.cavities_volumes = {"cavity_{}".format(p): os.path.join(self.working_dir, 'cavity_{}'.format(p), "cavity.volume")
+                                 for p in range(len(cav_dic))}
+        self.cavity_score = {"cavity_{}".format(p): os.path.join(self.working_dir, "cavity_{}".format(p), "cavity.score")
+                             for p in range(len(cav_dic))}
+        self.bounding_box = {"cavity_{}".format(p): os.path.join(self.working_dir, 'cavity_{}'.format(p), "bounding_box.pkl")
+                             for p in range(len(cav_dic))}
+
+        self.superstar = {p: os.path.join(self.working_dir, p, "superstar") for p in self.runs}
+        self.superstar_time = {k: os.path.join(v, "time.time") for k, v in self.superstar.items()}
+
+        self.hotspot = {p: os.path.join(self.working_dir, p, "hotspot") for p in self.runs}
+        self.hotspot_time = {k: os.path.join(v, "time.time") for k, v in self.hotspot.items()}
+
+        self.bcv = {i: {pid: {k: os.path.join(self.working_dir, i, "bcv",  "volume_{}".format(k))
                               for k in self.ligand_id[j]}
                         for j, pid in enumerate(self.protein_id)}
-                    for i in range(len(cav_dic))}
-        self.all_overlaps = {i: {pid: {k: os.path.join(self.working_dir, "cavity_{}".format(i), "bcv",  "overlap_{}.percentage".format(k))
-                                       for k in self.ligand_id[j]}
-                                 for j, pid in enumerate(self.protein_id)}
-                             for i in range(len(cav_dic))}
+                    for i in self.runs}
+        self.bcv_time = {k: os.path.join(v, "time.time") for k, v in self.bcv.items()}
+        self.bcv_threshold = {k: os.path.join(v, "threshold.dat") for k, v in self.bcv.items()}
 
-        self.atomic_overlaps = {i: {pid: {k: os.path.join(self.working_dir, "cavity_{}".format(i), "bcv",  "atomic_overlap_{}.dat".format(k))
+        self.bcv_lig_overlaps = {i: {pid: {k: os.path.join(self.working_dir, i, "bcv",  "lig_overlap_{}.percentage".format(k))
                                        for k in self.ligand_id[j]}
                                  for j, pid in enumerate(self.protein_id)}
-                             for i in range(len(cav_dic))}
+                             for i in self.runs}
 
-        self.matched = {i: {pid: {k: os.path.join(self.working_dir, "cavity_{}".format(i), "bcv",  "atom_match_{}.percentage".format(k))
+        self.bcv_hot_overlaps = {i: {pid: {k: os.path.join(self.working_dir, i, "bcv",  "hot_overlap_{}.percentage".format(k))
                                        for k in self.ligand_id[j]}
                                  for j, pid in enumerate(self.protein_id)}
-                             for i in range(len(cav_dic))}
+                             for i in self.runs}
+
+        self.hot_lig_overlaps = {i: {pid: {k: os.path.join(self.working_dir, i, "hotspot",  "lig_overlap_{}.percentage".format(k))
+                                       for k in self.ligand_id[j]}
+                                 for j, pid in enumerate(self.protein_id)}
+                             for i in self.runs}
+
+        self.hot_hot_overlaps = {i: {pid: {k: os.path.join(self.working_dir, i, "hotspot",  "hot_overlap_{}.percentage".format(k))
+                                       for k in self.ligand_id[j]}
+                                 for j, pid in enumerate(self.protein_id)}
+                             for i in self.runs}
+
+        self.matched = {i: {pid: {k: os.path.join(self.working_dir, i, "bcv",  "atom_match_{}.percentage".format(k))
+                                       for k in self.ligand_id[j]}
+                                 for j, pid in enumerate(self.protein_id)}
+                             for i in self.runs}
 
     def _get_superstar(self, cav_id=None):
         """
@@ -241,19 +296,25 @@ class HotspotPipeline(object):
         """
         # input
         prot = Protein.from_file(self.apo_prep)
-        with open(self.cavities[cav_id], 'rb') as handle:
-            cavity_origin = pickle.load(handle)
+
+        if cav_id is 'global':
+            cavity_origin = None
+        else:
+            with open(self.cavities[cav_id], 'rb') as handle:
+                cavity_origin = [pickle.load(handle)]
 
         # tasks
+        start = time.time()
         a = _AtomicHotspot()
         a.settings.atomic_probes = {"apolar": "AROMATIC CH CARBON",
                                     "donor": "UNCHARGED NH NITROGEN",
                                     "acceptor": "CARBONYL OXYGEN"}
 
-        self.superstar_grids = a.calculate(prot, nthreads=None, cavity_origins=[cavity_origin])
+        self.superstar_grids = a.calculate(prot, nthreads=None, cavity_origins=cavity_origin)
 
         sr = Results(protein=prot,
                      super_grids={result.identifier: result.grid for result in self.superstar_grids})
+        finish = time.time()
 
         #  outputs
         if not os.path.exists(self.superstar[cav_id]):
@@ -261,6 +322,9 @@ class HotspotPipeline(object):
 
         with HotspotWriter(path=self.superstar[cav_id], zip_results=True) as w:
             w.write(sr)
+
+        with open(self.superstar_time[cav_id], 'w') as t:
+            t.write(str(finish - start))
 
         if self.buriedness_method == 'ligsite':
             # only write if it doesn't exist i.e. the first cavity run
@@ -284,6 +348,7 @@ class HotspotPipeline(object):
         buriedness = Grid.from_file(self.buriedness)
 
         # tasks
+        start = time.time()
         h = Runner()
 
         s = h.Settings()
@@ -294,10 +359,13 @@ class HotspotPipeline(object):
         s.nrotations = 3000
 
         hr = h.from_superstar(prot, superstar, buriedness, settings=s, clear_tmp=True)
-
+        finish = time.time()
         # output
         if not os.path.exists(self.hotspot[cav_id]):
             os.mkdir(self.hotspot[cav_id])
+
+        with open(self.hotspot_time[cav_id], 'w') as t:
+            t.write(str(finish - start))
 
         with HotspotWriter(self.hotspot[cav_id], zip_results=True) as writer:
             writer.write(hr)
@@ -315,8 +383,10 @@ class HotspotPipeline(object):
             target_volume = f.read()
 
         # task
+        start = time.time()
         extractor = Extractor(hr)
         bcv = extractor.extract_volume(volume=int(float(target_volume)))
+        finish = time.time()
 
         # output
         out = self.bcv[cav_id][other_id][lig_id]
@@ -327,6 +397,9 @@ class HotspotPipeline(object):
         with HotspotWriter(path=out, grid_extension=".grd", zip_results=True) as writer:
             writer.write(bcv)
 
+        with open(self.bcv_time[cav_id], 'w') as t:
+            t.write(str(finish - start))
+
     def _get_volume_overlap(self, cav_id, other_id, lig_id):
         """
         find the highest median bcv from all cavities, calculate percentage over between the best bcv
@@ -334,20 +407,52 @@ class HotspotPipeline(object):
 
         :return:
         """
+        def nonzero(val):
+            if val == 0:
+                return 1
+            else:
+                return val
         # inputs
         mol = io.MoleculeReader(self.extracted_ligands[other_id][lig_id])[0]
-        path = os.path.join(self.bcv[cav_id][other_id][lig_id], "out.zip")
-        if os.path.exists(path):
-            hr = HotspotReader(path).read()
+        path1 = os.path.join(self.hotspot[cav_id], "out.zip")
+        path2 = os.path.join(self.bcv[cav_id][other_id][lig_id], "out.zip")
+        thresholds = [10, 14, 17]
+
+        if os.path.exists(path1) and os.path.exists(path2):
+            bcv = HotspotReader(path2).read()
+            hot = HotspotReader(path1).read()
 
             # tasks
-            sg = Grid.get_single_grid(hr.super_grids, mask=False)
             other = Grid.from_molecule(mol)
-            overlap = sg.percentage_overlap(other=other)
+
+            bcv_sg = Grid.get_single_grid(bcv.super_grids, mask=False)
+            bcv_overlap = bcv_sg._mutually_inclusive(other=other).count_grid()
+
+            lig_vol = (other > 0).count_grid()
+            bcv_vol = (bcv_sg > 0).count_grid()
+
+            hot_sgs = [(Grid.get_single_grid(hot.super_grids, mask=False) > t)
+                       for t in thresholds]
+            hot_vols = [nonzero(hot_sg.count_grid())
+                        for hot_sg in hot_sgs]
+            hot_overlap = [hot_sg._mutually_inclusive(other=other).count_grid() for hot_sg in hot_sgs]
 
             # output
-            with open(self.all_overlaps[cav_id][other_id][lig_id], 'w') as writer:
-                writer.write(str(overlap))
+            with open(self.bcv_lig_overlaps[cav_id][other_id][lig_id], 'w') as writer:
+                writer.write(str((bcv_overlap / lig_vol) * 100))
+
+            with open(self.bcv_hot_overlaps[cav_id][other_id][lig_id], 'w') as writer:
+                writer.write(str((bcv_overlap / bcv_vol) * 100))
+
+            with open(self.hot_lig_overlaps[cav_id][other_id][lig_id], 'w') as writer:
+                hot_lig = [str((a / lig_vol) * 100) for a in hot_overlap]
+                print hot_lig
+                writer.write(",".join(hot_lig))
+
+            with open(self.hot_hot_overlaps[cav_id][other_id][lig_id], 'w') as writer:
+                hot_hot = [str((hot_overlap[i] / hot_vols[i]) * 100) for i in range(len(thresholds))]
+                writer.write(",".join(hot_hot))
+
         else:
             print("no BCV for cavity {}, BCV {}".format(cav_id, lig_id))
 
@@ -384,7 +489,7 @@ class HotspotPipeline(object):
 
     def _get_matched_atoms(self, cav_id, other_id, lig_id):
         """
-
+        This is the ligand overlap implimentation in the DoGsiter paper
 
         :param cav_id:
         :param other_id:
@@ -398,7 +503,7 @@ class HotspotPipeline(object):
             hr = HotspotReader(path).read()
 
             # tasks
-            perc, type_dic = hr.percentage_matched_atoms(mol=mol, threshold=25, match_atom_types=True)
+            perc, type_dic = hr.percentage_matched_atoms(mol=mol, threshold=0, match_atom_types=True)
 
             # output
             with open(self.matched[cav_id][other_id][lig_id], 'w') as writer:
@@ -440,6 +545,37 @@ class HotspotPipeline(object):
         with open(self.cavity_rank, "w") as writer:
             writer.write(str(cavity_by_score[top]))
 
+    def _get_ligand_cavity(self):
+        """
+        determine which cavity contains the ligand, output cav_id to file
+
+        :return:
+        """
+        lc = []
+        tolerance = 0
+        mols = [MoleculeReader(path)[0] for other_id, lig_dic in self.extracted_ligands.items()
+                for l, path in lig_dic.items()]
+
+        point = [round(np.mean([a.coordinates.x for mol in mols for a in mol.heavy_atoms])),
+                 round(np.mean([a.coordinates.y for mol in mols for a in mol.heavy_atoms])),
+                 round(np.mean([a.coordinates.z for mol in mols for a in mol.heavy_atoms]))]
+
+        for i in range(len(self.bounding_box)):
+            with open(self.bounding_box[i], 'rb') as handle:
+                bb = pickle.load(handle)
+            
+            mini = bb[0]
+            maxi = bb[1]
+            
+            if all([mini.x - tolerance < point[0] < maxi.x + tolerance,
+                    mini.y - tolerance < point[1] < maxi.y + tolerance,
+                    mini.z - tolerance < point[2] < maxi.z + tolerance]):
+
+                lc.append(str(i))
+
+        with open(self.ligand_cavity, "w") as f:
+            f.write(",".join(lc))
+
     def run(self, rerun=False):
         # step 1: prepare protein
         self._prep_protein()
@@ -462,7 +598,7 @@ class HotspotPipeline(object):
         self._get_cavities(min_vol=200)
 
         # step 6: superstar calculation
-        for cav_id, prot_dic in self.bcv.items():
+        for cav_id, prot_dic in self.bcv.items():       # cav_id is run_id
             if not os.path.exists(os.path.join(self.superstar[cav_id], "out.zip")) or rerun:
                 self._get_superstar(cav_id=cav_id)
 
@@ -484,7 +620,7 @@ class HotspotPipeline(object):
                             continue
 
         # step 9: overlap analysis
-                    if not os.path.exists(self.all_overlaps[cav_id][prot_id][lig_id]) or rerun:
+                    if not os.path.exists(self.hot_hot_overlaps[cav_id][prot_id][lig_id]) or rerun:
                         self._get_volume_overlap(cav_id=cav_id, other_id=prot_id, lig_id=lig_id)
 
         # step 9a: atomic overlap analysis
@@ -503,7 +639,9 @@ class HotspotPipeline(object):
 
 def main():
     # inputs
-    buriedness_methods = ['ligsite', 'ghecom', 'ghecom_internal']
+    # buriedness_methods = ['ligsite', 'ghecom', 'ghecom_internal']
+
+    buriedness_methods = ['ghecom']
 
     for method in buriedness_methods:
 
