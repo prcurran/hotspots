@@ -3,7 +3,7 @@ rule bcv_validation_devel:
     input:
         df = "results/inputs.csv",
         apo = expand('data/{xpdb}', xpdb=map(xpdb, all_apos)),
-        jobs = expand('data/{ypdb}', xpdb=map(ypdb, all_apos))
+        jobs = expand('data/{ypdb}', ypdb=map(ypdb, all_apos))
 
 rule make_job:
     output:
