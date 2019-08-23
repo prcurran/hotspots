@@ -60,6 +60,7 @@ class HotspotPipeline(object):
         self.apo_protein = os.path.join(self.working_dir_base, "{}.pdb".format(self.apo))
         self.apo_prep = os.path.join(self.working_dir_base, "{}_prep.pdb".format(self.apo))
         self.buriedness = os.path.join(self.working_dir, "buriedness_{}.grd".format(self.buriedness_method))
+        self.buriedness_time = os.path.join(self.working_dir, "buriedness_{}.time".format(self.buriedness_method))
 
         # 'other' protein files
         self.other_pdbs = {p: os.path.join(self.working_dir_base, "{}.pdb".format(p)) for p in self.protein_id}
@@ -70,16 +71,14 @@ class HotspotPipeline(object):
                                     for j in self.ligand_id[i]}
                               for i, pid in enumerate(self.protein_id)}
 
-        # global
-        self.working_dir = create_directory(os.path.join(self.working_dir, "global"))
-
-
         # analysis files
         self.cavity_rank = os.path.join(self.working_dir, "cavity.rank")
         self.ligand_cavity = os.path.join(self.working_dir, "ligand_cavity.dat")
 
         # these get set during the run depending on the number of cavities detected
         self.runs = ["global"]     # + cavities
+        create_directory(os.path.join(self.working_dir, "global"))
+
         self.cavities = []
         self.cavities_volumes = []
         self.cavities = {}
@@ -99,6 +98,8 @@ class HotspotPipeline(object):
         self.hot_hot_overlaps = {}
 
         self.matched = {}
+
+    # CALCULATION
 
     def _prep_protein(self):
         """
@@ -171,6 +172,7 @@ class HotspotPipeline(object):
         prot = Protein.from_file(self.apo_prep)
 
         # tasks
+        start = time.time()
         coords = [a.coordinates for a in prot.atoms]
         out_grid = Grid.initalise_grid(coords=coords, padding=2, spacing=0.5)
 
@@ -189,8 +191,12 @@ class HotspotPipeline(object):
 
         else:
             raise TypeError("Not a valid pocket detection method")
+        finish = time.time()
 
         # outputs
+        with open(self.buriedness_time, 'w') as t:
+            t.write(str(finish - start))
+
         if self.buriedness_method == 'ligsite':
             pass
         else:
@@ -257,8 +263,14 @@ class HotspotPipeline(object):
                               for k in self.ligand_id[j]}
                         for j, pid in enumerate(self.protein_id)}
                     for i in self.runs}
-        self.bcv_time = {k: os.path.join(v, "time.time") for k, v in self.bcv.items()}
-        self.bcv_threshold = {k: os.path.join(v, "threshold.dat") for k, v in self.bcv.items()}
+        self.bcv_time = {i: {pid: {k: os.path.join(self.working_dir, i, "bcv",  "volume_{}", "time.time".format(k))
+                                   for k in self.ligand_id[j]}
+                             for j, pid in enumerate(self.protein_id)}
+                         for i in self.runs}
+        self.bcv_threshold = {i: {pid: {k: os.path.join(self.working_dir, i, "bcv",  "volume_{}, threshold.dat".format(k))
+                                        for k in self.ligand_id[j]}
+                                  for j, pid in enumerate(self.protein_id)}
+                             for i in self.runs}
 
         self.bcv_lig_overlaps = {i: {pid: {k: os.path.join(self.working_dir, i, "bcv",  "lig_overlap_{}.percentage".format(k))
                                        for k in self.ligand_id[j]}
@@ -295,6 +307,9 @@ class HotspotPipeline(object):
         :return:
         """
         # input
+        if cav_id != 'global':
+            cav_num = cav_id.split("_")[1]
+
         prot = Protein.from_file(self.apo_prep)
 
         if cav_id is 'global':
@@ -319,6 +334,17 @@ class HotspotPipeline(object):
         #  outputs
         if not os.path.exists(self.superstar[cav_id]):
             os.mkdir(self.superstar[cav_id])
+
+        if cav_num is not None:
+            out = os.path.join(a.settings.temp_dir, cav_num)
+        else:
+            out = a.settings.temp_dir
+
+        for interaction in ["apolar", "acceptor", "donor"]:
+            shutil.copyfile(os.path.join(out, "{}.cavity.mol2".format(interaction)),
+                            os.path.join(self.superstar[cav_id], "{}.cavity.mol2".format(interaction)))
+
+        shutil.make_archive(os.path.join(self.superstar[cav_id], "superstar"), 'zip', out)
 
         with HotspotWriter(path=self.superstar[cav_id], zip_results=True) as w:
             w.write(sr)
@@ -397,8 +423,13 @@ class HotspotPipeline(object):
         with HotspotWriter(path=out, grid_extension=".grd", zip_results=True) as writer:
             writer.write(bcv)
 
-        with open(self.bcv_time[cav_id], 'w') as t:
+        with open(self.bcv_time[cav_id][other_id][lig_id], 'w') as t:
             t.write(str(finish - start))
+
+        with open(self.bcv_threshold[cav_id][other_id][lig_id], 'w') as s:
+            s.write(str(bcv.step_threshold))
+
+    # ANALYSIS
 
     def _get_volume_overlap(self, cav_id, other_id, lig_id):
         """
@@ -607,8 +638,9 @@ class HotspotPipeline(object):
                 self._get_hotspot(cav_id=cav_id)
 
         # step 7a: score cavities
-            if not os.path.exists(self.cavity_score[cav_id]):
-                self._score_cavity(cav_id=cav_id)
+            if cav_id != 'global':
+                if not os.path.exists(self.cavity_score[cav_id]):
+                    self._score_cavity(cav_id=cav_id)
 
         # step 8: bcv calculatuion
             for prot_id, lig_dic in prot_dic.items():
@@ -667,7 +699,7 @@ def main():
                              ligand_id=sys.argv[3].split(",")
         )
 
-        hp.run(rerun=False)
+        hp.run(rerun=True)
 
 
 if __name__ == '__main__':
