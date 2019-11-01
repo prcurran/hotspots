@@ -31,7 +31,6 @@ setup(
                       'scikit-image',
                       'hdbscan',
                       'pandas',
-                      'futures',
                       'tqdm==4.31.1',
                       'xmltodict==0.12.0'],
     package_data={

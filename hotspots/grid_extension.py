@@ -735,6 +735,21 @@ class Grid(utilities.Grid):
         else:
             return score
 
+    def check_same_size_and_coords(self, other):
+        """
+        Checks if two grids have the same size and coordinate frame. Useful when checking if grids can be stacked together
+        :param other: 
+        :return: bool
+        """
+        if self.spacing != other.spacing:
+            return False
+
+        if len(set([c.bounding_box for c in [self, other]])) != 1:
+            return False
+
+        else:
+            return True
+
 
 utilities.Grid = Grid
 
@@ -764,10 +779,9 @@ class _GridEnsemble(object):
         """
         nx, ny, nz = grid.nsteps
         array = np.zeros((nx, ny, nz))
-        grid_dic = grid.to_dict()
+        grid_vec = grid.to_vector()
 
-        for key, val in grid_dic.items():
-            array[val] = key
+        array = np.array(grid_vec).reshape(grid.nsteps)
         return array
 
     def make_ensemble_array(self, grid_list):
@@ -777,10 +791,13 @@ class _GridEnsemble(object):
         :param grid_list: 
         :return: 
         """
+        print("Making the common grids")
         common_grids = Grid.common_grid(grid_list)
+        print("Stared making arrays")
         as_arrays = [self.array_from_grid(cg) for cg in common_grids]
 
         self.ensemble_array = np.stack(as_arrays, axis=-1)
+        print("GridEnsemble complete")
         self.dimensions = np.array(common_grids[0].bounding_box)
         self.shape = common_grids[0].nsteps
 
@@ -806,6 +823,7 @@ class _GridEnsemble(object):
         # Fill in the grid
         for (i, j, k), v in zip(as_triads, values):
             grid._grid.set_value(int(i), int(j), int(k), v)
+
         return grid
 
     def make_summary_grid(self, mode='median'):
@@ -875,6 +893,7 @@ class _GridEnsemble(object):
         freq_map = self.get_frequency_map()
         med_map = self.make_nonzero_median_map()
         thresh_med_map = med_map * (freq_map > threshold)
+
         return thresh_med_map
 
     @staticmethod

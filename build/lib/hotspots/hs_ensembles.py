@@ -1,4 +1,4 @@
-#from __future__ import print_function, division
+from __future__ import print_function, division
 from hotspots.result import Results
 from hotspots.hs_utilities import Helper
 from hotspots.grid_extension import Grid, _GridEnsemble
@@ -65,7 +65,7 @@ class EnsembleResult(Helper):
         self.ensemble_id = ensemble_id
         self.hotspot_results = hs_results_list
         self.grid_ensembles = {}
-        self.ensemble_maps = {}
+        self.ensemble_maps = None
         self.reference_pdb = reference_structure
         self.ensemble_hotspot_result = None
 
@@ -73,30 +73,18 @@ class EnsembleResult(Helper):
         # Holds information about which maps belong to which protein. Important for downstream analysis.
         self.index_dict = {i: hs.protein.identifier for i, hs, in enumerate(self.hotspot_results)}
 
-    @staticmethod
-    def shrink_to_binding_site(in_grid, new_origin, new_far_corner):
-        """
-        Given an input grid, will reduce it to the area defined by the new origin and far corner
-        :param in_grid: a ccdc.utilities.Grid
-        :param new_origin: numpy array((x, y, z))
-        :param new_far_corner: numpy array((x, y, z))
-        :return: ccdc.utilities.Grid
-        """
-        # Check that the new coordinates fall within the grid:
-        ori = np.array(in_grid.bounding_box[0])
-        far_c = np.array(in_grid.bounding_box[1])
 
-        if (new_origin > ori).all() and (new_far_corner < far_c).all():
-            ori_idxs = in_grid.point_to_indices(tuple(new_origin))
-            far_idxs = in_grid.point_to_indices(tuple(new_far_corner))
-            region = ori_idxs + far_idxs
-            # Get only the sub-grid defined by the 6 indices in region
-            new_g = in_grid.sub_grid(region)
-            return new_g
-
-        else:
-            print("Selected area larger than grid; try reducing the padding in shrink_hotspots()")
-            # TODO: Log as error
+    def crop_maps_to_binding_site(self, ligand):
+        """
+        In case the individual hotspots were calculated for the full protein, given a reference ligand, all maps
+        in the ensemble will be cropped to that region. The list of hotspot results will be updated to contain the cropped maps.
+        
+        :param ligand: A ligand (with 3D coordinates) that defines the binding site of interest
+        :type 'ccdc.molecule.Molecule'
+        
+        :return: 
+        """
+        return
 
     def make_ensemble_maps(self, save_grid_ensembles=True):
         """
@@ -110,42 +98,35 @@ class EnsembleResult(Helper):
 
         for probe in probes_list:
             ge = _GridEnsemble()
-            try:
-                probe_grids = [hs.super_grids[probe] for hs in self.hotspot_results]
-                ge.make_ensemble_array(probe_grids)
+            probe_grids = [hs.super_grids[probe] for hs in self.hotspot_results]
+            ge.make_ensemble_array(probe_grids)
 
-                if save_grid_ensembles:
-                    self.grid_ensembles[probe] = ge
+            if save_grid_ensembles:
+                self.grid_ensembles[probe] = ge
 
-                if probe in polar_probes:
-                    if self.settings.combine_mode == 'median':
-                        ens_grid = ge.as_grid(ge.get_median_frequency_map(threshold=self.settings.polar_frequency_threshold))
+            if probe in polar_probes:
+                if self.settings.combine_mode == 'median':
+                    ens_grid = ge.get_median_frequency_map(threshold=self.settings.polar_frequency_threshold).as_grid()
 
-                    #The mean and max modes don't currently take into account the frequency
-                    elif self.settings.combine_mode in ['mean', 'max']:
-                        ens_grid = ge.make_summary_grid(mode=self.settings.combine_mode)
-
-                    else:
-                        print('Unrecognised mode for combining grids in {} {}: {}'.format(self.ensemble_id, probe, self.settings.combine_mode))
-                        continue
-
-                elif probe in apolar_probes:
+                #The mean and max modes don't currently take into account the frequency
+                elif self.settings.combine_mode in ['mean', 'max']:
                     ens_grid = ge.make_summary_grid(mode=self.settings.combine_mode)
 
                 else:
-                    print("Probe type {} in ensemble {} not recognised as polar or apolar".format(probe, self.ensemble_id))
+                    print('Unrecognised mode for combining grids in {} {}: {}'.format(self.ensemble_id, probe, self.settings.combine_mode))
                     continue
 
-                print(probe, ens_grid.nsteps)
+            elif probe in apolar_probes:
+                ens_grid = ge.make_summary_grid(mode=self.settings.combine_mode)
 
-                self.ensemble_maps[probe] = ens_grid
-
-            # In case of no charged probes
-            except KeyError:
+            else:
+                print("Probe type {} in ensemble {} not recognised as polar or apolar".format(probe, self.ensemble_id))
                 continue
 
+            self.ensemble_maps[probe] = ens_grid
+
         self.ensemble_hotspot_result = Results(super_grids=self.ensemble_maps,
-                                             protein=self.hotspot_results[0].protein,
+                                             protein=self.reference_pdb,
                                              buriedness=None,
                                              pharmacophore=False)
 
@@ -205,21 +186,26 @@ class SelectivityResult(Helper):
         self.selectivity_maps = {}
         self.off_target_maps = None
         self.selectivity_result = None
-        self.common_grid_dimensions = None
-        self.common_grid_nsteps = None
 
+    @staticmethod
+    def get_dist(coord1, coord2):
+        """
+        Returns the distance between two sets of Cartesian coordiates. Suspect that duplicates with utils fxn
+        :param coord1: tuple
+        :param coord2: tuple
+        :return: 
+        """
+        a = np.array(coord2) - np.array(coord1)
+        return np.sqrt(a.dot(a))
 
     @staticmethod
     def remove_cluster(map, clust_num):
         """
-        Removes a particular cluster from an array (assumes array values are the cluster labels). Note: this currently 
-        acts on the array itself, not a copy
+        Removes a particular cluster from an array (assumes array values are the cluster labels)
         
-        :param map: a numpy array, with points labelled by cluster
+        :param map: 
         :param clust_num: 
-        :type int
-        
-        :return: the numpy array object, with that specific cluster removed
+        :return: 
         """
         map[map == clust_num] = 0.0
         return map
@@ -245,26 +231,9 @@ class SelectivityResult(Helper):
         :return: ccdc grids
         """
         diff_maps = {}
-
         for probe, gr in self.target.super_grids.items():
-
-            try:
-                off_gr = self.off_target.super_grids[probe]
-            # In case the off-target hotspot result doesn't have a map for that probe
-            except KeyError:
-                continue
-
-            if gr.check_same_size_and_coords(off_gr):
-                c_gr = gr
-                c_off = off_gr
-            else:
-                print("Input grids of different size. Converting to same coordinates.")
-                c_gr, c_off = Grid.common_grid([gr, off_gr])
-
-            diff_maps[probe] = _GridEnsemble.array_from_grid(c_gr - c_off)
-
-        self.common_grid_dimensions = np.array(c_gr.bounding_box)
-        self.common_grid_nsteps = c_gr.nsteps
+            c_gr, c_off = Grid.common_grid([gr, self.off_target.super_grids[probe]])
+            diff_maps[probe] = (c_gr - c_off).get_array()
 
         return diff_maps
 
@@ -280,70 +249,55 @@ class SelectivityResult(Helper):
         apolar_probes = ['apolar']
 
         for probe in probes_list:
-            try:
-                dmap = diff_maps[probe]
+            dmap = diff_maps[probe]
 
-                if probe in polar_probes:
-                    # Find the percentile threshold, if specified
-                    perc = np.percentile(dmap[dmap>0], self.settings.polar_percentile_threshold)
+            if probe in polar_probes:
+                # Find the percentile threshold, if specified
+                perc = np.percentile(dmap[dmap>0], self.settings.polar_percentile_threshold)
 
-                    # Find clusters in the target and off-target maps
-                    clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap > perc), min_cluster_size=self.settings.min_points_cluster_polar)
-                    clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap < - perc), min_cluster_size=self.settings.min_points_cluster_polar)
+                # Find clusters in the target and off-target maps
+                clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap > perc), min_cluster_size=self.settings.min_points_cluster_polar)
+                clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap < - perc), min_cluster_size=self.settings.min_points_cluster_polar)
 
-                elif probe in apolar_probes:
-                    # Find the percentile threshold, if specified
-                    perc = np.percentile(dmap[dmap > 0], self.settings.apolar_percentile_threshold)
+            elif probe in apolar_probes:
+                # Find the percentile threshold, if specified
+                perc = np.percentile(dmap[dmap > 0], self.settings.apolar_percentile_threshold)
 
-                    # Find clusters in the target and off-target maps
-                    clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap > perc),
-                                                                 min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
-                    clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap < -perc),
-                                                                  min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
+                # Find clusters in the target and off-target maps
+                clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap > perc),
+                                                             min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
+                clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap < - perc),
+                                                              min_cluster_size=self.settings.min_points_cluster_apolar)
 
-                else:
-                    print("Probe type {} not recognised as polar or apolar".format(probe))
-                    continue
-
-
-                #Get the center of mass coordinates for the target and off-target
-                coords = self.get_clusters_center_mass(dmap, clust_map_on)
-                minus_coords = self.get_clusters_center_mass(dmap, clust_map_off)
-
-                for k in coords.keys():
-                    for i in minus_coords.keys():
-                        dist = self.get_distance(coords[k], minus_coords[i]) * 0.5
-                        # print("Plus clust: {}, minus_clust: {}, distance: {}".format(k, i, dist))
-                        if dist < self.settings.cluster_distance_cutoff:
-                            self.remove_cluster(clust_map_on, k)
-                            self.remove_cluster(clust_map_off, i)
-
-                # Remove any clusters that don't make the medmian cutoff
-                for c in set(clust_map_on[clust_map_on > 0]):
-                    med = np.median(dmap[clust_map_on == c])
-
-                    if med < self.settings.minimal_cluster_score:
-                        self.remove_cluster(clust_map_on, c)
-
-                for c in set(clust_map_off[clust_map_off > 0]):
-                    min_med = np.median(dmap[clust_map_off == c])
-
-                    if min_med > -self.settings.minimal_cluster_score:
-                        self.remove_cluster(clust_map_off, c)
-
-                ge = _GridEnsemble(dimensions=self.common_grid_dimensions,
-                                   shape=self.common_grid_nsteps)
-
-                self.selectivity_maps[probe] = ge.as_grid((clust_map_on>0)*dmap)
-
-            except KeyError:
+            else:
+                print("Probe type {} not recognised as polar or apolar".format(probe))
                 continue
 
-        self.selectivity_result = Results(super_grids= self.selectivity_maps,
-                                          protein=self.target.protein)
 
+            #Get the center of mass coordinates for the target and off-target
+            coords = self.get_clusters_center_mass(dmap, clust_map_on)
+            minus_coords = self.get_clusters_center_mass(dmap, clust_map_off)
 
+            for k in coords.keys():
+                for i in minus_coords.keys():
+                    dist = self.get_dist(coords[k], minus_coords[i]) * 0.5
+                    print("Plus clust: {}, minus_clust: {}, distance: {}".format(k, i, dist))
+                    if dist < self.settings.cluster_distance_cutoff:
+                        self.remove_cluster(clust_map_on, k)
+                        self.remove_cluster(clust_map_off, i)
 
+            # Remove any clusters that don't make the medmian cutoff
+            for c in set(clust_map_on[clust_map_on > 0]):
+                med = np.median(dmap[clust_map_on == c])
+
+                if med < self.settings.minimal_cluster_score:
+                    self.remove_cluster(clust_map_on, c)
+
+            for c in set(clust_map_off[clust_map_off > 0]):
+                min_med = np.median(dmap[clust_map_off == c])
+                print(c, min_med)
+                if min_med > -10:
+                    self.remove_cluster(clust_map_off, c)
 
 
 
