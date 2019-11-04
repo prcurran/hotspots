@@ -762,13 +762,13 @@ class _GridEnsemble(object):
         """
         Common grid = the smallest grid that can hold all of the grids that make up the gridensemble.
 
-        :param dimensions: coordinates of the near and far corner of the common grif (np.array(common_grid.bounding_box)). Useful to set when
+        :param dimensions: coordinates of the near and far corner of the common grid (np.array(common_grid.bounding_box)). Useful to set when
         using an instance of _GridEnsemble without calculating the ensemble array. Otherwise, will be set automatically
         to the dimensions of the common grid by self.make_ensemble_array(grid_list)
         :type numpy array:
 
-        :param shape: np.array(common_grid.nsteps) <- the shape of the grids. Useful for creating numpy arrays from grids using
-        Grid.grid_to_vec(). If self.make_ensemble_array(grid_list) is called, it will automatically be set to the nsteps of the common grid.
+        :param shape: np.array(common_grid.nsteps) <- the shape of the grids. Useful for creating grids from numpy arrays.
+        If self.make_ensemble_array(grid_list) is called, it will automatically be set to the nsteps of the common grid.
         :type int:
 
         :param ensemble_array: 4D numpy array carrying the information for several grids of the same shape and coordinates.
@@ -776,7 +776,8 @@ class _GridEnsemble(object):
         is the number of grids in the ensemble. If not supplied (from a pre-calculated array), can be computed from a list of
         grids using self.make_ensemble_array(grid_list)
 
-        :param spacing: The spacing of the grids. The default is 0.5 A (compatible with the SuperStar maps). 
+        :param spacing: The spacing of the grids. The default is 0.5 A (compatible with the SuperStar maps).
+        :type float:
         """
         self.dimensions = dimensions
         self.shape = shape
