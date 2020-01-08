@@ -8,8 +8,19 @@ Welcome to the Hotspot API's documentation!
 
 .. image:: hotspots-api-gh-banner.png
 
-The Hotspot API has been created to work alongside the CCDC's CSD Python API, allowing you to run Fragment Hotspot Map
-calculations and process the results within Python.
+This API is publicly available, it is dependant on the CSD python API - a commercial package.
+If you are an academic user, it's likely your institution will have a license. If you are unsure if you have a
+license or would like to enquire about purchasing one, please contact support@ccdc.cam.ac.uk
+
+
+Please note, this is an academic project and we would therefore welcome feedback, contributions and collaborations.
+If you have any queries regarding this package please contact us (pcurran@ccdc.cam.ac.uk)!
+
+
+NB: We recommend installing on a Linux machine. If this isn't possible, be aware that only the LIGSITE method will be
+available for the buriedness calculation.
+
+
 
 .. toctree::
    :maxdepth: 2
@@ -23,9 +34,4 @@ calculations and process the results within Python.
    hs_docking_api
    hs_utilities_api
    
-Indices and tables
-==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

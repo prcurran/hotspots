@@ -13,49 +13,46 @@
 
   
   
-    <link rel="shortcut icon" href="_static/logo_test.png"/>
-  
   
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Hotspot Calculation API" href="calculation_api.html" />
     <link rel="prev" title="Welcome to the Hotspot API’s documentation!" href="index.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
             <a href="index.html" class="icon icon-home"> Hotspots API
           
 
-          
-            
-            <img src="_static/logo_test.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -247,7 +244,7 @@ conda install -n hotspots -c &lt;path to ccdc_conda_channel&gt; csd-python-api
 <h4>Step 5: Install Hotspots API<a class="headerlink" href="#step-5-install-hotspots-api" title="Permalink to this headline">¶</a></h4>
 <p>Install Hotspots v1.x.x:</p>
 <ol class="loweralpha simple">
-<li>Latest stable release (recommended for most users):</li>
+<li><p>Latest stable release (recommended for most users):</p></li>
 </ol>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda activate hotspots
 pip install hotspots
@@ -258,7 +255,7 @@ pip install hotspots
 </pre></div>
 </div>
 <ol class="loweralpha simple" start="2">
-<li>Very latest code</li>
+<li><p>Very latest code</p></li>
 </ol>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir ./hotspots_code
 git clone git@github.com:prcurran/hotspots.git
@@ -319,7 +316,7 @@ visualise the output.</p>
 <span class="n">out_dir</span> <span class="o">=</span> <span class="s2">&quot;results/pdb1&quot;</span>
 
 <span class="c1"># Creates &quot;results/pdb1/out.zip&quot;</span>
-<span class="k">with</span> <span class="n">HotspotWriter</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">grid_extension</span><span class="o">=</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="n">zip_results</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">HotspotWriter</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">grid_extension</span><span class="o">=</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="n">zip_results</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
     <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -379,7 +376,7 @@ visualise the output.</p>
         <a href="calculation_api.html" class="btn btn-neutral float-right" title="Hotspot Calculation API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Welcome to the Hotspot API’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to the Hotspot API’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -405,25 +402,16 @@ visualise the output.</p>
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

@@ -13,47 +13,44 @@
 
   
   
-    <link rel="shortcut icon" href="../../_static/logo_test.png"/>
-  
   
   
 
   
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
             <a href="../../index.html" class="icon icon-home"> Hotspots API
           
 
-          
-            
-            <img src="../../_static/logo_test.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -186,29 +183,23 @@
 <span class="sd">The :class:`hotspots.result.Extractor` enables the main result to be broken down based on molecular volumes. This</span>
 <span class="sd">produces molecule sized descriptions of the cavity and aids tractibility analysis and pharmacophoric generation.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
 
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">operator</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">getcwd</span>
 
-<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">getcwd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">ccdc.cavity</span> <span class="k">import</span> <span class="n">Cavity</span>
-<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="k">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Atom</span>
-<span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">optimize</span>
-<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">percentileofscore</span>
-<span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">feature</span>
+<span class="kn">from</span> <span class="nn">ccdc.cavity</span> <span class="kn">import</span> <span class="n">Cavity</span>
+<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="kn">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Atom</span>
+<span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="kn">import</span> <span class="n">Protein</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">percentileofscore</span>
 
-<span class="kn">from</span> <span class="nn">hotspots.grid_extension</span> <span class="k">import</span> <span class="n">Grid</span><span class="p">,</span> <span class="n">_GridEnsemble</span>
-<span class="kn">from</span> <span class="nn">hotspots.hs_utilities</span> <span class="k">import</span> <span class="n">Figures</span>
-<span class="kn">from</span> <span class="nn">hotspots.template_strings</span> <span class="k">import</span> <span class="n">pymol_imports</span>
-<span class="kn">from</span> <span class="nn">hotspots.hs_utilities</span> <span class="k">import</span> <span class="n">Helper</span>
-<span class="kn">from</span> <span class="nn">hotspots.hs_pharmacophore</span> <span class="k">import</span> <span class="n">PharmacophoreModel</span>
-<span class="kn">from</span> <span class="nn">hotspots.atomic_hotspot_calculation</span> <span class="k">import</span> <span class="n">_AtomicHotspot</span><span class="p">,</span> <span class="n">_AtomicHotspotResult</span>
+<span class="kn">from</span> <span class="nn">hotspots.grid_extension</span> <span class="kn">import</span> <span class="n">Grid</span><span class="p">,</span> <span class="n">_GridEnsemble</span>
+<span class="kn">from</span> <span class="nn">hotspots.hs_pharmacophore</span> <span class="kn">import</span> <span class="n">PharmacophoreModel</span>
+<span class="kn">from</span> <span class="nn">hotspots.hs_utilities</span> <span class="kn">import</span> <span class="n">Helper</span>
 
 
 <span class="k">class</span> <span class="nc">_Scorer</span><span class="p">(</span><span class="n">Helper</span><span class="p">):</span>
@@ -220,7 +211,7 @@
 <span class="sd">    :param int tolerance: search distance</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hotspot_result</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hotspot_result</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span> <span class="o">=</span> <span class="n">hotspot_result</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">object</span> <span class="o">=</span> <span class="n">obj</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">=</span> <span class="n">tolerance</span>
@@ -265,7 +256,7 @@
                              <span class="s2">&quot;dummy&quot;</span><span class="p">:</span> <span class="s2">&quot;dummy&quot;</span><span class="p">}</span>
 
         <span class="n">cavities</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">cavity_from_protein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">cavities</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">cavity</span> <span class="ow">in</span> <span class="n">cavities</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">cavity</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
                 <span class="c1"># all cavity residues</span>
@@ -382,10 +373,9 @@
 
         <span class="k">return</span> <span class="n">mol</span>
 
-    <span class="k">def</span> <span class="nf">_score_feature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_score_feature</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
         <span class="n">ideal_coord</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1.8</span> <span class="o">*</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">protein_vector</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ideal_coord</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">score_cavity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># TODO: return scored cavity _features, the score protein function should be enough tbh</span>
@@ -477,7 +467,7 @@
             <span class="k">return</span> <span class="s2">&quot;apolar&quot;</span>
 
 
-<div class="viewcode-block" id="Results"><a class="viewcode-back" href="../../result_api.html#hotspots.result.Results">[docs]</a><span class="k">class</span> <span class="nc">Results</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Results"><a class="viewcode-back" href="../../result_api.html#hotspots.result.Results">[docs]</a><span class="k">class</span> <span class="nc">Results</span><span class="p">(</span><span class="n">Helper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class to handle the results of the Fragment Hotspot Map calcation and to organise subsequent analysis</span>
 
@@ -487,7 +477,7 @@
 <span class="sd">    :param bool pharmacophore: if True, a pharmacophore will be generated</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">super_grids</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">buriedness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pharmacophore</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">super_grids</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">buriedness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pharmacophore</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span> <span class="o">=</span> <span class="n">super_grids</span>
         <span class="k">for</span> <span class="n">probe</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -508,7 +498,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_by_index</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_by_index</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">score_by_index</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">score_by_index</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="o">=</span> <span class="n">prot</span>
 
@@ -541,7 +531,7 @@
 <span class="sd">        purpose: enables feature ranking</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">            :param feature_type:</span>
@@ -813,6 +803,65 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">PharmacophoreModel</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Results.atomic_volume_overlap"><a class="viewcode-back" href="../../result_api.html#hotspots.result.Results.atomic_volume_overlap">[docs]</a>    <span class="k">def</span> <span class="nf">atomic_volume_overlap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        for a given mol, return a dictionary of dictionaries containing the percentage overlap of each atoms</span>
+<span class="sd">        VDW radius with the Hotspot Grids.</span>
+
+<span class="sd">        {&quot;donor&quot;: {&quot;atomic_label&quot;: percentage_overlap}</span>
+
+<span class="sd">        :param mol:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">atom_type_dic</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># if an atom is a donor and acceptor consider overlap twice</span>
+            <span class="n">atms</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">heavy_atoms</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_atom_type</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span>
+                    <span class="ow">or</span> <span class="p">((</span><span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;donor&#39;</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;acceptor&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_atom_type</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;doneptor&#39;</span><span class="p">)]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">atms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">overlap_dic</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="o">.</span><span class="n">label</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">atomic_overlap</span><span class="p">(</span><span class="n">atom</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">return_grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">atms</span><span class="p">}</span>
+                <span class="n">atom_type_dic</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">n</span><span class="p">:</span> <span class="n">overlap_dic</span><span class="p">})</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">atom_type_dic</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">atom_type_dic</span></div>
+
+<div class="viewcode-block" id="Results.percentage_matched_atoms"><a class="viewcode-back" href="../../result_api.html#hotspots.result.Results.percentage_matched_atoms">[docs]</a>    <span class="k">def</span> <span class="nf">percentage_matched_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">match_atom_types</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        for a given molecule, the &#39;percentage match&#39; is given by the percentage of atoms</span>
+<span class="sd">        which overlap with the hotspot result (over a given overlap threshol)</span>
+
+<span class="sd">        :param mol:</span>
+<span class="sd">        :param threshold:</span>
+<span class="sd">        :param match_atom_types:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">matched_atom_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">match_atom_types</span><span class="p">:</span>
+            <span class="n">atom_type_dic</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># if an atom is a donor and acceptor consider overlap twice</span>
+                <span class="n">atms</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">heavy_atoms</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_atom_type</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span>
+                        <span class="ow">or</span> <span class="p">((</span><span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;donor&#39;</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;acceptor&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_atom_type</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;doneptor&#39;</span><span class="p">)]</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">atms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+                    <span class="n">matched</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">matched_atoms</span><span class="p">(</span><span class="n">atoms</span><span class="o">=</span><span class="n">atms</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span>
+                    <span class="n">matched_atom_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched</span><span class="p">)</span>
+                    <span class="n">atom_type_dic</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">n</span><span class="p">:</span> <span class="n">matched</span><span class="p">})</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;heavy atoms matched: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">matched_atom_count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">heavy_atoms</span><span class="p">)))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;breakdown by atom type&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">atom_type_dic</span><span class="p">))</span>
+            <span class="k">return</span> <span class="nb">round</span><span class="p">((</span><span class="n">matched_atom_count</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">heavy_atoms</span><span class="p">))</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">atom_type_dic</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sg</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">get_single_grid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">matched</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">matched_atoms</span><span class="p">(</span><span class="n">atoms</span><span class="o">=</span><span class="n">mol</span><span class="o">.</span><span class="n">heavy_atoms</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span>
+            <span class="n">matched_atom_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;heavy atoms matched: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">matched_atom_count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">heavy_atoms</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="nb">round</span><span class="p">((</span><span class="n">matched_atom_count</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">heavy_atoms</span><span class="p">))</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_is_solvent_accessible</span><span class="p">(</span><span class="n">protein_coords</span><span class="p">,</span> <span class="n">atm</span><span class="p">,</span> <span class="n">min_distance</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -868,7 +917,7 @@
                               <span class="n">atomic_number</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
                               <span class="n">coordinates</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span>
                               <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
-        <span class="kn">from</span> <span class="nn">ccdc</span> <span class="k">import</span> <span class="n">io</span>
+        <span class="kn">from</span> <span class="nn">ccdc</span> <span class="kn">import</span> <span class="n">io</span>
         <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">MoleculeWriter</span><span class="p">(</span><span class="s2">&quot;cenroid.mol2&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
             <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
 
@@ -880,8 +929,7 @@
 <span class="sd">        :return dic: score by atom</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="kn">from</span> <span class="nn">hotspots.hs_utilities</span> <span class="k">import</span> <span class="n">Helper</span>
-        <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">distance</span>
+        <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">distance</span>
 
         <span class="k">def</span> <span class="nf">check_hydrogens</span><span class="p">(</span><span class="n">protein</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;check hydrogens have neighbours&quot;&quot;&quot;</span>
@@ -950,28 +998,6 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ConstraintData</span><span class="p">(</span><span class="n">constraint_dic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
 
-            <span class="c1"># for atm in self.protein.atoms:</span>
-            <span class="c1">#     atm.partial_charge = int(0)</span>
-            <span class="c1"># prot = self.score(self.protein)</span>
-            <span class="c1">#</span>
-            <span class="c1"># coords = np.array([a.coordinates for a in prot.atoms])</span>
-            <span class="c1"># atm_dic = {atm.partial_charge: atm.index for atm in prot.atoms</span>
-            <span class="c1">#            if type(atm.partial_charge) is float</span>
-            <span class="c1">#            and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)</span>
-            <span class="c1">#            and self._is_solvent_accessible(coords, atm, min_distance=2)</span>
-            <span class="c1">#            }</span>
-            <span class="c1">#</span>
-            <span class="c1"># if len(atm_dic) &gt; max_constraints:</span>
-            <span class="c1">#     scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]</span>
-            <span class="c1"># else:</span>
-            <span class="c1">#     scores = sorted([f[0] for f in atm_dic.items()], reverse=True)</span>
-            <span class="c1">#</span>
-            <span class="c1"># bin_keys = set(atm_dic.keys()) - set(scores)</span>
-            <span class="c1"># for b in bin_keys:</span>
-            <span class="c1">#     del atm_dic[b]</span>
-            <span class="c1">#</span>
-            <span class="c1"># return self.ConstraintData(atm_dic, self.protein)</span>
-
     <span class="k">def</span> <span class="nf">_usr_moment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">14</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        PRIVATE</span>
@@ -980,7 +1006,7 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">hs_utilities</span> <span class="k">import</span> <span class="n">_generate_usr_moment</span>
+            <span class="kn">from</span> <span class="nn">hs_utilities</span> <span class="kn">import</span> <span class="n">_generate_usr_moment</span>
 
             <span class="n">coords_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">coordinates</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">))</span>
                            <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
@@ -999,108 +1025,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">get_array</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
 
-    <span class="c1"># def histogram(self, fpath=&quot;histogram.png&quot;):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     get histogram of zero grid points for the Fragment Hotspot Result</span>
-    <span class="c1">#</span>
-    <span class="c1">#     :param fpath: path to output file</span>
-    <span class="c1">#     :return: data, plot</span>
-    <span class="c1">#</span>
-    <span class="c1">#     &gt;&gt;&gt; result</span>
-    <span class="c1">#     &lt;hotspots.result.Results object at 0x000000001B657940&gt;</span>
-    <span class="c1">#     &gt;&gt;&gt; plt = result.histogram()</span>
-    <span class="c1">#     &gt;&gt;&gt; plt.show()</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     data, plt = Figures.histogram(self)</span>
-    <span class="c1">#     plt.savefig(fpath)</span>
-    <span class="c1">#     return data, plt</span>
-
-    <span class="c1"># def get_2D_diagram(self, ligand, fpath=&quot;diagram.png&quot;, title=False):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     broken</span>
-    <span class="c1">#     :param ligand:</span>
-    <span class="c1">#     :param fpath:</span>
-    <span class="c1">#     :param title:</span>
-    <span class="c1">#     :return:</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     Figures._2D_diagram(hr, ligand, title=False, output=&quot;diagram.png&quot;)</span>
-
-    <span class="c1"># def _get_superstar_profile(self, feature_radius=1.5, nthreads=6, features=None, best_volume=None):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     *experimental feature*</span>
-    <span class="c1">#</span>
-    <span class="c1">#     enable calculation to different superstar probes at hotspot features. Perhaps a better understanding</span>
-    <span class="c1">#     of the nature of each feature can be gained from doing this or perhaps it just adds noise.</span>
-    <span class="c1">#</span>
-    <span class="c1">#     :return:</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     # set additional object properties</span>
-    <span class="c1">#     if features:</span>
-    <span class="c1">#         self.features = features</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         self.features = self._get_features(threshold=5, min_feature_size=6)</span>
-    <span class="c1">#</span>
-    <span class="c1">#     if best_volume:</span>
-    <span class="c1">#         self.best_volume = best_volume</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         self.best_volume = Grid.get_single_grid(self.super_grids, mask=False)</span>
-    <span class="c1">#</span>
-    <span class="c1">#     self.feature_spheres = self.best_volume.copy_and_clear()</span>
-    <span class="c1">#     for feat in self.features:</span>
-    <span class="c1">#         self.feature_spheres.set_sphere(point=feat.feature_coordinates,</span>
-    <span class="c1">#                                         radius=feature_radius,</span>
-    <span class="c1">#                                         value=1,</span>
-    <span class="c1">#                                         scaling=&quot;None&quot;</span>
-    <span class="c1">#                                         )</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # superstar run</span>
-    <span class="c1">#     centroid = [self.best_volume.centroid()]</span>
-    <span class="c1">#     a = _AtomicHotspot()</span>
-    <span class="c1">#     a.settings.atomic_probes = [&quot;carbonyl_oxygen&quot;, &quot;carboxylate&quot;, &quot;pyramidal_r3n&quot;, &quot;water_oxygen&quot;]</span>
-    <span class="c1">#</span>
-    <span class="c1">#     self.superstar_result = a.calculate(protein=self.protein,</span>
-    <span class="c1">#                                         nthreads=nthreads,</span>
-    <span class="c1">#                                         cavity_origins=centroid)</span>
-    <span class="c1">#</span>
-    <span class="c1">#     self.ss = []</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # find overlap</span>
-    <span class="c1">#     for r in self.superstar_result:</span>
-    <span class="c1">#         common_spheres, common_result = Grid.common_grid([self.feature_spheres, r.grid])</span>
-    <span class="c1">#         r.grid = (common_spheres &amp; common_result) * common_result</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # assign island to Hotspot Feature</span>
-    <span class="c1">#     feat_id = []</span>
-    <span class="c1">#     ss_id = []</span>
-    <span class="c1">#     score = []</span>
-    <span class="c1">#     import pandas as pd</span>
-    <span class="c1">#</span>
-    <span class="c1">#     for i, feat in enumerate(self.features):</span>
-    <span class="c1">#</span>
-    <span class="c1">#         for r in self.superstar_result:</span>
-    <span class="c1">#             feat_id.append(i)</span>
-    <span class="c1">#             ss_id.append(r.identifier)</span>
-    <span class="c1">#</span>
-    <span class="c1">#             ss_dict = {Helper.get_distance(feat.feature_coordinates, island.centroid()): island</span>
-    <span class="c1">#                        for island in r.grid.islands(threshold=1)</span>
-    <span class="c1">#                        if Helper.get_distance(feat.feature_coordinates, island.centroid()) &lt; 1}</span>
-    <span class="c1">#</span>
-    <span class="c1">#             if len(ss_dict) == 0:</span>
-    <span class="c1">#                 g = r.grid.copy_and_clear()</span>
-    <span class="c1">#</span>
-    <span class="c1">#             else:</span>
-    <span class="c1">#                 shortest = sorted([f[0] for f in ss_dict.items()], reverse=False)[0]</span>
-    <span class="c1">#                 g = ss_dict[shortest]</span>
-    <span class="c1">#</span>
-    <span class="c1">#             feat.superstar_results.append(_AtomicHotspotResult(identifier=r.identifier,</span>
-    <span class="c1">#                                                                grid=g,</span>
-    <span class="c1">#                                                                buriedness=None)</span>
-    <span class="c1">#                                           )</span>
-    <span class="c1">#</span>
-    <span class="c1">#             score.append(g.grid_score(threshold=1, percentile=50))</span>
-    <span class="c1">#</span>
-    <span class="c1">#     return pd.DataFrame({&quot;feature_id&quot;: feat_id, &quot;interaction&quot;: ss_id, &quot;score&quot;: score})</span>
-
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_get_features</span><span class="p">(</span><span class="n">interaction_dict</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">min_feature_gp</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">excluded</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;apolar&quot;</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1114,7 +1038,7 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">island</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">):</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">island</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">min_feature_gp</span> <span class="ow">and</span> <span class="n">probe</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">excluded</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="n">island</span><span class="o">.</span><span class="n">extrema</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
                         <span class="n">f</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Results</span><span class="o">.</span><span class="n">_HotspotFeature</span><span class="p">(</span><span class="n">probe</span><span class="p">,</span> <span class="n">island</span><span class="p">,</span> <span class="n">threshold</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">f</span>
 
@@ -1127,51 +1051,6 @@
         <span class="n">score</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">feature_by_score</span><span class="o">.</span><span class="n">items</span><span class="p">()],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">score</span><span class="p">):</span>
             <span class="n">feature_by_score</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">_rank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></div>
-
-    <span class="c1"># def _ngl_widget(self, out_dir=None):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     jupyter notebook --NotebookApp.iopub_data_rate_limit=10000000000.0</span>
-    <span class="c1">#     creates ngl widget from hotspot. For use in ipython notebooks</span>
-    <span class="c1">#     :param str out_dir:</span>
-    <span class="c1">#     :return:</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     import nglview as nv</span>
-    <span class="c1">#     from ipywidgets import IntSlider, interact</span>
-    <span class="c1">#</span>
-    <span class="c1">#     color_dict = {&quot;apolar&quot;: &quot;yellow&quot;,</span>
-    <span class="c1">#                   &quot;donor&quot;: &quot;blue&quot;,</span>
-    <span class="c1">#                   &quot;acceptor&quot;: &quot;red&quot;,</span>
-    <span class="c1">#                   &quot;negative&quot;: &quot;magenta&quot;,</span>
-    <span class="c1">#                   &quot;positive&quot;: &quot;cyan&quot;}</span>
-    <span class="c1">#     if out_dir:</span>
-    <span class="c1">#         out = Helper.get_out_dir(out_dir)</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         out = tempfile.mkdtemp()</span>
-    <span class="c1">#</span>
-    <span class="c1">#     for p, g in self.super_grids.items():</span>
-    <span class="c1">#         g.write(join(out, &quot;{}.ccp4&quot;.format(p)))</span>
-    <span class="c1">#</span>
-    <span class="c1">#     with MoleculeWriter(join(out, &quot;protein.pdb&quot;)) as w:</span>
-    <span class="c1">#         w.write(self.protein)</span>
-    <span class="c1">#</span>
-    <span class="c1">#     view = nv.NGLWidget()</span>
-    <span class="c1">#     view.add_component(join(out, &quot;protein.pdb&quot;))</span>
-    <span class="c1">#</span>
-    <span class="c1">#     k = self.super_grids.keys()</span>
-    <span class="c1">#     for i, p in enumerate(k):</span>
-    <span class="c1">#         view.add_component(join(out, &quot;{}.ccp4&quot;.format(p)))</span>
-    <span class="c1">#         view.add_representation(&#39;isosurface&#39;, component=i + 1)</span>
-    <span class="c1">#         view.update_representation(component=i + 1, color=color_dict[p])</span>
-    <span class="c1">#</span>
-    <span class="c1">#     @interact(x=IntSlider(description=&quot;HS Score&quot;, min=0, max=30, step=1))</span>
-    <span class="c1">#     def f(x):</span>
-    <span class="c1">#         view.update_representation(component=1, isolevel=int(x), isoleveltype=&#39;value&#39;)</span>
-    <span class="c1">#         view.update_representation(component=2, isolevel=int(x), isoleveltype=&#39;value&#39;)</span>
-    <span class="c1">#         view.update_representation(component=3, isolevel=int(x), isoleveltype=&#39;value&#39;)</span>
-    <span class="c1">#         view.update_representation(component=4, isolevel=int(x), isoleveltype=&#39;value&#39;)</span>
-    <span class="c1">#         view.update_representation(component=5, isolevel=int(x), isoleveltype=&#39;value&#39;)</span>
-    <span class="c1">#</span>
-    <span class="c1">#     return view</span>
 
 
 <div class="viewcode-block" id="Extractor"><a class="viewcode-back" href="../../result_api.html#hotspots.result.Extractor">[docs]</a><span class="k">class</span> <span class="nc">Extractor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -1189,26 +1068,15 @@
 <span class="sd">        :param float volume: required volume (default = 150)</span>
 <span class="sd">        :param float cutoff: only features above this value are considered (default = 14)</span>
 <span class="sd">        :param float spacing: grid spacing, (default = 0.5)</span>
-<span class="sd">        :param int min_feature_gp: the minimum number of grid points required to create a feature (default = 5)</span>
-<span class="sd">        :param int max_features: the maximum number of features in a extracted volume (default = 10)(not recommended, control at pharmacophore)</span>
-<span class="sd">        :param float min_distance: the minimum distance between two apolar interaction peaks (default = 6)</span>
-<span class="sd">        :param int island_max_size: the maximum number of grid points a feature can take. (default = 100)(stops overinflation of polar features)</span>
-<span class="sd">        :param bool pharmacophore: if True, generate a Pharmacophore Model (default = True)</span>
+<span class="sd">        :param bool mvon: Run Max value of neighbours (default = True)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">min_feature_gp</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_distance</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
-                     <span class="n">island_max_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">pharmacophore</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mvon</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="n">volume</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span> <span class="o">=</span> <span class="n">cutoff</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">spacing</span> <span class="o">=</span> <span class="n">spacing</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">min_feature_gp</span> <span class="o">=</span> <span class="n">min_feature_gp</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">max_features</span> <span class="o">=</span> <span class="n">max_features</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">min_distance</span> <span class="o">=</span> <span class="n">min_distance</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">island_max_size</span> <span class="o">=</span> <span class="n">island_max_size</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="n">pharmacophore</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mvon</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mvon</span> <span class="o">=</span> <span class="n">mvon</span>
 
         <span class="nd">@property</span>
         <span class="k">def</span> <span class="nf">_num_gp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1216,219 +1084,9 @@
 <span class="sd">            number of grid point for a given volume</span>
 <span class="sd">            :return:</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">spacing</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">spacing</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span></div>
 
-        <span class="nd">@property</span>
-        <span class="k">def</span> <span class="nf">_search_radius</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            describes search radius around a given seed</span>
-<span class="sd">            :return:</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="mi">3</span>
-            <span class="n">s</span> <span class="o">+=</span> <span class="nb">round</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span> <span class="o">/</span> <span class="mi">50</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;search_radius&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">s</span></div>
-
-    <span class="k">class</span> <span class="nc">_Optimiser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        A class to handle the optimisation operations</span>
-
-<span class="sd">        :param mask:</span>
-<span class="sd">        :param settings:</span>
-<span class="sd">        :param peak:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">peak</span> <span class="o">=</span> <span class="n">peak</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
-
-        <span class="k">def</span> <span class="nf">_count_island_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            For a given island, the difference between the target number of grid points and the actual number of</span>
-<span class="sd">             grid points is returned</span>
-<span class="sd">            :param threshold:</span>
-<span class="sd">            :return: int</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">island</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">get_best_island</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">peak</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">island</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="mi">999999</span>
-            <span class="n">points</span> <span class="o">=</span> <span class="p">(</span><span class="n">island</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span>
-            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span> <span class="o">-</span> <span class="n">points</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">_raw_count_island_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            For a given island, the difference between the target number of grid points and the actual number of</span>
-<span class="sd">             grid points is returned</span>
-
-<span class="sd">             -ve = too many points</span>
-<span class="sd">             +ve = too few points</span>
-
-<span class="sd">            :param threshold:</span>
-<span class="sd">            :return: int</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">island</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">get_best_island</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">peak</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">island</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="mi">999999</span>
-            <span class="n">points</span> <span class="o">=</span> <span class="p">(</span><span class="n">island</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span>
-            <span class="k">return</span> <span class="mi">800</span> <span class="o">-</span> <span class="n">points</span>
-
-        <span class="k">def</span> <span class="nf">_count_grid_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            For a given island, the difference between the target number of grid points and the actual number of</span>
-<span class="sd">             grid points is returned</span>
-<span class="sd">            :param threshold:</span>
-<span class="sd">            :return: int</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">points</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top_island</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span>
-            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span> <span class="o">-</span> <span class="n">points</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">_grow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">best_island</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            *experimental*</span>
-<span class="sd">            fixes joining islands problem, this has not been tested use with caution :) .</span>
-
-
-<span class="sd">            :param best_island:</span>
-<span class="sd">            :return:</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-
-            <span class="n">inner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">common_boundaries</span><span class="p">(</span><span class="n">best_island</span><span class="p">)</span>
-            <span class="n">num_gp</span> <span class="o">=</span> <span class="n">inner</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span>
-            <span class="nb">print</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span> <span class="o">-</span> <span class="n">num_gp</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">)</span>
-            <span class="n">grown</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">)</span>     <span class="c1"># adding points above 80th percentile as default,</span>
-                                                    <span class="c1"># this hasn&#39;t been played with</span>
-            <span class="k">while</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span> <span class="o">-</span> <span class="n">num_gp</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">:</span>
-                <span class="c1"># iterate over the growth cycle until target is reached</span>
-                <span class="n">grown</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">)</span>
-                <span class="n">diff</span> <span class="o">=</span> <span class="n">grown</span> <span class="o">&gt;</span> <span class="n">inner</span>
-
-                <span class="c1"># if diff.count_grid() &lt; 10:</span>
-                <span class="c1">#     break</span>
-
-                <span class="n">inner</span> <span class="o">=</span> <span class="n">grown</span>
-                <span class="n">num_gp</span> <span class="o">=</span> <span class="n">inner</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">num_gp</span><span class="p">,</span> <span class="s1">&#39;out of&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">)</span>
-
-            <span class="n">tmp_best_island</span> <span class="o">=</span> <span class="n">inner</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span>
-            <span class="n">g_vals</span> <span class="o">=</span> <span class="n">tmp_best_island</span><span class="o">.</span><span class="n">grid_values</span><span class="p">()</span>
-            <span class="n">g_vals</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">threshold</span> <span class="o">=</span> <span class="n">g_vals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">]</span>
-            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-                <span class="n">threshold</span> <span class="o">=</span> <span class="n">g_vals</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-
-            <span class="k">return</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">grown</span>
-
-        <span class="k">def</span> <span class="nf">optimize_island_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">start_threshold</span><span class="o">=</span><span class="mi">25</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            TEST</span>
-<span class="sd">            1) step down from 25 find a pair of best islands</span>
-<span class="sd">            finds the island threshold for a grid which returns the desired volume</span>
-
-<span class="sd">            :return:</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="kn">from</span> <span class="nn">skimage.morphology</span> <span class="k">import</span> <span class="n">reconstruction</span>
-
-            <span class="c1"># find inital fragment volume hard coded as 800</span>
-            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_count_island_points</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">start_threshold</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">start_threshold</span> <span class="o">-=</span> <span class="mi">1</span>
-
-            <span class="n">large_island</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">get_best_island</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">start_threshold</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;count&#39;</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">peak</span><span class="p">)</span>
-            <span class="n">small_island</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">get_best_island</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">start_threshold</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;count&#39;</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">peak</span><span class="p">)</span>
-            <span class="n">reconstruct_pts</span> <span class="o">=</span> <span class="mi">0</span>
-
-            <span class="k">while</span> <span class="n">reconstruct_pts</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">:</span>
-                <span class="c1"># ensure same dimensions (precaution: not sure if required)</span>
-                <span class="n">c_small_island</span> <span class="o">=</span> <span class="n">large_island</span><span class="o">.</span><span class="n">common_boundaries</span><span class="p">(</span><span class="n">small_island</span><span class="p">)</span>
-
-                <span class="n">seed</span> <span class="o">=</span> <span class="n">c_small_island</span><span class="o">.</span><span class="n">get_array</span><span class="p">()</span>
-                <span class="n">mask</span> <span class="o">=</span> <span class="n">large_island</span><span class="o">.</span><span class="n">get_array</span><span class="p">()</span>
-                <span class="c1"># flood connected peaks</span>
-                <span class="n">reconstruct</span> <span class="o">=</span> <span class="n">reconstruction</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;dilation&#39;</span><span class="p">)</span>
-                <span class="n">small_island</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">array_to_grid</span><span class="p">(</span><span class="n">reconstruct</span><span class="p">,</span> <span class="n">large_island</span><span class="o">.</span><span class="n">copy_and_clear</span><span class="p">())</span>
-
-                <span class="n">reconstruct_pts</span> <span class="o">=</span> <span class="p">((</span><span class="n">small_island</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">small_island</span><span class="p">)</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pts:&quot;</span><span class="p">,</span> <span class="n">reconstruct_pts</span><span class="p">,</span> <span class="s2">&quot;target:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">,</span> <span class="s2">&quot;threshold:&quot;</span><span class="p">,</span> <span class="n">start_threshold</span><span class="p">)</span>
-                <span class="n">start_threshold</span> <span class="o">-=</span> <span class="mi">1</span>
-                <span class="n">large_island</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">get_best_island</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">start_threshold</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;count&#39;</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">peak</span><span class="p">)</span>
-
-            <span class="nb">print</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">extrema</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">small_island</span><span class="o">.</span><span class="n">islands</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mi">18</span><span class="p">)])</span>
-            <span class="k">return</span> <span class="n">start_threshold</span><span class="p">,</span> <span class="n">small_island</span>
-
-            <span class="c1"># large_island.write(&quot;/home/pcurran/reconstruct/large.grd&quot;)</span>
-            <span class="c1"># c_small_island.write(&quot;/home/pcurran/reconstruct/c_small_island.grd&quot;)</span>
-            <span class="c1"># g.write(&quot;/home/pcurran/reconstruct/reconstruct.grd&quot;)</span>
-
-
-
-            <span class="c1"># ret = optimize.minimize_scalar(self._count_island_points,  method=&#39;brent&#39;, tol=0.0001,</span>
-            <span class="c1">#                                options={&#39;disp&#39;: True,</span>
-            <span class="c1">#                                         &#39;xtol&#39;: 0.000001}</span>
-            <span class="c1">#                                )</span>
-            <span class="c1"># threshold = ret.x</span>
-            <span class="c1"># if threshold &gt; 48:</span>
-            <span class="c1">#     threshold = 1</span>
-            <span class="c1"># best_island = self.mask.get_best_island(threshold=threshold, mode=&#39;count&#39;, peak=self.peak)</span>
-            <span class="c1"># print(&quot;target = {}, actual = {}&quot;.format(self.settings._num_gp, best_island.count_grid()))</span>
-            <span class="c1">#</span>
-            <span class="c1"># # If threshold is close to zero, keep all grid points</span>
-            <span class="c1"># try:</span>
-            <span class="c1">#     best_island = (best_island &gt; threshold) * best_island</span>
-            <span class="c1"># except TypeError:</span>
-            <span class="c1">#     best_island = self.mask</span>
-            <span class="c1">#</span>
-            <span class="c1"># while ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) &lt; 0:</span>
-            <span class="c1">#     # ensure underestimation</span>
-            <span class="c1">#     threshold += 0.1</span>
-            <span class="c1">#     best_island = (best_island &gt; threshold) * best_island</span>
-            <span class="c1">#</span>
-            <span class="c1"># if ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) &gt; tolerance:</span>
-            <span class="c1">#     print(&quot;Percentage error=&quot;, abs((self.settings._num_gp - best_island.count_grid() ) / self.settings._num_gp) * 100)</span>
-            <span class="c1">#     threshold, best_island = self._grow(best_island, tolerance=tolerance)</span>
-            <span class="c1">#</span>
-            <span class="c1"># print(&quot;target = {}, actual = {}&quot;.format(self.settings._num_gp, best_island.count_grid()))</span>
-            <span class="c1">#</span>
-            <span class="c1">#</span>
-            <span class="c1"># return threshold, best_island</span>
-
-        <span class="c1"># def optimize_island_threshold(self, tolerance=0.1):</span>
-        <span class="c1">#     &quot;&quot;&quot;</span>
-        <span class="c1">#     finds the island threshold for a grid which returns the desired volume</span>
-        <span class="c1">#</span>
-        <span class="c1">#     :return:</span>
-        <span class="c1">#     &quot;&quot;&quot;</span>
-        <span class="c1">#     # set options={&#39;disp&#39;: True} for debugging</span>
-        <span class="c1">#     ret = optimize.minimize_scalar(self._count_island_points,  method=&#39;brent&#39;, tol=0.0001,</span>
-        <span class="c1">#                                    options={&#39;disp&#39;: True,</span>
-        <span class="c1">#                                             &#39;xtol&#39;: 0.000001}</span>
-        <span class="c1">#                                    )</span>
-        <span class="c1">#     threshold = ret.x</span>
-        <span class="c1">#     if threshold &gt; 48:</span>
-        <span class="c1">#         threshold = 1</span>
-        <span class="c1">#     best_island = self.mask.get_best_island(threshold=threshold, mode=&#39;count&#39;, peak=self.peak)</span>
-        <span class="c1">#     print(&quot;target = {}, actual = {}&quot;.format(self.settings._num_gp, best_island.count_grid()))</span>
-        <span class="c1">#</span>
-        <span class="c1">#     # If threshold is close to zero, keep all grid points</span>
-        <span class="c1">#     try:</span>
-        <span class="c1">#         best_island = (best_island &gt; threshold) * best_island</span>
-        <span class="c1">#     except TypeError:</span>
-        <span class="c1">#         best_island = self.mask</span>
-        <span class="c1">#</span>
-        <span class="c1">#     while ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) &lt; 0:</span>
-        <span class="c1">#         # ensure underestimation</span>
-        <span class="c1">#         threshold += 0.1</span>
-        <span class="c1">#         best_island = (best_island &gt; threshold) * best_island</span>
-        <span class="c1">#</span>
-        <span class="c1">#     if ((self.settings._num_gp - best_island.count_grid()) / self.settings._num_gp) &gt; tolerance:</span>
-        <span class="c1">#         print(&quot;Percentage error=&quot;, abs((self.settings._num_gp - best_island.count_grid() ) / self.settings._num_gp) * 100)</span>
-        <span class="c1">#         threshold, best_island = self._grow(best_island, tolerance=tolerance)</span>
-        <span class="c1">#</span>
-        <span class="c1">#     print(&quot;target = {}, actual = {}&quot;.format(self.settings._num_gp, best_island.count_grid()))</span>
-        <span class="c1">#     return threshold, best_island</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hr</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hr</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1437,9 +1095,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_masked_dic</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mvon</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">hr</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">probe</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">max_value_of_neighbours</span><span class="p">()</span> <span class="k">for</span> <span class="n">probe</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">hr</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+            <span class="c1">#hr.super_grids.update({probe: g.dilate_by_atom() for probe, g in hr.super_grids.items()})</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">hr</span><span class="o">.</span><span class="n">super_grids</span><span class="p">[</span><span class="s2">&quot;negative&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hr</span><span class="o">.</span><span class="n">super_grids</span><span class="p">[</span><span class="s2">&quot;negative&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">deduplicate</span><span class="p">(</span><span class="n">hr</span><span class="o">.</span><span class="n">super_grids</span><span class="p">[</span><span class="s2">&quot;acceptor&quot;</span><span class="p">],</span>
@@ -1460,279 +1120,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span> <span class="o">=</span> <span class="n">hr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_masked_dic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_single_grid</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">get_single_grid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">super_grids</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Extractor.extract_best_volume"><a class="viewcode-back" href="../../result_api.html#hotspots.result.Extractor.extract_best_volume">[docs]</a>    <span class="k">def</span> <span class="nf">extract_best_volume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="s2">&quot;125&quot;</span><span class="p">,</span> <span class="n">pharmacophores</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        from the main Fragment Hotspot Map result, the best continuous volume is returned</span>
-
-<span class="sd">        :param float volume: volume in Angstrom^3</span>
-<span class="sd">        :param bool pharmacophores: if True, generates pharmacophores</span>
-<span class="sd">        :return: a `hotspots.result.Results` instance</span>
-
-
-<span class="sd">        &gt;&gt;&gt; result</span>
-<span class="sd">        &lt;hotspots.result.Results object at 0x000000001B657940&gt;</span>
-
-<span class="sd">        &gt;&gt;&gt; from hotspots.result import Extractor</span>
-
-<span class="sd">        &gt;&gt;&gt; extractor = Extractor(result)</span>
-<span class="sd">        &gt;&gt;&gt; best = extractor.extract_best_volume(volume=400)</span>
-<span class="sd">        [&lt;hotspots.result.Results object at 0x0000000028E201D0&gt;]</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="n">volume</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="n">pharmacophores</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_peaks</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;global&quot;</span>
-
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;???????&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="o">.</span><span class="n">extrema</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="p">,</span>
-                               <span class="bp">self</span><span class="o">.</span><span class="n">masked_dic</span><span class="p">,</span>
-                               <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
-                               <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                               <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rank_extracted_hotspots</span><span class="p">()</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_pharmacophores</span><span class="p">()</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span></div>
-
-<div class="viewcode-block" id="Extractor.extract_all_volumes"><a class="viewcode-back" href="../../result_api.html#hotspots.result.Extractor.extract_all_volumes">[docs]</a>    <span class="k">def</span> <span class="nf">extract_all_volumes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="s2">&quot;125&quot;</span><span class="p">,</span> <span class="n">pharmacophores</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        from the main Fragment Hotspot Map result, the best continuous volume is calculated using peaks in the apolar</span>
-<span class="sd">        maps as a seed point.</span>
-
-<span class="sd">        :param float volume: volume in Angstrom^3</span>
-<span class="sd">        :param bool pharmacophores: if True, generates pharmacophores</span>
-<span class="sd">        :return: a `hotspots.result.Results` instance</span>
-
-<span class="sd">        &gt;&gt;&gt; result</span>
-<span class="sd">        &lt;hotspots.result.Results object at 0x000000001B657940&gt;</span>
-
-<span class="sd">        &gt;&gt;&gt; from hotspots.result import Extractor</span>
-
-<span class="sd">        &gt;&gt;&gt; extractor = Extractor(result)</span>
-<span class="sd">        &gt;&gt;&gt; all_vols = extractor.extract_all_volumes(volume=150)</span>
-<span class="sd">        [&lt;hotspots.result.Results object at 0x000000002963A438&gt;,</span>
-<span class="sd">         &lt;hotspots.result.Results object at 0x0000000029655240&gt;,</span>
-<span class="sd">         &lt;hotspots.result.Results object at 0x000000002963D2B0&gt;,</span>
-<span class="sd">         &lt;hotspots.result.Results object at 0x000000002964FDD8&gt;,</span>
-<span class="sd">         &lt;hotspots.result.Results object at 0x0000000029651D68&gt;,</span>
-<span class="sd">         &lt;hotspots.result.Results object at 0x00000000296387F0&gt;]</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="n">volume</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="n">pharmacophores</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;seed&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_peaks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_peaks</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">peak</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">peak</span><span class="p">)</span>
-
-            <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="p">,</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">masked_dic</span><span class="p">,</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                                   <span class="n">seed</span><span class="o">=</span><span class="n">peak</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rank_extracted_hotspots</span><span class="p">()</span>
-        <span class="c1"># generate pharmacophores</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">pharmacophore</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_pharmacophores</span><span class="p">()</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span></div>
-
-    <span class="k">def</span> <span class="nf">_from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">single_grid</span><span class="p">,</span> <span class="n">mask_dic</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">prot</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        create a continuous volume</span>
-
-<span class="sd">        :param single_grid:</span>
-<span class="sd">        :param mask_dic:</span>
-<span class="sd">        :param settings:</span>
-<span class="sd">        :param prot:</span>
-<span class="sd">        :param seed:</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">seed</span><span class="p">:</span>
-            <span class="n">sphere</span> <span class="o">=</span> <span class="n">single_grid</span><span class="o">.</span><span class="n">copy_and_clear</span><span class="p">()</span>
-            <span class="n">sphere</span><span class="o">.</span><span class="n">set_sphere</span><span class="p">(</span><span class="n">point</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">_search_radius</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scaling</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
-            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">sphere</span> <span class="o">&amp;</span> <span class="n">single_grid</span><span class="p">)</span> <span class="o">*</span> <span class="n">single_grid</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">mask</span> <span class="o">=</span> <span class="n">single_grid</span>
-
-        <span class="n">optimiser</span> <span class="o">=</span> <span class="n">Extractor</span><span class="o">.</span><span class="n">_Optimiser</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
-        <span class="n">threshold</span><span class="p">,</span> <span class="n">best_island</span> <span class="o">=</span> <span class="n">optimiser</span><span class="o">.</span><span class="n">optimize_island_threshold</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;???????&quot;</span><span class="p">,</span> <span class="n">best_island</span><span class="o">.</span><span class="n">extrema</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">best_island</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">location</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_interaction_type</span><span class="p">(</span><span class="n">mask_dic</span><span class="p">,</span> <span class="n">best_island</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
-            <span class="n">grd_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_dict</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
-
-            <span class="n">hr</span> <span class="o">=</span> <span class="n">Results</span><span class="p">(</span><span class="n">super_grids</span><span class="o">=</span><span class="n">grd_dict</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="n">prot</span><span class="p">)</span>
-
-            <span class="n">hr</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
-            <span class="n">hr</span><span class="o">.</span><span class="n">best_island</span> <span class="o">=</span> <span class="n">best_island</span><span class="o">.</span><span class="n">minimal</span><span class="p">()</span>
-            <span class="n">hr</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">location</span>
-
-            <span class="n">hr</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="n">threshold</span>
-            <span class="n">hr</span><span class="o">.</span><span class="n">score_value</span> <span class="o">=</span> <span class="n">hr</span><span class="o">.</span><span class="n">score</span><span class="p">()</span>
-
-            <span class="n">hr</span><span class="o">.</span><span class="n">rank</span> <span class="o">=</span> <span class="n">hr</span><span class="o">.</span><span class="n">_rank_features</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">hr</span>
-
-    <span class="c1"># def _grow_from_seed(self, single_grid, mask_dic, settings, prot, seed=None):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     *experimental*</span>
-    <span class="c1">#</span>
-    <span class="c1">#     create a Extracted Hotspot object from HotspotResult object</span>
-    <span class="c1">#</span>
-    <span class="c1">#     :param single_grid:</span>
-    <span class="c1">#     :param mask_dic:</span>
-    <span class="c1">#     :param settings:</span>
-    <span class="c1">#     :param prot:</span>
-    <span class="c1">#     :param seed:</span>
-    <span class="c1">#     :return:</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#</span>
-    <span class="c1">#     inner = single_grid.copy_and_clear()</span>
-    <span class="c1">#     inner.set_sphere(point=seed, radius=1, value=20, scaling=&#39;None&#39;)</span>
-    <span class="c1">#     # mask = (sphere &amp; single_grid) * single_grid</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # optimiser = _Results.Optimiser(mask=mask, settings=settings, peak=seed)</span>
-    <span class="c1">#     # threshold, best_island = optimiser.optimize_island_threshold()</span>
-    <span class="c1">#     num_gp = inner.count_grid()</span>
-    <span class="c1">#     grown = Grid.grow(inner, single_grid)</span>
-    <span class="c1">#     while num_gp &lt; settings._num_gp:</span>
-    <span class="c1">#</span>
-    <span class="c1">#         grown = Grid.grow(inner, single_grid)</span>
-    <span class="c1">#         diff = grown &gt; inner</span>
-    <span class="c1">#         if diff.count_grid() &lt; 10:</span>
-    <span class="c1">#             break</span>
-    <span class="c1">#         inner = grown</span>
-    <span class="c1">#         num_gp = inner.count_grid()</span>
-    <span class="c1">#         print(num_gp, &#39;out of&#39;, settings._num_gp)</span>
-    <span class="c1">#</span>
-    <span class="c1">#     tmp_best_island = inner * single_grid</span>
-    <span class="c1">#     g_vals = tmp_best_island.grid_values()</span>
-    <span class="c1">#     g_vals[::-1].sort()</span>
-    <span class="c1">#     try:</span>
-    <span class="c1">#         threshold = g_vals[settings._num_gp]</span>
-    <span class="c1">#     except IndexError:</span>
-    <span class="c1">#         threshold = g_vals.min()</span>
-    <span class="c1">#</span>
-    <span class="c1">#     best_island = grown</span>
-    <span class="c1">#</span>
-    <span class="c1">#     if best_island is not None:</span>
-    <span class="c1">#         location, features = self._get_interaction_type(mask_dic, best_island, threshold, settings)</span>
-    <span class="c1">#         grd_dict = self._get_grid_dict(location, features, settings)</span>
-    <span class="c1">#</span>
-    <span class="c1">#         hr = Results(super_grids=grd_dict, protein=prot)</span>
-    <span class="c1">#</span>
-    <span class="c1">#         hr.threshold = threshold</span>
-    <span class="c1">#         hr.best_island = best_island.minimal()</span>
-    <span class="c1">#         hr.location = location</span>
-    <span class="c1">#         hr.features = features</span>
-    <span class="c1">#         hr.score_value = hr.score()</span>
-    <span class="c1">#         hr.rank = hr._rank_features()</span>
-    <span class="c1">#         return hr</span>
-
-    <span class="k">def</span> <span class="nf">_get_interaction_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask_dic</span><span class="p">,</span> <span class="n">best_island</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        seperates single grid into grid by interaction type</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">common_best_island</span> <span class="o">=</span> <span class="n">mask_dic</span><span class="p">[</span><span class="s2">&quot;apolar&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">common_boundaries</span><span class="p">(</span><span class="n">best_island</span><span class="p">)</span>
-        <span class="n">features_in_vol</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">g</span> <span class="o">*</span> <span class="p">(</span><span class="n">g</span> <span class="o">&amp;</span> <span class="n">common_best_island</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">mask_dic</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-        <span class="n">location</span> <span class="o">=</span> <span class="n">features_in_vol</span><span class="p">[</span><span class="s2">&quot;apolar&quot;</span><span class="p">]</span>
-        <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">_get_features</span><span class="p">(</span><span class="n">interaction_dict</span><span class="o">=</span><span class="n">features_in_vol</span><span class="p">,</span>
-                                                     <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
-                                                     <span class="n">min_feature_gp</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">min_feature_gp</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">location</span><span class="p">,</span> <span class="n">features</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_grid_dict</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates super grid dict from location and _features</span>
-<span class="sd">        :param location:</span>
-<span class="sd">        :param features:</span>
-<span class="sd">        :param settings:</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">grid_dic</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apolar&quot;</span><span class="p">:</span> <span class="n">location</span><span class="o">.</span><span class="n">minimal</span><span class="p">()}</span>
-        <span class="n">interaction_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">features</span><span class="p">])</span>
-        <span class="n">feature_by_score</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">score_value</span><span class="p">:</span> <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">features</span><span class="p">}</span>
-        <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="n">feature_by_score</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
-                    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">feature_by_score</span><span class="o">.</span><span class="n">items</span><span class="p">()],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)][:</span><span class="n">settings</span><span class="o">.</span><span class="n">max_features</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">probe</span> <span class="ow">in</span> <span class="n">interaction_types</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;seed&quot;</span><span class="p">:</span>
-                <span class="n">grids</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">grid</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">features</span>
-                         <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span> <span class="o">==</span> <span class="n">probe</span> <span class="ow">and</span>
-                         <span class="n">feat</span><span class="o">.</span><span class="n">score_value</span> <span class="o">&gt;=</span> <span class="n">settings</span><span class="o">.</span><span class="n">cutoff</span><span class="p">]</span>
-
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">grids</span> <span class="o">=</span> <span class="p">[</span><span class="n">feat</span><span class="o">.</span><span class="n">grid</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">features</span> <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">feature_type</span> <span class="o">==</span> <span class="n">probe</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">grids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">grids</span> <span class="o">=</span> <span class="p">[</span><span class="n">location</span><span class="o">.</span><span class="n">minimal</span><span class="p">()</span><span class="o">.</span><span class="n">copy_and_clear</span><span class="p">()]</span>
-
-            <span class="n">grid_dic</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">probe</span><span class="p">:</span> <span class="n">Grid</span><span class="o">.</span><span class="n">super_grid</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">grids</span><span class="p">)})</span>
-
-        <span class="k">return</span> <span class="n">grid_dic</span>
-
-    <span class="c1"># def get_superstar_result(self, superstar_results):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     finds the overlap between the extracted hotspot and the superstar results</span>
-    <span class="c1">#     :param superstar_result:</span>
-    <span class="c1">#     :return:</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     # TO DO: ALLOW SS RUN IN EXTRACTED_HOTSPOT CLASS</span>
-    <span class="c1">#</span>
-    <span class="c1">#     extracted_superstar = []</span>
-    <span class="c1">#</span>
-    <span class="c1">#     for result in superstar_results:</span>
-    <span class="c1">#         common_best_island, common_result_grid = Grid.common_grid(self.best_island, result.grid)</span>
-    <span class="c1">#         ss_boundary = (common_best_island &amp; common_result_grid) * common_result_grid</span>
-    <span class="c1">#         new = copy.copy(result)</span>
-    <span class="c1">#         if len(ss_boundary.islands(threshold=2)) != 0:</span>
-    <span class="c1">#             g = Grid.super_grid(2, *ss_boundary.islands(threshold=2))</span>
-    <span class="c1">#             threshold = g.grid_score(threshold=1, percentile=50)</span>
-    <span class="c1">#             print threshold</span>
-    <span class="c1">#             new.grid = (g &gt; threshold) * g</span>
-    <span class="c1">#         else:</span>
-    <span class="c1">#             new.grid = ss_boundary.copy_and_clear()</span>
-    <span class="c1">#</span>
-    <span class="c1">#         extracted_superstar.append(new)</span>
-    <span class="c1">#</span>
-    <span class="c1">#     return extracted_superstar</span>
-    <span class="c1">#</span>
-    <span class="c1"># def calc_feature_profile(self):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     for each hotspot feature, the overlap between the feature sphere and superstar result is calculated</span>
-    <span class="c1">#     this is stored as an HotspotFeature attribute (superstar profile)</span>
-    <span class="c1">#     :return:</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     for feat in self._features:</span>
-    <span class="c1">#         super_profile = []</span>
-    <span class="c1">#</span>
-    <span class="c1">#         for result in self.superstar_results:</span>
-    <span class="c1">#             common_result_grid, common_sphere = Grid.common_grid(result.grid, feat.sphere)</span>
-    <span class="c1">#             super_sphere = (common_sphere &amp; common_result_grid) * common_result_grid</span>
-    <span class="c1">#</span>
-    <span class="c1">#             if len(super_sphere.islands(threshold=2)) != 0:</span>
-    <span class="c1">#                 result.grid = Grid.super_grid(2, *super_sphere.islands(threshold=2))</span>
-    <span class="c1">#</span>
-    <span class="c1">#             else:</span>
-    <span class="c1">#                 result.grid = feat.sphere.copy_and_clear()</span>
-    <span class="c1">#</span>
-    <span class="c1">#             super_profile.append(result)</span>
-    <span class="c1">#</span>
-    <span class="c1">#         feat.superstar_profile = super_profile</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">single_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_single_grid</span>
@@ -1741,213 +1128,70 @@
     <span class="k">def</span> <span class="nf">masked_dic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_masked_dic</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peaks</span>
-
-    <span class="c1"># def grid_post_process(self, super_grids):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     carry out post-processing of fragment hotspot maps</span>
-    <span class="c1">#</span>
-    <span class="c1">#     Limit the size of polar islands. Keep top scores upto X grid points</span>
-    <span class="c1">#     :return:</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     for probe, g in super_grids.items():</span>
-    <span class="c1">#         if probe == &quot;apolar&quot;:</span>
-    <span class="c1">#             super_grids.update({probe: g.max_value_of_neighbours()})</span>
-    <span class="c1">#</span>
-    <span class="c1">#         else:</span>
-    <span class="c1">#             h = g.max_value_of_neighbours()</span>
-    <span class="c1">#             h = h.limit_island_size(self.settings.island_max_size)</span>
-    <span class="c1">#             if h.bounding_box != super_grids[&quot;apolar&quot;].bounding_box:</span>
-    <span class="c1">#                 h = super_grids[&quot;apolar&quot;].common_boundaries(g)</span>
-    <span class="c1">#</span>
-    <span class="c1">#             super_grids.update({probe: h})</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # try:</span>
-    <span class="c1">#     #     super_grids[&quot;negative&quot;] = super_grids[&quot;negative&quot;].deduplicate(super_grids[&quot;acceptor&quot;],</span>
-    <span class="c1">#     #                                                                         threshold=10,</span>
-    <span class="c1">#     #                                                                         tolerance=2)</span>
-    <span class="c1">#     #</span>
-    <span class="c1">#     #     super_grids[&quot;positive&quot;] = super_grids[&quot;positive&quot;].deduplicate(super_grids[&quot;donor&quot;],</span>
-    <span class="c1">#     #                                                                         threshold=10,</span>
-    <span class="c1">#     #                                                                         tolerance=2)</span>
-    <span class="c1">#     # except KeyError:</span>
-    <span class="c1">#     #     pass</span>
-    <span class="c1">#</span>
-    <span class="c1">#     return super_grids</span>
-
-    <span class="k">def</span> <span class="nf">_get_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_grow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        find peak coordinates in apolar maps, used as seeds to find top volumes</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">apolar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">super_grids</span><span class="p">[</span><span class="s2">&quot;apolar&quot;</span><span class="p">]</span>
-        <span class="n">peaks</span> <span class="o">=</span> <span class="n">feature</span><span class="o">.</span><span class="n">peak_local_max</span><span class="p">(</span><span class="n">apolar</span><span class="o">.</span><span class="n">get_array</span><span class="p">(),</span>
-                                       <span class="n">min_distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">min_distance</span><span class="p">,</span>
-                                       <span class="n">threshold_abs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">cutoff</span><span class="p">)</span>
-        <span class="n">peak_by_value</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">peak</span> <span class="ow">in</span> <span class="n">peaks</span><span class="p">:</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="n">apolar</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">peak</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">peak</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">peak</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
-            <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">cutoff</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">peak_by_value</span><span class="p">:</span>
-                    <span class="n">peak_by_value</span><span class="p">[</span><span class="n">val</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">peak</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">peak_by_value</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">val</span><span class="p">:</span> <span class="p">[(</span><span class="n">peak</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">2</span><span class="p">])]})</span>
+<span class="sd">        A single grid is iteratively inflated, and the top 20% of neighbouring grid points added until the volume</span>
+<span class="sd">        is with the tolerance of the target volume.</span>
 
-        <span class="n">average_peaks</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">peak_by_value</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">peak_by_value</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span>
-            <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">peak_by_value</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span>
-            <span class="n">z</span> <span class="o">=</span> <span class="p">[</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">peak_by_value</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span>
-            <span class="n">average_peaks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">apolar</span><span class="o">.</span><span class="n">indices_to_point</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span>
-                                                         <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span>
-                                                         <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
-
-                                                         <span class="p">)</span>
-                                 <span class="p">)</span>
-        <span class="k">return</span> <span class="n">average_peaks</span>
-
-    <span class="k">def</span> <span class="nf">_get_extracted_hotspots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        locate peaks in apolar maps and define fragment size volume</span>
-<span class="sd">        :return: list of peak coordinates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">extracted_hotspots</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;seed&quot;</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">peak</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">peak</span><span class="p">)</span>
-
-                <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="p">,</span>
-                                       <span class="bp">self</span><span class="o">.</span><span class="n">masked_dic</span><span class="p">,</span>
-                                       <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
-                                       <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                                       <span class="n">seed</span><span class="o">=</span><span class="n">peak</span><span class="p">)</span>
-
-                <span class="c1"># if e:</span>
-                <span class="c1">#     if e.threshold &gt; 0:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">threshold</span><span class="p">)</span>
-                <span class="n">extracted_hotspots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;grow&quot;</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">peak</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="p">:</span>
-                <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grow_from_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="p">,</span>
-                                         <span class="bp">self</span><span class="o">.</span><span class="n">masked_dic</span><span class="p">,</span>
-                                         <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
-                                         <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                                         <span class="n">seed</span><span class="o">=</span><span class="n">peak</span><span class="p">)</span>
-
-                <span class="c1"># if e:</span>
-                <span class="c1">#     if e.threshold &gt; 0:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">threshold</span><span class="p">)</span>
-                <span class="n">extracted_hotspots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-
-
-        <span class="k">else</span><span class="p">:</span>
-
-            <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_hotspot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="p">,</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">masked_dic</span><span class="p">,</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
-                                   <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-            <span class="n">extracted_hotspots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">extracted_hotspots</span>
-
-    <span class="k">def</span> <span class="nf">_rank_extracted_hotspots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        assigns rank based upon extracted hotspot score</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">hotspot_by_score</span> <span class="o">=</span> <span class="p">{</span><span class="n">hotspot</span><span class="o">.</span><span class="n">score_value</span><span class="p">:</span> <span class="n">hotspot</span> <span class="k">for</span> <span class="n">hotspot</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span><span class="p">}</span>
-        <span class="n">score</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">hotspot_by_score</span><span class="o">.</span><span class="n">items</span><span class="p">()],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">score</span><span class="p">):</span>
-            <span class="n">hotspot_by_score</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">rank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-
-        <span class="n">extracted_hotspots_by_rank</span> <span class="o">=</span> <span class="p">{</span><span class="n">h</span><span class="o">.</span><span class="n">rank</span><span class="p">:</span> <span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">extracted_hotspots_by_rank</span><span class="o">.</span><span class="n">items</span><span class="p">())]</span>
-
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">hs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span><span class="p">):</span>
-            <span class="n">hs</span><span class="o">.</span><span class="n">identifier</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">score_value</span>  <span class="c1"># &quot;rank_{}&quot;.format(hs.rank)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;rank&quot;</span><span class="p">,</span> <span class="n">hs</span><span class="o">.</span><span class="n">rank</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">,</span> <span class="n">hs</span><span class="o">.</span><span class="n">score_value</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_select_cavity_grids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cavs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;get empty cavity grids&quot;&quot;&quot;</span>
-        <span class="n">grds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Grid</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="n">cav</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                     <span class="n">far_corner</span><span class="o">=</span><span class="n">cav</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                     <span class="n">spacing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">spacing</span><span class="p">,</span>
-                     <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">cav</span> <span class="ow">in</span> <span class="n">cavs</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;seed&quot;</span><span class="p">:</span>
-            <span class="n">filtered</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">g</span> <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="p">]</span>
-                            <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grds</span>
-                            <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span><span class="n">seed</span><span class="p">)])</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Currently only available in seed mode&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">filtered</span>
-
-    <span class="k">def</span> <span class="nf">_get_pharmacophores</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        generates a pharmacophore model, stores as attribute of hotspot result</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">hotspot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span><span class="p">):</span>
-            <span class="n">hotspot</span><span class="o">.</span><span class="n">pharmacophore</span> <span class="o">=</span> <span class="n">hotspot</span><span class="o">.</span><span class="n">get_pharmacophore_model</span><span class="p">(</span><span class="n">identifier</span><span class="o">=</span><span class="n">hotspot</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;best_islands&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        write out information to aid debugging: valid modes:</span>
-<span class="sd">            -peaks:</span>
-<span class="sd">            -locations: spheres and islands at apolar peak locations</span>
-<span class="sd">            -_features: islands and probes at feature point locations</span>
+<span class="sd">        :param float tolerance: allowable error in volume extraction</span>
+<span class="sd">        :return float: threshold</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">pymol_out</span> <span class="o">=</span> <span class="n">pymol_imports</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;peaks&quot;</span><span class="p">:</span>
-            <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">peak</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="p">):</span>
-                <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">super_grids</span><span class="p">[</span><span class="s2">&quot;apolar&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_at_point</span><span class="p">(</span><span class="n">peak</span><span class="p">))</span>
-                <span class="n">sphere</span> <span class="o">=</span> <span class="s1">&#39;score_</span><span class="si">{0}</span><span class="s1"> = [COLOR, 1.00, 1.000, 0.000] + &#39;</span> \
-                         <span class="s1">&#39;[ALPHA, 0.8] + &#39;</span> \
-                         <span class="s1">&#39;[SPHERE, float(</span><span class="si">{1}</span><span class="s1">), float(</span><span class="si">{2}</span><span class="s1">), float(</span><span class="si">{3}</span><span class="s1">), float(0.5)]</span><span class="se">\n</span><span class="s1">&#39;</span> \
-                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">peak</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-                <span class="n">pymol_out</span> <span class="o">+=</span> <span class="n">sphere</span>
-                <span class="n">pymol_out</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">cmd.load_cgo(score_</span><span class="si">{1}</span><span class="s1">, &quot;score_</span><span class="si">{0}</span><span class="s1">&quot;, 1)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-                <span class="n">pymol_out</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">cmd.group(&quot;Peaks&quot;, members=&quot;score_</span><span class="si">{0}</span><span class="s1">&quot;)</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;peaks.py&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pymol_file</span><span class="p">:</span>
-                <span class="n">pymol_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pymol_out</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best_island</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_single_grid</span><span class="o">.</span><span class="n">common_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_island</span><span class="p">)</span>
+        <span class="n">current_num_gp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span>
 
-        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;best_islands&quot;</span><span class="p">:</span>
-            <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Helper</span><span class="o">.</span><span class="n">get_out_dir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;best_islands&quot;</span><span class="p">))</span>
-            <span class="n">thresholds</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">extracted</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span><span class="p">):</span>
-                <span class="n">extracted</span><span class="o">.</span><span class="n">best_island</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;island_</span><span class="si">{}</span><span class="s2">.grd&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
-                <span class="n">thresholds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extracted</span><span class="o">.</span><span class="n">threshold</span><span class="p">)</span>
-            <span class="n">pymol_out</span> <span class="o">+=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">nh = </span><span class="si">{0}</span><span class="s2"></span>
-<span class="s2">thresholds = </span><span class="si">{1}</span><span class="s2"></span>
-<span class="s2">for n in range(nh):</span>
-<span class="s2">    cmd.load(r&#39;best_islands/island_</span><span class="si">%s</span><span class="s2">.grd&#39; % (n), &#39;apolar_</span><span class="si">%s</span><span class="s2">&#39; % (n))</span>
-<span class="s2">    cmd.isosurface(&#39;surface_apolar_</span><span class="si">%s</span><span class="s2">&#39; % (n), &#39;apolar_</span><span class="si">%s</span><span class="s2">&#39; % (n), thresholds[n])</span>
-<span class="s2">    cmd.set(&#39;transparency&#39;, 0.7, &#39;surface_apolar_</span><span class="si">%s</span><span class="s2">&#39; % (n))</span>
-<span class="s2">    cmd.color(&#39;yellow&#39;, &#39;surface_apolar_</span><span class="si">%s</span><span class="s2">&#39; % (n))</span>
-<span class="s2">for n in range(nh):</span>
-<span class="s2">    cmd.group(&#39;hotspot_</span><span class="si">%s</span><span class="s2">&#39;%(n), members= &#39;surface_apolar_</span><span class="si">%s</span><span class="s2">&#39;%(n))</span>
-<span class="s2">    cmd.group(&#39;hotspot_</span><span class="si">%s</span><span class="s2">&#39;%(n), members= &#39;apolar_</span><span class="si">%s</span><span class="s2">&#39;%(n))&quot;&quot;&quot;</span> \
-                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extracted_hotspots</span><span class="p">),</span> <span class="n">thresholds</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">100</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(((</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span> <span class="o">-</span> <span class="n">current_num_gp</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">tolerance</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span> <span class="o">&gt;=</span> <span class="n">current_num_gp</span><span class="p">:</span>
+            <span class="n">grown</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_island</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">best_island</span> <span class="o">=</span> <span class="n">grown</span>
+            <span class="n">current_num_gp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">current_num_gp</span><span class="p">,</span> <span class="s1">&#39;out of&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">)</span>
+            <span class="n">f</span> <span class="o">+=</span> <span class="mi">1</span>
 
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">out_dir</span><span class="p">),</span> <span class="s2">&quot;best_islands.py&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pymol_file</span><span class="p">:</span>
-                <span class="n">pymol_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pymol_out</span><span class="p">)</span>
+        <span class="n">tmp_best_island</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_island</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span>
+        <span class="n">g_vals</span> <span class="o">=</span> <span class="n">tmp_best_island</span><span class="o">.</span><span class="n">grid_values</span><span class="p">()</span>
+        <span class="n">g_vals</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
 
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;mode not supported&quot;</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">_step_down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_threshold</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the maximum threshold for which the &quot;best island&quot; volume is smaller than the target volume</span>
+
+<span class="sd">        :param float start_threshold: island threshold</span>
+<span class="sd">        :return float: threhold</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">threshold</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">start_threshold</span> <span class="o">*</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">threshold</span> <span class="o">*=</span> <span class="mf">0.5</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">best_island</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_single_grid</span><span class="o">.</span><span class="n">get_best_island</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_island</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_island</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span><span class="p">:</span>
+                <span class="n">threshold</span> <span class="o">+=</span> <span class="mf">0.5</span>
+                <span class="k">break</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">best_island</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="o">.</span><span class="n">get_best_island</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">threshold</span>
+
+<div class="viewcode-block" id="Extractor.extract_volume"><a class="viewcode-back" href="../../result_api.html#hotspots.result.Extractor.extract_volume">[docs]</a>    <span class="k">def</span> <span class="nf">extract_volume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="s2">&quot;125&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a HotspotResult with a restricted volume</span>
+
+
+<span class="sd">        :param int volume: target map volume</span>
+<span class="sd">        :return `hotspots.result.Results`: A fresh result object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="n">volume</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_grid</span><span class="o">.</span><span class="n">count_grid</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">_num_gp</span>
+
+        <span class="n">threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step_down</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_grow</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Final score threshold is: </span><span class="si">{}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">threshold</span><span class="p">))</span>
+
+        <span class="n">grid_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_island</span><span class="o">.</span><span class="n">inverse_single_grid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_masked_dic</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">Results</span><span class="p">(</span><span class="n">super_grids</span><span class="o">=</span><span class="n">grid_dict</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hotspot_result</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">step_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="k">return</span> <span class="n">r</span></div></div>
 </pre></div>
 
            </div>
@@ -1977,25 +1221,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

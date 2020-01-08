@@ -231,6 +231,83 @@ class Hot(HotspotPipeline):
                             s.append(str(t))
         return li, pr, x, y, s
 
+    def cav_time(self):
+        def get_val(path):
+            if os.path.exists(path):
+                with open(path, 'r') as f:
+                    val = f.read()
+                    print(path, val.split(","))
+                return val.split(",")
+            else:
+                return None
+
+        cavi = []
+        time = []
+        step = []
+        x = []
+        y = []
+        z = []
+        zmean = []
+
+        _cavi = []
+        _x = []
+        _y = []
+        _zmean = []
+
+
+        self._get_cavities(min_vol=200)
+        for cav in self.superstar_time.keys():
+            _z = []
+            if cav == 'global':
+                cavi.extend(['global'] * 4)
+                time.append(get_val(self.superstar_time[cav])[0])
+                step.append('superstar')
+
+                time.append(get_val(self.hotspot_time[cav])[0])
+                step.append('hotspot')
+
+                for prot_id, lig_dic in self.hot_lig_overlaps[cav].items():
+                    for lig_id, path in lig_dic.items():
+                        try:
+                            z.append(float(get_val(self.bcv_time[cav][prot_id][lig_id])[0]))
+                        except:
+                            z.append(0)
+
+                time.append(np.mean(z))
+                step.append('bcv')
+
+                time.append(float(get_val(self.superstar_time[cav])[0]) +
+                            float(get_val(self.hotspot_time[cav])[0]) +
+                            np.mean(z))
+                step.append('total')
+            else:
+                _x.append(float(get_val(self.superstar_time[cav])[0]))
+                _y.append(float(get_val(self.hotspot_time[cav])[0]))
+
+                for prot_id, lig_dic in self.hot_lig_overlaps[cav].items():
+                    for lig_id, path in lig_dic.items():
+                        try:
+                            _z.append(float(get_val(self.bcv_time[cav][prot_id][lig_id])[0]))
+                        except:
+                            _z.append(0)
+
+                _zmean.append(np.mean(_z))
+
+        cavi.extend(['cavity'] * 4)
+
+        time.append(sum(_x))
+        step.append('superstar')
+
+        time.append(sum(_y))
+        step.append('hotspot')
+
+        time.append(sum(_zmean))
+        step.append('bcv')
+
+        time.append(sum(_x) + sum(_y) + sum(_zmean))
+        step.append('total')
+
+        return cavi, time, step
 
 def main():
     prefix = "/vagrant/github_pkgs/hotspots/examples/7_bcv_validation"
@@ -342,6 +419,46 @@ def bcv_effect():
     f.to_csv("hot_vs_bcv.csv")
 
 
+def cavity_time():
+    print("here")
+    method = 'ghecom'
+    df = pd.read_csv("results/inputs.csv")
+    hot_pdbs = set(df['apo'])
+    print(hot_pdbs)
+
+    cavity = []
+    time = []
+    step = []
+    apo = []
+
+    for i, pdb in enumerate(list(hot_pdbs)):
+
+        target = list(df.loc[df['apo'] == pdb]['name'])[0]
+        print(target)
+
+        ligands = list(df.loc[df['apo'] == pdb]['fragment_ID']) + list(df.loc[df['apo'] == pdb]['lead_ID'])
+        proteins = list(df.loc[df['apo'] == pdb]['fragment']) + list(df.loc[df['apo'] == pdb]['lead'])
+        hp = Hot(apo=pdb, buriedness_method=method, protein_id=proteins, ligand_id=ligands)
+        print(hp)
+
+        cav, t, s = hp.cav_time()
+
+        cavity.extend(cav)
+        time.extend(t)
+        step.extend(s)
+        apo.extend([target] * len(t))
+
+        print(len(cavity), len(time), len(step), len(apo))
+
+    f = pd.DataFrame({'Method': cavity,
+                      'Time': time,
+                      'Step': step,
+                      'apo': apo})
+
+    f.to_csv("cav_time.csv")
+
+
 if __name__ == "__main__":
     # table()
-    bcv_effect()
+    #bcv_effect()
+    cavity_time()

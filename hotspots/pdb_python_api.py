@@ -470,7 +470,11 @@ class PDBResult(object):
             extension = ".pdb"
 
         url = "https://files.rcsb.org/download/{}{}".format(self.identifier, extension)
+
         pdbfile = urlopen(url).read()
+
+        if sys.version_info.major == 3:
+            pdbfile = pdbfile.decode('utf-8')
 
         if compressed:
             out = os.path.join(out_dir, self.identifier)

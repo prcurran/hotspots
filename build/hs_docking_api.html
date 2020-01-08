@@ -13,49 +13,46 @@
 
   
   
-    <link rel="shortcut icon" href="_static/logo_test.png"/>
-  
   
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Hotspot Utilities API" href="hs_utilities_api.html" />
     <link rel="prev" title="Hotspot Pharmacophore API" href="hs_pharmacophore_api.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
             <a href="index.html" class="icon icon-home"> Hotspots API
           
 
-          
-            
-            <img src="_static/logo_test.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -166,113 +163,99 @@
 faciliates the <strong>automatic</strong> application of insights from Fragment
 Hotspot Maps to docking.</p>
 <p>This module is designed to extend the existing CSD python API</p>
-<dl class="docutils">
-<dt>More information about the CSD python API is available:</dt>
-<dd><ul class="first last simple">
-<li>The Cambridge Structural Database C.R. Groom, I. J. Bruno, M. P. Lightfoot and S. C. Ward, Acta Crystallographica Section B, B72, 171-179, 2016 [DOI: 10.1107/S2052520616003954]</li>
-<li>CSD python API 2.0.0 <a class="reference external" href="https://downloads.ccdc.cam.ac.uk/documentation/API/">documentation</a></li>
+<dl class="simple">
+<dt>More information about the CSD python API is available:</dt><dd><ul class="simple">
+<li><p>The Cambridge Structural Database C.R. Groom, I. J. Bruno, M. P. Lightfoot and S. C. Ward, Acta Crystallographica Section B, B72, 171-179, 2016 [DOI: 10.1107/S2052520616003954]</p></li>
+<li><p>CSD python API 2.0.0 <a class="reference external" href="https://downloads.ccdc.cam.ac.uk/documentation/API/">documentation</a></p></li>
 </ul>
 </dd>
-<dt>More information about the GOLD method is available:</dt>
-<dd><ul class="first last simple">
-<li>Development and Validation of a Genetic Algorithm for Flexible Docking G. Jones, P. Willett, R. C. Glen, A. R. Leach and R. Taylor, J. Mol. Biol., 267, 727-748, 1997 [DOI: 10.1006/jmbi.1996.0897]</li>
+<dt>More information about the GOLD method is available:</dt><dd><ul class="simple">
+<li><p>Development and Validation of a Genetic Algorithm for Flexible Docking G. Jones, P. Willett, R. C. Glen, A. R. Leach and R. Taylor, J. Mol. Biol., 267, 727-748, 1997 [DOI: 10.1006/jmbi.1996.0897]</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="class">
 <dt id="hotspots.hs_docking.DockerSettings">
-<em class="property">class </em><code class="descclassname">hotspots.hs_docking.</code><code class="descname">DockerSettings</code><span class="sig-paren">(</span><em>_settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_docking.html#DockerSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_docking.DockerSettings" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">hotspots.hs_docking.</code><code class="sig-name descname">DockerSettings</code><span class="sig-paren">(</span><em class="sig-param">_settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_docking.html#DockerSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_docking.DockerSettings" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class to handle the integration of Fragment Hotspot Map data with GOLD</p>
 <p>This class is designed to mirror the existing CSD python API for smooth integration. For use, import this class
 as the docking settings rather than directly from the Docking API.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ccdc.docking</span> <span class="k">import</span> <span class="n">Docker</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.hs_docking</span> <span class="k">import</span> <span class="n">DockerSettings</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ccdc.docking</span> <span class="kn">import</span> <span class="n">Docker</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="kn">import</span> <span class="n">Protein</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="kn">import</span> <span class="n">Runner</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.hs_docking</span> <span class="kn">import</span> <span class="n">DockerSettings</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;1hcl.pdb&quot;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;1hcl.pdb&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">from_protein</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_protein_file</span><span class="p">(</span><span class="s2">&quot;1hcl.pdb&quot;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_protein_file</span><span class="p">(</span><span class="s2">&quot;1hcl.pdb&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_ligand_file</span><span class="p">(</span><span class="s2">&quot;dock_me.mol2&quot;</span><span class="p">,</span> <span class="n">ndocks</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">constraints</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">HotspotHBondConstraint</span><span class="o">.</span><span class="n">from_hotspot</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">proteins</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">hr</span><span class="o">=</span><span class="n">hs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">dock</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">Results</span><span class="p">(</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span><span class="o">.</span><span class="n">ligands</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">docker</span><span class="o">.</span><span class="n">Results</span><span class="p">(</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span><span class="o">.</span><span class="n">ligands</span>
 </pre></div>
 </div>
 <dl class="class">
 <dt id="hotspots.hs_docking.DockerSettings.HotspotHBondConstraint">
-<em class="property">class </em><code class="descname">HotspotHBondConstraint</code><span class="sig-paren">(</span><em>atoms</em>, <em>weight=5.0</em>, <em>min_hbond_score=0.001</em>, <em>_constraint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_docking.html#DockerSettings.HotspotHBondConstraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_docking.DockerSettings.HotspotHBondConstraint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">HotspotHBondConstraint</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">weight=5.0</em>, <em class="sig-param">min_hbond_score=0.001</em>, <em class="sig-param">_constraint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_docking.html#DockerSettings.HotspotHBondConstraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_docking.DockerSettings.HotspotHBondConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>A protein HBond constraint constructed from a hotspot
 Assign Protein Hbond constraints based on the highest scoring interactions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>atoms</strong> (<em>list</em>) – list of <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.molecule.Atom</span></code> instances from the protein. <em>NB: The atoms should be donatable hydrogens or acceptor atoms.</em></li>
-<li><strong>weight</strong> – the penalty to be applied for no atom of the list forming an HBond.</li>
-<li><strong>min_hbond_score</strong> – the minimal score of an HBond to be considered a valid HBond.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atoms</strong> (<em>list</em>) – list of <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.molecule.Atom</span></code> instances from the protein. <em>NB: The atoms should be donatable hydrogens or acceptor atoms.</em></p></li>
+<li><p><strong>weight</strong> – the penalty to be applied for no atom of the list forming an HBond.</p></li>
+<li><p><strong>min_hbond_score</strong> – the minimal score of an HBond to be considered a valid HBond.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="staticmethod">
+</dd>
+</dl>
+<dl class="method">
 <dt id="hotspots.hs_docking.DockerSettings.HotspotHBondConstraint.create">
-<em class="property">static </em><code class="descname">create</code><span class="sig-paren">(</span><em>protein</em>, <em>hr</em>, <em>max_constraints=2</em>, <em>weight=5.0</em>, <em>min_hbond_score=0.001</em>, <em>cutoff=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_docking.html#DockerSettings.HotspotHBondConstraint.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_docking.DockerSettings.HotspotHBondConstraint.create" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">create</code><span class="sig-paren">(</span><em class="sig-param">protein</em>, <em class="sig-param">hr</em>, <em class="sig-param">max_constraints=2</em>, <em class="sig-param">weight=5.0</em>, <em class="sig-param">min_hbond_score=0.001</em>, <em class="sig-param">cutoff=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_docking.html#DockerSettings.HotspotHBondConstraint.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_docking.DockerSettings.HotspotHBondConstraint.create" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_docking.HotspotHBondConstraint</span></code></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>protein</strong> (<em>ccdc.protein.Protein</em>) – the protein to be used for docking</li>
-<li><strong>hr</strong> (<em>hotspots.calculation.Result</em>) – a result from Fragment Hotspot Maps</li>
-<li><strong>max_constraints</strong> (<em>int</em>) – max number of constraints</li>
-<li><strong>weight</strong> (<em>float</em>) – the constraint weight (default to be determined)</li>
-<li><strong>min_hbond_score</strong> (<em>float</em>) – float between 0.0 (bad) and 1.0 (good) determining the minimum hydrogen bond quality in the solutions.</li>
-<li><strong>cutoff</strong> – minimum score required to assign the constraint</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>protein</strong> (<em>ccdc.protein.Protein</em>) – the protein to be used for docking</p></li>
+<li><p><strong>hr</strong> (<em>hotspots.calculation.Result</em>) – a result from Fragment Hotspot Maps</p></li>
+<li><p><strong>max_constraints</strong> (<em>int</em>) – max number of constraints</p></li>
+<li><p><strong>weight</strong> (<em>float</em>) – the constraint weight (default to be determined)</p></li>
+<li><p><strong>min_hbond_score</strong> (<em>float</em>) – float between 0.0 (bad) and 1.0 (good) determining the minimum hydrogen bond quality in the solutions.</p></li>
+<li><p><strong>cutoff</strong> – minimum score required to assign the constraint</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return list:</th><td class="field-body"><p class="first last">list of <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_docking.HotspotHBondConstraint</span></code></p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Return list</dt>
+<dd class="field-even"><p>list of <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.hs_docking.HotspotHBondConstraint</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="method">
 <dt id="hotspots.hs_docking.DockerSettings.generate_fitting_points">
-<code class="descname">generate_fitting_points</code><span class="sig-paren">(</span><em>hr</em>, <em>volume=400</em>, <em>threshold=17</em>, <em>mode='threshold'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_docking.html#DockerSettings.generate_fitting_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_docking.DockerSettings.generate_fitting_points" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">generate_fitting_points</code><span class="sig-paren">(</span><em class="sig-param">hr</em>, <em class="sig-param">volume=400</em>, <em class="sig-param">threshold=17</em>, <em class="sig-param">mode='threshold'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/hs_docking.html#DockerSettings.generate_fitting_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.hs_docking.DockerSettings.generate_fitting_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>uses the Fragment Hotspot Maps to generate GOLD fitting points.</p>
 <p>GOLD fitting points are used to help place the molecules into the protein cavity. Pre-generating these fitting
 points using the Fragment Hotspot Maps helps to biast results towards making Hotspot interactions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>hr</strong> (<em>hotspots.result.Result</em>) – a Fragment Hotspot Maps result</li>
-<li><strong>volume</strong> (<em>int</em>) – volume of the occupied by fitting points in Angstroms ^ 3</li>
-<li><strong>threshold</strong> (<em>float</em>) – points above this value will be included in the fitting points</li>
-<li><strong>mode</strong> (<em>str</em>) – ‘threshold’- assigns fitting points based on a score cutoff or ‘bcv’- assigns fitting points from best continuous volume analysis (recommended)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hr</strong> (<em>hotspots.result.Result</em>) – a Fragment Hotspot Maps result</p></li>
+<li><p><strong>volume</strong> (<em>int</em>) – volume of the occupied by fitting points in Angstroms ^ 3</p></li>
+<li><p><strong>threshold</strong> (<em>float</em>) – points above this value will be included in the fitting points</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – ‘threshold’- assigns fitting points based on a score cutoff or ‘bcv’- assigns fitting points from best continuous volume analysis (recommended)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -290,7 +273,7 @@ points using the Fragment Hotspot Maps helps to biast results towards making Hot
         <a href="hs_utilities_api.html" class="btn btn-neutral float-right" title="Hotspot Utilities API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="hs_pharmacophore_api.html" class="btn btn-neutral" title="Hotspot Pharmacophore API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="hs_pharmacophore_api.html" class="btn btn-neutral float-left" title="Hotspot Pharmacophore API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -316,25 +299,16 @@ points using the Fragment Hotspot Maps helps to biast results towards making Hot
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

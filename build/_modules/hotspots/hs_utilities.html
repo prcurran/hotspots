@@ -13,47 +13,44 @@
 
   
   
-    <link rel="shortcut icon" href="../../_static/logo_test.png"/>
-  
   
   
 
   
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
             <a href="../../index.html" class="icon icon-home"> Hotspots API
           
 
-          
-            
-            <img src="../../_static/logo_test.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -166,13 +163,13 @@
 <span class="sd">    - :class:`hotspots.hs_utilities.Figures`</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
 
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">mkdir</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">mkdir</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span>
 
 <span class="c1"># import matplotlib as mpl</span>
 <span class="c1"># mpl.use(&#39;TkAgg&#39;)</span>
@@ -180,9 +177,9 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">ccdc.cavity</span> <span class="k">import</span> <span class="n">Cavity</span>
-<span class="kn">from</span> <span class="nn">ccdc.io</span> <span class="k">import</span> <span class="n">MoleculeWriter</span>
-<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="k">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Atom</span>
+<span class="kn">from</span> <span class="nn">ccdc.cavity</span> <span class="kn">import</span> <span class="n">Cavity</span>
+<span class="kn">from</span> <span class="nn">ccdc.io</span> <span class="kn">import</span> <span class="n">MoleculeWriter</span>
+<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="kn">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Atom</span>
 
 
 <span class="n">Coordinates</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Coordinates&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">])</span>
@@ -201,7 +198,7 @@
 
 <span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">usrcat.geometry</span> <span class="k">import</span> <span class="n">usr_moments</span><span class="p">,</span> <span class="n">usr_moments_with_existing</span>
+    <span class="kn">from</span> <span class="nn">usrcat.geometry</span> <span class="kn">import</span> <span class="n">usr_moments</span><span class="p">,</span> <span class="n">usr_moments_with_existing</span>
 
     <span class="n">all_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">fcoords_list</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">])</span>
     <span class="c1">#np.vstack(fcoords_list)</span>
@@ -359,14 +356,19 @@
             <span class="n">mol</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mol</span></div>
 
-<div class="viewcode-block" id="Helper.get_atom_type"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.Helper.get_atom_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_atom_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom</span><span class="p">):</span>
+<div class="viewcode-block" id="Helper.get_atom_type"><a class="viewcode-back" href="../../hs_utilities_api.html#hotspots.hs_utilities.Helper.get_atom_type">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_atom_type</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        return the atom classification</span>
 
 <span class="sd">        :param atom:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">is_donor</span> <span class="ow">and</span> <span class="n">atom</span><span class="o">.</span><span class="n">is_acceptor</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">is_donor</span> <span class="ow">and</span> \
+                <span class="n">atom</span><span class="o">.</span><span class="n">atomic_symbol</span> <span class="o">==</span> <span class="s1">&#39;N&#39;</span> <span class="ow">and</span> \
+                <span class="nb">len</span><span class="p">([</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">atom</span><span class="o">.</span><span class="n">neighbours</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">atomic_symbol</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;donor&quot;</span>
+        <span class="k">elif</span> <span class="n">atom</span><span class="o">.</span><span class="n">is_donor</span> <span class="ow">and</span> <span class="n">atom</span><span class="o">.</span><span class="n">is_acceptor</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;doneptor&quot;</span>
         <span class="k">elif</span> <span class="n">atom</span><span class="o">.</span><span class="n">is_acceptor</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;acceptor&quot;</span>
@@ -559,25 +561,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

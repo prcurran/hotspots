@@ -13,47 +13,44 @@
 
   
   
-    <link rel="shortcut icon" href="../../_static/logo_test.png"/>
-  
   
   
 
   
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
             <a href="../../index.html" class="icon icon-home"> Hotspots API
           
 
-          
-            
-            <img src="../../_static/logo_test.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -186,39 +183,39 @@
 <span class="sd">    - Jocelyn Sunseri, David Ryan Koes; Pharmit: interactive exploration of chemical space, Nucleic Acids Research, Volume 44, Issue W1, 8 July 2016, Pages W442-W448 [DIO: 10.1093/nar/gkw287]</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">ccdc</span> <span class="k">import</span> <span class="n">io</span>
-<span class="kn">from</span> <span class="nn">ccdc.descriptors</span> <span class="k">import</span> <span class="n">GeometricDescriptors</span>
-<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="k">import</span> <span class="n">Atom</span><span class="p">,</span> <span class="n">Molecule</span>
-<span class="kn">from</span> <span class="nn">ccdc.pharmacophore</span> <span class="k">import</span> <span class="n">Pharmacophore</span>
-<span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
+<span class="kn">from</span> <span class="nn">ccdc</span> <span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span> <span class="nn">ccdc.descriptors</span> <span class="kn">import</span> <span class="n">GeometricDescriptors</span>
+<span class="kn">from</span> <span class="nn">ccdc.molecule</span> <span class="kn">import</span> <span class="n">Atom</span><span class="p">,</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">ccdc.pharmacophore</span> <span class="kn">import</span> <span class="n">Pharmacophore</span>
+<span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="kn">import</span> <span class="n">Protein</span>
 
-<span class="kn">from</span> <span class="nn">hotspots.grid_extension</span> <span class="k">import</span> <span class="n">Grid</span><span class="p">,</span> <span class="n">Coordinates</span>
-<span class="kn">from</span> <span class="nn">hotspots.hs_utilities</span> <span class="k">import</span> <span class="n">Helper</span>
-<span class="kn">from</span> <span class="nn">hotspots.template_strings</span> <span class="k">import</span> <span class="n">pymol_arrow</span><span class="p">,</span> <span class="n">pymol_imports</span><span class="p">,</span> <span class="n">crossminer_features</span><span class="p">,</span> <span class="n">pymol_labels</span>
-<span class="kn">from</span> <span class="nn">hotspots.pdb_python_api</span> <span class="k">import</span> <span class="n">Query</span><span class="p">,</span> <span class="n">PDB</span><span class="p">,</span> <span class="n">PDBResult</span>
+<span class="kn">from</span> <span class="nn">hotspots.grid_extension</span> <span class="kn">import</span> <span class="n">Grid</span><span class="p">,</span> <span class="n">Coordinates</span>
+<span class="kn">from</span> <span class="nn">hotspots.hs_utilities</span> <span class="kn">import</span> <span class="n">Helper</span>
+<span class="kn">from</span> <span class="nn">hotspots.template_strings</span> <span class="kn">import</span> <span class="n">pymol_arrow</span><span class="p">,</span> <span class="n">pymol_imports</span><span class="p">,</span> <span class="n">crossminer_features</span><span class="p">,</span> <span class="n">pymol_labels</span>
+<span class="kn">from</span> <span class="nn">hotspots.pdb_python_api</span> <span class="kn">import</span> <span class="n">Query</span><span class="p">,</span> <span class="n">PDB</span><span class="p">,</span> <span class="n">PDBResult</span>
 
-<span class="kn">from</span> <span class="nn">rdkit</span> <span class="k">import</span> <span class="n">Chem</span><span class="p">,</span> <span class="n">DataStructs</span>
-<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">MACCSkeys</span><span class="p">,</span> <span class="n">AllChem</span>
-<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="k">import</span> <span class="n">KMeans</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">silhouette_score</span>
-<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
-<span class="kn">import</span> <span class="nn">numba</span>
-<span class="kn">from</span> <span class="nn">sklearn.manifold</span> <span class="k">import</span> <span class="n">TSNE</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span><span class="p">,</span> <span class="n">DataStructs</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">MACCSkeys</span><span class="p">,</span> <span class="n">AllChem</span>
+<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">KMeans</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">silhouette_score</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.manifold</span> <span class="kn">import</span> <span class="n">TSNE</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">hdbscan</span>
 
 
-<div class="viewcode-block" id="tanimoto_dist"><a class="viewcode-back" href="../../hs_pharmacophore_api.html#hotspots.hs_pharmacophore.tanimoto_dist">[docs]</a><span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">tanimoto_dist</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+
+<div class="viewcode-block" id="tanimoto_dist"><a class="viewcode-back" href="../../hs_pharmacophore_api.html#hotspots.hs_pharmacophore.tanimoto_dist">[docs]</a><span class="k">def</span> <span class="nf">tanimoto_dist</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    calculate the tanimoto distance between two fingerprint arrays</span>
 <span class="sd">    :param a:</span>
@@ -234,7 +231,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ccdc_mol</span><span class="p">,</span> <span class="n">rdkit_mol</span><span class="p">,</span> <span class="n">fingerprint</span><span class="p">,</span> <span class="n">chem_id</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ccdc_mol</span><span class="p">,</span> <span class="n">rdkit_mol</span><span class="p">,</span> <span class="n">fingerprint</span><span class="p">,</span> <span class="n">chem_id</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ccdc_mol</span> <span class="o">=</span> <span class="n">ccdc_mol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rdmol</span> <span class="o">=</span> <span class="n">rdkit_mol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fingerprint</span> <span class="o">=</span> <span class="n">fingerprint</span>
@@ -280,7 +277,7 @@
 <span class="sd">        :param float binding_site_radius: Radius of search for binding site calculation, used for excluded volume</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_boundary_cutoff</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_hbond_dist</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">vector_on</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transparency</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_boundary_cutoff</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_hbond_dist</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">vector_on</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transparency</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
                      <span class="n">excluded_volume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">binding_site_radius</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">feature_boundary_cutoff</span> <span class="o">=</span> <span class="n">feature_boundary_cutoff</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">max_hbond_dist</span> <span class="o">=</span> <span class="n">max_hbond_dist</span>
@@ -294,7 +291,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">vector_on</span> <span class="o">=</span> <span class="mi">0</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dic</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">protein</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dic</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">identifier</span> <span class="o">=</span> <span class="n">identifier</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_features</span> <span class="o">=</span> <span class="n">features</span>
 
@@ -315,7 +312,7 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">hotspots.hs_utilities</span> <span class="k">import</span> <span class="n">_generate_usr_moment</span>
+            <span class="kn">from</span> <span class="nn">hotspots.hs_utilities</span> <span class="kn">import</span> <span class="n">_generate_usr_moment</span>
             <span class="n">type_dic</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apolar&quot;</span><span class="p">:</span> <span class="p">[],</span>
                         <span class="s2">&quot;acceptor&quot;</span><span class="p">:</span> <span class="p">[],</span>
                         <span class="s2">&quot;donor&quot;</span><span class="p">:</span> <span class="p">[],</span>
@@ -1102,7 +1099,7 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="kn">from</span> <span class="nn">hotspots.siena</span> <span class="k">import</span> <span class="n">Search</span>
+        <span class="kn">from</span> <span class="nn">hotspots.siena</span> <span class="kn">import</span> <span class="n">Search</span>
         <span class="n">searcher</span> <span class="o">=</span> <span class="n">Search</span><span class="p">()</span>
         <span class="n">ensemble</span> <span class="o">=</span> <span class="n">searcher</span><span class="o">.</span><span class="n">create_ensemble</span><span class="p">(</span><span class="n">pdb_code</span><span class="o">=</span><span class="n">pdb</span><span class="p">,</span>
                                             <span class="n">ligand</span><span class="o">=</span><span class="n">ligand</span><span class="p">,</span>
@@ -1224,7 +1221,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">projected</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">score_value</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">projected</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">,</span> <span class="n">feature_coordinates</span><span class="p">,</span> <span class="n">projected_coordinates</span><span class="p">,</span> <span class="n">score_value</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span>
                  <span class="n">settings</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_projected</span> <span class="o">=</span> <span class="n">projected</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_feature_type</span> <span class="o">=</span> <span class="n">feature_type</span>
@@ -1489,25 +1486,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
