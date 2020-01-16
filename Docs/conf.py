@@ -50,9 +50,11 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Hotspots API'
-copyright = u'2019, Chris Radoux, Peter Curran and Mihaela Smilova'
-author = u'Chris Radoux, Peter Curran and Mihaela Smilova'
 
+author = u'Chris Radoux, Peter Curran,' \
+         u' Mihaela D. Smilova, Richard A. Sykes, Alicia Higueruelo, Anthony Bradley, Brian D. Marsdend, ' \
+         u'David R. Spring, Tom L. Blundell, Andrew R. Leach, William R. Pitt, Jason C. Cole'
+copyright = author
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
@@ -133,7 +135,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'FragmentHotspotMaps.tex', u'Fragment Hotspot Maps Documentation',
-     u'Chris Radoux, Peter Curran, Mihaela Smilova', 'manual'),
+     u'Contributors: {}'.format(author), 'manual'),
 ]
 
 

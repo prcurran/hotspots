@@ -1,0 +1,40 @@
+
+
+********************************************************************************
+Ligand in file /vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2, named ZINC02690713,
+starting at address 8625 raised the following warnings and/or errors
+Warning message: 
+(thio)amide/urea bond [20 18 17 16] in file:
+  /vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2
+is cis ; resetting angle (currently   -0.0)
+
+
+
+********************************************************************************
+Ligand in file /vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2, named ZINC13977156,
+starting at address 30675 raised the following warnings and/or errors
+Warning message: 
+(thio)amide/urea bond [11 12 14 15] in file:
+  /vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2
+is cis ; resetting angle (currently    0.0)
+
+
+
+********************************************************************************
+Ligand in file /vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2, named ZINC14003249,
+starting at address 34080 raised the following warnings and/or errors
+Warning message: 
+(thio)amide/urea bond [10 11 13 14] in file:
+  /vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2
+is cis ; resetting angle (currently    0.0)
+
+
+
+********************************************************************************
+Ligand in file /vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2, named ZINC14018129,
+starting at address 37857 raised the following warnings and/or errors
+Warning message: 
+(thio)amide/urea bond [13 11 10 9] in file:
+  /vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2
+is cis ; resetting angle (currently   -0.0)
+

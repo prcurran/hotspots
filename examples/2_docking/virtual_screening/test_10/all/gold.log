@@ -1,0 +1,23 @@
+Beginning ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2'
+Starting at ligand 1 (byte position 0) in file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2'
+Finishing at final ligand in file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2'
+Completed docking of ligand 1 in ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2' in 0.455669 seconds
+Completed docking of ligand 2 in ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2' in 0.462064 seconds
+Completed docking of ligand 3 in ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2' in 0.504579 seconds
+Completed docking of ligand 4 in ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2' in 0.461073 seconds
+Completed docking of ligand 5 in ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2' in 0.619069 seconds
+Completed docking of ligand 6 in ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2' in 0.624979 seconds
+Completed docking of ligand 7 in ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2' in 0.589086 seconds
+Completed docking of ligand 8 in ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2' in 0.429091 seconds
+Completed docking of ligand 9 in ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2' in 0.646986 seconds
+Completed docking of ligand 10 in ligand file '/vagrant/github_pkgs/hotspots/examples/2_docking/virtual_screening/test_10/all/test.mol2' in 0.532412 seconds
+
+Finished GOLD batch job, exiting..
+
+
+--------------------------------------------------------------------------------
+
+* Total run time :                                                              
+  total  7.1745 user  5.9642 sys  1.2103
+
+--------------------------------------------------------------------------------

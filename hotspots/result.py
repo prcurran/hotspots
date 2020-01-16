@@ -818,8 +818,7 @@ class Results(Helper):
         for feature in self.features:
             if (feature.grid > threshold).count_grid() > min_size:
                 centoid = [feature.grid.centroid()]
-                coords = pairs[feature.feature_type].keys()
-
+                coords = list(pairs[feature.feature_type].keys())
                 all_distances = distance.cdist(coords, centoid, 'euclidean')
                 ind = int(np.argmin(all_distances))
                 min_coord = coords[ind]
@@ -838,7 +837,7 @@ class Results(Helper):
         for b in bin_keys:
             del constraint_dic[b]
 
-        constraint_dic = OrderedDict(reversed(constraint_dic.items()))
+        constraint_dic = OrderedDict(reversed(list(constraint_dic.items())))
 
         return self._ConstraintData(constraint_dic, self.protein)
 

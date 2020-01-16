@@ -1,7 +1,6 @@
-############
+************
 Introduction
-############
-
+************
 
 Fragment hotspot maps predicts the location and key interaction features of small molecule binding "hotspots" and
 provides valuable insights for several stages of early drug and drug target discovery. Built upon the vast quantity of
@@ -21,13 +20,13 @@ burial and sampling the weighted maps using hydrophobic molecular probes. This m
 fragment-to-lead progression. The median fragment atom scores were in the top 98% of all grid point scores.
 
 
-########################
+******************
 Installation Notes
-########################
+******************
 
--------------------------
+=========================
 Step 1: Install CSDS 2019
--------------------------
+=========================
 The CSDS is available from `here <https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/>`_.
 
 
@@ -40,10 +39,9 @@ You may need to set the following environment variables:
 
     export CSDHOME=<path_to_CSDS_installation>/CSD_2019
 
-
--------------------------
+======================
 Step 2: Install Ghecom
--------------------------
+======================
 Ghecom is available from `here <http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html>`_.
 
 "The source code of the ghecom is written in C, and developed and executed on
@@ -61,17 +59,17 @@ Download the file "ghecom-src-[date].tar.gz" file.
     export GHECOM_EXE="<download_directory>"
 	
 	
-------------------------------------------------
+================================================
 Step 3: Create a conda environment (recommended)
-------------------------------------------------
+================================================
 
 .. code-block:: shell
 
     conda create -n hotspots_env python=2.7
 
-------------------------------------------------
+========================================
 Step 4: Install RDKit and CSD python API
-------------------------------------------------
+========================================
 Install RDKit:	
  
 .. code-block:: shell
@@ -87,9 +85,9 @@ Install the Python CSD API:
      unzip csd-python-api-2.1.0-linux-64-py2.7-conda
      conda install -n hotspots -c <path to ccdc_conda_channel> csd-python-api
 	
-------------------------------------------------
+============================
 Step 5: Install Hotspots API
-------------------------------------------------
+============================
 
 Install Hotspots v1.x.x:
 
@@ -121,17 +119,21 @@ NB: dependencies should install automatically. If they do not, please see setup.
 
 ... and you're ready to go!
 
-########################
+
+**********************
 Cookbook Documentation
-########################
+**********************
 
-*********************
+
+=====================
 Running a Calculation
-*********************
+=====================
 
-===================
+
+-------------------
 Protein Preparation
-===================
+-------------------
+
 
 The first step is to make sure your protein is correctly prepared for the calculation. The structures should be
 protonated with small molecules and waters removed. Any waters or small molecules left in the structure will be included
@@ -154,9 +156,9 @@ One way to do this is to use the CSD Python API:
 For best results, manually check proteins before submitting them for calculation.
 
 
-=================================
+---------------------------------
 Calculating Fragment Hotspot Maps
-=================================
+---------------------------------
 
 Once the protein is prepared, the :class:`hotspots.calculation.Runner` object can be used to perform the calculation:
 
@@ -174,10 +176,6 @@ Alternatively, for a quick calculation, you can supply a PDB code and we will pr
 
     r = Runner()
     results = Runner.from_pdb("1hcl")
-
-============================
-Reading and Writing Hotspots
-============================
 
 -------
 Writing
@@ -211,32 +209,311 @@ If you want to revisit the results of a previous calculation, you can load the `
 
     results = hs_io.HotspotReader('results/pdb1/out.zip').read()
 
-***********************
+=======================
 Tractability Assessment
-***********************
-A key criterion in determining the ligandablity of a cavity is the cavity volume. Therefore, comparing the Fragment
-Hotspot scores, for an approximate 'drug-like' volume can be used for ligandability predicition. We've constructed
-a simple ligandability predicition workflow and run it on a dataset containing target annotated as 'druggable'
-and 'less druggable' from the literature
+=======================
 
-Information on the compliation of the dataset is available from:
+Not all pockets provide a suitable environment for binding drug-like molecules. Therefore, good predictions
+of target tractability can save time and effort in early hit identification. Fragment Hotspot Maps annotates a
+set of grids which span the entire volume of pockets within proteins. The grids are scores represent the
+likelihood of making a particular intermolecular interaction and therefore they can be used to differientate
+between pockets and help researchers select a pocket with the highest chance of being tractable.
+
+
+This cookbook example provides a very simple workflow to generate a target tractability model.
+
+----------------------
+Tractability workflow
+----------------------
+
+Firstly, the fragment hotspots calculation is performed. This is done by initialising a `hotspots.calculation.Runner`
+class object, and generate a `hotspots.result.Result` object, in this case we used the
+`hotspots.calculation.Runner.from_pdb` method which generates a result from a PDB code.
+
+
+Next, A `hotspots.result.Result` object is returned. Not all the points within the grids
+are relevant - the entire pocket may not be involved in binding. Therefore, a subset of the cavity grid points are
+selected. The Best Continous Volume method is used to return a sub-pocket which corresponds to a user defined volume,
+and the algorithm selects a continous area which maximises the total score of the fragment hotspot maps grid points. In
+this case an approximate drug-like volume of 500 A^3 is used. This is carried out by using the
+`hotspots.Extractor.extract_volume()` class method.
+
+
+Finally, the score distribution for the best continuous volume are used to discriminate between different pockets. For
+this simple cookbook example, we use the median value to rank the different pockets. These are returned as a dataframe.
+The code block below contains the complete workflow:
+
+.. code-block:: python
+
+    import numpy as np
+    import pandas as pd
+    from hotspots.calculation import Runner
+    from hotspots.result import Extractor
+
+
+    def tractability_workflow(protein, tag):
+        """
+        A very simple tractability workflow.
+
+        :param str protein: PDB identification code
+        :param str tag: Tractability tag: either 'druggable' or 'less-druggable'
+        :return: `pandas.DataFrame`
+        """
+        # 1) calculate Fragment Hotspot Result
+        runner = Runner()
+        result = runner.from_pdb(pdb_code=protein,
+                                 nprocesses=1,
+                                 buriedness_method='ghecom')
+
+        # 2) calculate Best Continuous Volume
+        extractor = Extractor(hr=result)
+        bcv_result = extractor.extract_volume(volume=500)
+
+        # 3) find the median score
+        for probe, grid in bcv_result.super_grids.items():
+            values = grid.grid_values(threshold=5)
+            median = np.median(values)
+
+        # 4) return the data
+        return pd.DataFrame({'scores': values,
+                             'pdb': [protein] * len(values),
+                             'median': [median] * len(values),
+                             'tractability': [tag] * len(values),
+                             })
+
+
+------------------
+Ranking Pockets
+------------------
+
+For this tutorial example, we simply rank the pockets by the median value of the best continuous volume score. Of course,
+for more complex ranking or classification methods could be used if desired. For this example, we take a random
+selection of 65 (43 = 'druggable', 22 = 'less druggable'). More information on this dataset
 
 Krasowski, A.; Muthas, D.; Sarkar, A.; Schmitt, S.; Brenk, R. DrugPred : A Structure-Based Approach To Predict
 Protein Druggability Developed Using an Extensive Nonredundant Data Set.
 J. Chem. Inf. Model. 2011, 2829–2842. https://doi.org/10.1021/ci200266d.
 
+.. code-block:: python
 
+    def main():
+        subset = {'1e9x': 'd', '1udt': 'd', '2bxr': 'd',
+                    '1r9o': 'd', '3d4s': 'd', '1k8q': 'd',
+                    '1xm6': 'd', '1rwq': 'd', '1yvf': 'd',
+                    '2hiw': 'd', '1gwr': 'd', '2g24': 'd',
+                    '1c14': 'd', '1ywn': 'd', '1hvy': 'd',
+                    '1f9g': 'n', '1ai2': 'n', '2ivu': 'd',
+                    '2dq7': 'd', '1m2z': 'd', '2fb8': 'd',
+                    '1o5r': 'd', '2gh5': 'd', '1ke6': 'd',
+                    '1k7f': 'd', '1ucn': 'n', '1hw8': 'd',
+                    '2br1': 'd', '2i0e': 'd', '1js3': 'd',
+                    '1yqy': 'd', '1u4d': 'd', '1sqi': 'd',
+                    '2gsu': 'n', '1kvo': 'd', '1gpu': 'n',
+                    '1qpe': 'd', '1hvr': 'd', '1ig3': 'd',
+                    '1g7v': 'n', '1qmf': 'n', '1r58': 'd',
+                    '1v4s': 'd', '1fth': 'n', '1rsz': 'd',
+                    '1n2v': 'd', '1m17': 'd', '1kts': 'n',
+                    '1ywr': 'd', '2gyi': 'n', '1cg0': 'n',
+                    '5yas': 'n', '1icj': 'n', '1gkc': 'd',
+                    '1hqg': 'n', '1u30': 'd', '1nnc': 'n',
+                    '1c9y': 'n', '1j4i': 'd', '1qxo': 'n',
+                    '1o8b': 'n', '1nlj': 'n', '1rnt': 'n',
+                    '1d09': 'n', '1olq': 'n'}
+
+        pdbs, tags = zip(*[[str(pdb), str(tag)] for pdb, tag in training_set.items()])
+
+        with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
+            dfs = executor.map(tractability_workflow, pdbs, tags)
+
+        df = pd.concat(dfs, ignore_index=True)
+        df = df.sort_values(by='median', ascending=False)
+
+        df.to_csv('scores.csv')
+
+    if __name__ == '__main__':
+        main()
+
+
+We can visualise the score distributions using the seaborn plotting library and use the `ccdc.descriptors` module for
+statical analysis on the ranked pockets.
+
+
+JoyPlot
+---------
 
 .. code-block:: python
 
-***********************
+    # adapted from the seaborn documentation.
+    #
+    import matplotlib.patches as patches
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    def joyplot(df, fname='test.png'):
+        """
+        Visualises the Fragment Hotspot Maps score distributions as a series of stacked kernal density estimates
+        ordered by median value.
+
+        Adapted from the seaborn gallery:
+            https://seaborn.pydata.org/examples/kde_ridgeplot.html
+
+        :param `pandas.DataFrame` df: Fragment Hotspot scores data
+        :return None
+        """
+        sns.set(style="white",
+                rc={"axes.facecolor": (0, 0, 0, 0)},
+                font_scale=6)
+
+        palette = ["#c75048",
+                   "#5bd9a4"
+                   ]
+
+        # Initialize the FacetGrid object
+        ax = sns.FacetGrid(df, row="pdb", hue="tractability", height=4, aspect=75, height=.5, palette=palette)
+
+        # Draw the densities in a few steps
+        ax.map(sns.kdeplot, "scores", clip_on=False, shade=True, alpha=.7, lw=3, bw=.2)
+        ax.map(sns.kdeplot, "scores", clip_on=False, color="w", lw=9, bw=.2)
+
+        # Format the plots
+        ax.set(xlim=(0, 25))  #
+        ax.fig.subplots_adjust(hspace=-.9)
+        ax.set_titles("")
+        ax.set(yticks=[])
+        ax.despine(bottom=True, left=True)
+
+        # Create legend, and position
+        tag = {"d": "Druggable", "n": "Less-Druggable"}
+        labels = [tag[s] for s in set(df["tractability"])]
+        handles = [patches.Patch(color=col, label=lab) for col, lab in zip(palette, labels)]
+        legend = plt.legend(handles=handles, title='Tractability', loc="upper right", bbox_to_anchor=(0.3, 7.5))
+        frame = legend.get_frame()
+        frame.set_facecolor('white')
+        frame.set_edgecolor('white')
+
+        plt.savefig(fname)
+        plt.close()
+
+    df = pd.read_csv('scores.csv')
+    df = df.sort_values(by='median', ascending=False)
+    joyplot(df, 'druggable_joy.png')
+
+
+.. image:: druggable_joy.png
+
+
+Rank Statistics
+-------------------
+
+.. code-block:: python
+
+    import operator
+    import seaborn as sns
+
+    from ccdc.descriptors import StatisticalDescriptors as sd
+
+
+    def rocplot(data, fname='roc.png'):
+        """
+        Create a ROC Curve using seaborn
+
+        :param lists data: supply ranked data as list of list
+        :return: None
+        """
+        rs = sd.RankStatistics(scores=data, activity_column=operator.itemgetter(2))
+        tpr, fpr = rs.ROC()
+        ax = sns.lineplot(x=fpr, y=tpr, estimator=None, color="#c75048")
+        ax = sns.lineplot(x=[0,1], y=[0,1], color="grey")
+        ax.set(xlabel='FPR', ylabel='TPR', title=f"ROC Curve (AUC: {rs.AUC():.2f})")
+
+        plt.savefig(fname)
+        plt.close()
+
+    df = pd.read_csv('scores.csv')
+
+    t = []
+    m = []
+    letter_to_number = {"d": 1, "n": 0}
+    for p in set(df['pdb']):
+        a = df.loc[df['pdb'] == p]
+        t.append(letter_to_number[list(a['tractability'])[0]])
+        m.append(list(a['median'])[0])
+
+    df = pd.DataFrame({'tractability': t,  'median':m})
+    df = df.sort_values(by='median', ascending=False)
+    data = list(zip(list(df["median"]), list(df["tractability"])))
+
+    rocplot(data, fname='druggable_roc.png')
+
+.. image:: druggable_roc.png
+
+------------
+Conclusion
+------------
+
+
+
+
+======================
 Hotspot-Guided Docking
-***********************
+======================
+
+Molecular docking is a staple of early-stage hit identification. When active small molecules are known,
+key interactions can be selected to steer the scoring of molecular pose to favour those molecules making the selected
+interaction. Fragment Hotspot maps can predict critical interactions in the absence of binding data. Using these
+predictions as constraints will likely improve docking enrichment. A preliminary study was conducted by (Radoux, 2018)
+and a full validation is currently underway. Protein Kinase B (AKT1) has been chosen for this tutorial example and was
+used in the prelimenary docking study.
+
+Radoux, C. J. The Automatic Detection of Small Molecule Binding Hotspots on Proteins Applying Hotspots
+to Structure-Based Drug Design. (2018). doi:10.17863/CAM.22314
+
+
+--------------------
+A Hotspot Constraint
+--------------------
+
+To begin, a hotspot calculation is performed on AKT1 (PDB: 3cqw). For this example, the protein was
+protonated using X, all waters, ligands and metal centres were removed.
+
+`hotspots.hsdocking.DockerSettings` inherits from `ccdc.docking.Docker.Settings` to allow smooth integration with the
+CCDC python API. The following code snippet demonstrates how a constraint is generated and added to the
+`hotspots.hsdocking.DockerSettings` class.
 
 .. code-block:: python
 
-***********************
+    from hotspots.hs_docking import DockerSettings
+    from hotspots.hs_io import HotspotReader
+
+
+    result = HotspotReader(<pathtohotspot>).read()
+
+    docker = Docker()
+    docker.settings = DockerSettings()
+    docker.settings.add_protein_file(<pathtoprotein>)
+
+    constraints = docker.settings.HotspotHBondConstraint.create(protein=docker.settings.proteins[0],
+                                                                hr=result,
+                                                                weight=10,
+                                                                min_hbond_score=0.05,
+                                                                max_constraints=1)
+    for constraint in constraints:
+        docker.settings.add_constraint(constraint)
+
+-----------------
+GOLD Docking
+-----------------
+
+With the modified docking settings class, the rest of the docking calculation is carried out in a similar manner to
+any other GOLD API docking. A full run script is provided below, which has been adapted from the CCDC API
+documentation.
+
+https://downloads.ccdc.cam.ac.uk/documentation/API/cookbook_examples/docking_examples.html
+
+.. code-block:: python
+
+==============
 Pharmacophores
-***********************
+==============
 
 .. code-block:: python

@@ -1,0 +1,12 @@
+Fitness list for ligand file test.mol2, molecule 10
+
+Mol No     Score     S(PLP)   S(hbond)     S(cho)   S(metal)  DE(clash)   DE(tors)    DE(con)     intcor     time
+
+  3        34.05     -43.74       0.00       0.59       0.00       0.00       0.74     -10.00       0.02    0.229
+  2        32.78     -46.02       0.00       0.00       0.00       0.00       1.63     -10.00       0.02    0.115
+  1        29.77     -42.80       0.47       0.44       0.00       0.01       2.88     -10.00       0.02    0.100
+
+
+Average Values:
+
+           32.20     -44.19       0.16       0.34       0.00       0.00       1.75     -10.00       0.02    0.148

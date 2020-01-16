@@ -73,9 +73,9 @@
 
 
 \title{Fragment Hotspot Maps Documentation}
-\date{Jan 06, 2020}
+\date{Jan 14, 2020}
 \release{1.0.2}
-\author{Chris Radoux, Peter Curran, Mihaela Smilova}
+\author{Contributors: Chris Radoux, Peter Curran, Mihaela D. Smilova, Richard A. Sykes, Alicia Higueruelo, Anthony Bradley, Brian D. Marsdend, David R. Spring, Tom L. Blundell, Andrew R. Leach, William R. Pitt, Jason C. Cole}
 \newcommand{\sphinxlogo}{\vbox{}}
 \renewcommand{\releasename}{Release}
 \makeindex
@@ -91,35 +91,45 @@
 
 \noindent\sphinxincludegraphics{{hotspots-api-gh-banner}.png}
 
-The Hotspot API has been created to work alongside the CCDC’s CSD Python API, allowing you to run Fragment Hotspot Map
-calculations and process the results within Python.
-
-
-\chapter{Introduction}
-\label{\detokenize{tutorial:introduction}}\label{\detokenize{tutorial::doc}}
-This section will introduce the main functionality of the Hotspots API
-
-
-\section{Getting Started}
-\label{\detokenize{tutorial:getting-started}}
-Although the Hotspots API is publicly available, it is dependant on the CSD python API \sphinxhyphen{} a commercial package.
+This API is publicly available, it is dependant on the CSD python API \sphinxhyphen{} a commercial package.
 If you are an academic user, it’s likely your institution will have a license. If you are unsure if you have a
 license or would like to enquire about purchasing one, please contact \sphinxhref{mailto:support@ccdc.cam.ac.uk}{support@ccdc.cam.ac.uk}
 
 Please note, this is an academic project and we would therefore welcome feedback, contributions and collaborations.
 If you have any queries regarding this package please contact us (\sphinxhref{mailto:pcurran@ccdc.cam.ac.uk}{pcurran@ccdc.cam.ac.uk})!
 
-NB: We recommend installing on a Linux machine
+NB: We recommend installing on a Linux machine. If this isn’t possible, be aware that only the LIGSITE method will be
+available for the buriedness calculation.
 
 
-\subsection{Installation}
-\label{\detokenize{tutorial:installation}}
+\chapter{Introduction}
+\label{\detokenize{tutorial:introduction}}\label{\detokenize{tutorial::doc}}
+Fragment hotspot maps predicts the location and key interaction features of small molecule binding “hotspots” and
+provides valuable insights for several stages of early drug and drug target discovery. Built upon the vast quantity of
+interaction data in the CSD, fragment hotspot maps is able to rapidly detect hotspots from a global search of a
+protein.
 
-\subsubsection{Step 1: Install CSDS 2019}
+The probability of forming common intermolecular interactions (hydrogen\sphinxhyphen{}bonding, charged, apolar) is estimated using
+Superstar. Superstar fragments a protein and uses interaction libraries, abstracted from the CSD, to predict the
+likelihood of finding a probe atom at a given point. The following probes are used: “apolar”: Aromatic CH Carbon,
+“acceptor”: Carbonyl oxygen, “donor”: Uncharged NH Nitrogen, “negative”: Carboxylate, “positive”: Charged NH Nitrogen.
+Although SuperStar does have some hydrophobic correction, the local protein environment is not fully considered.
+Consequently, large regions of the protein are scored highly. Hotspots arise from enclosed,
+hydrophobic pockets that can form directional, polar interactions. Therefore, this method incorporates these physical
+characteristics into the detection of hotspots. This is done in two ways; weighting the SuperStar Maps by the degree of
+burial and sampling the weighted maps using hydrophobic molecular probes. This method was validated on a set of 21
+fragment\sphinxhyphen{}to\sphinxhyphen{}lead progression. The median fragment atom scores were in the top 98\% of all grid point scores.
+
+
+\chapter{Installation Notes}
+\label{\detokenize{tutorial:installation-notes}}
+
+\section{Step 1: Install CSDS 2019}
 \label{\detokenize{tutorial:step-1-install-csds-2019}}
 The CSDS is available from \sphinxhref{https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/}{here}.
 
-You will need a valid site number and confirmation code, this will have been emailed to you when you bought your CSDS 2019 license
+You will need a valid site number and confirmation code, this will have been emailed to you when you bought your
+CSDS 2019 license
 
 You may need to set the following environment variables:
 
@@ -128,7 +138,7 @@ You may need to set the following environment variables:
 \end{sphinxVerbatim}
 
 
-\subsubsection{Step 2: Install Ghecom}
+\section{Step 2: Install Ghecom}
 \label{\detokenize{tutorial:step-2-install-ghecom}}
 Ghecom is available from \sphinxhref{http://strcomp.protein.osaka-u.ac.jp/ghecom/download\_src.html}{here}.
 
@@ -147,14 +157,14 @@ make
 \end{sphinxVerbatim}
 
 
-\subsubsection{Step 3: Create a conda environment (recommended)}
+\section{Step 3: Create a conda environment (recommended)}
 \label{\detokenize{tutorial:step-3-create-a-conda-environment-recommended}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 conda create \PYGZhy{}n hotspots\PYGZus{}env \PYG{n+nv}{python}\PYG{o}{=}\PYG{l+m}{2}.7
 \end{sphinxVerbatim}
 
 
-\subsubsection{Step 4: Install RDKit and CSD python API}
+\section{Step 4: Install RDKit and CSD python API}
 \label{\detokenize{tutorial:step-4-install-rdkit-and-csd-python-api}}
 Install RDKit:
 
@@ -172,7 +182,7 @@ conda install \PYGZhy{}n hotspots \PYGZhy{}c \PYGZlt{}path to ccdc\PYGZus{}conda
 \end{sphinxVerbatim}
 
 
-\subsubsection{Step 5: Install Hotspots API}
+\section{Step 5: Install Hotspots API}
 \label{\detokenize{tutorial:step-5-install-hotspots-api}}
 Install Hotspots v1.x.x:
 \begin{enumerate}
@@ -212,6 +222,9 @@ NB: dependencies should install automatically. If they do not, please see setup.
 
 … and you’re ready to go!
 
+
+\chapter{Cookbook Documentation}
+\label{\detokenize{tutorial:cookbook-documentation}}
 
 \section{Running a Calculation}
 \label{\detokenize{tutorial:running-a-calculation}}
@@ -256,10 +269,7 @@ Alternatively, for a quick calculation, you can supply a PDB code and we will pr
 \end{sphinxVerbatim}
 
 
-\subsection{Reading and Writing Hotspots}
-\label{\detokenize{tutorial:reading-and-writing-hotspots}}
-
-\subsubsection{Writing}
+\subsection{Writing}
 \label{\detokenize{tutorial:writing}}
 The {\hyperref[\detokenize{hs_io_api:module-hotspots.hs_io}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{hotspots.hs\_io}}}}} module handles the reading and writing of both \sphinxcode{\sphinxupquote{hotspots.calculation.results}}
 and \sphinxcode{\sphinxupquote{hotspots.best\_volume.Extractor}} objects. The output \sphinxtitleref{.grd} files can become quite large, but are highly
@@ -277,7 +287,7 @@ visualise the output.
 \end{sphinxVerbatim}
 
 
-\subsubsection{Reading}
+\subsection{Reading}
 \label{\detokenize{tutorial:reading}}
 If you want to revisit the results of a previous calculation, you can load the \sphinxtitleref{out.zip} archive directly into a
 \sphinxcode{\sphinxupquote{hotspots.calculation.results}} instance:
@@ -289,42 +299,229 @@ If you want to revisit the results of a previous calculation, you can load the \
 \end{sphinxVerbatim}
 
 
-\section{Using the Output}
-\label{\detokenize{tutorial:using-the-output}}
-While Fragment Hotspot Maps provide a useful visual guide, the grid\sphinxhyphen{}based data can be used in other SBDD analysis.
+\section{Tractability Assessment}
+\label{\detokenize{tutorial:tractability-assessment}}
+Not all pockets provide a suitable environment for binding drug\sphinxhyphen{}like molecules. Therefore, good predictions
+of target tractability can save time and effort in early hit identification. Fragment Hotspot Maps annotates a
+set of grids which span the entire volume of pockets within proteins. The grids are scores represent the
+likelihood of making a particular intermolecular interaction and therefore they can be used to differientate
+between pockets and help researchers select a pocket with the highest chance of being tractable.
+
+This cookbook example provides a very simple workflow to generate a target tractability model.
 
 
-\subsection{Scoring}
-\label{\detokenize{tutorial:scoring}}
-One example is scoring atoms of either proteins or small molecules.
+\subsection{Tractability workflow}
+\label{\detokenize{tutorial:tractability-workflow}}
+Firstly, the fragment hotspots calculation is performed. This is done by initialising a \sphinxtitleref{hotspots.calculation.Runner}
+class object, and generate a \sphinxtitleref{hotspots.result.Result} object, in this case we used the
+\sphinxtitleref{hotspots.calculation.Runner.from\_pdb} method which generates a result from a PDB code.
 
-This can be done as follows:
+Next, A \sphinxtitleref{hotspots.result.Result} object is returned. Not all the points within the grids
+are relevant \sphinxhyphen{} the entire pocket may not be involved in binding. Therefore, a subset of the cavity grid points are
+selected. The Best Continous Volume method is used to return a sub\sphinxhyphen{}pocket which corresponds to a user defined volume,
+and the algorithm selects a continous area which maximises the total score of the fragment hotspot maps grid points. In
+this case an approximate drug\sphinxhyphen{}like volume of 500 A\textasciicircum{}3 is used. This is carried out by using the
+\sphinxtitleref{hotspots.Extractor.extract\_volume()} class method.
+
+Finally, the score distribution for the best continuous volume are used to discriminate between different pockets. For
+this simple cookbook example, we use the median value to rank the different pockets. These are returned as a dataframe.
+The code block below contains the complete workflow:
 
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
-\PYG{k+kn}{from} \PYG{n+nn}{ccdc}\PYG{n+nn}{.}\PYG{n+nn}{protein} \PYG{k+kn}{import} \PYG{n}{Protein}
-\PYG{k+kn}{from} \PYG{n+nn}{ccdc}\PYG{n+nn}{.}\PYG{n+nn}{io} \PYG{k+kn}{import} \PYG{n}{MoleculeReader}\PYG{p}{,} \PYG{n}{MoleculeWriter}
+\PYG{k+kn}{import} \PYG{n+nn}{numpy} \PYG{k}{as} \PYG{n+nn}{np}
+\PYG{k+kn}{import} \PYG{n+nn}{pandas} \PYG{k}{as} \PYG{n+nn}{pd}
 \PYG{k+kn}{from} \PYG{n+nn}{hotspots}\PYG{n+nn}{.}\PYG{n+nn}{calculation} \PYG{k+kn}{import} \PYG{n}{Runner}
+\PYG{k+kn}{from} \PYG{n+nn}{hotspots}\PYG{n+nn}{.}\PYG{n+nn}{result} \PYG{k+kn}{import} \PYG{n}{Extractor}
 
-    \PYG{n}{r} \PYG{o}{=} \PYG{n}{Runner}\PYG{p}{(}\PYG{p}{)}
-    \PYG{n}{prot} \PYG{o}{=} \PYG{n}{Protein}\PYG{o}{.}\PYG{n}{from\PYGZus{}file}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{1hcl.pdb}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}    \PYG{c+c1}{\PYGZsh{} prepared protein}
-    \PYG{n}{hs} \PYG{o}{=} \PYG{n}{r}\PYG{o}{.}\PYG{n}{from\PYGZus{}protein}\PYG{p}{(}\PYG{n}{prot}\PYG{p}{)}
 
-    \PYG{c+c1}{\PYGZsh{} score molecule}
-    \PYG{n}{mol} \PYG{o}{=} \PYG{n}{MoleculeReader}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{mol.mol2}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
-    \PYG{n}{scored\PYGZus{}mol} \PYG{o}{=} \PYG{n}{hs}\PYG{o}{.}\PYG{n}{score}\PYG{p}{(}\PYG{n}{mol}\PYG{p}{)}
-    \PYG{k}{with} \PYG{n}{MoleculeWriter}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{score\PYGZus{}mol.mol2}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)} \PYG{k}{as} \PYG{n}{w}\PYG{p}{:}
-        \PYG{n}{w}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{n}{scored\PYGZus{}mol}\PYG{p}{)}
+\PYG{k}{def} \PYG{n+nf}{tractability\PYGZus{}workflow}\PYG{p}{(}\PYG{n}{protein}\PYG{p}{,} \PYG{n}{tag}\PYG{p}{)}\PYG{p}{:}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    A very simple tractability workflow.}
 
-    \PYG{c+c1}{\PYGZsh{} score protein}
-    \PYG{n}{scored\PYGZus{}prot} \PYG{o}{=} \PYG{n}{hs}\PYG{o}{.}\PYG{n}{score}\PYG{p}{(}\PYG{n}{hs}\PYG{o}{.}\PYG{n}{prot}\PYG{p}{)}
-    \PYG{k}{with} \PYG{n}{MoleculeWriter}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{scored\PYGZus{}prot.mol2}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)} \PYG{k}{as} \PYG{n}{w}\PYG{p}{:}
-        \PYG{n}{w}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{n}{scored\PYGZus{}prot}\PYG{p}{)}
+\PYG{l+s+sd}{    :param str protein: PDB identification code}
+\PYG{l+s+sd}{    :param str tag: Tractability tag: either \PYGZsq{}druggable\PYGZsq{} or \PYGZsq{}less\PYGZhy{}druggable\PYGZsq{}}
+\PYG{l+s+sd}{    :return: `pandas.DataFrame`}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{c+c1}{\PYGZsh{} 1) calculate Fragment Hotspot Result}
+    \PYG{n}{runner} \PYG{o}{=} \PYG{n}{Runner}\PYG{p}{(}\PYG{p}{)}
+    \PYG{n}{result} \PYG{o}{=} \PYG{n}{runner}\PYG{o}{.}\PYG{n}{from\PYGZus{}pdb}\PYG{p}{(}\PYG{n}{pdb\PYGZus{}code}\PYG{o}{=}\PYG{n}{protein}\PYG{p}{,}
+                             \PYG{n}{nprocesses}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{,}
+                             \PYG{n}{buriedness\PYGZus{}method}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{ghecom}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} 2) calculate Best Continuous Volume}
+    \PYG{n}{extractor} \PYG{o}{=} \PYG{n}{Extractor}\PYG{p}{(}\PYG{n}{hr}\PYG{o}{=}\PYG{n}{result}\PYG{p}{)}
+    \PYG{n}{bcv\PYGZus{}result} \PYG{o}{=} \PYG{n}{extractor}\PYG{o}{.}\PYG{n}{extract\PYGZus{}volume}\PYG{p}{(}\PYG{n}{volume}\PYG{o}{=}\PYG{l+m+mi}{500}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} 3) find the median score}
+    \PYG{k}{for} \PYG{n}{probe}\PYG{p}{,} \PYG{n}{grid} \PYG{o+ow}{in} \PYG{n}{bcv\PYGZus{}result}\PYG{o}{.}\PYG{n}{super\PYGZus{}grids}\PYG{o}{.}\PYG{n}{items}\PYG{p}{(}\PYG{p}{)}\PYG{p}{:}
+        \PYG{n}{values} \PYG{o}{=} \PYG{n}{grid}\PYG{o}{.}\PYG{n}{grid\PYGZus{}values}\PYG{p}{(}\PYG{n}{threshold}\PYG{o}{=}\PYG{l+m+mi}{5}\PYG{p}{)}
+        \PYG{n}{median} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{median}\PYG{p}{(}\PYG{n}{values}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} 4) return the data}
+    \PYG{k}{return} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{(}\PYG{p}{\PYGZob{}}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{scores}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{n}{values}\PYG{p}{,}
+                         \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{pdb}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{p}{[}\PYG{n}{protein}\PYG{p}{]} \PYG{o}{*} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{values}\PYG{p}{)}\PYG{p}{,}
+                         \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{median}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{p}{[}\PYG{n}{median}\PYG{p}{]} \PYG{o}{*} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{values}\PYG{p}{)}\PYG{p}{,}
+                         \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{tractability}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{p}{[}\PYG{n}{tag}\PYG{p}{]} \PYG{o}{*} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{values}\PYG{p}{)}\PYG{p}{,}
+                         \PYG{p}{\PYGZcb{}}\PYG{p}{)}
 \end{sphinxVerbatim}
 
 
-\chapter{Use Cases}
-\label{\detokenize{tutorial:use-cases}}
-To learn about other ways you can use the Hotspots API please read our API documentation.
+\subsection{Ranking Pockets}
+\label{\detokenize{tutorial:ranking-pockets}}
+For this tutorial example, we simply rank the pockets by the median value of the best continuous volume score. Of course,
+for more complex ranking or classification methods could be used if desired. For this example, we take a random
+selection of 65 (43 = ‘druggable’, 22 = ‘less druggable’). More information on this dataset
+
+Krasowski, A.; Muthas, D.; Sarkar, A.; Schmitt, S.; Brenk, R. DrugPred : A Structure\sphinxhyphen{}Based Approach To Predict
+Protein Druggability Developed Using an Extensive Nonredundant Data Set.
+J. Chem. Inf. Model. 2011, 2829\textendash{}2842. \sphinxurl{https://doi.org/10.1021/ci200266d}.
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{k}{def} \PYG{n+nf}{main}\PYG{p}{(}\PYG{p}{)}\PYG{p}{:}
+    \PYG{n}{subset} \PYG{o}{=} \PYG{p}{\PYGZob{}}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1e9x}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1udt}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2bxr}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1r9o}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{3d4s}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1k8q}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+                \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1xm6}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1rwq}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1yvf}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2hiw}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1gwr}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2g24}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+                \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1c14}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1ywn}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1hvy}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1f9g}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1ai2}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2ivu}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+                \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2dq7}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1m2z}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2fb8}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1o5r}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2gh5}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1ke6}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+                \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1k7f}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1ucn}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1hw8}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2br1}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2i0e}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1js3}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+                \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1yqy}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1u4d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1sqi}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2gsu}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1kvo}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1gpu}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+                \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1qpe}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1hvr}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1ig3}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1g7v}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1qmf}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1r58}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+                \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1v4s}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1fth}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1rsz}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1n2v}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1m17}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1kts}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+                \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1ywr}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2gyi}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1cg0}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{5yas}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1icj}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1gkc}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+                \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1hqg}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1u30}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1nnc}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1c9y}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1j4i}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{d}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1qxo}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}
+                \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1o8b}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1nlj}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1rnt}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1d09}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1olq}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{n}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{\PYGZcb{}}
+
+    \PYG{n}{pdbs}\PYG{p}{,} \PYG{n}{tags} \PYG{o}{=} \PYG{n+nb}{zip}\PYG{p}{(}\PYG{o}{*}\PYG{p}{[}\PYG{p}{[}\PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{pdb}\PYG{p}{)}\PYG{p}{,} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{tag}\PYG{p}{)}\PYG{p}{]} \PYG{k}{for} \PYG{n}{pdb}\PYG{p}{,} \PYG{n}{tag} \PYG{o+ow}{in} \PYG{n}{training\PYGZus{}set}\PYG{o}{.}\PYG{n}{items}\PYG{p}{(}\PYG{p}{)}\PYG{p}{]}\PYG{p}{)}
+
+    \PYG{k}{with} \PYG{n}{concurrent}\PYG{o}{.}\PYG{n}{futures}\PYG{o}{.}\PYG{n}{ProcessPoolExecutor}\PYG{p}{(}\PYG{n}{max\PYGZus{}workers}\PYG{o}{=}\PYG{l+m+mi}{2}\PYG{p}{)} \PYG{k}{as} \PYG{n}{executor}\PYG{p}{:}
+        \PYG{n}{dfs} \PYG{o}{=} \PYG{n}{executor}\PYG{o}{.}\PYG{n}{map}\PYG{p}{(}\PYG{n}{tractability\PYGZus{}workflow}\PYG{p}{,} \PYG{n}{pdbs}\PYG{p}{,} \PYG{n}{tags}\PYG{p}{)}
+
+    \PYG{n}{df} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{concat}\PYG{p}{(}\PYG{n}{dfs}\PYG{p}{,} \PYG{n}{ignore\PYGZus{}index}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{)}
+    \PYG{n}{df} \PYG{o}{=} \PYG{n}{df}\PYG{o}{.}\PYG{n}{sort\PYGZus{}values}\PYG{p}{(}\PYG{n}{by}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{median}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{ascending}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{)}
+
+    \PYG{n}{df}\PYG{o}{.}\PYG{n}{to\PYGZus{}csv}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{scores.csv}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+
+\PYG{k}{if} \PYG{n+nv+vm}{\PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{}} \PYG{o}{==} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:}
+    \PYG{n}{main}\PYG{p}{(}\PYG{p}{)}
+\end{sphinxVerbatim}
+
+We can visualise the score distributions using the seaborn plotting library and use the \sphinxtitleref{ccdc.descriptors} module for
+statical analysis on the ranked pockets.
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} adapted from the seaborn documentation.}
+\PYG{c+c1}{\PYGZsh{}}
+\PYG{k+kn}{import} \PYG{n+nn}{matplotlib}\PYG{n+nn}{.}\PYG{n+nn}{patches} \PYG{k}{as} \PYG{n+nn}{patches}
+\PYG{k+kn}{import} \PYG{n+nn}{matplotlib}\PYG{n+nn}{.}\PYG{n+nn}{pyplot} \PYG{k}{as} \PYG{n+nn}{plt}
+\PYG{k+kn}{import} \PYG{n+nn}{seaborn} \PYG{k}{as} \PYG{n+nn}{sns}
+
+\PYG{k}{def} \PYG{n+nf}{joyplot}\PYG{p}{(}\PYG{n}{df}\PYG{p}{,} \PYG{n}{fname}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{test.png}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}\PYG{p}{:}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    Visualises the Fragment Hotspot Maps score distributions as a series of stacked kernal density estimates}
+\PYG{l+s+sd}{    ordered by median value.}
+
+\PYG{l+s+sd}{    Adapted from the seaborn gallery:}
+\PYG{l+s+sd}{        https://seaborn.pydata.org/examples/kde\PYGZus{}ridgeplot.html}
+
+\PYG{l+s+sd}{    :param `pandas.DataFrame` df: Fragment Hotspot scores data}
+\PYG{l+s+sd}{    :return None}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{sns}\PYG{o}{.}\PYG{n}{set}\PYG{p}{(}\PYG{n}{style}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{white}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}
+            \PYG{n}{rc}\PYG{o}{=}\PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{axes.facecolor}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{\PYGZcb{}}\PYG{p}{,}
+            \PYG{n}{font\PYGZus{}scale}\PYG{o}{=}\PYG{l+m+mi}{6}\PYG{p}{)}
+
+    \PYG{n}{palette} \PYG{o}{=} \PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{\PYGZsh{}c75048}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}
+               \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{\PYGZsh{}5bd9a4}\PYG{l+s+s2}{\PYGZdq{}}
+               \PYG{p}{]}
+
+    \PYG{c+c1}{\PYGZsh{} Initialize the FacetGrid object}
+    \PYG{n}{ax} \PYG{o}{=} \PYG{n}{sns}\PYG{o}{.}\PYG{n}{FacetGrid}\PYG{p}{(}\PYG{n}{df}\PYG{p}{,} \PYG{n}{row}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{pdb}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{hue}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{tractability}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{height}\PYG{o}{=}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{n}{aspect}\PYG{o}{=}\PYG{l+m+mi}{75}\PYG{p}{,} \PYG{n}{size}\PYG{o}{=}\PYG{o}{.}\PYG{l+m+mi}{5}\PYG{p}{,} \PYG{n}{palette}\PYG{o}{=}\PYG{n}{palette}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Draw the densities in a few steps}
+    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{map}\PYG{p}{(}\PYG{n}{sns}\PYG{o}{.}\PYG{n}{kdeplot}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{scores}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{clip\PYGZus{}on}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{,} \PYG{n}{shade}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,} \PYG{n}{alpha}\PYG{o}{=}\PYG{o}{.}\PYG{l+m+mi}{7}\PYG{p}{,} \PYG{n}{lw}\PYG{o}{=}\PYG{l+m+mi}{3}\PYG{p}{,} \PYG{n}{bw}\PYG{o}{=}\PYG{o}{.}\PYG{l+m+mi}{2}\PYG{p}{)}
+    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{map}\PYG{p}{(}\PYG{n}{sns}\PYG{o}{.}\PYG{n}{kdeplot}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{scores}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{clip\PYGZus{}on}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{,} \PYG{n}{color}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{w}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{lw}\PYG{o}{=}\PYG{l+m+mi}{9}\PYG{p}{,} \PYG{n}{bw}\PYG{o}{=}\PYG{o}{.}\PYG{l+m+mi}{2}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Format the plots}
+    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set}\PYG{p}{(}\PYG{n}{xlim}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{25}\PYG{p}{)}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{}}
+    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{fig}\PYG{o}{.}\PYG{n}{subplots\PYGZus{}adjust}\PYG{p}{(}\PYG{n}{hspace}\PYG{o}{=}\PYG{o}{\PYGZhy{}}\PYG{o}{.}\PYG{l+m+mi}{9}\PYG{p}{)}
+    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set\PYGZus{}titles}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set}\PYG{p}{(}\PYG{n}{yticks}\PYG{o}{=}\PYG{p}{[}\PYG{p}{]}\PYG{p}{)}
+    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{despine}\PYG{p}{(}\PYG{n}{bottom}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,} \PYG{n}{left}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Create legend, and position}
+    \PYG{n}{tag} \PYG{o}{=} \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{d}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{Druggable}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{n}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{Less\PYGZhy{}Druggable}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{\PYGZcb{}}
+    \PYG{n}{labels} \PYG{o}{=} \PYG{p}{[}\PYG{n}{tag}\PYG{p}{[}\PYG{n}{s}\PYG{p}{]} \PYG{k}{for} \PYG{n}{s} \PYG{o+ow}{in} \PYG{n+nb}{set}\PYG{p}{(}\PYG{n}{df}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{tractability}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{]}\PYG{p}{)}\PYG{p}{]}
+    \PYG{n}{handles} \PYG{o}{=} \PYG{p}{[}\PYG{n}{patches}\PYG{o}{.}\PYG{n}{Patch}\PYG{p}{(}\PYG{n}{color}\PYG{o}{=}\PYG{n}{col}\PYG{p}{,} \PYG{n}{label}\PYG{o}{=}\PYG{n}{lab}\PYG{p}{)} \PYG{k}{for} \PYG{n}{col}\PYG{p}{,} \PYG{n}{lab} \PYG{o+ow}{in} \PYG{n+nb}{zip}\PYG{p}{(}\PYG{n}{palette}\PYG{p}{,} \PYG{n}{labels}\PYG{p}{)}\PYG{p}{]}
+    \PYG{n}{legend} \PYG{o}{=} \PYG{n}{plt}\PYG{o}{.}\PYG{n}{legend}\PYG{p}{(}\PYG{n}{handles}\PYG{o}{=}\PYG{n}{handles}\PYG{p}{,} \PYG{n}{title}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{Tractability}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{loc}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{upper right}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{bbox\PYGZus{}to\PYGZus{}anchor}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mf}{0.3}\PYG{p}{,} \PYG{l+m+mf}{7.5}\PYG{p}{)}\PYG{p}{)}
+    \PYG{n}{frame} \PYG{o}{=} \PYG{n}{legend}\PYG{o}{.}\PYG{n}{get\PYGZus{}frame}\PYG{p}{(}\PYG{p}{)}
+    \PYG{n}{frame}\PYG{o}{.}\PYG{n}{set\PYGZus{}facecolor}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{white}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{frame}\PYG{o}{.}\PYG{n}{set\PYGZus{}edgecolor}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{white}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{n}{fname}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{close}\PYG{p}{(}\PYG{p}{)}
+
+\PYG{n}{df} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{read\PYGZus{}csv}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{score.csv}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{joyplot}\PYG{p}{(}\PYG{n}{df}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{training\PYGZus{}set.png}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\end{sphinxVerbatim}
+
+\noindent\sphinxincludegraphics{{druggable_joy}.png}
+
+ROC analysis.
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{import} \PYG{n+nn}{operator}
+\PYG{k+kn}{import} \PYG{n+nn}{seaborn} \PYG{k}{as} \PYG{n+nn}{sns}
+
+\PYG{k+kn}{from} \PYG{n+nn}{ccdc}\PYG{n+nn}{.}\PYG{n+nn}{descriptors} \PYG{k+kn}{import} \PYG{n}{StatisticalDescriptors} \PYG{k}{as} \PYG{n}{sd}
+
+
+\PYG{k}{def} \PYG{n+nf}{rocplot}\PYG{p}{(}\PYG{n}{data}\PYG{p}{,} \PYG{n}{fname}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{roc.png}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}\PYG{p}{:}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    Create a ROC Curve using seaborn}
+
+\PYG{l+s+sd}{    :param lists data: supply ranked data as list of list}
+\PYG{l+s+sd}{    :return: None}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{rs} \PYG{o}{=} \PYG{n}{sd}\PYG{o}{.}\PYG{n}{RankStatistics}\PYG{p}{(}\PYG{n}{scores}\PYG{o}{=}\PYG{n}{data}\PYG{p}{,} \PYG{n}{activity\PYGZus{}column}\PYG{o}{=}\PYG{n}{operator}\PYG{o}{.}\PYG{n}{itemgetter}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{p}{)}\PYG{p}{)}
+    \PYG{n}{tpr}\PYG{p}{,} \PYG{n}{fpr} \PYG{o}{=} \PYG{n}{rs}\PYG{o}{.}\PYG{n}{ROC}\PYG{p}{(}\PYG{p}{)}
+    \PYG{n}{ax} \PYG{o}{=} \PYG{n}{sns}\PYG{o}{.}\PYG{n}{lineplot}\PYG{p}{(}\PYG{n}{x}\PYG{o}{=}\PYG{n}{fpr}\PYG{p}{,} \PYG{n}{y}\PYG{o}{=}\PYG{n}{tpr}\PYG{p}{,} \PYG{n}{estimator}\PYG{o}{=}\PYG{k+kc}{None}\PYG{p}{,} \PYG{n}{color}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{\PYGZsh{}c75048}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ax} \PYG{o}{=} \PYG{n}{sns}\PYG{o}{.}\PYG{n}{lineplot}\PYG{p}{(}\PYG{n}{x}\PYG{o}{=}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{p}{,} \PYG{n}{y}\PYG{o}{=}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{p}{,} \PYG{n}{color}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{grey}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set}\PYG{p}{(}\PYG{n}{xlabel}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{FPR}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{ylabel}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{TPR}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{title}\PYG{o}{=}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{ROC Curve (AUC: }\PYG{l+s+s2}{\PYGZob{}}\PYG{l+s+s2}{rs.AUC():.2f\PYGZcb{})}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{n}{fname}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{close}\PYG{p}{(}\PYG{p}{)}
+
+\PYG{n}{df} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{read\PYGZus{}csv}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{scores.csv}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+
+\PYG{n}{t} \PYG{o}{=} \PYG{p}{[}\PYG{p}{]}
+\PYG{n}{m} \PYG{o}{=} \PYG{p}{[}\PYG{p}{]}
+\PYG{n}{letter\PYGZus{}to\PYGZus{}number} \PYG{o}{=} \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{d}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{:} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{n}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{:} \PYG{l+m+mi}{0}\PYG{p}{\PYGZcb{}}
+\PYG{k}{for} \PYG{n}{p} \PYG{o+ow}{in} \PYG{n+nb}{set}\PYG{p}{(}\PYG{n}{df}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{pdb}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{]}\PYG{p}{)}\PYG{p}{:}
+    \PYG{n}{a} \PYG{o}{=} \PYG{n}{df}\PYG{o}{.}\PYG{n}{loc}\PYG{p}{[}\PYG{n}{df}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{pdb}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{]} \PYG{o}{==} \PYG{n}{p}\PYG{p}{]}
+    \PYG{n}{t}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n}{letter\PYGZus{}to\PYGZus{}number}\PYG{p}{[}\PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{a}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{tractability}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{]}\PYG{p}{)}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{p}{]}\PYG{p}{)}
+    \PYG{n}{m}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{a}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{median}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{]}\PYG{p}{)}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{p}{)}
+
+\PYG{n}{df} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{(}\PYG{p}{\PYGZob{}}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{tractability}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:} \PYG{n}{t}\PYG{p}{,}  \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{median}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:}\PYG{n}{m}\PYG{p}{\PYGZcb{}}\PYG{p}{)}
+\PYG{n}{df} \PYG{o}{=} \PYG{n}{df}\PYG{o}{.}\PYG{n}{sort\PYGZus{}values}\PYG{p}{(}\PYG{n}{by}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{median}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{ascending}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{)}
+\PYG{n}{data} \PYG{o}{=} \PYG{n+nb}{list}\PYG{p}{(}\PYG{n+nb}{zip}\PYG{p}{(}\PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{df}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{median}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{]}\PYG{p}{)}\PYG{p}{,} \PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{df}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{tractability}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{]}\PYG{p}{)}\PYG{p}{)}\PYG{p}{)}
+
+\PYG{n}{rocplot}\PYG{p}{(}\PYG{n}{data}\PYG{p}{,} \PYG{n}{fname}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{druggable\PYGZus{}roc.png}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\end{sphinxVerbatim}
+
+\noindent\sphinxincludegraphics{{druggable_roc}.png}
+
+
+\section{Hotspot\sphinxhyphen{}Guided Docking}
+\label{\detokenize{tutorial:hotspot-guided-docking}}
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+
+\end{sphinxVerbatim}
+
+
+\section{Pharmacophores}
+\label{\detokenize{tutorial:pharmacophores}}
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+
+\end{sphinxVerbatim}
 
 
 \chapter{Hotspot Calculation API}
@@ -1760,20 +1957,6 @@ path to output directory
 
 \end{fulllineitems}
 
-
-
-\chapter{Indices and tables}
-\label{\detokenize{index:indices-and-tables}}\begin{itemize}
-\item {} 
-\DUrole{xref,std,std-ref}{genindex}
-
-\item {} 
-\DUrole{xref,std,std-ref}{modindex}
-
-\item {} 
-\DUrole{xref,std,std-ref}{search}
-
-\end{itemize}
 
 
 \renewcommand{\indexname}{Python Module Index}
