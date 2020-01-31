@@ -1,0 +1,28 @@
+# Minimal Environment
+channels:
+- <ccdc_conda_channel> # edit as needed
+- rdkit
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- defaults::python=3.7 # new unreleased CSD python API installation is hard-coded for python 3.7
+- defaults::pandas
+## CSD python API with dependencies: https://downloads.ccdc.cam.ac.uk/documentation/API/installation_notes.html
+- defaults::Pillow
+- defaults::six
+- defaults::lxml
+- defaults::numpy
+- defaults::matplotlib
+- csd-python-api
+# HOTSPOTS API dependancy: https://github.com/prcurran/hotspots
+- rdkit::rdkit
+- defaults::scipy
+- defaults::scikit-learn
+- defaults::scikit-image
+- defaults::pandas
+- defaults::cython
+- conda-forge::hdbscan
+- conda-forge::tqdm
+- conda-forge::xmltodict
+- conda-forge::hdbscan
