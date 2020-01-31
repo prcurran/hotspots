@@ -58,7 +58,6 @@ import matplotlib.pyplot as plt
 import hdbscan
 
 
-
 def tanimoto_dist(a, b):
     """
     calculate the tanimoto distance between two fingerprint arrays

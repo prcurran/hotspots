@@ -1,0 +1,413 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Hotspot Calculation API &mdash; Hotspots API 1.0.0 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/logo_test.png"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Hotspot IO API" href="hs_io_api.html" />
+    <link rel="prev" title="Atomic Hotspot Calculation API" href="atomic_hotspot_calculation_api.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Hotspots API
+          
+
+          
+            
+            <img src="_static/logo_test.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atomic_hotspot_calculation_api.html">Atomic Hotspot Calculation API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_io_api.html">Hotspot IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="result_api.html">Result API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_docking_api.html">Hotspot Docking API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_utilities_api.html">Hotspot Utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Hotspots API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Hotspot Calculation API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/calculation_api.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-hotspots.calculation">
+<span id="hotspot-calculation-api"></span><h1>Hotspot Calculation API<a class="headerlink" href="#module-hotspots.calculation" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#module-hotspots.calculation" title="hotspots.calculation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.calculation</span></code></a> handles the main Fragment Hotspot Maps algorithm. In addition, an alternative pocket burial method, Ghecom, is provided.</p>
+<p>The main classes of the <a class="reference internal" href="#module-hotspots.calculation" title="hotspots.calculation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.calculation</span></code></a> module are:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#hotspots.calculation.Buriedness" title="hotspots.calculation.Buriedness"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.Buriedness</span></code></a></li>
+<li><a class="reference internal" href="#hotspots.calculation.Runner" title="hotspots.calculation.Runner"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.Runner</span></code></a></li>
+</ul>
+<dl class="docutils">
+<dt>More information about the Fragment Hotspot Maps method is available from:</dt>
+<dd><ul class="first last simple">
+<li>Radoux, C.J. et. al., Identifying the Interactions that Determine Fragment Binding at Protein Hotspots J. Med. Chem. 2016, 59 (9), 4314-4325 [dx.doi.org/10.1021/acs.jmedchem.5b01980]</li>
+</ul>
+</dd>
+<dt>More information about the Ghecom method is available from:</dt>
+<dd><ul class="first last simple">
+<li>Kawabata T, Go N. Detection of pockets on protein surfaces using small and large probe spheres to find putative ligand binding sites. Proteins 2007; 68: 516-529</li>
+</ul>
+</dd>
+</dl>
+<dl class="class">
+<dt id="hotspots.calculation.Buriedness">
+<em class="property">class </em><code class="descclassname">hotspots.calculation.</code><code class="descname">Buriedness</code><span class="sig-paren">(</span><em>protein</em>, <em>out_grid</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/calculation.html#Buriedness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.calculation.Buriedness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to handle the calculation of pocket burial</p>
+<p>This provides a python interface for the command-line tool.
+Ghecom is available for download <a class="reference external" href="http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html">here!</a></p>
+<p>NB: Currently this method is only available to linux users</p>
+<p>Please ensure you have set the following environment variable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">export</span> <span class="n">GHECOM_EXE</span><span class="o">=&lt;</span><span class="n">path_to_ghecom</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>protein</strong> (<em>ccdc.protein.Protein</em>) – protein to submit for calculation</li>
+<li><strong>out_grid</strong> (<em>ccdc.utilities.Grid</em>) – the output grid NB: must be initialised so that the bounding box covers the whole protein</li>
+<li><strong>settings</strong> (<em>hotspots.hotspot_calculation.Buriedness.Settings</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="hotspots.calculation.Buriedness.Settings">
+<em class="property">class </em><code class="descname">Settings</code><span class="sig-paren">(</span><em>ghecom_executable=None</em>, <em>grid_spacing=0.5</em>, <em>radius_min_large_sphere=2.5</em>, <em>radius_max_large_sphere=9.5</em>, <em>mode='M'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/calculation.html#Buriedness.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.calculation.Buriedness.Settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to handle the buriedness calculation settings using ghecom</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ghecom_executable</strong> (<em>str</em>) – path to ghecom executable NB: should now be set as environment variable</li>
+<li><strong>grid_spacing</strong> (<em>float</em>) – spacing of the results grid. default = 0.5</li>
+<li><strong>radius_min_large_sphere</strong> (<em>float</em>) – radius of the smallest sphere</li>
+<li><strong>radius_max_large_sphere</strong> (<em>float</em>) – radius of the largest sphere</li>
+<li><strong>mode</strong> (<em>str</em>) – <p>options</p>
+<ul>
+<li>’D’ilation ‘E’rosion, ‘C’losing(molecular surface), ‘O’pening.</li>
+<li>’P’ocket(masuya_doi),’p’ocket(kawabata_go),’V’:ca’V’ity, ‘e’roded pocket.</li>
+<li>’M’ultiscale_closing/pocket,’I’nterface_pocket_bwn_two_chains.</li>
+<li>’G’rid_comparison_binary ‘g’rid_comparison_mutiscale.</li>
+<li>’R’ay-based lig site PSP/visibility calculation.</li>
+<li>’L’igand-grid comparison (-ilg and -igA are required)[P]</li>
+</ul>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.calculation.Buriedness.calculate">
+<code class="descname">calculate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/calculation.html#Buriedness.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.calculation.Buriedness.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>runs the buriedness calculation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><cite>hotspots.calculation._BuriednessResult</cite>: a class with a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.utilities.Grid</span></code> attribute</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hotspots.calculation.Runner">
+<em class="property">class </em><code class="descclassname">hotspots.calculation.</code><code class="descname">Runner</code><span class="sig-paren">(</span><em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/calculation.html#Runner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.calculation.Runner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class for running the Fragment Hotspot Map calculation</p>
+<dl class="class">
+<dt id="hotspots.calculation.Runner.Settings">
+<em class="property">class </em><code class="descname">Settings</code><span class="sig-paren">(</span><em>nrotations=3000</em>, <em>apolar_translation_threshold=15</em>, <em>polar_translation_threshold=15</em>, <em>polar_contributions=False</em>, <em>return_probes=False</em>, <em>sphere_maps=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/calculation.html#Runner.Settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.calculation.Runner.Settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>adjusts the default settings for the calculation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nrotations</strong> (<em>int</em>) – number of rotations (keep it below 10**6)</li>
+<li><strong>apolar_translation_threshold</strong> (<em>float</em>) – translate probe to grid points above this threshold. Give lower values for greater sampling. Default 15</li>
+<li><strong>polar_translation_threshold</strong> (<em>float</em>) – translate probe to grid points above this threshold. Give lower values for greater sampling. Default 15</li>
+<li><strong>polar_contributions</strong> (<em>bool</em>) – allow carbon atoms of probes with polar atoms to contribute to the apolar output map.</li>
+<li><strong>return_probes</strong> (<em>bool</em>) – Generate a sorted list of molecule objects, corresponding to probe poses</li>
+<li><strong>sphere_maps</strong> (<em>bool</em>) – When setting the probe score on the output maps, set it for a sphere (radius 1.5) instead of a single point.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.calculation.Runner.from_pdb">
+<code class="descname">from_pdb</code><span class="sig-paren">(</span><em>pdb_code</em>, <em>charged_probes=False</em>, <em>probe_size=7</em>, <em>buriedness_method='ghecom'</em>, <em>nprocesses=3</em>, <em>cavities=False</em>, <em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/calculation.html#Runner.from_pdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.calculation.Runner.from_pdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>generates a result from a pdb code</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pdb_code</strong> (<em>str</em>) – PDB code</li>
+<li><strong>charged_probes</strong> (<em>bool</em>) – If True include positive and negative probes</li>
+<li><strong>probe_size</strong> (<em>int</em>) – Size of probe in number of heavy atoms (3-8 atoms)</li>
+<li><strong>buriedness_method</strong> (<em>str</em>) – Either ‘ghecom’ or ‘ligsite’</li>
+<li><strong>nprocesses</strong> (<em>int</em>) – number of CPU’s used</li>
+<li><strong>settings</strong> (<a class="reference internal" href="#hotspots.calculation.Runner.Settings" title="hotspots.calculation.Runner.Settings"><em>hotspots.calculation.Runner.Settings</em></a>) – holds the calculation settings</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Result</span></code> instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;1hcl&quot;</span><span class="p">)</span>
+<span class="go">Result()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hotspots.calculation.Runner.from_protein">
+<code class="descname">from_protein</code><span class="sig-paren">(</span><em>protein</em>, <em>charged_probes=False</em>, <em>probe_size=7</em>, <em>buriedness_method='ghecom'</em>, <em>cavities=None</em>, <em>nprocesses=1</em>, <em>settings=None</em>, <em>buriedness_grid=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hotspots/calculation.html#Runner.from_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hotspots.calculation.Runner.from_protein" title="Permalink to this definition">¶</a></dt>
+<dd><p>generates a result from a protein</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>protein</strong> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">ccdc.protein.Protein</span></code> instance</li>
+<li><strong>charged_probes</strong> (<em>bool</em>) – If True include positive and negative probes</li>
+<li><strong>probe_size</strong> (<em>int</em>) – Size of probe in number of heavy atoms (3-8 atoms)</li>
+<li><strong>buriedness_method</strong> (<em>str</em>) – Either ‘ghecom’ or ‘ligsite’</li>
+<li><strong>cavities</strong> – Coordinate or <cite>ccdc.cavity.Cavity</cite> or <cite>ccdc.molecule.Molecule</cite> or list specifying the cavity or cavities on which the calculation should be run</li>
+<li><strong>nprocesses</strong> (<em>int</em>) – number of CPU’s used</li>
+<li><strong>settings</strong> (<a class="reference internal" href="#hotspots.calculation.Runner.Settings" title="hotspots.calculation.Runner.Settings"><em>hotspots.calculation.Runner.Settings</em></a>) – holds the sampler settings</li>
+<li><strong>buriedness_grid</strong> (<em>ccdc.utilities.Grid</em>) – pre-calculated buriedness grid</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <a class="reference internal" href="result_api.html#hotspots.result.Results" title="hotspots.result.Results"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Results</span></code></a> instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="k">import</span> <span class="n">Protein</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="k">import</span> <span class="n">Runner</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="o">&lt;</span><span class="n">path_to_protein</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span> <span class="o">=</span> <span class="n">Runner</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">nrotations</span> <span class="o">=</span> <span class="mi">1000</span>  <span class="c1"># fewer rotations increase speed at the expense of accuracy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span><span class="o">.</span><span class="n">from_protein</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">nprocesses</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+<span class="go">Result()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="hs_io_api.html" class="btn btn-neutral float-right" title="Hotspot IO API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="atomic_hotspot_calculation_api.html" class="btn btn-neutral float-left" title="Atomic Hotspot Calculation API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Chris Radoux, Peter Curran and Mihaela Smilova
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

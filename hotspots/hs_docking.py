@@ -191,27 +191,27 @@ class DockerSettings(docking.Docker.Settings):
         self.fitting_points_file = fname
 
 
-def _is_solvent_accessible(protein_coords, atm, min_distance=2):
-    """
-    given a protein and an atom of a protein, determine if the atom is accessible to solvent
-
-    :param protein:
-    :param atm:
-    :return:
-    """
-    if str(atm.atomic_symbol) == 'H':
-        atm_position = np.array(atm.coordinates)
-        neighbour = np.array(atm.neighbours[0].coordinates)
-        direction = np.subtract(atm_position, neighbour) * 2
-        position = np.array([direction + atm_position])
-        distance = min(np.linalg.norm(protein_coords - position, axis=1))
-        if distance > min_distance:
-            return True
-        else:
-            return False
-
-    else:
-        return True
+# def _is_solvent_accessible(protein_coords, atm, min_distance=2):
+#     """
+#     given a protein and an atom of a protein, determine if the atom is accessible to solvent
+#
+#     :param protein:
+#     :param atm:
+#     :return:
+#     """
+#     if str(atm.atomic_symbol) == 'H':
+#         atm_position = np.array(atm.coordinates)
+#         neighbour = np.array(atm.neighbours[0].coordinates)
+#         direction = np.subtract(atm_position, neighbour) * 2
+#         position = np.array([direction + atm_position])
+#         distance = min(np.linalg.norm(protein_coords - position, axis=1))
+#         if distance > min_distance:
+#             return True
+#         else:
+#             return False
+#
+#     else:
+#         return True
 
 
 docking.Docker.Settings = DockerSettings

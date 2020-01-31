@@ -6,7 +6,7 @@
 %
 
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesPackage{sphinx}[2018/12/16 v1.8.3 LaTeX package (Sphinx markup)]
+\ProvidesPackage{sphinx}[2019/09/02 v2.3.0 LaTeX package (Sphinx markup)]
 
 % provides \ltx@ifundefined
 % (many packages load ltxcmds: graphicx does for pdftex and lualatex but
@@ -40,7 +40,7 @@
 % for \text macro and \iffirstchoice@ conditional even if amsmath not loaded
 \RequirePackage{amstext}
 \RequirePackage{textcomp}% "warn" option issued from template
-\RequirePackage{titlesec}
+\RequirePackage[nobottomtitles*]{titlesec}
 \@ifpackagelater{titlesec}{2016/03/15}%
  {\@ifpackagelater{titlesec}{2016/03/21}%
   {}%
@@ -119,7 +119,8 @@
    {\dimexpr-\dp\strutbox
             -\spx@ifcaptionpackage{\abovecaptionskip}{\sphinxbaselineskip}%
             +\sphinxbelowcaptionspace\relax}%
-\def\sphinxatlongtableend{\prevdepth\z@\vskip\sphinxtablepost\relax}%
+\def\sphinxatlongtableend{\@nobreakfalse % latex3/latex2e#173
+    \prevdepth\z@\vskip\sphinxtablepost\relax}%
 % B. Table with tabular or tabulary
 \def\sphinxattablestart{\par\vskip\dimexpr\sphinxtablepre\relax}%
 \let\sphinxattableend\sphinxatlongtableend
@@ -220,7 +221,13 @@
 % For floating figures in the text. Better to load after float.
 \RequirePackage{wrapfig}
 % Separate paragraphs by space by default.
-\RequirePackage{parskip}
+\IfFileExists{parskip-2001-04-09.sty}% since September 2018 TeXLive update
+% new parskip.sty, but let it rollback to old one.
+% hopefully TeX installation not broken and LaTeX kernel not too old
+   {\RequirePackage{parskip}[=v1]}
+% standard one from 1989. Admittedly \section of article/book gives possibly
+% anomalous spacing, but we can't require September 2018 release for some time.
+   {\RequirePackage{parskip}}
 % For parsed-literal blocks.
 \RequirePackage{alltt}
 % Display "real" single quotes in literal blocks.
@@ -407,6 +414,18 @@
 \newcommand\sphinxsetup[1]{\setkeys{sphinx}{#1}}
 
 
+%% ALPHANUMERIC LIST ITEMS
+\newcommand\sphinxsetlistlabels[5]
+{% #1 = style, #2 = enum, #3 = enumnext, #4 = prefix, #5 = suffix
+ % #2 and #3 are counters used by enumerate environement e.g. enumi, enumii.
+ % #1 is a macro such as \arabic or \alph
+ % prefix and suffix are strings (by default empty and a dot).
+ \@namedef{the#2}{#1{#2}}%
+ \@namedef{label#2}{#4\@nameuse{the#2}#5}%
+ \@namedef{p@#3}{\@nameuse{p@#2}#4\@nameuse{the#2}#5}%
+}%
+
+
 %% MAXLISTDEPTH
 %
 % remove LaTeX's cap on nesting depth if 'maxlistdepth' key used.
@@ -509,6 +528,7 @@
 \fi
 
 % make commands known to non-Sphinx document classes
+\providecommand*{\sphinxmaketitle}{\maketitle}
 \providecommand*{\sphinxtableofcontents}{\tableofcontents}
 \ltx@ifundefined{sphinxthebibliography}
  {\newenvironment
@@ -701,25 +721,79 @@
 
 %% GRAPHICS
 %
-% \sphinxincludegraphics defined to resize images larger than the line width,
-% except if height or width option present.
+% \sphinxincludegraphics resizes images larger than the TeX \linewidth (which
+% is adjusted in indented environments), or taller than a certain maximal
+% height (usually \textheight and this is reduced in the environments which use
+% framed.sty to avoid infinite loop if image too tall).
 %
-% If scale is present, rescale before fitting to line width. (since 1.5)
-\newbox\spx@image@box
-\newcommand*{\sphinxincludegraphics}[2][]{%
-  \in@{height}{#1}\ifin@\else\in@{width}{#1}\fi
-  \ifin@ % height or width present
-    \includegraphics[#1]{#2}%
-  \else % no height nor width (but #1 may be "scale=...")
+% In case height or width options are present the rescaling is done
+% (since 2.0), in a way keeping the width:height ratio either native from
+% image or from the width and height options if both were present.
+%
+\newdimen\spx@image@maxheight
+\AtBeginDocument{\spx@image@maxheight\textheight}
+
+% box scratch register
+\newdimen\spx@image@box
+\newcommand*{\sphinxsafeincludegraphics}[2][]{%
+    % #1 contains possibly width=, height=, but no scale= since 1.8.4
     \setbox\spx@image@box\hbox{\includegraphics[#1,draft]{#2}}%
+    \in@false % use some handy boolean flag
     \ifdim \wd\spx@image@box>\linewidth
-      \setbox\spx@image@box\box\voidb@x % clear memory
-      \includegraphics[#1,width=\linewidth]{#2}%
+      \in@true % flag to remember to adjust options and set box dimensions
+      % compute height which results from rescaling width to \linewidth
+      % and keep current aspect ratio. multiply-divide in \numexpr uses
+      % temporarily doubled precision, hence no overflow. (of course we
+      % assume \ht is not a few sp's below \maxdimen...(about 16384pt).
+      \edef\spx@image@rescaledheight % with sp units
+           {\the\numexpr\ht\spx@image@box
+                        *\linewidth/\wd\spx@image@box sp}%
+      \ifdim\spx@image@rescaledheight>\spx@image@maxheight
+        % the rescaled height will be too big, so it is height which decides
+        % the rescaling factor
+        \def\spx@image@requiredheight{\spx@image@maxheight}% dimen register
+        \edef\spx@image@requiredwidth % with sp units
+         {\the\numexpr\wd\spx@image@box
+                      *\spx@image@maxheight/\ht\spx@image@box sp}%
+        % TODO: decide if this commented-out block could be needed due to
+        % rounding in numexpr operations going up
+        % \ifdim\spx@image@requiredwidth>\linewidth
+        %     \def\spx@image@requiredwidth{\linewidth}% dimen register
+        % \fi
+      \else
+        \def\spx@image@requiredwidth{\linewidth}% dimen register
+        \let\spx@image@requiredheight\spx@image@rescaledheight% sp units
+      \fi
     \else
+      % width is ok, let's check height
+      \ifdim\ht\spx@image@box>\spx@image@maxheight
+        \in@true
+        \edef\spx@image@requiredwidth % with sp units
+            {\the\numexpr\wd\spx@image@box
+                         *\spx@image@maxheight/\ht\spx@image@box sp}%
+        \def\spx@image@requiredheight{\spx@image@maxheight}% dimen register
+      \fi
+    \fi % end of check of width and height
+    \ifin@
+      \setbox\spx@image@box
+      \hbox{\includegraphics
+            [%#1,% contained only width and/or height and overruled anyhow
+            width=\spx@image@requiredwidth,height=\spx@image@requiredheight]%
+            {#2}}%
+      % \includegraphics does not set box dimensions to the exactly
+      % requested ones, see https://github.com/latex3/latex2e/issues/112
+      \wd\spx@image@box\spx@image@requiredwidth
+      \ht\spx@image@box\spx@image@requiredheight
+      \leavevmode\box\spx@image@box
+    \else
+      % here we do not modify the options, no need to adjust width and height
+      % on output, they will be computed exactly as with "draft" option
+      \setbox\spx@image@box\box\voidb@x % clear memory
       \includegraphics[#1]{#2}%
     \fi
-  \fi
-}
+}%
+% Use the "safe" one by default (2.0)
+\def\sphinxincludegraphics{\sphinxsafeincludegraphics}
 
 
 %% FIGURE IN TABLE
@@ -980,7 +1054,7 @@
 % Take advantage of the already applied Pygments mark-up to insert
 % potential linebreaks for TeX processing.
 %        {, <, #, %, $, ' and ": go to next line.
-%        _, }, ^, &, >, - and ~: stay at end of broken line.
+%        _, }, ^, &, >, -, ~, and \: stay at end of broken line.
 % Use of \textquotesingle for straight quote.
 % FIXME: convert this to package options ?
 \newcommand*\sphinxbreaksbeforelist {%
@@ -992,6 +1066,7 @@
 \newcommand*\sphinxbreaksafterlist {%
     \do\PYGZus\_\do\PYGZcb\}\do\PYGZca\^\do\PYGZam\&% _, }, ^, &,
     \do\PYGZgt\>\do\PYGZhy\-\do\PYGZti\~% >, -, ~
+    \do\PYGZbs\\% \
 }
 \newcommand*\sphinxbreaksatspecials {%
   \def\do##1##2%
@@ -1003,7 +1078,7 @@
 }
 
 \def\sphinx@verbatim@nolig@list {\do \`}%
-% Some characters . , ; ? ! / are not pygmentized.
+% Some characters . , ; ? ! / are neither pygmentized nor "tex-escaped".
 % This macro makes them "active" and they will insert potential linebreaks.
 % Not compatible with math mode (cf \sphinxunactivateextras).
 \newcommand*\sphinxbreaksbeforeactivelist {}% none
@@ -1036,6 +1111,9 @@
 \newcommand*\sphinxVerbatimTitle {}
 % This box to typeset the caption before framed.sty multiple passes for framing.
 \newbox\sphinxVerbatim@TitleBox
+% This box to measure contents if nested as inner \MakeFramed requires then
+% minipage encapsulation but too long contents then break outer \MakeFramed
+\newbox\sphinxVerbatim@ContentsBox
 % This is a workaround to a "feature" of French lists, when literal block
 % follows immediately; usable generally (does only \par then), a priori...
 \newcommand*\sphinxvspacefixafterfrenchlists{%
@@ -1059,8 +1137,6 @@
   \let\normalsize\footnotesize\let\@parboxrestore\relax
   \def\spx@abovecaptionskip{\sphinxverbatimsmallskipamount}%
 }
-% needed to create wrapper environments of fancyvrb's Verbatim
-\newcommand*{\sphinxVerbatimEnvironment}{\gdef\FV@EnvironName{sphinxVerbatim}}
 \newcommand*{\sphinxverbatimsmallskipamount}{\smallskipamount}
 % serves to implement line highlighting and line wrapping
 \newcommand\sphinxFancyVerbFormatLine[1]{%
@@ -1165,8 +1241,7 @@
     \let\sphinxVerbatimFormatLine\sphinxVerbatimFormatLineNoWrap
   \fi
   \let\FancyVerbFormatLine\sphinxFancyVerbFormatLine
-  % workaround to fancyvrb's check of \@currenvir
-  \let\VerbatimEnvironment\sphinxVerbatimEnvironment
+  \VerbatimEnvironment
   % workaround to fancyvrb's check of current list depth
   \def\@toodeep {\advance\@listdepth\@ne}%
   % The list environment is needed to control perfectly the vertical space.
@@ -1185,17 +1260,23 @@
   \itemsep   \z@skip
   \topsep    \z@skip
   \partopsep \z@skip
-  % trivlist will set \parsep to \parskip = zero
+  % trivlist will set \parsep to \parskip (which itself is set to zero above)
   % \leftmargin will be set to zero by trivlist
   \rightmargin\z@
   \parindent  \z@% becomes \itemindent. Default zero, but perhaps overwritten.
   \trivlist\item\relax
-     \ifsphinxverbatimwithminipage\spx@inframedtrue\fi
-     % use a minipage if we are already inside a framed environment
-     \ifspx@inframed\noindent\begin{minipage}{\linewidth}\fi
-     \MakeFramed {% adapted over from framed.sty's snugshade environment
+     \ifspx@inframed\setbox\sphinxVerbatim@ContentsBox\vbox\bgroup
+        \@setminipage\hsize\linewidth
+        % use bulk of minipage paragraph shape restores (this is needed
+        % in indented contexts, at least for some)
+        \textwidth\hsize \columnwidth\hsize \@totalleftmargin\z@
+        \leftskip\z@skip \rightskip\z@skip  \@rightskip\z@skip
+     \else
+       \ifsphinxverbatimwithminipage\noindent\begin{minipage}{\linewidth}\fi
+       \MakeFramed {% adapted over from framed.sty's snugshade environment
         \advance\hsize-\width\@totalleftmargin\z@\linewidth\hsize\@setminipage
         }%
+     \fi
      % For grid placement from \strut's in \FancyVerbFormatLine
      \lineskip\z@skip
      % active comma should not be overwritten by \@noligs
@@ -1207,14 +1288,54 @@
 }
 {%
   \endOriginalVerbatim
-  \par\unskip\@minipagefalse\endMakeFramed % from framed.sty snugshade
-  \ifspx@inframed\end{minipage}\fi
+  \ifspx@inframed
+   \egroup % finish \sphinxVerbatim@ContentsBox vbox
+   \nobreak % update page totals
+   \ifdim\dimexpr\ht\sphinxVerbatim@ContentsBox+
+         \dp\sphinxVerbatim@ContentsBox+
+         \ht\sphinxVerbatim@TitleBox+
+         \dp\sphinxVerbatim@TitleBox+
+         2\fboxsep+2\fboxrule+
+         % try to account for external frame parameters
+         \FrameSep+\FrameRule+
+         % Usage here of 2 baseline distances is empirical.
+         % In border case where code-block fits barely in remaining space,
+         % it gets framed and looks good but the outer frame may continue
+         % on top of next page and give (if no contents after code-block)
+         % an empty framed line, as testing showed.
+         2\baselineskip+
+         % now add all to accumulated page totals and compare to \pagegoal
+         \pagetotal+\pagedepth>\pagegoal
+    % long contents: do not \MakeFramed. Do make a caption (either before or
+    % after) if title exists. Continuation hints across pagebreaks dropped.
+    % FIXME? a bottom caption may end up isolated at top of next page
+    %        (no problem with a top caption, which is default)
+    \spx@opt@verbatimwithframefalse
+    \def\sphinxVerbatim@Title{\noindent\box\sphinxVerbatim@TitleBox\par}%
+    \sphinxVerbatim@Before
+    \noindent\unvbox\sphinxVerbatim@ContentsBox\par
+    \sphinxVerbatim@After
+   \else
+    % short enough contents: use \MakeFramed. As it is nested, this requires
+    % minipage encapsulation.
+    \noindent\begin{minipage}{\linewidth}%
+     \MakeFramed {% Use it now with the fetched contents
+      \advance\hsize-\width\@totalleftmargin\z@\linewidth\hsize\@setminipage
+      }%
+     \unvbox\sphinxVerbatim@ContentsBox
+     % some of this may be superfluous:
+     \par\unskip\@minipagefalse\endMakeFramed
+    \end{minipage}%
+   \fi
+  \else % non-nested \MakeFramed
+    \par\unskip\@minipagefalse\endMakeFramed % from framed.sty snugshade
+    \ifsphinxverbatimwithminipage\end{minipage}\fi
+  \fi
   \endtrivlist
 }
 \newenvironment {sphinxVerbatimNoFrame}
   {\spx@opt@verbatimwithframefalse
-   % needed for fancyvrb as literal code will end in \end{sphinxVerbatimNoFrame}
-   \def\sphinxVerbatimEnvironment{\gdef\FV@EnvironName{sphinxVerbatimNoFrame}}%
+   \VerbatimEnvironment
    \begin{sphinxVerbatim}}
   {\end{sphinxVerbatim}}
 \newenvironment {sphinxVerbatimintable}
@@ -1227,7 +1348,7 @@
    \let\caption\sphinxfigcaption
    % reduce above caption skip
    \def\spx@abovecaptionskip{\sphinxverbatimsmallskipamount}%
-   \def\sphinxVerbatimEnvironment{\gdef\FV@EnvironName{sphinxVerbatimintable}}%
+   \VerbatimEnvironment
    \begin{sphinxVerbatim}}
   {\end{sphinxVerbatim}}
 
@@ -1244,10 +1365,10 @@
      {\def##1{\discretionary{\char`##2}{\sphinxafterbreak}{\char`##2}}}%
   \do\_\_\do\}\}\do\textasciicircum\^\do\&\&% _, }, ^, &,
   \do\textgreater\>\do\textasciitilde\~% >, ~
+  \do\textbackslash\\% \
 }
 \newcommand*\sphinxbreaksviaactiveinparsedliteral{%
   \sphinxbreaksviaactive % by default handles . , ; ? ! /
-  \do\-% we need also the hyphen character (ends up "as is" in parsed-literal)
   \lccode`\~`\~ %
   % update \dospecials as it is used by \url
   % but deactivation will already have been done hence this is unneeded:
@@ -1258,7 +1379,7 @@
   \lccode`~32 \lowercase{\let~}\spx@verbatim@space\lccode`\~`\~
 }
 \newcommand*{\sphinxunactivateextras}{\let\do\@makeother
-      \sphinxbreaksbeforeactivelist\sphinxbreaksafteractivelist\do\-}%
+      \sphinxbreaksbeforeactivelist\sphinxbreaksafteractivelist}%
 % the \catcode13=5\relax (deactivate end of input lines) is left to callers
 \newcommand*{\sphinxunactivateextrasandspace}{\catcode32=10\relax
       \sphinxunactivateextras}%
@@ -1339,6 +1460,11 @@
 % could nest if LaTeX writer authorized it
 \newenvironment{sphinxShadowBox}
   {\def\FrameCommand {\spx@ShadowFBox }%
+   \advance\spx@image@maxheight
+   -\dimexpr2\sphinxshadowrule
+           +2\sphinxshadowsep
+           +\sphinxshadowsize
+           +\baselineskip\relax
    % configure framed.sty not to add extra vertical spacing
    \ltx@ifundefined{OuterFrameSep}{}{\OuterFrameSep\z@skip}%
    % the \trivlist will add the vertical spacing on top and bottom which is
@@ -1383,7 +1509,7 @@
 % Some are quite plain
 % the spx@notice@bordercolor etc are set in the sphinxadmonition environment
 \newenvironment{sphinxlightbox}{%
-  \par\allowbreak
+  \par
   \noindent{\color{spx@notice@bordercolor}%
             \rule{\linewidth}{\spx@notice@border}}\par\nobreak
   {\parskip\z@skip\noindent}%
@@ -1421,6 +1547,10 @@
 \newenvironment{sphinxheavybox}{\par
    \setlength{\FrameRule}{\spx@notice@border}%
    \setlength{\FrameSep}{\dimexpr.6\baselineskip-\FrameRule\relax}
+   \advance\spx@image@maxheight
+   -\dimexpr2\FrameRule
+           +2\FrameSep
+           +\baselineskip\relax % will happen again if nested, needed indeed!
    % configure framed.sty's parameters to obtain same vertical spacing
    % as for "light" boxes. We need for this to manually insert parskip glue and
    % revert a skip done by framed before the frame.
@@ -1657,17 +1787,37 @@
 % to obtain straight quotes we execute \@noligs as patched by upquote, and
 % \scantokens is needed in cases where it would be too late for the macro to
 % first set catcodes and then fetch its argument. We also make the contents
-% breakable at non-escaped . , ; ? ! / using \sphinxbreaksviaactive.
+% breakable at non-escaped . , ; ? ! / using \sphinxbreaksviaactive,
+% and also at \ character (which is escaped to \textbackslash{}).
+\protected\def\sphinxtextbackslashbreakbefore
+ {\discretionary{}{\sphinxafterbreak\sphinx@textbackslash}{\sphinx@textbackslash}}
+\protected\def\sphinxtextbackslashbreakafter
+ {\discretionary{\sphinx@textbackslash}{\sphinxafterbreak}{\sphinx@textbackslash}}
+\let\sphinxtextbackslash\sphinxtextbackslashbreakafter
 % the macro must be protected if it ends up used in moving arguments,
 % in 'alltt' \@noligs is done already, and the \scantokens must be avoided.
 \protected\def\sphinxupquote#1{{\def\@tempa{alltt}%
   \ifx\@tempa\@currenvir\else
    \ifspx@opt@inlineliteralwraps
-      \sphinxbreaksviaactive\let\sphinxafterbreak\empty
+      % break at . , ; ? ! /
+      \sphinxbreaksviaactive
+      % break also at \
+      \let\sphinx@textbackslash\textbackslash
+      \let\textbackslash\sphinxtextbackslash
+      % by default, no continuation symbol on next line but may be added
+      \let\sphinxafterbreak\sphinxafterbreakofinlineliteral
       % do not overwrite the comma set-up
       \let\verbatim@nolig@list\sphinx@literal@nolig@list
    \fi
    % fix a space-gobbling issue due to LaTeX's original \do@noligs
+% TODO: using \@noligs as patched by upquote.sty is now unneeded because
+% either ` and ' are escaped (non-unicode engines) or they don't build
+% ligatures (unicode engines). Thus remove this and unify handling of `, <, >, 
+% ' and - with the characters . , ; ? ! / as handled via
+% \sphinxbreaksviaactive.
+% Hence \sphinx@do@noligs will be removed, or rather replaced  with code
+% inserting discretionaries, as they allow a continuation symbol on start of
+% next line to achieve common design with code-blocks.
    \let\do@noligs\sphinx@do@noligs
    \@noligs\endlinechar\m@ne\everyeof{}% (<- in case inside \sphinxhref)
    \expandafter\scantokens
@@ -1675,6 +1825,7 @@
 \def\sphinx@do@noligs #1{\catcode`#1\active\begingroup\lccode`\~`#1\relax
     \lowercase{\endgroup\def~{\leavevmode\kern\z@\char`#1 }}}
 \def\sphinx@literal@nolig@list {\do\`\do\<\do\>\do\'\do\-}%
+\let\sphinxafterbreakofinlineliteral\empty
 
 % Some custom font markup commands.
 \protected\def\sphinxstrong#1{\textbf{#1}}
@@ -1722,6 +1873,7 @@
 % reduce hyperref "Token not allowed in a PDF string" warnings on PDF builds
 \AtBeginDocument{\pdfstringdefDisableCommands{%
 % all "protected" macros possibly ending up in section titles should be here
+% TODO: examine if \sphinxhref, \sphinxurl, \sphinnolinkurl should be handled
     \let\sphinxstyleemphasis        \@firstofone
     \let\sphinxstyleliteralemphasis \@firstofone
     \let\sphinxstylestrong          \@firstofone
@@ -1735,7 +1887,19 @@
     \let\sphinxemail    \@firstofone
     \let\sphinxcrossref \@firstofone
     \let\sphinxtermref  \@firstofone
+    \let\sphinxhyphen\sphinxhyphenforbookmarks
 }}
+
+% Special characters
+%
+% This definition prevents en-dash and em-dash TeX ligatures.
+% 
+% It inserts a potential breakpoint after the hyphen. This is to keep in sync
+% with behavior in code-blocks, parsed and inline literals. For a breakpoint
+% before the hyphen use \leavevmode\kern\z@- (within \makeatletter/\makeatother)
+\protected\def\sphinxhyphen#1{-\kern\z@}
+% The {} from texescape mark-up is kept, else -- gives en-dash in PDF bookmark
+\def\sphinxhyphenforbookmarks{-}
 
 % For curly braces inside \index macro
 \def\sphinxleftcurlybrace{\{}
