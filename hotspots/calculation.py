@@ -940,8 +940,6 @@ class Runner(object):
 
         probes = self.sampler.sample(mol, probe=probe)
 
-        print(len(probes))
-
         for pg in self.sampler.probe_grids:
             if pg.name.lower() == probe:
                 try:

@@ -187,7 +187,7 @@ class PharmacophoreModel(Helper):
         :return: dic
         """
         d = {}
-        self.rank_features(max_features=20, feature_threshold=feature_threshold)
+        self.rank_features(max_features=200000, feature_threshold=feature_threshold)
         rank_dic = {"apolar": 0, "donor": 0, "acceptor": 0, "negative":0, "positive":0}
         for feat in self._features:
             d.update({feat.score_value: [feat.feature_type, feat.feature_coordinates, rank_dic[feat.feature_type]]})
@@ -350,7 +350,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                               "donor_projected": "donor",
                               "ring": "apolar"}
         try:
-            Pharmacophore.read_feature_definitions()
+            Pharmacophore.read_feature_definitions(directory="/local/pcurran/CCDC/CSD_CrossMiner/feature_definitions")
         except:
             raise ImportError("Crossminer is only available to CSD-Discovery")
 
@@ -628,7 +628,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                     csv_writer.writerow(l)
 
         elif extension == ".py":
-            with open(fname, "wb") as pymol_file:
+            with open(fname, "w") as pymol_file:
                 lfile = "label_threshold_{}.mol2".format(self.identifier)
 
                 pymol_out = pymol_imports()
@@ -775,6 +775,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                            "acceptor": "acceptor",
                            "negative": "",
                            "positive": "",
+                           "excluded_volume": "surface",
                            }
         if not settings:
             settings = PharmacophoreModel.Settings()
@@ -871,7 +872,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             ligands = list(io.CrystalReader(join(temp, "ligs.mol2")))
 
         try:
-            Pharmacophore.read_feature_definitions()
+            Pharmacophore.read_feature_definitions(directory="/local/pcurran/CCDC/CSD_CrossMiner/feature_definitions")
         except:
             raise ImportError("Crossminer is only available to CSD-Discovery")
 
@@ -883,7 +884,8 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                fd.identifier != 'bromine' and
                                fd.identifier != 'chlorine' and
                                fd.identifier != 'iodine' and
-                               fd.identifier != 'halogen']
+                               fd.identifier != 'halogen' and
+                               fd.identifier != 'deoxyribose']
 
         for fd in feature_definitions:
             detected = [fd.detect_features(ligand) for ligand in ligands]
