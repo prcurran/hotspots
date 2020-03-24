@@ -53,6 +53,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from tqdm import tqdm
 
+import pandas as pd
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 import hdbscan
@@ -596,36 +597,14 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             pharmacophore.write(fname)
 
         elif extension == ".csv":
-            with open(fname, "wb") as csv_file:
-                csv_writer = csv.writer(csv_file, delimiter=",")
-                line = 'Identifier, Feature_type, x, y, z, score, ' \
-                       'projected_x, projected_y, projected_z, ' \
-                       'vector_x, vector_y, vector_z'
-
-                for feature in self._features:
-                    line += "{0},{1},{2},{3},{4},{5}".format(self.identifier,
-                                                             feature.feature_type,
-                                                             feature.feature_coordinates.x,
-                                                             feature.feature_coordinates.y,
-                                                             feature.feature_coordinates.z,
-                                                             feature.score_value
-                                                             )
-                    if feature.projected_coordinates:
-                        line += ",{0},{1},{2}".format(feature.projected_coordinates.x,
-                                                      feature.projected_coordinates.y,
-                                                      feature.projected_coordinates.z)
-                    else:
-                        line += ",0,0,0"
-
-                    if feature.vector:
-                        line += ",{0},{1},{2}".format(feature.vector.x,
-                                                      feature.vector.y,
-                                                      feature.vector.z)
-                    else:
-                        line += ",0,0,0"
-
-                    l = line.split(",")
-                    csv_writer.writerow(l)
+            df = pd.DataFrame({'Identifier': [self.identifier for feature in self._features],
+                               'Feature_type': [feature.feature_type for feature in self._features],
+                               'x': [feature.feature_coordinates.x for feature in self._features],
+                               'y': [feature.feature_coordinates.y for feature in self._features],
+                               'z': [feature.feature_coordinates.z for feature in self._features],
+                               'score': [feature.score_value for feature in self._features]
+                               })
+            df.to_csv(fname)
 
         elif extension == ".py":
             with open(fname, "w") as pymol_file:
