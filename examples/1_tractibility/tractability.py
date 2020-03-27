@@ -134,7 +134,7 @@ def main():
     df = pd.read_csv('scores.csv')
 
     #
-    df2 = pd.read_csv('/home/pcurran/covid/results/tractability/mpro.csv')
+    df2 = pd.read_csv('mpro.csv')
     df = pd.concat([df, df2])
     df.reset_index()
     #
