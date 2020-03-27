@@ -38,7 +38,7 @@ from os.path import basename, splitext, join, dirname
 import numpy as np
 from ccdc import io
 from ccdc.descriptors import GeometricDescriptors
-from ccdc.molecule import Atom, Molecule
+from ccdc.molecule import Atom, Molecule, Coordinates
 from ccdc.pharmacophore import Pharmacophore
 from ccdc.protein import Protein
 
@@ -75,6 +75,7 @@ class _Ligand(object):
     """
 
     """
+
     def __init__(self, ccdc_mol, rdkit_mol, fingerprint, chem_id):
         self.ccdc_mol = ccdc_mol
         self.rdmol = rdkit_mol
@@ -189,7 +190,7 @@ class PharmacophoreModel(Helper):
         """
         d = {}
         self.rank_features(max_features=200000, feature_threshold=feature_threshold)
-        rank_dic = {"apolar": 0, "donor": 0, "acceptor": 0, "negative":0, "positive":0}
+        rank_dic = {"apolar": 0, "donor": 0, "acceptor": 0, "negative": 0, "positive": 0}
         for feat in self._features:
             d.update({feat.score_value: [feat.feature_type, feat.feature_coordinates, rank_dic[feat.feature_type]]})
             rank_dic[feat.feature_type] += 1
@@ -455,8 +456,9 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
         :return:
         """
+
         def fingerprint_array(ligands):
-            X =[]
+            X = []
             for l in ligands:
                 arr = np.zeros((0,))
                 DataStructs.ConvertToNumpyArray(l.fingerprint, arr)
@@ -719,9 +721,9 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         if not settings:
             settings = PharmacophoreModel.Settings()
 
-        feature_list = [_PharmacophoreFeature.from_hotspot(island, probe, result.protein, settings)
-                        for probe, g in result.super_grids.items()
-                        for island in g.islands(threshold) if island.count_grid() >= min_island_size]
+        feature_list = []
+        for probe, g in result.super_grids.items():
+            feature_list.extend(_PharmacophoreFeature.from_hotspot(g, probe, result.protein, settings))
 
         return PharmacophoreModel(settings,
                                   identifier=identifier,
@@ -864,7 +866,10 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                fd.identifier != 'chlorine' and
                                fd.identifier != 'iodine' and
                                fd.identifier != 'halogen' and
-                               fd.identifier != 'deoxyribose']
+                               fd.identifier != 'deoxyribose' and
+                               fd.identifier != 'donor_ch_projected' and
+                               fd.identifier != 'acceptor_projected' and
+                               fd.identifier != 'pyrimidine']
 
         for fd in feature_definitions:
             detected = [fd.detect_features(ligand) for ligand in ligands]
@@ -873,27 +878,36 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             if not all_feats:
                 continue
 
+            print(f"{len(all_feats)} {fd.identifier} features detected")
+
             for f in all_feats:
                 feature_dic[cm_dic[fd.identifier]].set_sphere(f.spheres[0].centre, f.spheres[0].radius, 1)
 
         features = []
+        projected_ident = None
+        projected_coordinates = None
         for feat, feature_grd in feature_dic.items():
-            peaks = feature_grd.get_peaks(min_distance=4, cutoff=1)
+            peaks = feature_grd.get_peaks(min_distance=1, cutoff=0)
+
             for p in peaks:
                 coords = Coordinates(p[0], p[1], p[2])
                 projected_coordinates = None
                 if feat == "donor" or feat == "acceptor":
                     if protein:
+                        projected_ident, \
                         projected_coordinates = _PharmacophoreFeature.get_projected_coordinates(feat,
                                                                                                 coords,
                                                                                                 protein,
                                                                                                 settings)
+
                 features.append(_PharmacophoreFeature(projected=None,
                                                       feature_type=feat,
                                                       feature_coordinates=coords,
                                                       projected_coordinates=projected_coordinates,
+                                                      projected_identifier=projected_ident,
                                                       score_value=feature_grd.value_at_coordinate(coords,
                                                                                                   position=False),
+
                                                       vector=None,
                                                       settings=settings
                                                       )
@@ -910,7 +924,6 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         with open(os.path.join(out_dir, fname), "w") as f:
             for l in ligands:
                 f.write("{},{},{}\n".format(l.structure_id, l.chemical_id, l.smiles))
-
 
     @staticmethod
     def _from_siena(pdb, ligand, mode, identifier, out_dir=None):
@@ -1045,12 +1058,13 @@ class _PharmacophoreFeature(Helper):
 
     """
 
-    def __init__(self, projected, feature_type, feature_coordinates, projected_coordinates, score_value, vector,
-                 settings):
+    def __init__(self, projected, feature_type, feature_coordinates, projected_coordinates, projected_identifier,
+                 score_value, vector, settings):
         self._projected = projected
         self._feature_type = feature_type
         self._feature_coordinates = feature_coordinates
         self._projected_coordinates = projected_coordinates
+        self._projected_identifier = projected_identifier
         self._score_value = score_value
         self._vector = vector
 
@@ -1076,6 +1090,10 @@ class _PharmacophoreFeature(Helper):
         return self._projected_coordinates
 
     @property
+    def projected_identifier(self):
+        return self._projected_identifier
+
+    @property
     def score_value(self):
         return self._score_value
 
@@ -1095,45 +1113,46 @@ class _PharmacophoreFeature(Helper):
         :return: :class:`hotspots.hs_pharmacophore._PharmacophoreFeature`
         """
 
-        def score_feature(grid, threshold=14, percentile=50):
-            """
-            returns
-            :return:
-            """
-            return grid.grid_score(threshold=threshold, percentile=percentile)
-
         feature_type = probe
-        if probe == "apolar":
-            score, feature_coordinates = _PharmacophoreFeature.get_centroid(grid)
-            #turn on for median score
-            #score = score_feature(grid)
-            projected = False
-            projected_coordinates = None
-            vector = None
 
+        if probe == "donor" or probe == "acceptor":
+            temp_g = grid.gaussian(sigma=0.5)
+            peaks = temp_g.get_peaks(min_distance=2, cutoff=0)
+
+            feats = []
+            for peak in peaks:
+                projected_identifier, \
+                projected_coordinates = _PharmacophoreFeature.get_projected_coordinates(feature_type,
+                                                                                        Coordinates(
+                                                                                            x=peak[0],
+                                                                                            y=peak[1],
+                                                                                            z=peak[
+                                                                                                2]),
+                                                                                        protein,
+                                                                                        settings)
+                feats.append(_PharmacophoreFeature(projected=False,
+                                                   feature_type=feature_type,
+                                                   feature_coordinates=Coordinates(x=peak[0], y=peak[1], z=peak[2]),
+                                                   projected_identifier=projected_identifier,
+                                                   projected_coordinates=projected_coordinates,
+                                                   score_value=grid.value_at_point(peak),
+                                                   vector=None,
+                                                   settings=settings)
+                             )
         else:
-            vector = None
-            projected_coordinates = None
-            score, feature_coordinates = _PharmacophoreFeature.get_maxima(grid)
-            # turn on for median score
-            #score = score_feature(grid)
-            if probe == "donor" or probe == "acceptor":
+            temp_g = grid.gaussian(sigma=1)
+            peaks = temp_g.get_peaks(min_distance=4, cutoff=0)
+            feats = [_PharmacophoreFeature(projected=False,
+                                           feature_type=feature_type,
+                                           feature_coordinates=Coordinates(x=peak[0], y=peak[1], z=peak[2]),
+                                           projected_identifier=f"apolar:{grid.value_at_point(peak):.3}",
+                                           projected_coordinates=None,
+                                           score_value=grid.value_at_point(peak),
+                                           vector=None,
+                                           settings=settings)
+                     for peak in peaks]
 
-                projected = True
-                if protein:
-                    projected_coordinates = _PharmacophoreFeature.get_projected_coordinates(feature_type,
-                                                                                            feature_coordinates,
-                                                                                            protein,
-                                                                                            settings)
-                else:
-                    projected_coordinates = None
-                    if projected_coordinates:
-                        vector = _PharmacophoreFeature.get_vector(projected_coordinates, feature_coordinates)
-            else:
-                projected = False
-
-        return _PharmacophoreFeature(projected, feature_type, feature_coordinates, projected_coordinates, score, vector,
-                                     settings)
+        return feats
 
     @staticmethod
     def from_crossminer(feature_str):
@@ -1208,27 +1227,34 @@ class _PharmacophoreFeature(Helper):
         :return: feature_coordinates for hydrogen-bonding partner
         """
         if feature_type == 'donor':
-            atms = [a for a in protein.atoms if a.is_acceptor]
+            atms = {f"{r.identifier}:{a.label}": a
+                    for r in protein.residues for a in r.atoms if a.is_acceptor}
         else:
-            atms = [a for a in protein.atoms if a.is_donor]
+            atms = {f"{r.identifier}:{a.label}": a
+                    for r in protein.residues for a in r.atoms if a.is_donor}
 
-        near_atoms = {}
-        for atm in atms:
+        near_atoms_coords = {}
+        near_atoms_ident = {}
+
+        for ident, atm in atms.items():
             dist = Helper.get_distance(atm.coordinates, feature_coordinates)
             if dist < settings.max_hbond_dist:
-                if dist in near_atoms.keys():
-                    near_atoms[dist].append(atm)
+                if dist in near_atoms_coords.keys():
+                    near_atoms_coords[dist].append(atm)
+                    near_atoms_ident[dist].append(ident)
                 else:
-                    near_atoms.update({dist: [atm]})
+                    near_atoms_coords.update({dist: [atm]})
+                    near_atoms_ident.update({dist: [ident]})
             else:
                 continue
-        if len(near_atoms.keys()) == 0:
+        if len(near_atoms_coords.keys()) == 0:
             return None
 
         else:
-            closest = sorted(near_atoms.keys())[0]
-            select = near_atoms[closest][0]
-            return select.coordinates
+            closest = sorted(near_atoms_coords.keys())[0]
+            select_atom = near_atoms_coords[closest][0]
+            select_identifier = near_atoms_ident[closest][0]
+            return select_identifier, select_atom.coordinates
 
     @staticmethod
     def get_maxima(grid):

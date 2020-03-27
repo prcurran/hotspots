@@ -1,12 +1,16 @@
-import concurrent
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import concurrent
 
 from hotspots.calculation import Runner
 from hotspots.result import Extractor
+from hotspots.grid_extension import Grid
 from ccdc.descriptors import StatisticalDescriptors as sd
 import operator
 
@@ -30,9 +34,9 @@ def tractability_workflow(protein, tag):
     bcv_result = extractor.extract_volume(volume=500)
 
     # 3) find the median score
-    for probe, grid in bcv_result.super_grids.items():
-        values = grid.grid_values(threshold=5)
-        median = np.median(values)
+    grid = Grid.single_grid(bcv_result.super_grids)
+    values = grid.grid_values(threshold=5)
+    median = np.median(values)
 
     # 4) return the data
     return pd.DataFrame({'scores': values,
@@ -59,10 +63,11 @@ def joyplot(df, fname='joy.png'):
 
     palette = ["#5bd9a4",
                "#c75048",
+               "#808080"
                ]
 
     # Initialize the FacetGrid object
-    ax = sns.FacetGrid(df, row="pdb", hue="tractability", height=4, aspect=75, height=.5, palette=palette)
+    ax = sns.FacetGrid(df, row="pdb", hue="tractability", height=4, aspect=20, palette=palette)
 
     # Draw the densities in a few steps
     ax.map(sns.kdeplot, "scores", clip_on=False, shade=True, alpha=.7, lw=3, bw=.2)
@@ -76,7 +81,7 @@ def joyplot(df, fname='joy.png'):
     ax.despine(bottom=True, left=True)
 
     # Create legend, and position
-    tag = {"d": "Druggable", "n": "Less-Druggable"}
+    tag = {"d": "Druggable", "n": "Less-Druggable", "unknown": "Unknown"}
     labels = [tag[s] for s in set(df["tractability"])]
     handles = [patches.Patch(color=col, label=lab) for col, lab in zip(palette, labels)]
     legend = plt.legend(handles=handles, title='Tractability', loc="upper right", bbox_to_anchor=(0.3, 7.5))
@@ -127,22 +132,29 @@ def main():
     # df.sort_values(by='median', ascending=False)
 
     df = pd.read_csv('scores.csv')
+
+    #
+    df2 = pd.read_csv('/home/pcurran/covid/results/tractability/mpro.csv')
+    df = pd.concat([df, df2])
+    df.reset_index()
+    #
+
     df = df.sort_values(by='median', ascending=False)
     joyplot(df, 'druggable_joy.png')
 
-    t = []
-    m = []
-    letter_to_number = {"d": 1, "n": 0}
-    for p in set(df['pdb']):
-        a = df.loc[df['pdb'] == p]
-        t.append(letter_to_number[list(a['tractability'])[0]])
-        m.append(list(a['median'])[0])
-
-    df = pd.DataFrame({'tractability': t,  'median':m})
-    df = df.sort_values(by='median', ascending=False)
-    data = list(zip(list(df["median"]), list(df["tractability"])))
-
-    rocplot(data, fname='druggable_roc.png')
+    # t = []
+    # m = []
+    # letter_to_number = {"d": 1, "n": 0}
+    # for p in set(df['pdb']):
+    #     a = df.loc[df['pdb'] == p]
+    #     t.append(letter_to_number[list(a['tractability'])[0]])
+    #     m.append(list(a['median'])[0])
+    #
+    # df = pd.DataFrame({'tractability': t,  'median':m})
+    # df = df.sort_values(by='median', ascending=False)
+    # data = list(zip(list(df["median"]), list(df["tractability"])))
+    #
+    # rocplot(data, fname='druggable_roc.png')
 
 
 if __name__ == '__main__':
