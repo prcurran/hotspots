@@ -67,7 +67,7 @@ def joyplot(df, fname='joy.png'):
                ]
 
     # Initialize the FacetGrid object
-    ax = sns.FacetGrid(df, row="pdb", hue="tractability", height=4, aspect=20, palette=palette)
+    ax = sns.FacetGrid(df, row="pdb", hue="tractability", height=2, aspect=40, palette=palette)
 
     # Draw the densities in a few steps
     ax.map(sns.kdeplot, "scores", clip_on=False, shade=True, alpha=.7, lw=3, bw=.2)
