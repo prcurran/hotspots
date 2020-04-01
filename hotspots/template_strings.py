@@ -98,6 +98,7 @@ def pymol_imports():
 from os.path import join
 import tempfile
 import zipfile
+import math
 from pymol import cmd, finish_launching
 from pymol.cgo import *
 
@@ -108,6 +109,35 @@ dirpath = None
 
     return out_str
 
+
+def load_bfactors():
+    out_str ="""
+def loadBfacts(mol, startaa=1, source="newBfactors.txt", visual="Y"):
+    obj = cmd.get_object_list(mol)[0]
+    cmd.alter(mol, "b=-1.0")
+    inFile = open(source, 'r')
+    counter = int(startaa)
+    bfacts = []
+    for line in inFile.readlines():
+        bfact = float(line)
+        bfacts.append(bfact)
+        cmd.alter("%s and resi %s and n. CA" % (mol, counter), "b=%s" % bfact)
+        counter = counter + 1
+    if visual == "Y":
+        cmd.show_as("cartoon", mol)
+        cmd.cartoon("putty", mol)
+        cmd.set("cartoon_putty_scale_min", min(bfacts), obj)
+        cmd.set("cartoon_putty_scale_max", max(bfacts), obj)
+        cmd.set("cartoon_putty_transform", 0, obj)
+        cmd.set("cartoon_putty_radius", 0.25, obj)
+        cmd.spectrum("b", "rainbow", "%s and n. CA " % mol)
+        cmd.ramp_new("count", obj, [min(bfacts), max(bfacts)], "rainbow")
+        cmd.recolor()
+
+
+cmd.extend("loadBfacts", loadBfacts);
+"""
+    return out_str
 
 def pymol_arrow():
     out_str = """

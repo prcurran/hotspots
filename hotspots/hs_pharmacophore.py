@@ -723,6 +723,7 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
         feature_list = []
         for probe, g in result.super_grids.items():
+            print(probe)
             feature_list.extend(_PharmacophoreFeature.from_hotspot(g, probe, result.protein, settings))
 
         return PharmacophoreModel(settings,
@@ -1121,24 +1122,28 @@ class _PharmacophoreFeature(Helper):
 
             feats = []
             for peak in peaks:
-                projected_identifier, \
-                projected_coordinates = _PharmacophoreFeature.get_projected_coordinates(feature_type,
-                                                                                        Coordinates(
-                                                                                            x=peak[0],
-                                                                                            y=peak[1],
-                                                                                            z=peak[
-                                                                                                2]),
-                                                                                        protein,
-                                                                                        settings)
-                feats.append(_PharmacophoreFeature(projected=False,
-                                                   feature_type=feature_type,
-                                                   feature_coordinates=Coordinates(x=peak[0], y=peak[1], z=peak[2]),
-                                                   projected_identifier=projected_identifier,
-                                                   projected_coordinates=projected_coordinates,
-                                                   score_value=grid.value_at_point(peak),
-                                                   vector=None,
-                                                   settings=settings)
-                             )
+                try:
+                    projected_identifier, \
+                    projected_coordinates = _PharmacophoreFeature.get_projected_coordinates(feature_type,
+                                                                                            Coordinates(
+                                                                                                x=peak[0],
+                                                                                                y=peak[1],
+                                                                                                z=peak[
+                                                                                                    2]),
+                                                                                            protein,
+                                                                                            settings)
+                    print(projected_identifier, projected_coordinates)
+                    feats.append(_PharmacophoreFeature(projected=False,
+                                                       feature_type=feature_type,
+                                                       feature_coordinates=Coordinates(x=peak[0], y=peak[1], z=peak[2]),
+                                                       projected_identifier=projected_identifier,
+                                                       projected_coordinates=projected_coordinates,
+                                                       score_value=grid.value_at_point(peak),
+                                                       vector=None,
+                                                       settings=settings)
+                                 )
+                except TypeError:
+                    continue
         else:
             temp_g = grid.gaussian(sigma=1)
             peaks = temp_g.get_peaks(min_distance=4, cutoff=0)
@@ -1227,10 +1232,10 @@ class _PharmacophoreFeature(Helper):
         :return: feature_coordinates for hydrogen-bonding partner
         """
         if feature_type == 'donor':
-            atms = {f"{r.identifier}:{a.label}": a
+            atms = {f"{r.identifier.split(':')[1]}: {a.label}": a
                     for r in protein.residues for a in r.atoms if a.is_acceptor}
         else:
-            atms = {f"{r.identifier}:{a.label}": a
+            atms = {f"{r.identifier.split(':')[1]}: {a.label}": a
                     for r in protein.residues for a in r.atoms if a.is_donor}
 
         near_atoms_coords = {}
