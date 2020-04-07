@@ -225,7 +225,7 @@ class _AtomicHotspot(object):
             out = self.settings.temp_dir
 
         with PushDir(out):
-            with MoleculeWriter(join(out, 'protein.pdb')) as writer:
+            with MoleculeWriter(join(out, 'protein.mol2')) as writer:
                 writer.write(protein)
 
         for jobname, probename in self.settings.atomic_probes.items():
@@ -477,7 +477,7 @@ PEAK_FITTING 0
 PEAK_FITTING_NCYCLES 1
 MIN_PEAK_HEIGHT 0
 PEAK_FITTING_REFINE 0
-MOLECULE_FILE protein.pdb
+MOLECULE_FILE protein.mol2
 CAVITY_DETECTION 1
 MIN_PSP 5
 SAVE_CAVITY MESH

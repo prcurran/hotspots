@@ -38,19 +38,18 @@ Installation
 ============
 
 
-1 Install CSDS 2019
+1 Install CSDS 2020
 ----------------------
 
 The CSDS is available from [here](https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/).
 
-You will need a valid site number and confirmation code, this will have been
-emailed to you when you bought your CSDS 2019 license.
+You will need your customer number and activation key. You must activate your license before proceeding.
 
 
 2 Install GHECOM
 -------------------
 
-Ghecom is available from [here](http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html).
+Ghecom is available from [here](https://pdbj.org/ghecom/download_src.html).
 
 "The source code of the GHECOM is written in C, and developed and executed on
 the linux environment (actually on the Fedora Core).  For the installation,
@@ -66,29 +65,36 @@ Download the file ``ghecom-src-[date].tar.gz`` file.
 NB: The executable will be located at the parent directory.
 
 
-3 Create conda environment (recommended)
+3 Create conda environment
 ------------------------------------------------
+
+Download the environment.yml file from the github repositiory. 
+
+Open the file, and edit the file path to the your local ccdc conda channel 
+that was installed as part of your CSDS:
+
+"file:///home/pcurran/CCDC/Python_API_2020/ccdc_conda_channel"
+
+Save and close environment.yml.
+
+Create conda environment using the environment.yml:
+
+    conda create -n hotspots -f environment.yml
     
-    conda create -n hotspots python=2.7
-    
-4 Create Install RDKit and CSD Python API
-------------------------------------------------		
+Finally, there are a few environment variables to set:
 
-Install RDKit:	
- 
- 	conda install -n hotspots -c rdkit rdkit
+    $ export CSDHOME=/home/my_ccdc_software_dir/CCDC/CSD_2020
+    $ export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$CONDA_PREFIX/lib/python3.7/site-packages/ccdc/_lib:$LD_LIBRARY_PATH
+    $ export GHECOM_EXE=$PREFIX/ghecom_latest/ghecom
 
-The latest standalone CSD-Python-API installer from is available [here](https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87).
+We recommend saving these within your conda environment. To do this, see `setup_environment.sh` shell script within 
+the hotspots repositiory. For more details on saving environment variables, see the 
+conda [documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html).
 
-Install the Python CSD API:
-     
-     unzip csd-python-api-2.1.0-linux-64-py2.7-conda
-     conda install -n hotspots -c <path to ccdc_conda_channel> csd-python-api
+4 Install Hotspots API
+------------------------------------------------
 
- 5 Install Hotspots		
-------------------------------------------------		
-
-Install Hotspots v1.x.x:
+Install Hotspots v1.0.3:
 
 a) Latest stable release (recommended for most users):
 
@@ -96,18 +102,17 @@ a) Latest stable release (recommended for most users):
  
     pip install hotspots
     or 
-    pip install https://github.com/prcurran/hotspots/archive/v1.x.x.zip
+    pip install https://github.com/prcurran/hotspots/archive/v1.0.3.zip
 
 b) Very latest code
     
     mkdir ./hotspots_code
+    cd hotspots_code
+    
     git clone git@github.com:prcurran/hotspots.git
     conda activate hotspots
-    cd hotspots_code
-    pip install hotspots_code
+    pip install ./hotspots
     
- NB: dependencies should install automatically. If they do not, please see setup.py for the package requirements!
-
 
 ## Hotspots API Usage
 ---------------------

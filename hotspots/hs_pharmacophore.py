@@ -815,6 +815,115 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                   protein=protein)
 
     @staticmethod
+    def from_arpeggio(pdb_code, hetid):
+        arpeggio_dic = {'hbond acceptor': "acceptor",
+                        'weak hbond acceptor': "acceptor",
+                        'pos ionisable': "positive",
+                        'neg ionisable': "negative",
+                        'aromatic': "apolar",
+                        'carbonyl oxygen': None,
+                        'carbonyl carbon': None,
+                        'hydrophobe': "apolar",
+                        'hbond donor': "donor",
+                        'xbond acceptor': None,
+                        'weak hbond donor': "donor"}
+
+
+        tmpdir = tempfile.mkdtemp()
+        pdbfile = pdb_code
+
+        PDBResult(identifier=pdb_code).download(out_dir=tmpdir)
+
+        prot = Protein.from_file(os.path.join(tmpdir, f'{pdb_code}.pdb'))
+        prot.detect_ligand_bonds()
+
+        for l in prot.ligands:
+            if l.identifier.split(":")[1][:3] == hetid:
+                ligand_index = l.identifier.split(":")[1][3:]
+                ligand = l
+
+        cmd = f"""
+        docker run --rm -v "{tmpdir}":/run -u `id -u`:`id -g` -it harryjubb/arpeggio python arpeggio.py /run/{pdbfile}.pdb -s RESNAME:{hetid} -v
+        """
+        os.system(cmd)
+        # interpret the output files
+        headers = ["atom1",
+                   "atom2",
+                   "clash",
+                   "covalent",
+                   "vdwclash",
+                   "vdw",
+                   "proximal",
+                   "hbond",
+                   "weakhbond",
+                   "halogenbond",
+                   "ionic",
+                   "metalic",
+                   "aromatic",
+                   "hydrophobic",
+                   "carbonyl",
+                   "polar",
+                   "weakpolar",
+                   "relationship"]
+
+        atom_types = pd.read_csv(os.path.join(tmpdir, f"{pdb_code}.atomtypes"),
+                                 sep='\t',
+                                 names=["atom", "atomtype"],
+                                 index_col=False)
+
+        atom_types.atomtype = [re.findall(r"'(.*?)'", row.atomtype) for index, row in atom_types.iterrows()]
+
+        atom_to_ring = pd.read_csv(os.path.join(tmpdir, f"{pdb_code}.ari"),
+                                   sep='\t',
+                                   names=["atom", "ringid", "resid", "centroid", "interactiontypes", "atype", "btype"],
+                                   index_col=False)
+
+        atom_to_ring.centroid = [str(row.centroid).strip("][").split(",") for index, row in atom_to_ring.iterrows()]
+        atom_to_ring.interactiontype = [re.findall(r"'(.*?)'", row.interactiontype) for index, row in atom_types.iterrows()]
+
+
+        # df = pd.read_csv(os.path.join(tmpdir, f"{pdb_code}.contacts"),
+        #                  sep='\t',
+        #                  names=headers,
+        #                  index_col=False)
+        #
+        # res_1 = [str(row["atom1"]).split("/")[1] for index, row in df.iterrows()]
+        # res_2 = [str(row["atom2"]).split("/")[1] for index, row in df.iterrows()]
+        # df["residue1"] = res_1
+        # df["residue2"] = res_2
+        #
+        # df = df.loc[(df.residue1 == ligand_index) | (df.residue2 == ligand_index)]
+        # df = df.reset_index()
+        #
+        # ligand_atoms = []
+        # for index, row in df.iterrows():
+        #     if str(row.residue1) == ligand_index:
+        #         lig_atom = str(row.atom1).split("/")[2]
+        #     elif str(row.residue2) == ligand_index:
+        #         lig_atom = str(row.atom2).split("/")[2]
+        #     else:
+        #         lig_atom = "NaN"
+        #     ligand_atoms.append(lig_atom)
+        #
+        # df["ligandatom"] = ligand_atoms
+        # for atm in ligand.heavy_atoms:
+        #     if atm.label == "N2":
+        #         interactions = df.loc[df.ligandatom == atm.label]
+        #         print(interactions.loc[interactions.weakpolar == 1])
+                # int_list = []
+                # for index, row in interactions.iterrows():
+                #     for col in [c for c in interactions.columns if c not in ["proximal",
+                #                                                              "index",
+                #                                                              "atom1",
+                #                                                              "atom2"]
+                #                 ]:
+                #         if row[str(col)] == 1:
+                #             int_list.append(str(col))
+                # print(int_list)
+
+        return 0
+    
+    @staticmethod
     def from_ligands(ligands, identifier, protein=None, settings=None):
         """
         creates a Pharmacophore Model from a collection of overlaid ligands

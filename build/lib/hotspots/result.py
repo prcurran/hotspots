@@ -127,6 +127,7 @@ class _Scorer(Helper):
                             score = 0
                         else:
                             score = max(score)
+                            print(score)
 
                         prot.atoms[feature.atom.index].partial_charge = score
 
@@ -197,9 +198,11 @@ class _Scorer(Helper):
         prot = self.object
         try:
             prot = self._score_protein_cavity(prot=prot)
+            print("a")
 
         except IndexError:
             prot = self._score_protein_backup(prot=prot)
+            print("b")
 
         return prot
 
@@ -584,7 +587,6 @@ class Results(Helper):
     def get_difference_map(self, other, tolerance):
         """
         *Experimental feature.*
-
         Generates maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
         by the binding site of interest prior to calculation.
         High scoring regions of a map represent areas of favourable interaction in the target binding site, not
@@ -804,10 +806,13 @@ class Results(Helper):
         print(len(self.protein.atoms))
 
         donors = {x.coordinates: x.label for x in [a for a in protein.atoms if a.atomic_number == 1]
-                  if x.neighbours[0].is_donor and x.solvent_accessible_surface() > accessible_cutoff}
+                  if x.neighbours[0].is_donor 
+                  # and x.solvent_accessible_surface() > accessible_cutoff
+                  }
 
         acceptors = {a.coordinates: a.label for a in protein.atoms
-                     if a.is_acceptor and a.solvent_accessible_surface() > accessible_cutoff
+                     if a.is_acceptor
+                     # and a.solvent_accessible_surface() > accessible_cutoff
                      }
 
         pairs = {"acceptor": donors,
@@ -818,8 +823,7 @@ class Results(Helper):
         for feature in self.features:
             if (feature.grid > threshold).count_grid() > min_size:
                 centoid = [feature.grid.centroid()]
-                coords = pairs[feature.feature_type].keys()
-
+                coords = list(pairs[feature.feature_type].keys())
                 all_distances = distance.cdist(coords, centoid, 'euclidean')
                 ind = int(np.argmin(all_distances))
                 min_coord = coords[ind]
@@ -838,7 +842,7 @@ class Results(Helper):
         for b in bin_keys:
             del constraint_dic[b]
 
-        constraint_dic = OrderedDict(reversed(constraint_dic.items()))
+        constraint_dic = OrderedDict(reversed(list(constraint_dic.items())))
 
         return self._ConstraintData(constraint_dic, self.protein)
 
@@ -996,15 +1000,6 @@ class Extractor(object):
         g_vals = tmp_best_island.grid_values()
         g_vals[::-1].sort()
 
-        try:
-            threshold = g_vals[self.settings._num_gp]
-        except IndexError:
-            threshold = min(g_vals)
-
-        # assert abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) < tolerance
-
-        return threshold
-
     def _step_down(self, start_threshold):
         """
         Returns the maximum threshold for which the "best island" volume is smaller than the target volume
@@ -1036,10 +1031,12 @@ class Extractor(object):
 
         assert self.single_grid.count_grid() >= self.settings._num_gp
 
-        self._step_down(40)
-        self.threshold = self._grow()
+        threshold = self._step_down(40)
+        self._grow()
 
-        print("Final score threshold is: {} ".format(self.threshold))
+        print("Final score threshold is: {} ".format(threshold))
 
         grid_dict = self.best_island.inverse_single_grid(self._masked_dic)
-        return Results(super_grids=grid_dict, protein=self.hotspot_result.protein)
+        r = Results(super_grids=grid_dict, protein=self.hotspot_result.protein)
+        r.step_threshold = threshold
+        return r

@@ -1,6 +1,6 @@
 # Minimal Environment
 channels:
-- <ccdc_conda_channel> # edit as needed
+- file://<ccdc_conda_channel> # edit as needed
 - rdkit
 - bioconda
 - conda-forge
@@ -26,3 +26,4 @@ dependencies:
 - conda-forge::tqdm
 - conda-forge::xmltodict
 - conda-forge::hdbscan
+

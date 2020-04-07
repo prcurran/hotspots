@@ -24,103 +24,85 @@ fragment-to-lead progression. The median fragment atom scores were in the top 98
 Installation Notes
 ******************
 
-=========================
-Step 1: Install CSDS 2019
-=========================
-The CSDS is available from the link below:
 
-https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/
+=====================
+1 Install CSDS 2020
+=====================
+
+The CSDS is available from [here](https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/).
+
+You will need your customer number and activation key. You must activate your license before proceeding.
 
 
-You will need a valid site number and confirmation code, this will have been emailed to you when you bought your
-CSDS 2019 license
+=====================
+2 Install GHECOM
+=====================
 
-You may need to set the following environment variables:
+Ghecom is available from [here](https://pdbj.org/ghecom/download_src.html).
 
-.. code-block:: shell
-
-    export CSDHOME=<path_to_CSDS_installation>/CSD_2019
-
-======================
-Step 2: Install Ghecom
-======================
-Ghecom is available from the link below:
-
-http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html
-
-"The source code of the ghecom is written in C, and developed and executed on
+"The source code of the GHECOM is written in C, and developed and executed on
 the linux environment (actually on the Fedora Core).  For the installation,
 you need the gcc compiler.  If you do not want to use it, please change the
 "Makefile" in the "src" directory."
 
-Download the file "ghecom-src-[date].tar.gz" file.
-
-.. code-block:: shell
+Download the file ``ghecom-src-[date].tar.gz`` file.
 
     tar zxvf ghecom-src-[date].tar.gz
     cd src
     make
-    export GHECOM_EXE="<download_directory>"
-	
-	
-================================================
-Step 3: Create a conda environment (recommended)
-================================================
 
-.. code-block:: shell
+NB: The executable will be located at the parent directory.
 
-    conda create -n hotspots_env python=2.7
 
-========================================
-Step 4: Install RDKit and CSD python API
-========================================
-Install RDKit:	
- 
-.. code-block:: shell
- 
- 	conda install -n hotspots -c rdkit rdkit
+=====================
+3 Create conda environment
+=====================
 
-The latest standalone CSD-Python-API installer from is available from the link below:
+Download the environment.yml file from the github repositiory.
 
-https://www.ccdc.cam.ac.uk/forum/csd_python_api/General/06004d0d-0bec-e811-a889-005056977c87
+Open the file, and edit the file path to the your local ccdc conda channel
+that was installed as part of your CSDS:
 
-Install the Python CSD API:
-     
-.. code-block:: shell
+"file:///home/pcurran/CCDC/Python_API_2020/ccdc_conda_channel"
 
-     unzip csd-python-api-2.1.0-linux-64-py2.7-conda
-     conda install -n hotspots -c <path to ccdc_conda_channel> csd-python-api
-	
-============================
-Step 5: Install Hotspots API
-============================
+Save and close environment.yml.
 
-Install Hotspots v1.x.x:
+Create conda environment using the environment.yml:
+
+    conda create -n hotspots -f environment.yml
+
+Finally, there are a few environment variables to set:
+
+    $ export CSDHOME=/home/my_ccdc_software_dir/CCDC/CSD_2020
+    $ export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$CONDA_PREFIX/lib/python3.7/site-packages/ccdc/_lib:$LD_LIBRARY_PATH
+    $ export GHECOM_EXE=$PREFIX/ghecom_latest/ghecom
+
+We recommend saving these within your conda environment. To do this, see `setup_environment.sh` shell script within
+the hotspots repositiory. For more details on saving environment variables, see the
+conda [documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html).
+
+=====================
+4 Install Hotspots API
+=====================
+
+Install Hotspots v1.0.3:
 
 a) Latest stable release (recommended for most users):
-	
-.. code-block:: shell
 
     conda activate hotspots
-    pip install hotspots
-    
-or 
-	
-.. code-block:: shell
 
-    pip install https://github.com/prcurran/hotspots/archive/v1.x.x.zip
+    pip install hotspots
+    or
+    pip install https://github.com/prcurran/hotspots/archive/v1.0.3.zip
 
 b) Very latest code
-    
-.. code-block:: shell
 
     mkdir ./hotspots_code
+    cd hotspots_code
+
     git clone git@github.com:prcurran/hotspots.git
     conda activate hotspots
-    cd hotspots_code
-    pip install hotspots_code
-    
-NB: dependencies should install automatically. If they do not, please see setup.py for the package requirements!
+    pip install ./hotspots
 
 
 ... and you're ready to go!

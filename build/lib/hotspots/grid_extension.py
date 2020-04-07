@@ -1,3 +1,4 @@
+
 '''
 The main class of the :mod:`hotspots.grid_extension.Grid`.
 
@@ -623,7 +624,7 @@ class Grid(utilities.Grid):
         :return: `hotspots.grid_extension.Grid`
         """
         coords = [a.coordinates for a in mol.atoms]
-        g = Grid.initalise_grid(coords=coords)
+        g = Grid.initalise_grid(coords=coords, padding=2)
         for a in mol.heavy_atoms:
             g.set_sphere(point=a.coordinates,
                          radius=a.vdw_radius * scaling,

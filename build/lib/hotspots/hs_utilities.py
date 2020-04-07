@@ -153,21 +153,23 @@ class Helper(object):
         :return `ccdc.molecule.Molecule`: pseduomolecule which contains score labels
         """
         min_size_dict = {"apolar": 40,
-                         "donor": 15,
-                         "acceptor": 15,
-                         "negative": 15,
-                         "positive": 15}
+                         "donor": 6,
+                         "acceptor": 9,
+                         "negative": 9,
+                         "positive": 9}
 
         atom_dic = {"apolar": 'C',
                     "donor": 'N',
                     "acceptor": 'O',
                     "negative": 'S',
-                    "positive": 'H'}
+                    "positive": 'H',
+                    #"surface": ''
+                    }
 
         try:
-            interaction_types = [atom_dic[feat.feature_type] for feat in input._features]
-            coordinates = [feat.feature_coordinates for feat in input._features]
-            scores = [feat.score_value for feat in input._features]
+            interaction_types = [atom_dic[feat.feature_type] for feat in input._features if feat.feature_type != "surface"]
+            coordinates = [feat.feature_coordinates for feat in input._features if feat.feature_type != "surface"]
+            scores = [feat.score_value for feat in input._features if feat.feature_type != "surface"]
 
         except AttributeError:
 

@@ -58,7 +58,7 @@ class Ensemble(object):
         :param str url: url for aligned files
         :param str out_dir: path of output directory
         """
-        print url
+        print(url)
         url = re.sub('/esults/', '/results/', url)              # fix url
         a = urlparse.urlparse(url)
         fname = os.path.basename(a.path)
@@ -281,7 +281,7 @@ class Search(object):
             .format(json.dumps(self.settings.data, ensure_ascii=True, indent=2, default=True),self.settings.url)
 
         response = ast.literal_eval(self._run(cmd))
-        print response
+        print(response)
         return response['location']
 
     def _get(self, results_url):
@@ -294,12 +294,12 @@ class Search(object):
 
         response = ast.literal_eval(self._run(cmd))
         if response["status_code"] == 400:
-            print "status code: {}".format(response['status_code'])
+            print("status code: {}".format(response['status_code']))
             raise RuntimeError()
 
         status_code = int(response["status_code"])
         while status_code > 200:
-            print "status code: {}".format(response['status_code'])
+            print("status code: {}".format(response['status_code']))
             time.sleep(10)
             response = ast.literal_eval(self._run(cmd))
             status_code = int(response["status_code"])
@@ -308,7 +308,7 @@ class Search(object):
 
         # create Ensemble
 
-        print type(response["status_code"])
+        print(type(response["status_code"]))
         return response
 
 

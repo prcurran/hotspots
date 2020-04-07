@@ -650,7 +650,7 @@ class Runner(object):
             translate_points = self.get_translation_points(priority_atom_type)
             molecule.remove_hydrogens()
             quaternions = self.generate_rand_quaternions()
-
+            high_scoring_probes = {}
             print("\n    nRotations:", len(quaternions), "nTranslations:", len(translate_points), "probename:", probe)
 
             for g in self.grids:
@@ -674,8 +674,7 @@ class Runner(object):
                         continue
                     self.update_out_grids(score, active_coordinates_dic, translation)
 
-                    if self.settings.return_probes:
-                        high_scoring_probes = {}
+                    if self.settings.return_probes is True:
                         if score < 5:
                             continue
                         if score > 14:
@@ -688,11 +687,11 @@ class Runner(object):
                             except KeyError:
                                 high_scoring_probes[score] = [m]
 
-            if self.settings.return_probes:
+            if self.settings.return_probes is True:
                 sampled_probes = []
                 for key in sorted(high_scoring_probes.iterkeys(), reverse=True):
                     sampled_probes.extend(high_scoring_probes[key])
-
+                print('Returned probes = ', len(sampled_probes))
                 if len(sampled_probes) > 10000:
                     return sampled_probes[:10000]
                 else:
@@ -702,6 +701,7 @@ class Runner(object):
         self.out_grids = {}
         self.super_grids = {}
         self.buriedness = None
+        self.sampled_probes = {}
 
         if settings is None:
             self.sampler_settings = self.Settings()
@@ -947,7 +947,7 @@ class Runner(object):
                 except KeyError:
                     self.out_grids[pg.name] = [pg.grid]
 
-        if return_probes:
+        if return_probes is True:
             return probes
 
     def _calc_hotspots(self, return_probes=False):
@@ -1002,8 +1002,10 @@ class Runner(object):
         grid_dict = {w.identifier: w.grid for w in self.weighted_grids}
 
         for probe in probe_types:
-            if return_probes:
-                self.sampled_probes.update(probe, self._get_out_maps(probe, grid_dict))
+            if return_probes is True:
+                ps = self._get_out_maps(probe, grid_dict, return_probes=True)
+                print(len(ps))
+                self.sampled_probes.update({probe: ps})
 
             else:
                 self._get_out_maps(probe, grid_dict)
@@ -1155,7 +1157,6 @@ class Runner(object):
         PDBResult(identifier=pdb_code).download(out_dir=tmp)
         fname = join(tmp, "{}.pdb".format(pdb_code))
         self.protein = Protein.from_file(fname)
-
         self._prepare_protein(protoss)
         self.charged_probes = charged_probes
         self.probe_size = probe_size
@@ -1171,7 +1172,13 @@ class Runner(object):
         else:
             self.sampler_settings = settings
 
-        self._calc_hotspots()
+        if self.sampler_settings.return_probes is True:
+            print('here')
+            self._calc_hotspots(return_probes=True)
+
+        else:
+            self._calc_hotspots()
+
         self.super_grids = {p: g[0] for p, g in self.out_grids.items()}
 
         if clear_tmp == True:
