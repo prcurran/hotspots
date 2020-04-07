@@ -25,18 +25,18 @@ Installation Notes
 ******************
 
 
-=====================
+==========================================
 1 Install CSDS 2020
-=====================
+==========================================
 
 The CSDS is available from [here](https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/).
 
 You will need your customer number and activation key. You must activate your license before proceeding.
 
 
-=====================
+==========================================
 2 Install GHECOM
-=====================
+==========================================
 
 Ghecom is available from [here](https://pdbj.org/ghecom/download_src.html).
 
@@ -47,6 +47,8 @@ you need the gcc compiler.  If you do not want to use it, please change the
 
 Download the file ``ghecom-src-[date].tar.gz`` file.
 
+.. code-block:: shell
+
     tar zxvf ghecom-src-[date].tar.gz
     cd src
     make
@@ -54,24 +56,26 @@ Download the file ``ghecom-src-[date].tar.gz`` file.
 NB: The executable will be located at the parent directory.
 
 
-=====================
+==========================================
 3 Create conda environment
-=====================
+==========================================
 
 Download the environment.yml file from the github repositiory.
 
 Open the file, and edit the file path to the your local ccdc conda channel
-that was installed as part of your CSDS:
-
-"file:///home/pcurran/CCDC/Python_API_2020/ccdc_conda_channel"
+that was installed as part of your CSDS. For example: "file:///home/pcurran/CCDC/Python_API_2020/ccdc_conda_channel"
 
 Save and close environment.yml.
 
 Create conda environment using the environment.yml:
 
+.. code-block:: shell
+
     conda create -n hotspots -f environment.yml
 
 Finally, there are a few environment variables to set:
+
+.. code-block:: shell
 
     $ export CSDHOME=/home/my_ccdc_software_dir/CCDC/CSD_2020
     $ export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$CONDA_PREFIX/lib/python3.7/site-packages/ccdc/_lib:$LD_LIBRARY_PATH
@@ -81,13 +85,15 @@ We recommend saving these within your conda environment. To do this, see `setup_
 the hotspots repositiory. For more details on saving environment variables, see the
 conda [documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html).
 
-=====================
+==========================================
 4 Install Hotspots API
-=====================
+==========================================
 
 Install Hotspots v1.0.3:
 
 a) Latest stable release (recommended for most users):
+
+.. code-block:: shell
 
     conda activate hotspots
 
@@ -96,6 +102,8 @@ a) Latest stable release (recommended for most users):
     pip install https://github.com/prcurran/hotspots/archive/v1.0.3.zip
 
 b) Very latest code
+
+.. code-block:: shell
 
     mkdir ./hotspots_code
     cd hotspots_code

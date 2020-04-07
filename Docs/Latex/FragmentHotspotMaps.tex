@@ -73,7 +73,7 @@
 
 
 \title{Fragment Hotspot Maps Documentation}
-\date{Jan 31, 2020}
+\date{Apr 07, 2020}
 \release{1.0.2}
 \author{Contributors: Chris Radoux, Peter Curran, Mihaela D. Smilova, Richard A. Sykes, Alicia Higueruelo, Anthony Bradley, Brian D. Marsdend, David R. Spring, Tom L. Blundell, Andrew R. Leach, William R. Pitt, Jason C. Cole}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -124,73 +124,64 @@ fragment\sphinxhyphen{}to\sphinxhyphen{}lead progression. The median fragment at
 \chapter{Installation Notes}
 \label{\detokenize{tutorial:installation-notes}}
 
-\section{Step 1: Install CSDS 2019}
-\label{\detokenize{tutorial:step-1-install-csds-2019}}
-The CSDS is available from the link below:
+\section{1 Install CSDS 2020}
+\label{\detokenize{tutorial:install-csds-2020}}
+The CSDS is available from {[}here{]}(\sphinxurl{https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/}).
 
-\sphinxurl{https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/}
-
-You will need a valid site number and confirmation code, this will have been emailed to you when you bought your
-CSDS 2019 license
-
-You may need to set the following environment variables:
-
-\begin{sphinxVerbatim}[commandchars=\\\{\}]
-\PYG{n+nb}{export} \PYG{n+nv}{CSDHOME}\PYG{o}{=}\PYGZlt{}path\PYGZus{}to\PYGZus{}CSDS\PYGZus{}installation\PYGZgt{}/CSD\PYGZus{}2019
-\end{sphinxVerbatim}
+You will need your customer number and activation key. You must activate your license before proceeding.
 
 
-\section{Step 2: Install Ghecom}
-\label{\detokenize{tutorial:step-2-install-ghecom}}
-Ghecom is available from the link below:
+\section{2 Install GHECOM}
+\label{\detokenize{tutorial:install-ghecom}}
+Ghecom is available from {[}here{]}(\sphinxurl{https://pdbj.org/ghecom/download\_src.html}).
 
-\sphinxurl{http://strcomp.protein.osaka-u.ac.jp/ghecom/download\_src.html}
-
-“The source code of the ghecom is written in C, and developed and executed on
+“The source code of the GHECOM is written in C, and developed and executed on
 the linux environment (actually on the Fedora Core).  For the installation,
 you need the gcc compiler.  If you do not want to use it, please change the
 “Makefile” in the “src” directory.”
 
-Download the file “ghecom\sphinxhyphen{}src\sphinxhyphen{}{[}date{]}.tar.gz” file.
+Download the file \sphinxcode{\sphinxupquote{ghecom\sphinxhyphen{}src\sphinxhyphen{}{[}date{]}.tar.gz}} file.
 
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 tar zxvf ghecom\PYGZhy{}src\PYGZhy{}\PYG{o}{[}date\PYG{o}{]}.tar.gz
 \PYG{n+nb}{cd} src
 make
-\PYG{n+nb}{export} \PYG{n+nv}{GHECOM\PYGZus{}EXE}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}download\PYGZus{}directory\PYGZgt{}\PYGZdq{}}
 \end{sphinxVerbatim}
 
-
-\section{Step 3: Create a conda environment (recommended)}
-\label{\detokenize{tutorial:step-3-create-a-conda-environment-recommended}}
-\begin{sphinxVerbatim}[commandchars=\\\{\}]
-conda create \PYGZhy{}n hotspots\PYGZus{}env \PYG{n+nv}{python}\PYG{o}{=}\PYG{l+m}{2}.7
-\end{sphinxVerbatim}
+NB: The executable will be located at the parent directory.
 
 
-\section{Step 4: Install RDKit and CSD python API}
-\label{\detokenize{tutorial:step-4-install-rdkit-and-csd-python-api}}
-Install RDKit:
+\section{3 Create conda environment}
+\label{\detokenize{tutorial:create-conda-environment}}
+Download the environment.yml file from the github repositiory.
 
-\begin{sphinxVerbatim}[commandchars=\\\{\}]
-conda install \PYGZhy{}n hotspots \PYGZhy{}c rdkit rdkit
-\end{sphinxVerbatim}
+Open the file, and edit the file path to the your local ccdc conda channel
+that was installed as part of your CSDS. For example: “\sphinxurl{file:///home/pcurran/CCDC/Python\_API\_2020/ccdc\_conda\_channel}”
 
-The latest standalone CSD\sphinxhyphen{}Python\sphinxhyphen{}API installer from is available from the link below:
+Save and close environment.yml.
 
-\sphinxurl{https://www.ccdc.cam.ac.uk/forum/csd\_python\_api/General/06004d0d-0bec-e811-a889-005056977c87}
-
-Install the Python CSD API:
+Create conda environment using the environment.yml:
 
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
-unzip csd\PYGZhy{}python\PYGZhy{}api\PYGZhy{}2.1.0\PYGZhy{}linux\PYGZhy{}64\PYGZhy{}py2.7\PYGZhy{}conda
-conda install \PYGZhy{}n hotspots \PYGZhy{}c \PYGZlt{}path to ccdc\PYGZus{}conda\PYGZus{}channel\PYGZgt{} csd\PYGZhy{}python\PYGZhy{}api
+conda create \PYGZhy{}n hotspots \PYGZhy{}f environment.yml
 \end{sphinxVerbatim}
 
+Finally, there are a few environment variables to set:
 
-\section{Step 5: Install Hotspots API}
-\label{\detokenize{tutorial:step-5-install-hotspots-api}}
-Install Hotspots v1.x.x:
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYGZdl{} \PYG{n+nb}{export} \PYG{n+nv}{CSDHOME}\PYG{o}{=}/home/my\PYGZus{}ccdc\PYGZus{}software\PYGZus{}dir/CCDC/CSD\PYGZus{}2020
+\PYGZdl{} \PYG{n+nb}{export} \PYG{n+nv}{LD\PYGZus{}LIBRARY\PYGZus{}PATH}\PYG{o}{=}\PYG{n+nv}{\PYGZdl{}CONDA\PYGZus{}PREFIX}/lib:\PYG{n+nv}{\PYGZdl{}CONDA\PYGZus{}PREFIX}/lib/python3.7/site\PYGZhy{}packages/ccdc/\PYGZus{}lib:\PYG{n+nv}{\PYGZdl{}LD\PYGZus{}LIBRARY\PYGZus{}PATH}
+\PYGZdl{} \PYG{n+nb}{export} \PYG{n+nv}{GHECOM\PYGZus{}EXE}\PYG{o}{=}\PYG{n+nv}{\PYGZdl{}PREFIX}/ghecom\PYGZus{}latest/ghecom
+\end{sphinxVerbatim}
+
+We recommend saving these within your conda environment. To do this, see \sphinxtitleref{setup\_environment.sh} shell script within
+the hotspots repositiory. For more details on saving environment variables, see the
+conda {[}documentation{]}(\sphinxurl{https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html}).
+
+
+\section{4 Install Hotspots API}
+\label{\detokenize{tutorial:install-hotspots-api}}
+Install Hotspots v1.0.3:
 \begin{enumerate}
 \sphinxsetlistlabels{\alph}{enumi}{enumii}{}{)}%
 \item {} 
@@ -200,13 +191,10 @@ Latest stable release (recommended for most users):
 
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 conda activate hotspots
+
 pip install hotspots
-\end{sphinxVerbatim}
-
 or
-
-\begin{sphinxVerbatim}[commandchars=\\\{\}]
-pip install https://github.com/prcurran/hotspots/archive/v1.x.x.zip
+pip install https://github.com/prcurran/hotspots/archive/v1.0.3.zip
 \end{sphinxVerbatim}
 \begin{enumerate}
 \sphinxsetlistlabels{\alph}{enumi}{enumii}{}{)}%
@@ -218,13 +206,12 @@ Very latest code
 
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 mkdir ./hotspots\PYGZus{}code
+\PYG{n+nb}{cd} hotspots\PYGZus{}code
+
 git clone git@github.com:prcurran/hotspots.git
 conda activate hotspots
-\PYG{n+nb}{cd} hotspots\PYGZus{}code
-pip install hotspots\PYGZus{}code
+pip install ./hotspots
 \end{sphinxVerbatim}
-
-NB: dependencies should install automatically. If they do not, please see setup.py for the package requirements!
 
 … and you’re ready to go!
 
@@ -518,7 +505,7 @@ statical analysis on the ranked pockets.
     \PYG{n}{tpr}\PYG{p}{,} \PYG{n}{fpr} \PYG{o}{=} \PYG{n}{rs}\PYG{o}{.}\PYG{n}{ROC}\PYG{p}{(}\PYG{p}{)}
     \PYG{n}{ax} \PYG{o}{=} \PYG{n}{sns}\PYG{o}{.}\PYG{n}{lineplot}\PYG{p}{(}\PYG{n}{x}\PYG{o}{=}\PYG{n}{fpr}\PYG{p}{,} \PYG{n}{y}\PYG{o}{=}\PYG{n}{tpr}\PYG{p}{,} \PYG{n}{estimator}\PYG{o}{=}\PYG{k+kc}{None}\PYG{p}{,} \PYG{n}{color}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{\PYGZsh{}c75048}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
     \PYG{n}{ax} \PYG{o}{=} \PYG{n}{sns}\PYG{o}{.}\PYG{n}{lineplot}\PYG{p}{(}\PYG{n}{x}\PYG{o}{=}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{p}{,} \PYG{n}{y}\PYG{o}{=}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{p}{,} \PYG{n}{color}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{grey}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
-    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set}\PYG{p}{(}\PYG{n}{xlabel}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{FPR}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{ylabel}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{TPR}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{title}\PYG{o}{=}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{ROC Curve (AUC: }\PYG{l+s+s2}{\PYGZob{}}\PYG{l+s+s2}{rs.AUC():.2f\PYGZcb{})}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set}\PYG{p}{(}\PYG{n}{xlabel}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{FPR}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{ylabel}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{TPR}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{title}\PYG{o}{=}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{ROC Curve (AUC: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{rs}\PYG{o}{.}\PYG{n}{AUC}\PYG{p}{(}\PYG{p}{)}\PYG{l+s+si}{:}\PYG{l+s+s2}{.2f}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{)}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
 
     \PYG{n}{plt}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{n}{fname}\PYG{p}{)}
     \PYG{n}{plt}\PYG{o}{.}\PYG{n}{close}\PYG{p}{(}\PYG{p}{)}
@@ -811,7 +798,7 @@ The code to generate the figure and statistics is given below.
 \PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
     \PYG{c+c1}{\PYGZsh{} read data and process data from output file}
     \PYG{n}{fname} \PYG{o}{=} \PYG{n}{os}\PYG{o}{.}\PYG{n}{path}\PYG{o}{.}\PYG{n}{join}\PYG{p}{(}\PYG{n}{parent}\PYG{p}{,}
-                         \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{search\PYGZus{}efficiency\PYGZus{}}\PYG{l+s+si}{\PYGZob{}s\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}
+                         \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{search\PYGZus{}efficiency\PYGZus{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{s}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}
                          \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{w}\PYG{p}{)}\PYG{p}{,}
                          \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{bestranking.lst}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
     \PYG{n}{lines} \PYG{o}{=} \PYG{p}{[}\PYG{n}{l}\PYG{o}{.}\PYG{n}{strip}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)} \PYG{k}{for} \PYG{n}{l} \PYG{o+ow}{in} \PYG{n+nb}{open}\PYG{p}{(}\PYG{n}{fname}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{r}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}\PYG{o}{.}\PYG{n}{readlines}\PYG{p}{(}\PYG{p}{)}\PYG{p}{]}
@@ -892,7 +879,7 @@ The code to generate the figure and statistics is given below.
     \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set\PYGZus{}ylabel}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
     \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set\PYGZus{}xlabel}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
     \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set\PYGZus{}xticks}\PYG{p}{(}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mf}{0.5}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{]}\PYG{p}{)}
-    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set\PYGZus{}title}\PYG{p}{(}\PYG{n}{label}\PYG{o}{=}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{Search Efficiency = }\PYG{l+s+si}{\PYGZob{}search\PYGZus{}efficiency\PYGZcb{}}\PYG{l+s+s2}{\PYGZpc{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}
+    \PYG{n}{ax}\PYG{o}{.}\PYG{n}{set\PYGZus{}title}\PYG{p}{(}\PYG{n}{label}\PYG{o}{=}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{Search Efficiency = }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{search\PYGZus{}efficiency}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZpc{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}
                  \PYG{n}{fontdict}\PYG{o}{=}\PYG{p}{\PYGZob{}}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{fontsize}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{:}\PYG{l+m+mi}{10}\PYG{p}{\PYGZcb{}}\PYG{p}{)}
 
     \PYG{k}{return} \PYG{n}{lines}
@@ -941,7 +928,7 @@ The code to generate the figure and statistics is given below.
     \PYG{n}{axs}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{o}{.}\PYG{n}{set\PYGZus{}ylabel}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{Time per Molecule (s)}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
     \PYG{c+c1}{\PYGZsh{} format legend}
     \PYG{n}{fig}\PYG{o}{.}\PYG{n}{legend}\PYG{p}{(}\PYG{n}{lines}\PYG{p}{,}
-               \PYG{p}{[}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}w\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}} \PYG{k}{for} \PYG{n}{w} \PYG{o+ow}{in} \PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{10}\PYG{p}{,}\PYG{l+m+mi}{100}\PYG{p}{]}\PYG{p}{]}\PYG{p}{,}
+               \PYG{p}{[}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{w}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}} \PYG{k}{for} \PYG{n}{w} \PYG{o+ow}{in} \PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{10}\PYG{p}{,}\PYG{l+m+mi}{100}\PYG{p}{]}\PYG{p}{]}\PYG{p}{,}
                \PYG{p}{(}\PYG{o}{.}\PYG{l+m+mi}{83}\PYG{p}{,} \PYG{o}{.}\PYG{l+m+mi}{42}\PYG{p}{)}\PYG{p}{,}
                \PYG{n}{title}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{Constraint Weight}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
     \PYG{c+c1}{\PYGZsh{} format canvas}
@@ -1014,7 +1001,7 @@ searching in CrossMiner. See the link below for details.
 
 
 \chapter{Hotspot Calculation API}
-\label{\detokenize{calculation_api:module-hotspots.calculation}}\label{\detokenize{calculation_api:hotspot-calculation-api}}\label{\detokenize{calculation_api::doc}}\index{hotspots.calculation (module)@\spxentry{hotspots.calculation}\spxextra{module}}
+\label{\detokenize{calculation_api:module-hotspots.calculation}}\label{\detokenize{calculation_api:hotspot-calculation-api}}\label{\detokenize{calculation_api::doc}}\index{module@\spxentry{module}!hotspots.calculation@\spxentry{hotspots.calculation}}\index{hotspots.calculation@\spxentry{hotspots.calculation}!module@\spxentry{module}}
 The {\hyperref[\detokenize{calculation_api:module-hotspots.calculation}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{hotspots.calculation}}}}} handles the main Fragment Hotspot Maps algorithm. In addition, an alternative pocket burial method, Ghecom, is provided.
 
 The main classes of the {\hyperref[\detokenize{calculation_api:module-hotspots.calculation}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{hotspots.calculation}}}}} module are:
@@ -1043,7 +1030,7 @@ Kawabata T, Go N. Detection of pockets on protein surfaces using small and large
 \index{Buriedness (class in hotspots.calculation)@\spxentry{Buriedness}\spxextra{class in hotspots.calculation}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Buriedness}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.calculation.}}\sphinxbfcode{\sphinxupquote{Buriedness}}}{\emph{protein}, \emph{out\_grid}, \emph{settings=None}}{}
+\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Buriedness}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.calculation.}}\sphinxbfcode{\sphinxupquote{Buriedness}}}{\emph{\DUrole{n}{protein}}, \emph{\DUrole{n}{out\_grid}}, \emph{\DUrole{n}{settings}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 Bases: \sphinxcode{\sphinxupquote{object}}
 
 A class to handle the calculation of pocket burial
@@ -1075,7 +1062,7 @@ Please ensure you have set the following environment variable:
 \index{Buriedness.Settings (class in hotspots.calculation)@\spxentry{Buriedness.Settings}\spxextra{class in hotspots.calculation}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Buriedness.Settings}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxbfcode{\sphinxupquote{Settings}}}{\emph{ghecom\_executable=None}, \emph{grid\_spacing=0.5}, \emph{radius\_min\_large\_sphere=2.5}, \emph{radius\_max\_large\_sphere=9.5}, \emph{mode=\textquotesingle{}M\textquotesingle{}}}{}
+\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Buriedness.Settings}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxbfcode{\sphinxupquote{Settings}}}{\emph{\DUrole{n}{ghecom\_executable}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{grid\_spacing}\DUrole{o}{=}\DUrole{default_value}{0.5}}, \emph{\DUrole{n}{radius\_min\_large\_sphere}\DUrole{o}{=}\DUrole{default_value}{2.5}}, \emph{\DUrole{n}{radius\_max\_large\_sphere}\DUrole{o}{=}\DUrole{default_value}{9.5}}, \emph{\DUrole{n}{mode}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}M\textquotesingle{}}}}{}
 Bases: \sphinxcode{\sphinxupquote{object}}
 
 A class to handle the buriedness calculation settings using ghecom
@@ -1143,14 +1130,14 @@ runs the buriedness calculation
 \index{Runner (class in hotspots.calculation)@\spxentry{Runner}\spxextra{class in hotspots.calculation}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Runner}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.calculation.}}\sphinxbfcode{\sphinxupquote{Runner}}}{\emph{settings=None}}{}
+\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Runner}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.calculation.}}\sphinxbfcode{\sphinxupquote{Runner}}}{\emph{\DUrole{n}{settings}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 Bases: \sphinxcode{\sphinxupquote{object}}
 
 A class for running the Fragment Hotspot Map calculation
 \index{Runner.Settings (class in hotspots.calculation)@\spxentry{Runner.Settings}\spxextra{class in hotspots.calculation}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Runner.Settings}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxbfcode{\sphinxupquote{Settings}}}{\emph{nrotations=3000}, \emph{apolar\_translation\_threshold=15}, \emph{polar\_translation\_threshold=15}, \emph{polar\_contributions=False}, \emph{return\_probes=False}, \emph{sphere\_maps=False}}{}
+\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Runner.Settings}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxbfcode{\sphinxupquote{Settings}}}{\emph{\DUrole{n}{nrotations}\DUrole{o}{=}\DUrole{default_value}{3000}}, \emph{\DUrole{n}{apolar\_translation\_threshold}\DUrole{o}{=}\DUrole{default_value}{15}}, \emph{\DUrole{n}{polar\_translation\_threshold}\DUrole{o}{=}\DUrole{default_value}{15}}, \emph{\DUrole{n}{polar\_contributions}\DUrole{o}{=}\DUrole{default_value}{False}}, \emph{\DUrole{n}{return\_probes}\DUrole{o}{=}\DUrole{default_value}{False}}, \emph{\DUrole{n}{sphere\_maps}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
 Bases: \sphinxcode{\sphinxupquote{object}}
 
 adjusts the default settings for the calculation
@@ -1183,7 +1170,7 @@ adjusts the default settings for the calculation
 \index{from\_pdb() (hotspots.calculation.Runner method)@\spxentry{from\_pdb()}\spxextra{hotspots.calculation.Runner method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Runner.from_pdb}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{from\_pdb}}}{\emph{pdb\_code}, \emph{charged\_probes=False}, \emph{probe\_size=7}, \emph{buriedness\_method=\textquotesingle{}ghecom\textquotesingle{}}, \emph{nprocesses=3}, \emph{cavities=False}, \emph{settings=None}, \emph{clear\_tmp=False}}{}
+\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Runner.from_pdb}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{from\_pdb}}}{\emph{\DUrole{n}{pdb\_code}}, \emph{\DUrole{n}{charged\_probes}\DUrole{o}{=}\DUrole{default_value}{False}}, \emph{\DUrole{n}{probe\_size}\DUrole{o}{=}\DUrole{default_value}{7}}, \emph{\DUrole{n}{buriedness\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}ghecom\textquotesingle{}}}, \emph{\DUrole{n}{nprocesses}\DUrole{o}{=}\DUrole{default_value}{3}}, \emph{\DUrole{n}{cavities}\DUrole{o}{=}\DUrole{default_value}{False}}, \emph{\DUrole{n}{settings}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{clear\_tmp}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
 generates a result from a pdb code
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1227,7 +1214,7 @@ a \sphinxcode{\sphinxupquote{hotspots.result.Result}} instance
 \index{from\_protein() (hotspots.calculation.Runner method)@\spxentry{from\_protein()}\spxextra{hotspots.calculation.Runner method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Runner.from_protein}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{from\_protein}}}{\emph{protein}, \emph{charged\_probes=False}, \emph{probe\_size=7}, \emph{buriedness\_method=\textquotesingle{}ghecom\textquotesingle{}}, \emph{cavities=None}, \emph{nprocesses=1}, \emph{settings=None}, \emph{buriedness\_grid=None}, \emph{clear\_tmp=False}}{}
+\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Runner.from_protein}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{from\_protein}}}{\emph{\DUrole{n}{protein}}, \emph{\DUrole{n}{charged\_probes}\DUrole{o}{=}\DUrole{default_value}{False}}, \emph{\DUrole{n}{probe\_size}\DUrole{o}{=}\DUrole{default_value}{7}}, \emph{\DUrole{n}{buriedness\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}ghecom\textquotesingle{}}}, \emph{\DUrole{n}{cavities}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{nprocesses}\DUrole{o}{=}\DUrole{default_value}{1}}, \emph{\DUrole{n}{settings}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{buriedness\_grid}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{clear\_tmp}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
 generates a result from a protein
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1284,7 +1271,7 @@ a {\hyperref[\detokenize{result_api:hotspots.result.Results}]{\sphinxcrossref{\s
 \index{from\_superstar() (hotspots.calculation.Runner method)@\spxentry{from\_superstar()}\spxextra{hotspots.calculation.Runner method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Runner.from_superstar}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{from\_superstar}}}{\emph{protein}, \emph{superstar\_grids}, \emph{buriedness}, \emph{charged\_probes=False}, \emph{probe\_size=7}, \emph{settings=None}, \emph{clear\_tmp=False}}{}
+\phantomsection\label{\detokenize{calculation_api:hotspots.calculation.Runner.from_superstar}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{from\_superstar}}}{\emph{\DUrole{n}{protein}}, \emph{\DUrole{n}{superstar\_grids}}, \emph{\DUrole{n}{buriedness}}, \emph{\DUrole{n}{charged\_probes}\DUrole{o}{=}\DUrole{default_value}{False}}, \emph{\DUrole{n}{probe\_size}\DUrole{o}{=}\DUrole{default_value}{7}}, \emph{\DUrole{n}{settings}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{clear\_tmp}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
 calculate hotspot maps from precalculated superstar maps. This enables more effective parallelisation and reuse
 of object such as the Buriedness grids
 \begin{quote}\begin{description}
@@ -1325,7 +1312,7 @@ of object such as the Buriedness grids
 
 
 \chapter{Hotspot IO API}
-\label{\detokenize{hs_io_api:module-hotspots.hs_io}}\label{\detokenize{hs_io_api:hotspot-io-api}}\label{\detokenize{hs_io_api::doc}}\index{hotspots.hs\_io (module)@\spxentry{hotspots.hs\_io}\spxextra{module}}
+\label{\detokenize{hs_io_api:module-hotspots.hs_io}}\label{\detokenize{hs_io_api:hotspot-io-api}}\label{\detokenize{hs_io_api::doc}}\index{module@\spxentry{module}!hotspots.hs\_io@\spxentry{hotspots.hs\_io}}\index{hotspots.hs\_io@\spxentry{hotspots.hs\_io}!module@\spxentry{module}}
 The {\hyperref[\detokenize{hs_io_api:module-hotspots.hs_io}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{hotspots.hs\_io}}}}} module was created to facilitate easy reading and
 writing of Fragment Hotspot Map results.
 
@@ -1347,7 +1334,7 @@ The main classes of the \sphinxcode{\sphinxupquote{hotspots.io}} module are:
 \index{HotspotReader (class in hotspots.hs\_io)@\spxentry{HotspotReader}\spxextra{class in hotspots.hs\_io}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_io_api:hotspots.hs_io.HotspotReader}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.hs\_io.}}\sphinxbfcode{\sphinxupquote{HotspotReader}}}{\emph{path}}{}
+\phantomsection\label{\detokenize{hs_io_api:hotspots.hs_io.HotspotReader}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.hs\_io.}}\sphinxbfcode{\sphinxupquote{HotspotReader}}}{\emph{\DUrole{n}{path}}}{}
 A class to organise the reading of a \sphinxcode{\sphinxupquote{hotspots.result.Result}}
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -1357,7 +1344,7 @@ A class to organise the reading of a \sphinxcode{\sphinxupquote{hotspots.result.
 \index{read() (hotspots.hs\_io.HotspotReader method)@\spxentry{read()}\spxextra{hotspots.hs\_io.HotspotReader method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_io_api:hotspots.hs_io.HotspotReader.read}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{read}}}{\emph{identifier=None}}{}
+\phantomsection\label{\detokenize{hs_io_api:hotspots.hs_io.HotspotReader.read}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{read}}}{\emph{\DUrole{n}{identifier}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 creates a single or list of \sphinxcode{\sphinxupquote{hotspots.result.Result}} instance(s)
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -1389,7 +1376,7 @@ identifier is the subdirectory for which a \sphinxcode{\sphinxupquote{hotspots.r
 \index{HotspotWriter (class in hotspots.hs\_io)@\spxentry{HotspotWriter}\spxextra{class in hotspots.hs\_io}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_io_api:hotspots.hs_io.HotspotWriter}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.hs\_io.}}\sphinxbfcode{\sphinxupquote{HotspotWriter}}}{\emph{path}, \emph{visualisation=\textquotesingle{}pymol\textquotesingle{}}, \emph{grid\_extension=\textquotesingle{}.grd\textquotesingle{}}, \emph{zip\_results=True}, \emph{settings=None}}{}
+\phantomsection\label{\detokenize{hs_io_api:hotspots.hs_io.HotspotWriter}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.hs\_io.}}\sphinxbfcode{\sphinxupquote{HotspotWriter}}}{\emph{\DUrole{n}{path}}, \emph{\DUrole{n}{visualisation}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}pymol\textquotesingle{}}}, \emph{\DUrole{n}{grid\_extension}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}.grd\textquotesingle{}}}, \emph{\DUrole{n}{zip\_results}\DUrole{o}{=}\DUrole{default_value}{True}}, \emph{\DUrole{n}{settings}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 A class to handle the writing of a :class\textasciigrave{}hotspots.result.Result\textasciigrave{}. Additionally, creation of the
 PyMol visualisation scripts are handled here.
 \begin{quote}\begin{description}
@@ -1423,7 +1410,7 @@ A class to hold the {\hyperref[\detokenize{hs_io_api:hotspots.hs_io.HotspotWrite
 \index{compress() (hotspots.hs\_io.HotspotWriter method)@\spxentry{compress()}\spxextra{hotspots.hs\_io.HotspotWriter method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_io_api:hotspots.hs_io.HotspotWriter.compress}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{compress}}}{\emph{archive\_name}, \emph{delete\_directory=True}}{}
+\phantomsection\label{\detokenize{hs_io_api:hotspots.hs_io.HotspotWriter.compress}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{compress}}}{\emph{\DUrole{n}{archive\_name}}, \emph{\DUrole{n}{delete\_directory}\DUrole{o}{=}\DUrole{default_value}{True}}}{}
 compresses the output directory created for this \sphinxcode{\sphinxupquote{hotspots.HotspotResults}} instance, and
 removes the directory by default. The zipped file can be loaded directly into a new
 \sphinxcode{\sphinxupquote{hotspots.HotspotResults}} instance using the
@@ -1445,7 +1432,7 @@ removes the directory by default. The zipped file can be loaded directly into a 
 \index{write() (hotspots.hs\_io.HotspotWriter method)@\spxentry{write()}\spxextra{hotspots.hs\_io.HotspotWriter method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_io_api:hotspots.hs_io.HotspotWriter.write}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{write}}}{\emph{hr}}{}
+\phantomsection\label{\detokenize{hs_io_api:hotspots.hs_io.HotspotWriter.write}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{write}}}{\emph{\DUrole{n}{hr}}}{}
 writes the Fragment Hotspot Maps result to the output directory and create the pymol visualisation file
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -1474,7 +1461,7 @@ writes the Fragment Hotspot Maps result to the output directory and create the p
 
 
 \chapter{Result API}
-\label{\detokenize{result_api:module-hotspots.result}}\label{\detokenize{result_api:result-api}}\label{\detokenize{result_api::doc}}\index{hotspots.result (module)@\spxentry{hotspots.result}\spxextra{module}}
+\label{\detokenize{result_api:module-hotspots.result}}\label{\detokenize{result_api:result-api}}\label{\detokenize{result_api::doc}}\index{module@\spxentry{module}!hotspots.result@\spxentry{hotspots.result}}\index{hotspots.result@\spxentry{hotspots.result}!module@\spxentry{module}}
 The {\hyperref[\detokenize{result_api:module-hotspots.result}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{hotspots.result}}}}} contains classes to extract valuable information from the calculated Fragment Hotspot Maps.
 \begin{description}
 \item[{The main classes of the {\hyperref[\detokenize{result_api:module-hotspots.result}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{hotspots.result}}}}} module are:}] \leavevmode\begin{itemize}
@@ -1518,7 +1505,7 @@ produces molecule sized descriptions of the cavity and aids tractibility analysi
 \index{Extractor (class in hotspots.result)@\spxentry{Extractor}\spxextra{class in hotspots.result}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{result_api:hotspots.result.Extractor}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.result.}}\sphinxbfcode{\sphinxupquote{Extractor}}}{\emph{hr}, \emph{settings=None}}{}
+\phantomsection\label{\detokenize{result_api:hotspots.result.Extractor}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.result.}}\sphinxbfcode{\sphinxupquote{Extractor}}}{\emph{\DUrole{n}{hr}}, \emph{\DUrole{n}{settings}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 A class to handle the extraction of molecular volumes from a Fragment Hotspot Map result
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1534,7 +1521,7 @@ A class to handle the extraction of molecular volumes from a Fragment Hotspot Ma
 \index{Extractor.Settings (class in hotspots.result)@\spxentry{Extractor.Settings}\spxextra{class in hotspots.result}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{result_api:hotspots.result.Extractor.Settings}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxbfcode{\sphinxupquote{Settings}}}{\emph{volume=150}, \emph{cutoff=14}, \emph{spacing=0.5}, \emph{mvon=True}}{}
+\phantomsection\label{\detokenize{result_api:hotspots.result.Extractor.Settings}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxbfcode{\sphinxupquote{Settings}}}{\emph{\DUrole{n}{volume}\DUrole{o}{=}\DUrole{default_value}{150}}, \emph{\DUrole{n}{cutoff}\DUrole{o}{=}\DUrole{default_value}{14}}, \emph{\DUrole{n}{spacing}\DUrole{o}{=}\DUrole{default_value}{0.5}}, \emph{\DUrole{n}{mvon}\DUrole{o}{=}\DUrole{default_value}{True}}}{}
 Default settings for hotspot extraction
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1559,7 +1546,7 @@ Default settings for hotspot extraction
 \index{extract\_volume() (hotspots.result.Extractor method)@\spxentry{extract\_volume()}\spxextra{hotspots.result.Extractor method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{result_api:hotspots.result.Extractor.extract_volume}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{extract\_volume}}}{\emph{volume=\textquotesingle{}125\textquotesingle{}}}{}
+\phantomsection\label{\detokenize{result_api:hotspots.result.Extractor.extract_volume}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{extract\_volume}}}{\emph{\DUrole{n}{volume}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}125\textquotesingle{}}}}{}
 Returns a HotspotResult with a restricted volume
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -1578,7 +1565,7 @@ A fresh result object
 \index{Results (class in hotspots.result)@\spxentry{Results}\spxextra{class in hotspots.result}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{result_api:hotspots.result.Results}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.result.}}\sphinxbfcode{\sphinxupquote{Results}}}{\emph{super\_grids}, \emph{protein}, \emph{buriedness=None}, \emph{pharmacophore=None}}{}
+\phantomsection\label{\detokenize{result_api:hotspots.result.Results}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.result.}}\sphinxbfcode{\sphinxupquote{Results}}}{\emph{\DUrole{n}{super\_grids}}, \emph{\DUrole{n}{protein}}, \emph{\DUrole{n}{buriedness}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{pharmacophore}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 A class to handle the results of the Fragment Hotspot Map calcation and to organise subsequent analysis
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1600,7 +1587,7 @@ A class to handle the results of the Fragment Hotspot Map calcation and to organ
 \index{atomic\_volume\_overlap() (hotspots.result.Results method)@\spxentry{atomic\_volume\_overlap()}\spxextra{hotspots.result.Results method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{result_api:hotspots.result.Results.atomic_volume_overlap}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{atomic\_volume\_overlap}}}{\emph{mol}}{}
+\phantomsection\label{\detokenize{result_api:hotspots.result.Results.atomic_volume_overlap}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{atomic\_volume\_overlap}}}{\emph{\DUrole{n}{mol}}}{}
 for a given mol, return a dictionary of dictionaries containing the percentage overlap of each atoms
 VDW radius with the Hotspot Grids.
 
@@ -1619,7 +1606,7 @@ VDW radius with the Hotspot Grids.
 \index{from\_grid\_ensembles() (hotspots.result.Results static method)@\spxentry{from\_grid\_ensembles()}\spxextra{hotspots.result.Results static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{result_api:hotspots.result.Results.from_grid_ensembles}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{from\_grid\_ensembles}}}{\emph{res\_list}, \emph{prot\_name}, \emph{charged=False}, \emph{mode=\textquotesingle{}max\textquotesingle{}}}{}
+\phantomsection\label{\detokenize{result_api:hotspots.result.Results.from_grid_ensembles}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{from\_grid\_ensembles}}}{\emph{\DUrole{n}{res\_list}}, \emph{\DUrole{n}{prot\_name}}, \emph{\DUrole{n}{charged}\DUrole{o}{=}\DUrole{default_value}{False}}, \emph{\DUrole{n}{mode}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}max\textquotesingle{}}}}{}
 \sphinxstyleemphasis{Experimental feature}
 
 Creates ensemble map from a list of Results. Structures in the ensemble have to aligned by the
@@ -1649,7 +1636,7 @@ a {\hyperref[\detokenize{result_api:hotspots.result.Results}]{\sphinxcrossref{\s
 \index{get\_difference\_map() (hotspots.result.Results method)@\spxentry{get\_difference\_map()}\spxextra{hotspots.result.Results method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{result_api:hotspots.result.Results.get_difference_map}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_difference\_map}}}{\emph{other}, \emph{tolerance}}{}
+\phantomsection\label{\detokenize{result_api:hotspots.result.Results.get_difference_map}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_difference\_map}}}{\emph{\DUrole{n}{other}}, \emph{\DUrole{n}{tolerance}}}{}
 \sphinxstyleemphasis{Experimental feature.}
 Generates maps to highlight selectivity for a target over an off target cavity. Proteins should be aligned
 by the binding site of interest prior to calculation.
@@ -1675,7 +1662,7 @@ a {\hyperref[\detokenize{result_api:hotspots.result.Results}]{\sphinxcrossref{\s
 \index{get\_pharmacophore\_model() (hotspots.result.Results method)@\spxentry{get\_pharmacophore\_model()}\spxextra{hotspots.result.Results method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{result_api:hotspots.result.Results.get_pharmacophore_model}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_pharmacophore\_model}}}{\emph{identifier=\textquotesingle{}id\_01\textquotesingle{}}, \emph{threshold=5}}{}
+\phantomsection\label{\detokenize{result_api:hotspots.result.Results.get_pharmacophore_model}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_pharmacophore\_model}}}{\emph{\DUrole{n}{identifier}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}id\_01\textquotesingle{}}}, \emph{\DUrole{n}{threshold}\DUrole{o}{=}\DUrole{default_value}{5}}}{}
 Generates a \sphinxcode{\sphinxupquote{hotspots.hotspot\_pharmacophore.PharmacophoreModel}} instance from peaks in the hotspot maps
 
 TODO: investigate using feature recognition to go from grids to features.
@@ -1712,7 +1699,7 @@ dict of str(probe type) by a \sphinxcode{\sphinxupquote{numpy.array}} (non\sphin
 \index{percentage\_matched\_atoms() (hotspots.result.Results method)@\spxentry{percentage\_matched\_atoms()}\spxextra{hotspots.result.Results method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{result_api:hotspots.result.Results.percentage_matched_atoms}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{percentage\_matched\_atoms}}}{\emph{mol}, \emph{threshold}, \emph{match\_atom\_types=True}}{}
+\phantomsection\label{\detokenize{result_api:hotspots.result.Results.percentage_matched_atoms}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{percentage\_matched\_atoms}}}{\emph{\DUrole{n}{mol}}, \emph{\DUrole{n}{threshold}}, \emph{\DUrole{n}{match\_atom\_types}\DUrole{o}{=}\DUrole{default_value}{True}}}{}
 for a given molecule, the ‘percentage match’ is given by the percentage of atoms
 which overlap with the hotspot result (over a given overlap threshol)
 \begin{quote}\begin{description}
@@ -1738,7 +1725,7 @@ which overlap with the hotspot result (over a given overlap threshol)
 \index{score() (hotspots.result.Results method)@\spxentry{score()}\spxextra{hotspots.result.Results method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{result_api:hotspots.result.Results.score}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{score}}}{\emph{obj=None}, \emph{tolerance=2}}{}
+\phantomsection\label{\detokenize{result_api:hotspots.result.Results.score}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{score}}}{\emph{\DUrole{n}{obj}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{tolerance}\DUrole{o}{=}\DUrole{default_value}{2}}}{}
 annotate protein, molecule or self with Fragment Hotspot scores
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1775,7 +1762,7 @@ scored obj, either \sphinxcode{\sphinxupquote{ccdc.protein.Protein}}, \sphinxcod
 
 
 \chapter{Hotspot Pharmacophore API}
-\label{\detokenize{hs_pharmacophore_api:module-hotspots.hs_pharmacophore}}\label{\detokenize{hs_pharmacophore_api:hotspot-pharmacophore-api}}\label{\detokenize{hs_pharmacophore_api::doc}}\index{hotspots.hs\_pharmacophore (module)@\spxentry{hotspots.hs\_pharmacophore}\spxextra{module}}
+\label{\detokenize{hs_pharmacophore_api:module-hotspots.hs_pharmacophore}}\label{\detokenize{hs_pharmacophore_api:hotspot-pharmacophore-api}}\label{\detokenize{hs_pharmacophore_api::doc}}\index{module@\spxentry{module}!hotspots.hs\_pharmacophore@\spxentry{hotspots.hs\_pharmacophore}}\index{hotspots.hs\_pharmacophore@\spxentry{hotspots.hs\_pharmacophore}!module@\spxentry{module}}
 The {\hyperref[\detokenize{hs_pharmacophore_api:module-hotspots.hs_pharmacophore}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{hotspots.hs\_pharmacophore}}}}} module contains classes for the
 conversion of Grid objects to pharmacophore models.
 
@@ -1821,7 +1808,7 @@ Jocelyn Sunseri, David Ryan Koes; Pharmit: interactive exploration of chemical s
 \index{PharmacophoreModel (class in hotspots.hs\_pharmacophore)@\spxentry{PharmacophoreModel}\spxextra{class in hotspots.hs\_pharmacophore}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.hs\_pharmacophore.}}\sphinxbfcode{\sphinxupquote{PharmacophoreModel}}}{\emph{settings}, \emph{identifier=None}, \emph{features=None}, \emph{protein=None}, \emph{dic=None}}{}
+\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.hs\_pharmacophore.}}\sphinxbfcode{\sphinxupquote{PharmacophoreModel}}}{\emph{\DUrole{n}{settings}}, \emph{\DUrole{n}{identifier}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{features}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{protein}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{dic}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 A class to handle a Pharmacophore Model
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1846,7 +1833,7 @@ A class to handle a Pharmacophore Model
 \index{PharmacophoreModel.Settings (class in hotspots.hs\_pharmacophore)@\spxentry{PharmacophoreModel.Settings}\spxextra{class in hotspots.hs\_pharmacophore}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.Settings}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxbfcode{\sphinxupquote{Settings}}}{\emph{feature\_boundary\_cutoff=5}, \emph{max\_hbond\_dist=5}, \emph{radius=1.0}, \emph{vector\_on=False}, \emph{transparency=0.6}, \emph{excluded\_volume=True}, \emph{binding\_site\_radius=12}}{}
+\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.Settings}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxbfcode{\sphinxupquote{Settings}}}{\emph{\DUrole{n}{feature\_boundary\_cutoff}\DUrole{o}{=}\DUrole{default_value}{5}}, \emph{\DUrole{n}{max\_hbond\_dist}\DUrole{o}{=}\DUrole{default_value}{5}}, \emph{\DUrole{n}{radius}\DUrole{o}{=}\DUrole{default_value}{1.0}}, \emph{\DUrole{n}{vector\_on}\DUrole{o}{=}\DUrole{default_value}{False}}, \emph{\DUrole{n}{transparency}\DUrole{o}{=}\DUrole{default_value}{0.6}}, \emph{\DUrole{n}{excluded\_volume}\DUrole{o}{=}\DUrole{default_value}{True}}, \emph{\DUrole{n}{binding\_site\_radius}\DUrole{o}{=}\DUrole{default_value}{12}}}{}
 settings available for adjustment
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1880,7 +1867,7 @@ settings available for adjustment
 \index{from\_hotspot() (hotspots.hs\_pharmacophore.PharmacophoreModel static method)@\spxentry{from\_hotspot()}\spxextra{hotspots.hs\_pharmacophore.PharmacophoreModel static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.from_hotspot}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{from\_hotspot}}}{\emph{result}, \emph{identifier=\textquotesingle{}id\_01\textquotesingle{}}, \emph{threshold=5}, \emph{min\_island\_size=5}, \emph{settings=None}}{}
+\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.from_hotspot}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{from\_hotspot}}}{\emph{\DUrole{n}{result}}, \emph{\DUrole{n}{identifier}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}id\_01\textquotesingle{}}}, \emph{\DUrole{n}{threshold}\DUrole{o}{=}\DUrole{default_value}{5}}, \emph{\DUrole{n}{min\_island\_size}\DUrole{o}{=}\DUrole{default_value}{5}}, \emph{\DUrole{n}{settings}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 creates a pharmacophore model from a Fragment Hotspot Map result
 
 (included for completeness, equivalent to \sphinxtitleref{hotspots.result.Result.get\_pharmacophore()})
@@ -1921,7 +1908,7 @@ creates a pharmacophore model from a Fragment Hotspot Map result
 \index{from\_ligands() (hotspots.hs\_pharmacophore.PharmacophoreModel static method)@\spxentry{from\_ligands()}\spxextra{hotspots.hs\_pharmacophore.PharmacophoreModel static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.from_ligands}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{from\_ligands}}}{\emph{ligands}, \emph{identifier}, \emph{protein=None}, \emph{settings=None}}{}
+\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.from_ligands}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{from\_ligands}}}{\emph{\DUrole{n}{ligands}}, \emph{\DUrole{n}{identifier}}, \emph{\DUrole{n}{protein}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{settings}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 creates a Pharmacophore Model from a collection of overlaid ligands
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -1961,7 +1948,7 @@ creates a Pharmacophore Model from a collection of overlaid ligands
 \index{from\_pdb() (hotspots.hs\_pharmacophore.PharmacophoreModel static method)@\spxentry{from\_pdb()}\spxextra{hotspots.hs\_pharmacophore.PharmacophoreModel static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.from_pdb}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{from\_pdb}}}{\emph{pdb\_code}, \emph{chain}, \emph{representatives=None}, \emph{identifier=\textquotesingle{}LigandBasedPharmacophore\textquotesingle{}}}{}
+\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.from_pdb}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{from\_pdb}}}{\emph{\DUrole{n}{pdb\_code}}, \emph{\DUrole{n}{chain}}, \emph{\DUrole{n}{representatives}\DUrole{o}{=}\DUrole{default_value}{None}}, \emph{\DUrole{n}{identifier}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}LigandBasedPharmacophore\textquotesingle{}}}}{}
 creates a Pharmacophore Model from a PDB code.
 
 This method is used for the creation of Ligand\sphinxhyphen{}Based pharmacophores. The PDB is searched for protein\sphinxhyphen{}ligand
@@ -2018,7 +2005,7 @@ of atom types a given point is assigned to a grid.
 \index{rank\_features() (hotspots.hs\_pharmacophore.PharmacophoreModel method)@\spxentry{rank\_features()}\spxextra{hotspots.hs\_pharmacophore.PharmacophoreModel method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.rank_features}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{rank\_features}}}{\emph{max\_features=4}, \emph{feature\_threshold=0}, \emph{force\_apolar=True}}{}
+\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.rank_features}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{rank\_features}}}{\emph{\DUrole{n}{max\_features}\DUrole{o}{=}\DUrole{default_value}{4}}, \emph{\DUrole{n}{feature\_threshold}\DUrole{o}{=}\DUrole{default_value}{0}}, \emph{\DUrole{n}{force\_apolar}\DUrole{o}{=}\DUrole{default_value}{True}}}{}
 orders features by score
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -2057,7 +2044,7 @@ list of features
 \index{write() (hotspots.hs\_pharmacophore.PharmacophoreModel method)@\spxentry{write()}\spxextra{hotspots.hs\_pharmacophore.PharmacophoreModel method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.write}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{write}}}{\emph{fname}}{}
+\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.PharmacophoreModel.write}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{write}}}{\emph{\DUrole{n}{fname}}}{}
 writes out pharmacophore. Supported formats:
 \begin{itemize}
 \item {} 
@@ -2090,7 +2077,7 @@ writes out pharmacophore. Supported formats:
 \index{tanimoto\_dist() (in module hotspots.hs\_pharmacophore)@\spxentry{tanimoto\_dist()}\spxextra{in module hotspots.hs\_pharmacophore}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.tanimoto_dist}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{hotspots.hs\_pharmacophore.}}\sphinxbfcode{\sphinxupquote{tanimoto\_dist}}}{\emph{a}, \emph{b}}{}
+\phantomsection\label{\detokenize{hs_pharmacophore_api:hotspots.hs_pharmacophore.tanimoto_dist}}\pysiglinewithargsret{\sphinxcode{\sphinxupquote{hotspots.hs\_pharmacophore.}}\sphinxbfcode{\sphinxupquote{tanimoto\_dist}}}{\emph{\DUrole{n}{a}}, \emph{\DUrole{n}{b}}}{}
 calculate the tanimoto distance between two fingerprint arrays
 :param a:
 :param b:
@@ -2101,7 +2088,7 @@ calculate the tanimoto distance between two fingerprint arrays
 
 
 \chapter{Hotspot Docking API}
-\label{\detokenize{hs_docking_api:module-hotspots.hs_docking}}\label{\detokenize{hs_docking_api:hotspot-docking-api}}\label{\detokenize{hs_docking_api::doc}}\index{hotspots.hs\_docking (module)@\spxentry{hotspots.hs\_docking}\spxextra{module}}
+\label{\detokenize{hs_docking_api:module-hotspots.hs_docking}}\label{\detokenize{hs_docking_api:hotspot-docking-api}}\label{\detokenize{hs_docking_api::doc}}\index{module@\spxentry{module}!hotspots.hs\_docking@\spxentry{hotspots.hs\_docking}}\index{hotspots.hs\_docking@\spxentry{hotspots.hs\_docking}!module@\spxentry{module}}
 The {\hyperref[\detokenize{hs_docking_api:module-hotspots.hs_docking}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{hotspots.hs\_docking}}}}} module contains functionality which
 faciliates the \sphinxstylestrong{automatic} application of insights from Fragment
 Hotspot Maps to docking.
@@ -2127,7 +2114,7 @@ Development and Validation of a Genetic Algorithm for Flexible Docking G. Jones,
 \index{DockerSettings (class in hotspots.hs\_docking)@\spxentry{DockerSettings}\spxextra{class in hotspots.hs\_docking}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_docking_api:hotspots.hs_docking.DockerSettings}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.hs\_docking.}}\sphinxbfcode{\sphinxupquote{DockerSettings}}}{\emph{\_settings=None}}{}
+\phantomsection\label{\detokenize{hs_docking_api:hotspots.hs_docking.DockerSettings}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.hs\_docking.}}\sphinxbfcode{\sphinxupquote{DockerSettings}}}{\emph{\DUrole{n}{\_settings}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 A class to handle the integration of Fragment Hotspot Map data with GOLD
 
 This class is designed to mirror the existing CSD python API for smooth integration. For use, import this class
@@ -2163,7 +2150,7 @@ as the docking settings rather than directly from the Docking API.
 \index{DockerSettings.HotspotHBondConstraint (class in hotspots.hs\_docking)@\spxentry{DockerSettings.HotspotHBondConstraint}\spxextra{class in hotspots.hs\_docking}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_docking_api:hotspots.hs_docking.DockerSettings.HotspotHBondConstraint}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxbfcode{\sphinxupquote{HotspotHBondConstraint}}}{\emph{atoms}, \emph{weight=5.0}, \emph{min\_hbond\_score=0.001}, \emph{\_constraint=None}}{}
+\phantomsection\label{\detokenize{hs_docking_api:hotspots.hs_docking.DockerSettings.HotspotHBondConstraint}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxbfcode{\sphinxupquote{HotspotHBondConstraint}}}{\emph{\DUrole{n}{atoms}}, \emph{\DUrole{n}{weight}\DUrole{o}{=}\DUrole{default_value}{5.0}}, \emph{\DUrole{n}{min\_hbond\_score}\DUrole{o}{=}\DUrole{default_value}{0.001}}, \emph{\DUrole{n}{\_constraint}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 A protein HBond constraint constructed from a hotspot
 Assign Protein Hbond constraints based on the highest scoring interactions.
 \begin{quote}\begin{description}
@@ -2183,7 +2170,7 @@ Assign Protein Hbond constraints based on the highest scoring interactions.
 \index{create() (hotspots.hs\_docking.DockerSettings.HotspotHBondConstraint static method)@\spxentry{create()}\spxextra{hotspots.hs\_docking.DockerSettings.HotspotHBondConstraint static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_docking_api:hotspots.hs_docking.DockerSettings.HotspotHBondConstraint.create}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{create}}}{\emph{protein}, \emph{hr}, \emph{max\_constraints=2}, \emph{weight=5.0}, \emph{min\_hbond\_score=0.001}, \emph{cutoff=10}}{}
+\phantomsection\label{\detokenize{hs_docking_api:hotspots.hs_docking.DockerSettings.HotspotHBondConstraint.create}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{create}}}{\emph{\DUrole{n}{protein}}, \emph{\DUrole{n}{hr}}, \emph{\DUrole{n}{max\_constraints}\DUrole{o}{=}\DUrole{default_value}{2}}, \emph{\DUrole{n}{weight}\DUrole{o}{=}\DUrole{default_value}{5.0}}, \emph{\DUrole{n}{min\_hbond\_score}\DUrole{o}{=}\DUrole{default_value}{0.001}}, \emph{\DUrole{n}{cutoff}\DUrole{o}{=}\DUrole{default_value}{10}}}{}
 creates a \sphinxcode{\sphinxupquote{hotspots.hs\_docking.HotspotHBondConstraint}}
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -2220,7 +2207,7 @@ list of \sphinxcode{\sphinxupquote{hotspots.hs\_docking.HotspotHBondConstraint}}
 \index{generate\_fitting\_points() (hotspots.hs\_docking.DockerSettings method)@\spxentry{generate\_fitting\_points()}\spxextra{hotspots.hs\_docking.DockerSettings method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_docking_api:hotspots.hs_docking.DockerSettings.generate_fitting_points}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{generate\_fitting\_points}}}{\emph{hr}, \emph{volume=400}, \emph{threshold=17}, \emph{mode=\textquotesingle{}threshold\textquotesingle{}}}{}
+\phantomsection\label{\detokenize{hs_docking_api:hotspots.hs_docking.DockerSettings.generate_fitting_points}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{generate\_fitting\_points}}}{\emph{\DUrole{n}{hr}}, \emph{\DUrole{n}{volume}\DUrole{o}{=}\DUrole{default_value}{400}}, \emph{\DUrole{n}{threshold}\DUrole{o}{=}\DUrole{default_value}{17}}, \emph{\DUrole{n}{mode}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}threshold\textquotesingle{}}}}{}
 uses the Fragment Hotspot Maps to generate GOLD fitting points.
 
 GOLD fitting points are used to help place the molecules into the protein cavity. Pre\sphinxhyphen{}generating these fitting
@@ -2251,7 +2238,7 @@ points using the Fragment Hotspot Maps helps to biast results towards making Hot
 
 
 \chapter{Hotspot Utilities API}
-\label{\detokenize{hs_utilities_api:module-hotspots.hs_utilities}}\label{\detokenize{hs_utilities_api:hotspot-utilities-api}}\label{\detokenize{hs_utilities_api::doc}}\index{hotspots.hs\_utilities (module)@\spxentry{hotspots.hs\_utilities}\spxextra{module}}
+\label{\detokenize{hs_utilities_api:module-hotspots.hs_utilities}}\label{\detokenize{hs_utilities_api:hotspot-utilities-api}}\label{\detokenize{hs_utilities_api::doc}}\index{module@\spxentry{module}!hotspots.hs\_utilities@\spxentry{hotspots.hs\_utilities}}\index{hotspots.hs\_utilities@\spxentry{hotspots.hs\_utilities}!module@\spxentry{module}}
 The \sphinxcode{\sphinxupquote{hotspots.utilities}} module contains classes to for
 general functionality.
 \begin{description}
@@ -2268,7 +2255,7 @@ general functionality.
 \index{Coordinates (class in hotspots.hs\_utilities)@\spxentry{Coordinates}\spxextra{class in hotspots.hs\_utilities}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Coordinates}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.hs\_utilities.}}\sphinxbfcode{\sphinxupquote{Coordinates}}}{\emph{x}, \emph{y}, \emph{z}}{}~\index{x() (hotspots.hs\_utilities.Coordinates property)@\spxentry{x()}\spxextra{hotspots.hs\_utilities.Coordinates property}}
+\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Coordinates}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class }}\sphinxcode{\sphinxupquote{hotspots.hs\_utilities.}}\sphinxbfcode{\sphinxupquote{Coordinates}}}{\emph{\DUrole{n}{x}}, \emph{\DUrole{n}{y}}, \emph{\DUrole{n}{z}}}{}~\index{x() (hotspots.hs\_utilities.Coordinates property)@\spxentry{x()}\spxextra{hotspots.hs\_utilities.Coordinates property}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Coordinates.x}}\pysigline{\sphinxbfcode{\sphinxupquote{property }}\sphinxbfcode{\sphinxupquote{x}}}
@@ -2305,7 +2292,7 @@ TO DO: is there a better place for this to live?
 \index{histogram() (hotspots.hs\_utilities.Figures static method)@\spxentry{histogram()}\spxextra{hotspots.hs\_utilities.Figures static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Figures.histogram}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{histogram}}}{\emph{hr}}{}
+\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Figures.histogram}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{histogram}}}{\emph{\DUrole{n}{hr}}}{}
 creates a histogram from the hotspot scores
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -2329,7 +2316,7 @@ A class to handle miscellaneous functionality
 \index{cavity\_centroid() (hotspots.hs\_utilities.Helper static method)@\spxentry{cavity\_centroid()}\spxextra{hotspots.hs\_utilities.Helper static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.cavity_centroid}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{cavity\_centroid}}}{\emph{obj}}{}
+\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.cavity_centroid}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{cavity\_centroid}}}{\emph{\DUrole{n}{obj}}}{}
 returns the centre of a cavity
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -2345,7 +2332,7 @@ Coordinate
 \index{cavity\_from\_protein() (hotspots.hs\_utilities.Helper static method)@\spxentry{cavity\_from\_protein()}\spxextra{hotspots.hs\_utilities.Helper static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.cavity_from_protein}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{cavity\_from\_protein}}}{\emph{prot}}{}
+\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.cavity_from_protein}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{cavity\_from\_protein}}}{\emph{\DUrole{n}{prot}}}{}
 currently the Protein API doesn’t support the generation of cavities directly from the Protein instance
 this method handles the tedious writing / reading
 \begin{quote}\begin{description}
@@ -2362,7 +2349,7 @@ this method handles the tedious writing / reading
 \index{get\_atom\_type() (hotspots.hs\_utilities.Helper static method)@\spxentry{get\_atom\_type()}\spxextra{hotspots.hs\_utilities.Helper static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.get_atom_type}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{get\_atom\_type}}}{\emph{atom}}{}
+\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.get_atom_type}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{get\_atom\_type}}}{\emph{\DUrole{n}{atom}}}{}
 return the atom classification
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -2378,7 +2365,7 @@ return the atom classification
 \index{get\_distance() (hotspots.hs\_utilities.Helper static method)@\spxentry{get\_distance()}\spxextra{hotspots.hs\_utilities.Helper static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.get_distance}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{get\_distance}}}{\emph{coords1}, \emph{coords2}}{}
+\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.get_distance}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{get\_distance}}}{\emph{\DUrole{n}{coords1}}, \emph{\DUrole{n}{coords2}}}{}
 given two coordinates, calculates the distance
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -2400,7 +2387,7 @@ float, distance
 \index{get\_label() (hotspots.hs\_utilities.Helper static method)@\spxentry{get\_label()}\spxextra{hotspots.hs\_utilities.Helper static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.get_label}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{get\_label}}}{\emph{input}, \emph{threshold=None}}{}
+\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.get_label}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{get\_label}}}{\emph{\DUrole{n}{input}}, \emph{\DUrole{n}{threshold}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
 creates a value labels from an input grid dictionary
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
@@ -2416,7 +2403,7 @@ pseduomolecule which contains score labels
 \index{get\_lines\_from\_file() (hotspots.hs\_utilities.Helper static method)@\spxentry{get\_lines\_from\_file()}\spxextra{hotspots.hs\_utilities.Helper static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.get_lines_from_file}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{get\_lines\_from\_file}}}{\emph{fname}}{}
+\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.get_lines_from_file}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{get\_lines\_from\_file}}}{\emph{\DUrole{n}{fname}}}{}
 gets lines from text file, used in Ghecom calculation
 \begin{quote}\begin{description}
 \item[{Returns}] \leavevmode
@@ -2429,7 +2416,7 @@ list, list of str
 \index{get\_out\_dir() (hotspots.hs\_utilities.Helper static method)@\spxentry{get\_out\_dir()}\spxextra{hotspots.hs\_utilities.Helper static method}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.get_out_dir}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{get\_out\_dir}}}{\emph{path}}{}
+\phantomsection\label{\detokenize{hs_utilities_api:hotspots.hs_utilities.Helper.get_out_dir}}\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static }}\sphinxbfcode{\sphinxupquote{get\_out\_dir}}}{\emph{\DUrole{n}{path}}}{}
 checks if directory exists, if not, it create the directory
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
