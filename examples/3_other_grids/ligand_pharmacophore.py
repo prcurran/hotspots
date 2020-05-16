@@ -2,7 +2,7 @@ import os
 
 from ccdc.protein import Protein
 
-from hotspots.pdb_python_api import PDBResult
+from hotspots.wrapper_pdb import PDBResult
 from hotspots.hs_pharmacophore import PharmacophoreModel
 from hotspots.calculation import Results
 from hotspots.hs_io import HotspotWriter, HotspotReader

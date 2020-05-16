@@ -231,7 +231,7 @@ class HotspotWriter(Helper):
         if zipped:
             pymol_out += pymol_load_zip(basename(self.out_dir))
 
-        pymol_out += pymol_protein(self.settings, self.zipped)
+        pymol_out += pymol_protein(self.zipped)
 
         if isinstance(hr, list):
             for i, h in enumerate(hr):

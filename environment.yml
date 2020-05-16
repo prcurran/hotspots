@@ -1,10 +1,12 @@
 # Minimal Environment
 channels:
-- file://<ccdc_conda_channel> # edit as needed
+- file://local/pcurran/CCDC/Python_API_2020/ccdc_conda_channel   # edit as needed
 - rdkit
 - bioconda
 - conda-forge
 - defaults
+- schrodinger
+- anaconda
 dependencies:
 - defaults::python=3.7 # new unreleased CSD python API installation is hard-coded for python 3.7
 - defaults::pandas
@@ -26,4 +28,6 @@ dependencies:
 - conda-forge::tqdm
 - conda-forge::xmltodict
 - conda-forge::hdbscan
+- schrodinger:: pymol
+- anaconda::biopython       # only for arpeggio related things
 

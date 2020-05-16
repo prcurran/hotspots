@@ -6,7 +6,7 @@ from ccdc.protein import Protein
 from ccdc.descriptors import MolecularDescriptors
 from ccdc.io import MoleculeReader, MoleculeWriter
 
-from hotspots.pdb_python_api import PDBResult
+from hotspots.wrapper_pdb import PDBResult
 
 import numpy as np
 import pandas as pd

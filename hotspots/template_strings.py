@@ -176,9 +176,10 @@ def cgo_arrow(atom1='pk1', atom2='pk2', radius=0.07, gap=0.0, hlength=-1, hradiu
 
     xyz3 = cpv.add(cpv.scale(normal, hlength), xyz2)
 
-    obj = [cgo.CYLINDER] + xyz1 + xyz3 + [radius] + color1 + color2 + \
-          [cgo.CONE] + xyz3 + xyz2 + [hradius, 0.0] + color2 + color2 + \
+    obj = [CYLINDER] + xyz1 + xyz3 + [radius] + color1 + color2 + \
+          [CONE] + xyz3 + xyz2 + [hradius, 0.0] + color2 + color2 + \
           [1.0, 0.0]
+    print(obj)
     return obj
 
     """
@@ -192,27 +193,26 @@ zip_dir = '{0}.zip'
 with zipfile.ZipFile(zip_dir) as hs_zip:
     hs_zip.extractall(dirpath)
 """.format(zip_dir)
-
     return out_str
 
-def pymol_protein(settings, zip_results):
+def pymol_protein(zip_results, prot="protein.pdb"):
     if zip_results:
         out_str = """
-cmd.load(join(dirpath,"protein.pdb"), "protein")
-cmd.show("cartoon", "protein")
-"""
+cmd.load(join(dirpath,"{0}"), "{1}")
+cmd.show("cartoon", "{1}")
+""".format(prot, prot.split(".")[0])
     else:
         out_str = """
-cmd.load("protein.pdb", "protein")
-cmd.show("cartoon", "protein")
-"""
-    if settings.surface:
-        out_str += """
-cmd.set("surface_cavity_mode", 1)
-cmd.show("surface", "protein")
-cmd.set("surface_trim_factor", {})
-cmd.set('transparency', 0.5, "protein")
-    """.format(settings.surface_trim_factor)
+cmd.load("{0}", "{1}")
+cmd.show("cartoon", "{1}")
+""".format(prot, prot.split(".")[0])
+#     if settings.surface:
+#         out_str += """
+# cmd.set("surface_cavity_mode", 1)
+# cmd.show("surface", "{0}")
+# cmd.set("surface_trim_factor", {1})
+# cmd.set('transparency', 0.5, "protein")
+#     """.format(prot.split(".")[0], settings.surface_trim_factor)
 
     return out_str
 
@@ -287,6 +287,47 @@ for t in threshold_list:
 
     return out_str
 
+def pymol_sphere(objname, rgba, coords, radius=1):
+    return \
+f'\nobj_{objname} =' \
+f'[COLOR, {rgba[0]}, {rgba[1]}, {rgba[2]}] + ' \
+f' [ALPHA, {rgba[3]}] +' \
+f' [SPHERE, float({coords[0]}), float({coords[1]}), float({coords[2]}), float({radius})]'\
+f'\ncmd.load_cgo(obj_{objname}, "{objname}", 1)'
+
+def pymol_pseudoatom(objname, coords, color=(1,1,1)):
+    return f'\ncmd.pseudoatom(object="{objname}", pos={coords}, color={color})\n'
+
+def pymol_line(objname, pt1, pt2, rgb=(1,1,1), width=4.0):
+    pymol_out = pymol_pseudoatom(f"{objname}pa1", pt1)
+    pymol_out += pymol_pseudoatom(f"{objname}pa2", pt2)
+    pymol_out += \
+f'\ncmd.distance(name="{objname}", selection1="{objname}pa1", selection2="{objname}pa2", width=0.5, gap=0.2, label=0, state=1)\n' \
+f'\ncmd.set("dash_color", {(rgb[0], rgb[1], rgb[2])}, selection="{objname}")' \
+f'\ncmd.set("dash_width", {width})' \
+f'\ncmd.delete("{objname}pa1")' \
+f'\ncmd.delete("{objname}pa2")'
+    return pymol_out
+
+def pymol_isosurface(fname, level, color):
+    grd_name = fname.split(".")[0]
+    isosurface_name = f"surface_{grd_name}"
+    pymol_out = f'\ncmd.load("{fname}", "{grd_name}", state=1)'
+    pymol_out += f'\ncmd.isosurface(name="{isosurface_name}", map="{grd_name}", level="{level}")\n'
+    pymol_out += f'\ncmd.color("{color}", "{isosurface_name}")'
+    return pymol_out
+
+def pymol_load(fname):
+    return f'\ncmd.load("{fname}", "{fname.split(".")[0]}")'
+
+def pymol_group(group_name, members):
+    pymol_out = ""
+    for member in members:
+        pymol_out += f'\ncmd.group("{group_name}", members="{member}")'
+    return pymol_out
+
+def pymol_set_color(objname, rgb):
+    return f'\ncmd.set_color("{objname}", {(rgb[0], rgb[1], rgb[2])})'
 
 def pymol_mesh(i):
     fname = join(str(i), "mesh.grd")

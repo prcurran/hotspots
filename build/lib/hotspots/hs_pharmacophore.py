@@ -45,7 +45,7 @@ from ccdc.protein import Protein
 from hotspots.grid_extension import Grid, Coordinates
 from hotspots.hs_utilities import Helper
 from hotspots.template_strings import pymol_arrow, pymol_imports, crossminer_features, pymol_labels
-from hotspots.pdb_python_api import Query, PDB, PDBResult
+from hotspots.wrapper_pdb import Query, PDB, PDBResult
 
 from rdkit import Chem, DataStructs
 from rdkit.Chem import MACCSkeys, AllChem

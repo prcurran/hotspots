@@ -44,8 +44,8 @@ from ccdc.protein import Protein
 
 from hotspots.grid_extension import Grid, Coordinates
 from hotspots.hs_utilities import Helper
-from hotspots.template_strings import pymol_arrow, pymol_imports, crossminer_features, pymol_labels
-from hotspots.pdb_python_api import Query, PDB, PDBResult
+from hotspots.template_strings import pymol_arrow, pymol_imports, pymol_protein, crossminer_features, pymol_labels
+from hotspots.wrapper_pdb import Query, PDB, PDBResult
 
 from rdkit import Chem, DataStructs
 from rdkit.Chem import MACCSkeys, AllChem
@@ -126,6 +126,7 @@ class PharmacophoreModel(Helper):
                      excluded_volume=True, binding_site_radius=12):
             self.feature_boundary_cutoff = feature_boundary_cutoff
             self.max_hbond_dist = max_hbond_dist
+            self.error_margin = 3
             self.radius = radius  # set more intelligently
             self.transparency = transparency
             self.excluded_volume = excluded_volume
@@ -141,7 +142,7 @@ class PharmacophoreModel(Helper):
         self._features = features
 
         self.fname = None
-        self.projected_dict = {"True": ["donor", "acceptor"], "False": ["negative", "positive", "apolar"]}
+        self.projected_dict = {"True": ["donor", "acceptor", "weak_acceptor", "weak_donor", "aromatic"], "False": ["negative", "positive", "apolar"]}
         self.protein = protein
 
         if settings == None:
@@ -251,19 +252,28 @@ class PharmacophoreModel(Helper):
 cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 """.format(self.identifier)
         sphere_dict = {'acceptor': '[COLOR, 1.00, 0.00, 0.00]',
+                       'weak_acceptor': '[COLOR, 1.00, 0.604, 0.604]',
                        'donor': '[COLOR, 0.00, 0.00, 1.00]',
+                       'weak_donor': '[COLOR, 0.604, 0.804, 1.00]',
                        'apolar': '[COLOR, 1.00, 1.000, 0.000]',
+                       'aromatic':'[COLOR, 1.00, 0.647, 0.000]',
                        'surface': '[COLOR, 0.5, 0.5, 0.5]',
                        'positive': '[COLOR, 0.0, 1.0, 1.0]',
                        'negative': '[COLOR, 0.6, 0.1, 0.6]'
                        }
         colour_dict = {'acceptor': 'red blue',
+                       'weak_acceptor':'red blue',
                        'donor': 'blue red',
-                       'apolar': 'yellow'}
+                       'weak_donor': 'blue red',
+                       'apolar': 'yellow',
+                       'aromatic': 'yellow'}
         i = 0
-
+        if self.protein:
+            pymol_out += pymol_protein(zip_results=False, prot=f"{self.protein.identifier}.pdb")
         for feature in self.features:
-            if feature.feature_type in self.projected_dict["True"] and feature.projected_coordinates is not None:
+            if feature.feature_type in self.projected_dict["True"] and \
+                    feature.projected_coordinates is not None and \
+                    feature.feature_type != 'aromatic':
                 i += 1
                 arrow = 'cluster_dict["{7}_arrows"] += cgo_arrow([{0},{1},{2}], [{3},{4},{5}], color="{6}", name="Arrows_{7}_{8}")\n' \
                     .format(feature.feature_coordinates.x,
@@ -275,6 +285,19 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                             colour_dict[feature.feature_type],
                             self.identifier,
                             str(i))
+            elif feature.feature_type in self.projected_dict["True"] and feature.projected_coordinates is not None and feature.feature_type == 'aromatic':
+                i += 1
+                arrow = 'cluster_dict["{7}_arrows"] += ' \
+                        '[9.0, float({0}), float({1}), float({2}), float({3}), float({4}), float({5}), 0.07, 1.00, 0.647, 0.00, 1.00, 0.647, 0.00] \n' \
+                .format(feature.feature_coordinates.x,
+                        feature.feature_coordinates.y,
+                        feature.feature_coordinates.z,
+                        feature.projected_coordinates.x,
+                        feature.projected_coordinates.y,
+                        feature.projected_coordinates.z,
+                        colour_dict[feature.feature_type],
+                        self.identifier,
+                        str(i))
             else:
                 arrow = ''
 
@@ -288,6 +311,16 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
 
             pymol_out += '\ncluster_dict["{0}"] += {1}'.format(self.identifier, sphere)
             pymol_out += '\n{}'.format(arrow)
+            if len(feature.projected_identifier.split("/")) > 1 and self.protein and feature.projected_coordinates != None:
+                # arpeggio format
+                pymol_out += f'\ncmd.select("a", "resi {feature.projected_identifier.split("/")[1]}")'
+                pymol_out += f'\ncmd.show("sticks", "a")'
+                print(feature.projected_identifier.split("/")[1])
+            elif feature.projected_coordinates != None:
+                # ccdc format
+                pymol_out += f'\ncmd.select("a", "resi {feature.projected_identifier.split(":")[0][3:]}")'
+                pymol_out += f'\ncmd.show("sticks", "a")'
+                print(feature.projected_identifier.split(":")[0][3:])
 
         pymol_out += '\ncmd.load_cgo(cluster_dict["{0}"], "Features_{0}", 1)' \
                      '\ncmd.load_cgo(cluster_dict["{0}_arrows"], "Arrows_{0}")'.format(self.identifier)
@@ -622,6 +655,10 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
             with io.MoleculeWriter(join(dirname(fname), lfile)) as writer:
                 writer.write(label)
 
+            if self.protein:
+                with io.MoleculeWriter(join(dirname(fname), f"{self.protein.identifier}.pdb")) as w:
+                    w.write(self.protein)
+
         elif extension == ".json":
             with open(fname, "w") as pharmit_file:
                 pts = []
@@ -671,8 +708,11 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
         elif extension == ".mol2":
             mol = Molecule(identifier="pharmacophore_model")
             atom_dic = {"apolar": 'C',
+                        "aromatic":'C',
                         "donor": 'N',
+                        "weak_donor": 'N',
                         "acceptor": 'O',
+                        "weak_acceptor": 'O',
                         "negative": 'S',
                         "positve": 'H'}
 
@@ -814,115 +854,6 @@ cluster_dict = {{"{0}":[], "{0}_arrows":[]}}
                                   features=features,
                                   protein=protein)
 
-    @staticmethod
-    def from_arpeggio(pdb_code, hetid):
-        arpeggio_dic = {'hbond acceptor': "acceptor",
-                        'weak hbond acceptor': "acceptor",
-                        'pos ionisable': "positive",
-                        'neg ionisable': "negative",
-                        'aromatic': "apolar",
-                        'carbonyl oxygen': None,
-                        'carbonyl carbon': None,
-                        'hydrophobe': "apolar",
-                        'hbond donor': "donor",
-                        'xbond acceptor': None,
-                        'weak hbond donor': "donor"}
-
-
-        tmpdir = tempfile.mkdtemp()
-        pdbfile = pdb_code
-
-        PDBResult(identifier=pdb_code).download(out_dir=tmpdir)
-
-        prot = Protein.from_file(os.path.join(tmpdir, f'{pdb_code}.pdb'))
-        prot.detect_ligand_bonds()
-
-        for l in prot.ligands:
-            if l.identifier.split(":")[1][:3] == hetid:
-                ligand_index = l.identifier.split(":")[1][3:]
-                ligand = l
-
-        cmd = f"""
-        docker run --rm -v "{tmpdir}":/run -u `id -u`:`id -g` -it harryjubb/arpeggio python arpeggio.py /run/{pdbfile}.pdb -s RESNAME:{hetid} -v
-        """
-        os.system(cmd)
-        # interpret the output files
-        headers = ["atom1",
-                   "atom2",
-                   "clash",
-                   "covalent",
-                   "vdwclash",
-                   "vdw",
-                   "proximal",
-                   "hbond",
-                   "weakhbond",
-                   "halogenbond",
-                   "ionic",
-                   "metalic",
-                   "aromatic",
-                   "hydrophobic",
-                   "carbonyl",
-                   "polar",
-                   "weakpolar",
-                   "relationship"]
-
-        atom_types = pd.read_csv(os.path.join(tmpdir, f"{pdb_code}.atomtypes"),
-                                 sep='\t',
-                                 names=["atom", "atomtype"],
-                                 index_col=False)
-
-        atom_types.atomtype = [re.findall(r"'(.*?)'", row.atomtype) for index, row in atom_types.iterrows()]
-
-        atom_to_ring = pd.read_csv(os.path.join(tmpdir, f"{pdb_code}.ari"),
-                                   sep='\t',
-                                   names=["atom", "ringid", "resid", "centroid", "interactiontypes", "atype", "btype"],
-                                   index_col=False)
-
-        atom_to_ring.centroid = [str(row.centroid).strip("][").split(",") for index, row in atom_to_ring.iterrows()]
-        atom_to_ring.interactiontype = [re.findall(r"'(.*?)'", row.interactiontype) for index, row in atom_types.iterrows()]
-
-
-        # df = pd.read_csv(os.path.join(tmpdir, f"{pdb_code}.contacts"),
-        #                  sep='\t',
-        #                  names=headers,
-        #                  index_col=False)
-        #
-        # res_1 = [str(row["atom1"]).split("/")[1] for index, row in df.iterrows()]
-        # res_2 = [str(row["atom2"]).split("/")[1] for index, row in df.iterrows()]
-        # df["residue1"] = res_1
-        # df["residue2"] = res_2
-        #
-        # df = df.loc[(df.residue1 == ligand_index) | (df.residue2 == ligand_index)]
-        # df = df.reset_index()
-        #
-        # ligand_atoms = []
-        # for index, row in df.iterrows():
-        #     if str(row.residue1) == ligand_index:
-        #         lig_atom = str(row.atom1).split("/")[2]
-        #     elif str(row.residue2) == ligand_index:
-        #         lig_atom = str(row.atom2).split("/")[2]
-        #     else:
-        #         lig_atom = "NaN"
-        #     ligand_atoms.append(lig_atom)
-        #
-        # df["ligandatom"] = ligand_atoms
-        # for atm in ligand.heavy_atoms:
-        #     if atm.label == "N2":
-        #         interactions = df.loc[df.ligandatom == atm.label]
-        #         print(interactions.loc[interactions.weakpolar == 1])
-                # int_list = []
-                # for index, row in interactions.iterrows():
-                #     for col in [c for c in interactions.columns if c not in ["proximal",
-                #                                                              "index",
-                #                                                              "atom1",
-                #                                                              "atom2"]
-                #                 ]:
-                #         if row[str(col)] == 1:
-                #             int_list.append(str(col))
-                # print(int_list)
-
-        return 0
-    
     @staticmethod
     def from_ligands(ligands, identifier, protein=None, settings=None):
         """
@@ -1340,12 +1271,36 @@ class _PharmacophoreFeature(Helper):
         :param protein: a :class:`ccdc.protein.Protein` instance
         :return: feature_coordinates for hydrogen-bonding partner
         """
+        def get_crystal(protein):
+            tmp = tempfile.mkdtemp()
+            ppath = os.path.join(tmp, "crystal.pdb")
+            with io.MoleculeWriter(ppath) as w:
+                w.write(protein)
+
+            return io.CrystalReader(ppath)[0]
+
+        crystal = get_crystal(protein)
+
+        coord_atom_dict = {f"{round(a.coordinates.x, 4)}_{round(a.coordinates.y, 4)}_{round(a.coordinates.z, 4)}": a
+                           for a in protein.atoms}
+
         if feature_type == 'donor':
-            atms = {f"{r.identifier.split(':')[1]}: {a.label}": a
-                    for r in protein.residues for a in r.atoms if a.is_acceptor}
+            feature_definitions = [v for k, v in Pharmacophore.feature_definitions.items()
+                                   if k == "acceptor_projected"]
+
+            #
+            #
+            # atms = {f"{r.identifier.split(':')[1]}:{a.label}": a
+            #         for r in protein.residues for a in r.atoms if a.is_acceptor}
         else:
-            atms = {f"{r.identifier.split(':')[1]}: {a.label}": a
-                    for r in protein.residues for a in r.atoms if a.is_donor}
+            feature_definitions = [v for k, v in Pharmacophore.feature_definitions.items()
+                                   if k == "donor_projected"
+                                   or k == "donor_ch_projected"]
+            # atms = {f"{r.identifier.split(':')[1]}:{a.label}": a
+            #         for r in protein.residues for a in r.atoms if a.is_donor}
+
+        detected_features = {fd.identifier: fd.detect_features(crystal)
+                             for fd in feature_definitions}
 
         near_atoms_coords = {}
         near_atoms_ident = {}

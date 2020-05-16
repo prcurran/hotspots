@@ -1,4 +1,3 @@
-
 '''
 The main class of the :mod:`hotspots.grid_extension.Grid`.
 
@@ -41,6 +40,7 @@ class Grid(utilities.Grid):
     """
     A class to extend a `ccdc.utilities.Grid` this provides grid methods required in the Fragment Hotspot Maps algorithm
     """
+
     def coordinates(self, threshold=1):
         nx, ny, nz = self.nsteps
         return [self.indices_to_point(i, j, k)
@@ -48,7 +48,6 @@ class Grid(utilities.Grid):
                 for j in range(ny)
                 for k in range(nz)
                 if self.value(i, j, k) >= threshold]
-
 
     def grid_value_by_coordinates(self, threshold=1):
         """
@@ -101,7 +100,7 @@ class Grid(utilities.Grid):
         ri = self._tolerance_range(i, tolerance, 0, self.nsteps[0])
         rj = self._tolerance_range(j, tolerance, 0, self.nsteps[1])
         rk = self._tolerance_range(k, tolerance, 0, self.nsteps[2])
-        return [self.value(a, b, c) for a in ri for b in rj for c in rk if self.value(a,b,c) > 0]
+        return [self.value(a, b, c) for a in ri for b in rj for c in rk if self.value(a, b, c) > 0]
 
     def grid_values(self, threshold=0):
         """
@@ -129,7 +128,6 @@ class Grid(utilities.Grid):
             return 0
         else:
             return np.percentile(values, percentile)
-
 
     def indices_to_point(self, i, j, k):
         """
@@ -214,10 +212,7 @@ class Grid(utilities.Grid):
 
         dilated = ndimage.grey_dilation(g_array, structure=selem)
 
-        return self.array_to_grid(dilated,self)
-
-
-
+        return self.array_to_grid(dilated, self)
 
     def restricted_volume(self, volume=75):
         """
@@ -253,9 +248,9 @@ class Grid(utilities.Grid):
         :param self:
         :return:
         """
-        return ((self.bounding_box[0][0] + self.bounding_box[1][0])/2,
-                (self.bounding_box[0][1] + self.bounding_box[1][1])/2,
-                (self.bounding_box[0][2] + self.bounding_box[1][2])/2
+        return ((self.bounding_box[0][0] + self.bounding_box[1][0]) / 2,
+                (self.bounding_box[0][1] + self.bounding_box[1][1]) / 2,
+                (self.bounding_box[0][2] + self.bounding_box[1][2]) / 2
                 )
 
     def deduplicate(self, major, threshold=12, tolerance=2):
@@ -472,7 +467,6 @@ class Grid(utilities.Grid):
         as_triads = zip(*indices)
 
         for (i, j, k), v in zip(as_triads, values):
-
             grid._grid.set_value(int(i), int(j), int(k), float(v))
 
         return grid
@@ -659,14 +653,14 @@ class Grid(utilities.Grid):
         return Grid(origin=origin, far_corner=far_corner, spacing=spacing, default=0, _grid=None)
 
     @staticmethod
-    def grow(inner, template, percentile= 80):
+    def grow(inner, template, percentile=80):
         """
         experimental
         Dilates grid to the points in the top percentile of the template
         :param template:
         :return:
         """
-        expand = inner.max_value_of_neighbours() > 0.1   # remove very small values
+        expand = inner.max_value_of_neighbours() > 0.1  # remove very small values
         outer = expand.__mul__(-inner) * template
         threshold = np.percentile(a=outer.grid_values(threshold=1), q=int(percentile))
 
@@ -799,9 +793,7 @@ class _GridEnsemble(object):
         self.common_grid_far_corner = common_grids[0].bounding_box[1]
         self.common_grid_nsteps = common_grids[0].nsteps
 
-
         return common_grids
-
 
     def get_4D_results_array(self, grid_list):
         """
@@ -817,7 +809,6 @@ class _GridEnsemble(object):
 
         max_array = np.max(self.results_array, axis=-1)
         self.nonzeros = max_array.nonzero()
-
 
     #### Functions for analysing ensemble data #####
 
@@ -1012,4 +1003,3 @@ class _GridEnsemble(object):
         print(self.common_grid_origin, self.common_grid_far_corner)
 
         return self.output_grid(mode, save=False)
-

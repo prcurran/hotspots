@@ -159,10 +159,13 @@ class Helper(object):
                          "positive": 9}
 
         atom_dic = {"apolar": 'C',
+                    "aromatic": 'C',
                     "donor": 'N',
+                    "weak_donor": 'N',
                     "acceptor": 'O',
+                    "weak_acceptor": 'O',
                     "negative": 'S',
-                    "positive": 'H',
+                    "positve": 'H'
                     #"surface": ''
                     }
 

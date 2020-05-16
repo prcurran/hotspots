@@ -26,7 +26,7 @@ from hotspots import hs_io
 from hotspots import hs_docking
 from hotspots import hs_utilities
 from hotspots import result
-from hotspots.pdb_python_api import _Ligand, PDBResult
+from hotspots.wrapper_pdb import _Ligand, PDBResult
 
 
 class Organiser(argparse.ArgumentParser):
