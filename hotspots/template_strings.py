@@ -239,7 +239,7 @@ def pymol_grids(i, settings):
     threshold = settings.isosurface_threshold
 
     if i is not None:
-        gfiles = ["{}/{}{}".format(i,p,settings.grid_extension) for p in grids]
+        gfiles = ["{0}/{1}_{0}{2}".format(i,p,settings.grid_extension) for p in grids]
     else:
         gfiles = ["{}{}".format(p,settings.grid_extension) for p in grids]
         i = 0
@@ -250,7 +250,7 @@ colour_dict = {{'acceptor':'red', 'donor':'blue', 'apolar':'yellow', 'negative':
 threshold_list = {0}
 gfiles = {1}
 grids = {2}
-num = {3}
+num = '{3}'
 surf_transparency = {4}
 
 if dirpath:
@@ -263,15 +263,15 @@ for t in threshold_list:
             cmd.isosurface('surface_%s_%s_%s'%(grids[i], t, num), '%s_%s'%(grids[i], num), t)
             cmd.set('transparency', surf_transparency, 'surface_%s_%s_%s'%(grids[i], t, num))
             cmd.color(colour_dict['%s'%(grids[i])], 'surface_%s_%s_%s'%(grids[i], t, num))
-            cmd.group('threshold_%s'%(t), members = 'surface_%s_%s_%s'%(grids[i],t, num))
-            cmd.group('threshold_%s' % (t), members='label_threshold_%s' % (t))
+            cmd.group('threshold_%s_%s' % (t, num), members = 'surface_%s_%s_%s'%(grids[i],t, num))
+            cmd.group('threshold_%s_%s' % (t, num), members='label_threshold_%s_%s' % (t, num))
         except:
             continue
 
 
 
     try:
-        cmd.group('hotspot_%s' % (num), members='threshold_%s' % (t))
+        cmd.group('hotspot_%s' % (num), members='threshold_%s_%s' % (t, num))
     except:
         continue
     

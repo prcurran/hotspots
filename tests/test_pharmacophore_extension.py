@@ -118,14 +118,15 @@ class TestInteractionPharmacophoreModel1xkk(unittest.TestCase):
         # self.assertEqual(7, len(self.prot_lig_pharmacophore.selected_features))
         self.prot_lig_pharmacophore.pymol_visulisation("testdata/pharmacophore_extension/1xkk")
 
-class testA(unittest.TestCase):
+
+class TestA(unittest.TestCase):
     def testsmarts(self):
 
         p = PharmacophoreModel()
         p.feature_definitions=["donor_projected"]
         dp = p.feature_definitions["donor_projected"]
         for s in dp.SMARTS_definitions:
-            print(s)
+            print(str(s))
 
 
 if __name__ == '__main__':

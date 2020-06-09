@@ -649,6 +649,32 @@ class Results(Helper):
         """
         return PharmacophoreModel.from_hotspot(self, identifier=identifier, threshold=threshold)
 
+    def grid_labels(self):
+        """
+        Detect local maxima and generate a dict of peak by value
+
+        :return: Peak coordinates by peak values.
+        :rtype: dict
+        """
+        labels = {}
+        for p, g in self.super_grids.items():
+            h = g.max_value_of_neighbours()
+            h = h.gaussian()
+            # take the original grid value, grid modifications for peak
+            # detection purposes only, not to augment the HS values
+            labels.update({p: {peak: g.value_at_point(peak) for peak in h.get_peaks(min_distance=1, cutoff=5)}})
+
+        return labels
+
+    def _map_features_to_protein(self):
+        # do it cavity by cavity
+        labels = {}
+        cavities = {self.buriedness.islands(threshold=3): []}
+
+        for p, g in self.super_grids.items():
+            h = g.max_value_of_neighbours()
+            h = h.gaussian()
+
     def atomic_volume_overlap(self, mol):
         """
         for a given mol, return a dictionary of dictionaries containing the percentage overlap of each atoms

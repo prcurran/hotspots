@@ -265,7 +265,7 @@ class Arpeggio:
         # the residue index and residue number are not equal
         # These dictionaries map the ccdc object index and the residue number
         self.protein_chain_index_dic = {r.identifier.split(":")[1][3:]: i
-                                        for i, r in enumerate(self.protein.residues)}
+                                        for i, r in enumerate(self.prot_chain.residues)}
         self.protein_water_index_dic = {w.identifier.split(":")[1][3:]: j
                                         for j, w in enumerate(self.protein.waters)}
         self.protein_ligand_index_dic = {l.identifier.split(":")[1][3:]: k
@@ -474,7 +474,9 @@ class Arpeggio:
         c, p_residue_index, p_atm_label = prot_hbond_atm[0].split("/")
 
         # identify the protein atom type
+        p_residue_index = str(p_residue_index)
         if p_residue_index in self.protein_chain_index_dic:
+            print(self.protein_chain_index_dic[p_residue_index])
             p_residue_obj = self.prot_chain.residues[self.protein_chain_index_dic[p_residue_index]]
             p_atom_obj = [a for a in p_residue_obj.atoms if a.label == p_atm_label]
 
@@ -642,7 +644,13 @@ class Arpeggio:
                                projected_identifier=f"{row.resid}ringid_{row.ringid}",
                                interaction_type="aromatic")
 
-            feat.projected_residue = self.protein_chain.residues[self.protein_chain_index_dic[str(row.resnum)]]
+            try:
+                res = self.protein_chain_index_dic[str(row.resnum)]
+                feat.projected_residue = self.prot_chain.residues[res]
+            except:
+                # do nothing
+                print(f"Residue: {row.resnum} is not in Chain {self.chain}")
+
             feat.feature_type_specific = str(row.interactiontypes)
 
             features.append(feat)

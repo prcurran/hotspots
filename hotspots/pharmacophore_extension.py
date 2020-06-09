@@ -18,6 +18,8 @@ from hotspots.wrapper_arpeggio import Arpeggio
 from hotspots.template_strings import pymol_imports, pymol_sphere, pymol_group, pymol_line, \
     pymol_isosurface, pymol_pseudoatom, pymol_set_color, pymol_load
 
+from hotspots.wrapper_pymol import PyMOLCommands, PyMOLFile
+
 
 with utilities._private_importer():
     import MotifPharmacophoreLib
@@ -172,7 +174,7 @@ class PharmacophoreModel(Pharmacophore.Query):
 
             point_objname = f"{identifier}_point_{i}"
             group_dic[identifier].update({feat_ID: [point_objname]})
-            pymol_out += pymol_sphere(point_objname, point_colour, coords, radius=0.5)
+            pymol_out += PyMOLCommands.sphere(point_objname, point_colour, coords, radius=0.5)
 
             if feat.projected:
                 proj_coords = [feat.projected[0].centre[0],
@@ -185,17 +187,16 @@ class PharmacophoreModel(Pharmacophore.Query):
 
                 projected_colour = adjust_lightness(feat.colour, percentage=30)
 
-                pymol_out += pymol_sphere(projection_objname, projected_colour, proj_coords, radius=0.5)
-                pymol_out += pymol_line(line_objname, coords, proj_coords, rgb=projected_colour)
+                pymol_out += PyMOLCommands.sphere(projection_objname, projected_colour, proj_coords, radius=0.5)
+                pymol_out += PyMOLCommands.line(line_objname, coords, proj_coords, rgb=projected_colour)
                 if feat.projected_identifier and self.protein:
                     resnum = feat.projected_identifier.split("/")[1]
                     pymol_out += f'\ncmd.select("sele", "resi {resnum}")\ncmd.show("sticks", "sele")'
 
-
-            pymol_out += pymol_group(feat_ID, group_dic[identifier][feat_ID])
-            pymol_out += pymol_group(f"{identifier}_pts", group_dic[identifier].keys())
+            pymol_out += PyMOLCommands.group(feat_ID, group_dic[identifier][feat_ID])
+            pymol_out += PyMOLCommands.group(f"{identifier}_pts", group_dic[identifier].keys())
             # !!! BE CAREFUL NOT TO REUSE PYMOL NAMESPACES, IT WILL END IN TEARS !!!
-        pymol_out += pymol_group("ligand_pharmacophore", [f"{a}_pts" for a in group_dic.keys()])
+        pymol_out += PyMOLCommands.group("ligand_pharmacophore", [f"{a}_pts" for a in group_dic.keys()])
 
         return pymol_out
 
@@ -215,30 +216,34 @@ class PharmacophoreModel(Pharmacophore.Query):
             with MoleculeWriter(os.path.join(outdir, "protein.mol2")) as w:
                 w.write(self.protein.molecule)
 
-        with open(os.path.join(outdir, "pymol_file.py"), "w") as pymol_file:
-            pymol_out = pymol_imports()
+        self.pymol_out = PyMOLFile()
+        # with open(os.path.join(outdir, "pymol_file.py"), "w") as pymol_file:
+        #     pymol_out = pymol_imports()
 
-            if self.ligands:
-                pymol_out += pymol_load("ligands.mol2")
+        if self.ligands:
+            self.pymol_out.commands += PyMOLCommands.load("ligands.mol2", "ligands")
 
-            if self.protein:
-                pymol_out += pymol_load("protein.mol2")
+        if self.protein:
+            self.pymol_out.commands += PyMOLCommands.load("protein.mol2", "protein")
 
-            # write out point spheres and projection sphere and lines if applicable
-            pymol_out += self.features_to_pymol_strings(self.selected_features)
+        # write out point spheres and projection sphere and lines if applicable
+        self.pymol_out.commands += self.features_to_pymol_strings(self.selected_features)
 
-            if self.feature_point_grids:
-                for identifier, g in self.feature_point_grids.items():
-                    g.write(os.path.join(outdir, f"{identifier}.grd"))
+        if self.feature_point_grids:
+            for identifier, g in self.feature_point_grids.items():
+                g.write(os.path.join(outdir, f"{identifier}.grd"))
 
-                    point_colour = rgb_to_decimal(self.feature_definitions[identifier].colour)
-                    pymol_out += pymol_set_color(f"{identifier}_color", point_colour)
-                    pymol_out += pymol_isosurface(f"{identifier}.grd", level=1, color=f"{identifier}_color")
+                point_colour = rgb_to_decimal(self.feature_definitions[identifier].colour)
+                self.pymol_out.commands += PyMOLCommands.set_color(f"{identifier}_color", point_colour)
+                self.pymol_out.commands += PyMOLCommands.isosurface(f"{identifier}.grd",
+                                                                    f"surface_{identifier}",
+                                                                    level=1,
+                                                                    color=f"{identifier}_color")
 
-                pymol_out += pymol_group("grds", self.feature_point_grids.keys())
-                pymol_out += pymol_group("grds", [f"surface_{a}" for a in self.feature_point_grids])
+            self.pymol_out.commands += PyMOLCommands.group("grds", self.feature_point_grids.keys())
+            self.pymol_out.commands += PyMOLCommands.group("grds", [f"surface_{a}" for a in self.feature_point_grids])
 
-            pymol_file.write(pymol_out)
+        self.pymol_out.write()
 
     # STATIC METHODS
     @staticmethod
@@ -525,6 +530,8 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
     """
     def __init__(self):
         super().__init__()
+
+    def
 
     def from_hotspot(self):
         x = 1

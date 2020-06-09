@@ -120,8 +120,7 @@ class PDB(object):
             query_text = xmltodict.unparse(query, pretty=False)
             query_text = query_text.encode()
             f = Helper.url_request(extension='/search', data=query_text)
-
-            return [PDBResult(identifier=code.split(":")[0]) for code in tqdm(f.readlines())]
+            return [PDBResult(identifier=code.decode("utf-8").split(":")[0]) for code in tqdm(f.readlines())]
 
         else:
             f = Helper.url_request(extension='/getCurrent')
@@ -244,11 +243,20 @@ class _Protein(object):
         def name(self):
             try:
                 if type(self.data["macroMolecule"]) is list:
-                    print(self.data["macroMolecule"])
-                    upr = [a["name"] for a in self.data["macroMolecule"] if a["accession"]["id"] != "P00720"]
-                    return upr[0]
+                    return [a["name"] for a in self.data["macroMolecule"]]
                 else:
                     return self.data["macroMolecule"]["name"]
+
+            except KeyError:
+                return None
+
+        @property
+        def description(self):
+            try:
+                if type(self.data["polymerDescription"]) is list:
+                    return [a["description"] for a in self.data["polymerDescription"]]
+                else:
+                    return self.data["polymerDescription"]["description"]
 
             except KeyError:
                 return None
@@ -266,18 +274,19 @@ class _Protein(object):
             except KeyError:
                 return None
 
-
     def __init__(self, data):
         """
         :param ligand_str:
         """
         self.data = data
         self.sub_unit_data = []
+        print(data)
         for data_item in self.data.values():
             for i in data_item.values():
+                print(type(i))
                 if type(i) is dict:
                     self.sub_unit_data.append(i)
-                elif type(i) is unicode:
+                elif type(i) is str:
                     self.structure_id = i
                 elif type(i) is list:
                     self.sub_unit_data.append(i[0])
@@ -404,7 +413,17 @@ class PDBResult(object):
 
         x = (urlopen(url))
         data = xmltodict.parse(x.read(), attr_prefix='', dict_constructor=dict)
-        return data["dataset"]["record"]["dimStructure.{}".format(field)]
+        try:
+            return data["dataset"]["record"]["dimStructure.{}".format(field)]
+        except:
+
+            try:
+                return data["dataset"]["record"]["dimEntity.{}".format(field)]
+            except:
+                try:
+                    return data["dataset"]["record"][0]["dimEntity.{}".format(field)]
+                except:
+                    raise RuntimeError()
 
     @property
     def descriptions(self):
@@ -423,7 +442,7 @@ class PDBResult(object):
         data = xmltodict.parse(self._raw_properties(info_type='describe_mol').read(),
                                attr_prefix='',
                                dict_constructor=dict)
-        return _Protein(data.values()[0])
+        return _Protein(list(data.values())[0])
 
     @property
     def ligands(self):
