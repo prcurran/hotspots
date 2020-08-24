@@ -1,6 +1,7 @@
 *.DS_Store
-examples/7_bcv_validation/data/*
-examples/7_bcv_validation/results*
+tests/testdata/
+examples/7_bcv_validation/data/
+examples/7_bcv_validation/results/
 *.pyc
 .idea
 .idea/*

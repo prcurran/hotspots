@@ -290,6 +290,21 @@ finish_launching()
         return pymol_out
 
     @staticmethod
+    def select(objname, selection):
+        return \
+    f'\ncmd.select("{objname}", "{selection}")'
+
+    @staticmethod
+    def show(representation, selection):
+        return \
+    f'\ncmd.show("{representation}", "{selection}")'
+
+    @staticmethod
+    def hide(representation, selection):
+        return \
+    f'\ncmd.hide("{representation}", "{selection}")'
+
+    @staticmethod
     def set_color(objname, rgb):
         """
         Create a new registered color.
@@ -304,6 +319,22 @@ finish_launching()
         :rtype: str
         """
         return f'\ncmd.set_color("{objname}", {(rgb[0], rgb[1], rgb[2])})'
+
+    @staticmethod
+    def color(pymol_color, objname):
+        """
+        For recolor proteins
+
+        :param pymol_color: a registered pymol color (NOT RGBA)
+        :param objname: name of obj to color
+
+        :type pymol_color: str
+        :type objname: str
+
+        :return: PyMOL command
+        :rtype: str
+        """
+        return f'\ncmd.color("{pymol_color}", "{objname}")'
 
     @staticmethod
     def pymol_set(setting_name, value, selection):
@@ -323,18 +354,11 @@ finish_launching()
         return f'\nif wd:\n    os.chdir(wd)'
 
     @staticmethod
-    def display_settings(settings):
-        out_str = """
-    cmd.bg_color("{0}")
-    cmd.show("cartoon", "protein")
-    cmd.color("slate", "protein")
-    cmd.show("sticks", "organic")
-    cmd.hide("lines", "protein")
-    """.format(settings.bg_color)
-        return out_str
+    def background_color(color):
+        return f'cmd.bg_color("{color}")'
 
     @staticmethod
-    def isoslider(surface_dic, min_value, max_value):
+    def isoslider(surface_dic, surface_value_dic, min_value=0):
         """
         Create a GUI to control the isolevel of isosurface loaded
 
@@ -373,41 +397,42 @@ f"""
 
 
 surface_list = {surface_dic}
+surface_max_list = {surface_value_dic}
 
 top = tk.Toplevel(plugins.get_tk_root())
+
 master = tk.Frame(top, padx=10, pady=10)
 master.pack(fill="both", expand=1)
 
 for child in list(master.children.values()):
     child.destroy()
 
-mmf = tk.Frame(master)
 
-tk.Label(mmf, text=f'{min_value}').grid(row=0, column=1, sticky='w')
-tk.Label(mmf, text=f'{max_value}').grid(row=0, column=3, sticky='e')
-mmf.grid(row=0, column=2, sticky='ew')
-mmf.columnconfigure(1, weight=1)
+row_counter = 0
+for identifier, component_dic in surface_list.items():
+    # add calculation identifier
+    tk.Label(master, text=identifier).grid(row=row_counter, column=0, sticky="w")
+    row_counter += 1
+    
+    for component_id, surfaces in component_dic.items():
+        # add collection label, e.g. superstar or hotspot etc.
+        tk.Label(master, text=component_id).grid(row=row_counter, column=1, sticky='w')
+        row_counter += 1
+        
+        for i, surface in enumerate(surfaces):
+            # add grid type label
+            probe = surface.split("_")[-2]
+            tk.Label(master, text=probe).grid(row=row_counter, column=2, sticky="w")
+            
+            # slider code 
+            v = IsoLevel(master, surface, 5)
+            e = tk.Scale(master, orient=tk.HORIZONTAL, from_={min_value}, to=surface_max_list[identifier][component_id],
+                         resolution=0.1, showvalue=0, variable=v)
+            e.grid(row=row_counter, column=3, sticky="ew")
 
-j = 0
-for identifier, surface_list in surface_list.items():
-    for i, surface in enumerate(surface_list):
-        probe = surface.split("_")[1]
-        v = IsoLevel(master, surface, 5)
-
-        k = i + (j * (len(surface_list) + 1))
-
-        if i == 0:
-            tk.Label(master, text=identifier).grid(row=1 + k, column=0, sticky="w")
-
-        tk.Label(master, text=probe).grid(row=2 + k, column=1, sticky="w")
-        e = tk.Scale(master, orient=tk.HORIZONTAL, from_={min_value}, 
-                     to={max_value}, resolution=0.1, showvalue=0, variable=v)
-        e.grid(row=2 + k, column=2, sticky="ew")
-        e = tk.Entry(master, textvariable=v, width=4)
-        e.grid(row=2 + k, column=3, sticky="e")
-
-        master.columnconfigure(2, weight=1)
-
-    j += 1
+            e = tk.Entry(master, textvariable=v, width=4)
+            e.grid(row=row_counter, column=4, sticky="e")
+            master.columnconfigure(3, weight=1)
+            row_counter += 1
 \n\n
 """

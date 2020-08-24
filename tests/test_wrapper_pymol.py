@@ -10,6 +10,7 @@ import unittest
 from hotspots.wrapper_pymol import PyMOLFile, PyMOLCommands
 
 
+
 class TestPyMOLWrapper(unittest.TestCase):
     def setUp(self):
         self.pymol_file = PyMOLFile()
@@ -131,3 +132,7 @@ class TestPyMOLWrapper(unittest.TestCase):
                                                         ["myline1", "mypseudoatom1", "mypseudoatom2"])
 
         self.pymol_file.write("testdata/wrapper_pymol/test_group.py")
+
+
+
+

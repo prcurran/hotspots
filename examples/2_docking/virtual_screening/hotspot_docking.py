@@ -23,112 +23,111 @@ from hotspots.hs_io import HotspotReader
 
 
 
-#
-# def dock(inputs):
-#     """
-#     submit a GOLD API docking calculation using docking constraints automatically generated from the Hotspot API
-#
-#     :param ligand_path:
-#     :param out_path:
-#     :param hotspot:
-#     :param weight:
-#     :return:
-#     """
-#
-#     def add_ligands(docker, ligand_path):
-#
-#         with gzip.open(os.path.join(ligand_path, "actives_final.mol2.gz"), 'rb') as f_in:
-#             with open(os.path.join(docker.settings.output_directory, "actives_final.mol2"), 'wb') as f_out:
-#                 shutil.copyfileobj(f_in, f_out)
-#
-#         with gzip.open(os.path.join(ligand_path, "decoys_final.mol2.gz"), 'rb') as f_in:
-#             with open(os.path.join(docker.settings.output_directory, "decoys_final.mol2"), 'wb') as f_out:
-#                 shutil.copyfileobj(f_in, f_out)
-#
-#         docker.settings.add_ligand_file(os.path.join(docker.settings.output_directory,
-#                                                      "actives_final.mol2"),
-#                                         ndocks=5)
-#
-#         docker.settings.add_ligand_file(os.path.join(docker.settings.output_directory,
-#                                                      "decoys_final.mol2"),
-#                                         ndocks=5)
-#
-#     def add_protein(docker, hotspot, junk):
-#
-#         pfile = os.path.join(junk, "protein.mol2")
-#         with MoleculeWriter(pfile) as w:
-#             w.write(hotspot.protein)
-#
-#         docker.settings.add_protein_file(pfile)
-#
-#     def define_binding_site(docker, ligand_path):
-#
-#         crystal_ligand = MoleculeReader(os.path.join(ligand_path, "crystal_ligand.mol2"))[0]
-#         docker.settings.binding_site = docker.settings.BindingSiteFromLigand(protein=docker.settings.proteins[0],
-#                                                                              ligand=crystal_ligand)
-#
-#     def add_hotspot_constraint(docker, hotspot, weight):
-#
-#         if int(weight) != 0:
-#             constraints = docker.settings.HotspotHBondConstraint.create(protein=docker.settings.proteins[0],
-#                                                                         hr=hotspot,
-#                                                                         weight=int(weight),
-#                                                                         min_hbond_score=0.05,
-#                                                                         max_constraints=1)
-#
-#             for constraint in constraints:
-#                 docker.settings.add_constraint(constraint)
-#
-#     def write(docker, out_path):
-#
-#         results = Docker.Results(docker.settings)
-#
-#         # write ligands
-#         with MoleculeWriter(os.path.join(out_path, "docked_ligand.mol2")) as w:
-#             for d in results.ligands:
-#                 w.write(d.molecule)
-#
-#         # copy ranking file
-#         # in this example, this is the only file we use for analysis. However, other output files can be useful.
-#         copyfile(os.path.join(junk, "bestranking.lst"),
-#                  os.path.join(out_path, "bestranking.lst"))
-#
-#     # GOLD docking routine
-#     ligand_path, out_path, hotspot, weight, search_efficiency = inputs
-#     docker = Docker()
-#
-#     # GOLD settings
-#     docker.settings = DockerSettings()
-#     docker.settings.fitness_function = 'plp'
-#     docker.settings.autoscale = search_efficiency
-#     junk = os.path.join(out_path, "all")
-#     docker.settings.output_directory = junk
-#
-#     # GOLD write lots of files we don't need in this example
-#     if not os.path.exists(junk):
-#         os.mkdir(junk)
-#     docker.settings.output_file = os.path.join(junk, "docked_ligands.mol2")
-#
-#     # read the hotspot
-#     hotspot = HotspotReader(hotspot).read()
-#     for p, g in hotspot.super_grids.items():
-#         hotspot.super_grids[p] = g.max_value_of_neighbours()  # dilation to reduce noise
-#
-#     add_ligands(docker, ligand_path)
-#     add_protein(docker, hotspot, junk)
-#     define_binding_site(docker, ligand_path)
-#     add_hotspot_constraint(docker, hotspot, weight)
-#     docker.dock(file_name=os.path.join(out_path, "hs_gold.conf"))
-#     write(docker, out_path)
-#
-#     # Clean out unwanted files
-#     shutil.rmtree(junk)
-#
-#
-# def create_dir(path):
-#     if not os.path.exists(path):
-#         os.mkdir(path)
-#     return path
+def dock(inputs):
+    """
+    submit a GOLD API docking calculation using docking constraints automatically generated from the Hotspot API
+
+    :param ligand_path:
+    :param out_path:
+    :param hotspot:
+    :param weight:
+    :return:
+    """
+
+    def add_ligands(docker, ligand_path):
+
+        with gzip.open(os.path.join(ligand_path, "actives_final.mol2.gz"), 'rb') as f_in:
+            with open(os.path.join(docker.settings.output_directory, "actives_final.mol2"), 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+        with gzip.open(os.path.join(ligand_path, "decoys_final.mol2.gz"), 'rb') as f_in:
+            with open(os.path.join(docker.settings.output_directory, "decoys_final.mol2"), 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+        docker.settings.add_ligand_file(os.path.join(docker.settings.output_directory,
+                                                     "actives_final.mol2"),
+                                        ndocks=5)
+
+        docker.settings.add_ligand_file(os.path.join(docker.settings.output_directory,
+                                                     "decoys_final.mol2"),
+                                        ndocks=5)
+
+    def add_protein(docker, hotspot, junk):
+
+        pfile = os.path.join(junk, "protein.mol2")
+        with MoleculeWriter(pfile) as w:
+            w.write(hotspot.protein)
+
+        docker.settings.add_protein_file(pfile)
+
+    def define_binding_site(docker, ligand_path):
+
+        crystal_ligand = MoleculeReader(os.path.join(ligand_path, "crystal_ligand.mol2"))[0]
+        docker.settings.binding_site = docker.settings.BindingSiteFromLigand(protein=docker.settings.proteins[0],
+                                                                             ligand=crystal_ligand)
+
+    def add_hotspot_constraint(docker, hotspot, weight):
+
+        if int(weight) != 0:
+            constraints = docker.settings.HotspotHBondConstraint.create(protein=docker.settings.proteins[0],
+                                                                        hr=hotspot,
+                                                                        weight=int(weight),
+                                                                        min_hbond_score=0.05,
+                                                                        max_constraints=1)
+
+            for constraint in constraints:
+                docker.settings.add_constraint(constraint)
+
+    def write(docker, out_path):
+
+        results = Docker.Results(docker.settings)
+
+        # write ligands
+        with MoleculeWriter(os.path.join(out_path, "docked_ligand.mol2")) as w:
+            for d in results.ligands:
+                w.write(d.molecule)
+
+        # copy ranking file
+        # in this example, this is the only file we use for analysis. However, other output files can be useful.
+        copyfile(os.path.join(junk, "bestranking.lst"),
+                 os.path.join(out_path, "bestranking.lst"))
+
+    # GOLD docking routine
+    ligand_path, out_path, hotspot, weight, search_efficiency = inputs
+    docker = Docker()
+
+    # GOLD settings
+    docker.settings = DockerSettings()
+    docker.settings.fitness_function = 'plp'
+    docker.settings.autoscale = search_efficiency
+    junk = os.path.join(out_path, "all")
+    docker.settings.output_directory = junk
+
+    # GOLD write lots of files we don't need in this example
+    if not os.path.exists(junk):
+        os.mkdir(junk)
+    docker.settings.output_file = os.path.join(junk, "docked_ligands.mol2")
+
+    # read the hotspot
+    hotspot = HotspotReader(hotspot).read()
+    for p, g in hotspot.super_grids.items():
+        hotspot.super_grids[p] = g.max_value_of_neighbours()  # dilation to reduce noise
+
+    add_ligands(docker, ligand_path)
+    add_protein(docker, hotspot, junk)
+    define_binding_site(docker, ligand_path)
+    add_hotspot_constraint(docker, hotspot, weight)
+    docker.dock(file_name=os.path.join(out_path, "hs_gold.conf"))
+    write(docker, out_path)
+
+    # Clean out unwanted files
+    shutil.rmtree(junk)
+
+
+def create_dir(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
+    return path
 
 
 def rank_stats(parent, s, w):
@@ -283,38 +282,47 @@ def main():
     # read and format the data
     search_effiencies = [1, 10, 100]
     weights = [0, 10, 100]
-    parent = "/vagrant/github_pkgs/hotspots/examples/" \
-             "2_docking/virtual_screening/akt1/"
+    parent = "/home/pcurran/github_packages/hotspots/examples/2_docking/virtual_screening/akt1"
 
-    df1, df2 = zip(*[rank_stats(parent, s, w)
-                     for s in search_effiencies for w in weights])
+    ligand_path = parent
+    out_path = os.path.join(parent, "everything")
+    hotspot = os.path.join(parent, "hotspot", "out.zip")
+    weight = 0
+    search_efficiency = 1
 
-    # Plotted Data (ROC and Box plots)
-    df1 = pd.concat(df1, ignore_index=True)
+    inputs = (ligand_path, out_path, hotspot, weight, search_efficiency)
 
-    # Table Data (Rank Stats: AUC, EF, BEDROC)
-    df2 = pd.concat(df2, ignore_index=True)
-    df2.to_csv('rankstats.csv')
+    dock(inputs)
 
-    # Plot the ROC and box plots
-    sns.set_style('white')
-    fig, axs = plt.subplots(nrows=2,
-                            ncols=3,
-                            sharey='row',
-                            gridspec_kw={'wspace':0.26,
-                                         'hspace':0.22},
-                            figsize=(10,6), dpi=200)
-
-    for i, row in enumerate(axs):
-        for j, ax in enumerate(row):
-            if i == 0:
-                lines = roc_plot(df1, search_effiencies[j], ax)
-            else:
-                box_plot(df1, search_effiencies[j], ax)
-
-    _asthetics(fig, axs, lines)
-    plt.savefig("new_grid.png")
-    plt.close()
+    # df1, df2 = zip(*[rank_stats(parent, s, w)
+    #                  for s in search_effiencies for w in weights])
+    #
+    # # Plotted Data (ROC and Box plots)
+    # df1 = pd.concat(df1, ignore_index=True)
+    #
+    # # Table Data (Rank Stats: AUC, EF, BEDROC)
+    # df2 = pd.concat(df2, ignore_index=True)
+    # df2.to_csv('rankstats.csv')
+    #
+    # # Plot the ROC and box plots
+    # sns.set_style('white')
+    # fig, axs = plt.subplots(nrows=2,
+    #                         ncols=3,
+    #                         sharey='row',
+    #                         gridspec_kw={'wspace':0.26,
+    #                                      'hspace':0.22},
+    #                         figsize=(10,6), dpi=200)
+    #
+    # for i, row in enumerate(axs):
+    #     for j, ax in enumerate(row):
+    #         if i == 0:
+    #             lines = roc_plot(df1, search_effiencies[j], ax)
+    #         else:
+    #             box_plot(df1, search_effiencies[j], ax)
+    #
+    # _asthetics(fig, axs, lines)
+    # plt.savefig("new_grid.png")
+    # plt.close()
 
 if __name__ == "__main__":
     main()

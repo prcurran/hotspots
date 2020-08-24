@@ -38,12 +38,17 @@ from os import getcwd
 import numpy as np
 from ccdc.cavity import Cavity
 from ccdc.molecule import Molecule, Atom
-from ccdc.protein import Protein
+from ccdc.pharmacophore import Pharmacophore
 from scipy.stats import percentileofscore
+from scipy.spatial import distance
 
 from hotspots.grid_extension import Grid, _GridEnsemble
+
 from hotspots.hs_pharmacophore import PharmacophoreModel
+from hotspots.pharmacophore_extension import ProteinPharmacophoreModel
+
 from hotspots.hs_utilities import Helper
+from hotspots.protein_extension import Protein
 
 
 class _Scorer(Helper):
@@ -324,7 +329,8 @@ class Results(Helper):
     :param bool pharmacophore: if True, a pharmacophore will be generated
     """
 
-    def __init__(self, super_grids, protein, buriedness=None, pharmacophore=None):
+    def __init__(self, super_grids, protein, buriedness=None, pharmacophore=None, superstar=None,
+                 weighted_superstar=None):
 
         self.super_grids = super_grids
         for probe, g in super_grids.items():
@@ -332,7 +338,9 @@ class Results(Helper):
 
         self.protein = protein
         self.buriedness = buriedness
-        self.pharmacophore = None
+        self.superstar = superstar
+        self.weighted_superstar = weighted_superstar
+        self.pharmacophore = pharmacophore
         self._features = self._get_features(interaction_dict=super_grids)
         self.identifier = None
 
@@ -666,14 +674,80 @@ class Results(Helper):
 
         return labels
 
-    def _map_features_to_protein(self):
-        # do it cavity by cavity
-        labels = {}
-        cavities = {self.buriedness.islands(threshold=3): []}
+    @staticmethod
+    def _island_to_atom(features, island, tolerance=1):
 
-        for p, g in self.super_grids.items():
-            h = g.max_value_of_neighbours()
-            h = h.gaussian()
+        # island
+        island_pnts = np.array(island.coordinates(threshold=5))
+
+        # projected spheres
+        projs = np.array([[f.projected[0].centre[0],
+                           f.projected[0].centre[1],
+                           f.projected[0].centre[2]] for f in features])
+
+        # distance matrix
+        l = distance.cdist(island_pnts, projs)
+
+        # create mask
+        x, y = np.nonzero(l <= tolerance)
+
+        # return features above threshold
+        return [features[i] for i in set(y)]
+
+    def _map_features_to_protein(self, b_threshold=3, min_grid_pts=4000, smooth=True):
+        # do it cavity by cavity
+        # interaction dict {probe name: pharmacophore name}
+        interaction_dict = {"donor": ["acceptor_projected"],
+                            "acceptor": ["donor_projected", "donor_ch_projected"],
+                            }
+
+        new_super_grids = {}
+        if smooth:
+            for p, g in self.super_grids.items():
+                h = g.max_value_of_neighbours()
+                h = h.gaussian()
+                new_super_grids.update({p: h})
+
+        cavities = [g for g in self.buriedness.islands(threshold=b_threshold)
+                    if len(g.grid_values(threshold=b_threshold)) > min_grid_pts]
+
+        pairs_by_cavity = {}
+        for j, cavity in enumerate([cavities[0]]):
+            cavity = (cavity > 3) * cavity
+            bs = Protein.BindingSiteFromGrid(self.protein, cavity, within=7)
+            binding_site = self.protein.copy()
+
+            for r in ({r.identifier for r in binding_site.residues} - {r.identifier for r in bs.residues}):
+                binding_site.remove_residue(r)
+
+            # cavity features
+            pm = ProteinPharmacophoreModel()
+            pm.feature_definitions = ["acceptor_projected", "donor_projected", "donor_ch_projected"]
+            pm.detect_from_prot(binding_site)
+            cavity_features = {}
+            for feature in pm.selected_features:
+                try:
+                    cavity_features[feature.identifier].append(feature)
+                except:
+                    cavity_features.update({feature.identifier: [feature]})
+
+            island_partners = {}
+            for p, g in new_super_grids.items():
+                if p != "apolar":
+                    h = (g & g.common_boundaries(cavity)) * g
+
+                    island_partners.update({f"{p}_{n}": self._island_to_atom(cavity_features[partner], island)
+                                            for n, island in enumerate(h.islands(threshold=5))
+                                            for partner in interaction_dict[p]
+                                            })
+
+                    pairs_by_cavity.update({f"cavity_{j}": island_partners})
+            pm.selected_features = [b for a in pairs_by_cavity[f"cavity_{j}"].values() for b in a]
+            new_super_grids["acceptor"].write("/home/pcurran/github_packages/hotspots/tests/testdata/result/map_features/acceptor.grd")
+            new_super_grids["donor"].write(
+                "/home/pcurran/github_packages/hotspots/tests/testdata/result/map_features/donor.grd")
+            pm.pymol_visulisation("/home/pcurran/github_packages/hotspots/tests/testdata/result/map_features")
+        return pairs_by_cavity
 
     def atomic_volume_overlap(self, mol):
         """

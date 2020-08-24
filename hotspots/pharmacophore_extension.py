@@ -175,6 +175,7 @@ class PharmacophoreModel(Pharmacophore.Query):
             point_objname = f"{identifier}_point_{i}"
             group_dic[identifier].update({feat_ID: [point_objname]})
             pymol_out += PyMOLCommands.sphere(point_objname, point_colour, coords, radius=0.5)
+            pymol_out += PyMOLCommands.load_cgo(point_objname, f"{point_objname}_obj")
 
             if feat.projected:
                 proj_coords = [feat.projected[0].centre[0],
@@ -188,6 +189,7 @@ class PharmacophoreModel(Pharmacophore.Query):
                 projected_colour = adjust_lightness(feat.colour, percentage=30)
 
                 pymol_out += PyMOLCommands.sphere(projection_objname, projected_colour, proj_coords, radius=0.5)
+                pymol_out += PyMOLCommands.load_cgo(projection_objname, f"{projection_objname}_obj")
                 pymol_out += PyMOLCommands.line(line_objname, coords, proj_coords, rgb=projected_colour)
                 if feat.projected_identifier and self.protein:
                     resnum = feat.projected_identifier.split("/")[1]
@@ -235,7 +237,8 @@ class PharmacophoreModel(Pharmacophore.Query):
 
                 point_colour = rgb_to_decimal(self.feature_definitions[identifier].colour)
                 self.pymol_out.commands += PyMOLCommands.set_color(f"{identifier}_color", point_colour)
-                self.pymol_out.commands += PyMOLCommands.isosurface(f"{identifier}.grd",
+                self.pymol_out.commands += PyMOLCommands.load(f"{identifier}.grd", f"{identifier}_grid")
+                self.pymol_out.commands += PyMOLCommands.isosurface(f"{identifier}_grid",
                                                                     f"surface_{identifier}",
                                                                     level=1,
                                                                     color=f"{identifier}_color")
@@ -243,7 +246,7 @@ class PharmacophoreModel(Pharmacophore.Query):
             self.pymol_out.commands += PyMOLCommands.group("grds", self.feature_point_grids.keys())
             self.pymol_out.commands += PyMOLCommands.group("grds", [f"surface_{a}" for a in self.feature_point_grids])
 
-        self.pymol_out.write()
+        self.pymol_out.write(os.path.join(outdir, "pymol_file.py"))
 
     # STATIC METHODS
     @staticmethod
@@ -259,6 +262,32 @@ class PharmacophoreModel(Pharmacophore.Query):
         with MoleculeWriter(f) as w:
             w.write(obj)
         return CrystalReader(f)[0]
+
+
+class ProteinPharmacophoreModel(PharmacophoreModel):
+    """
+    Very simple derived class. Just takes advantage of some of the visualisation code
+    """
+    def __init__(self):
+        super().__init__()
+
+    def detect_from_prot(self, prot):
+        """
+        Add features to pharmacophore model from a ligand
+
+        :param `ccdc.crystal.Crystal` or `ccdc.molecule.Molecule` ligand: a ligand
+        :return:
+        """
+        if isinstance(prot, Protein):
+            prot = self._get_crystal(prot)
+
+        self.protein = prot
+        self.selected_features = []
+        for fd in self.feature_definitions.values():
+            detected_feats = fd.detect_features(prot)
+            if len(detected_feats) != 0:
+                for f in detected_feats:
+                    self.selected_features.append(f)
 
 
 class LigandPharmacophoreModel(PharmacophoreModel):
@@ -445,7 +474,13 @@ class LigandPharmacophoreModel(PharmacophoreModel):
             ligand = self._get_crystal(ligand)
 
         self.ligands = [ligand]
-        self.selected_features = [fd.detect_features(ligand) for fd in self.feature_definitions.values()]
+
+        self.selected_features = []
+        for fd in self.feature_definitions.values():
+            detected_feats = fd.detect_features(ligand)
+            if len(detected_feats) != 0:
+                for f in detected_feats:
+                    self.selected_features.append(f)
 
     def detect_from_pdb(self, pdb, hetid, chainid=None):
         """
@@ -530,8 +565,6 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
     """
     def __init__(self):
         super().__init__()
-
-    def
 
     def from_hotspot(self):
         x = 1

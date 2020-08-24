@@ -25,6 +25,7 @@ import numpy as np
 from ccdc import utilities
 from hotspots.hs_utilities import Helper
 from scipy import ndimage
+from scipy.spatial import distance
 from skimage import feature
 from skimage.morphology import ball
 from os.path import join, basename
@@ -32,6 +33,7 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 import pickle
 from functools import reduce
+import hdbscan
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -173,6 +175,60 @@ class Grid(utilities.Grid):
                 for k in range(nz):
                     grid.set_value(i, j, k, smoothed[i, j, k, 0])
         return grid
+
+    @staticmethod
+    def neighbourhood(i, j, k, high, catchment=1):
+        """
+        find the neighbourhood of a given indice. Neighbourhood is defined by all points within 1 step of the
+        specified indice. This includes the cubic diagonals.
+
+        :param i: i indice
+        :param j: j indice
+        :param k: k indice
+        :param catchment: number of steps from the centre
+
+        :type i: int
+        :type j: int
+        :type k: int
+        :type catchment: int
+
+        :return: indices of the neighbourhood
+        :rtype: list
+        """
+        low = (0, 0, 0)
+
+        i_values = [a for a in range(i-catchment, i+catchment+1) if low[0] <= a < high[0]]
+        j_values = [b for b in range(j-catchment, j+catchment+1) if low[1] <= b < high[1]]
+        k_values = [c for c in range(k-catchment, k+catchment+1) if low[2] <= c < high[2]]
+
+        return [[a, b, c] for a in i_values for b in j_values for c in k_values
+                if Helper.get_distance([a, b, c], [i, j, k]) == 1]
+
+    def edge_detection(self, edge_definition=0):
+        """
+        A simplified method to detect surface edge. An edge is defined as a grid point has a value 1 but is adjacent
+        to a grid point with value 0. Only points distance = 1 are considered adjacent (i.e. not diagonals)
+
+        :param edge_definition: values above which are considered part of the body
+        :type edge_definition: float
+
+        :return: the bodies surface as a list of indices
+        :rtype: list
+        """
+        edge = []
+        # generate a mask.
+        self = self > edge_definition
+        a = self.get_array()
+        nx, ny, nz = self.nsteps
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    if a[i][j][k] > 0:
+                        neighbourhood = self.neighbourhood(i, j, k, self.nsteps)
+                        if min({a[n[0]][n[1]][n[2]] for n in neighbourhood}) == 0:
+                            edge.append(self.indices_to_point(i, j, k))
+
+        return edge
 
     def contains_point(self, point, threshold=0, tolerance=0):
         """
@@ -668,32 +724,96 @@ class Grid(utilities.Grid):
 
     def get_peaks(self, min_distance=6, cutoff=2):
         """
-        find peak coordinates in grid
+        -     Local maxima with at least a seperation of ((2 * min_distance) + 1)
+              are returned
+        -     If there are multiple local maxima with identical pixel intensities inside
+              the region defined with `min_distance`, the coordinates of all such pixels
+              are returned.
+        -     Therefore, local maxima with multiple pixels can be grouped by distance
         :return:
         """
-        peaks = feature.peak_local_max(self.get_array(),
-                                       min_distance=min_distance,
-                                       threshold_abs=cutoff)
-        peak_by_value = {}
-        for peak in peaks:
-            val = self.value(int(peak[0]), int(peak[1]), int(peak[2]))
-            if val > cutoff:
-                if val in peak_by_value:
-                    peak_by_value[val].append((peak[0], peak[1], peak[2]))
+        class Peak:
+            def __init__(self, score, indices):
+                self.score = score
+                self.indices = [indices]
+
+            def centroid(self):
+                x = set()
+                y = set()
+                z = set()
+
+                for i in self.indices:
+                    x.add(i[0])
+                    y.add(i[1])
+                    z.add(i[2])
+                return [sum(x) / len(x), sum(y) / len(y), sum(z) / len(z)]
+
+        peaks = feature.peak_local_max(self.get_array(), min_distance=min_distance, threshold_abs=cutoff)
+
+        grouped_peaks = []
+        threshold = (2 * min_distance) + 1
+
+        for i, peak in enumerate(peaks):
+            x, y, z = peak
+
+            if i == 0:
+                grouped_peaks.append(Peak(score=self.value(int(x), int(y), int(z)), indices=peak))
+
+            else:
+
+                min_d = [x < threshold for x in [np.amin(distance.cdist(np.array([peak]),
+                                                                        np.array(g.indices)))
+                                                 for g in grouped_peaks]
+                         ]
+
+                if any(min_d):
+                    loci = (np.array(min_d) * 1).nonzero()
+                    if len(loci) == 1:
+                        x = loci[0][0]
+                    else:
+                        raise NotImplemented
+                    grouped_peaks[x].indices.append(peak)
+
                 else:
-                    peak_by_value.update({val: [(peak[0], peak[1], peak[2])]})
+                    grouped_peaks.append(Peak(score=self.value(int(x), int(y), int(z)), indices=peak))
 
         average_peaks = []
-        for key in peak_by_value.keys():
-            x = [point[0] for point in peak_by_value[key]]
-            y = [point[1] for point in peak_by_value[key]]
-            z = [point[2] for point in peak_by_value[key]]
-            average_peaks.append(self.indices_to_point(int(sum(x) / len(x)),
-                                                       int(sum(y) / len(y)),
-                                                       int(sum(z) / len(z))
-                                                       )
-                                 )
+        for p in grouped_peaks:
+            i, j, k = p.centroid()
+            coords = self.indices_to_point(i, j, k)
+            average_peaks.append(coords)
+
         return average_peaks
+        #
+        #
+        #
+        #
+        #
+        #
+        #
+        # peak_by_value = {}
+        # for peak in peaks:
+        #     val = self.value(int(peak[0]), int(peak[1]), int(peak[2]))
+        #     if val > cutoff:
+        #         if val in peak_by_value:
+        #             peak_by_value[val].append((peak[0], peak[1], peak[2]))
+        #         else:
+        #             peak_by_value.update({val: [(peak[0], peak[1], peak[2])]})
+        #
+        # print(peak_by_value)
+        #
+        # average_peaks = []
+        # for key in peak_by_value.keys():
+        #     x = [point[0] for point in peak_by_value[key]]
+        #     y = [point[1] for point in peak_by_value[key]]
+        #     z = [point[2] for point in peak_by_value[key]]
+        #
+        #     centroid = (int(sum(x) / len(x)), int(sum(y) / len(y)), int(sum(z) / len(z)))
+        #     print(centroid)
+        #     average_peaks.append(self.indices_to_point(centroid[0], centroid[1], centroid[2]
+        #                                                )
+        #                          )
+        # return average_peaks
 
     def value_at_coordinate(self, coordinates, tolerance=1, position=True):
         """

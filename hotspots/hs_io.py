@@ -20,11 +20,12 @@ from __future__ import print_function
 import shutil
 import tempfile
 import zipfile
-from os import listdir
-from os.path import splitext, join, basename, dirname, isdir
+from os import listdir, walk
+from os.path import splitext, join, isdir, isfile
 
 from ccdc import io
 from ccdc.protein import Protein
+from ccdc.utilities import PushDir
 from ccdc.molecule import Molecule, Atom
 from hotspots.grid_extension import Grid
 from hotspots.result import Results
@@ -50,6 +51,9 @@ class HotspotWriter(Helper):
         """
 
         def __init__(self):
+            self.output_superstar = False
+            self.output_weighted = False
+            self.output_buriedness = True
             self.grid_extension = ".grd"
             self.bg_color = "white"
             self.surface = False
@@ -65,11 +69,14 @@ class HotspotWriter(Helper):
             self.pharmacophore_format = [".py"]
             self.container = 'out'
             self.identifier_tag = [0]
+            # e.g. self.protein_color_dic = {f"protein_{hr.identifier}": "slate"}
+            self.protein_color_dic = {}
             self.colour_dict = {'acceptor':'red',
                                  'donor':'blue',
                                  'apolar':'yellow',
                                  'negative':'purple',
-                                 'positive':'cyan'}
+                                 'positive':'cyan',
+                                    'buriedness': 'gray'}
 
     def __init__(self, path, grid_extension=".grd", zip_results=True, settings=None):
         if settings is None:
@@ -119,10 +126,11 @@ class HotspotWriter(Helper):
         container = Helper.get_out_dir(join(self.path, self.settings.container))
 
         if isinstance(hr, list):
+            print(hr)
             if len({h.identifier for h in hr}) != len(hr):
                 # if there are not unique identifiers, create some.
                 for i, h in enumerate(hr):
-                    h.identifier = f"hotspot_{i}"
+                    h.identifier = f"hotspot-{i}"
             for h in hr:
                 self._single_write(container, h)
 
@@ -132,7 +140,7 @@ class HotspotWriter(Helper):
             self._single_write(container, hr)
 
         self._write_pymol_isoslider(hr)
-        self.pymol_out.commands += PyMOLCommands.display_settings(self.settings)
+        self.pymol_out.commands += PyMOLCommands.background_color(self.settings.bg_color)
         self.pymol_out.commands += PyMOLCommands.push_to_wd()
 
         if self.zip_results:
@@ -142,13 +150,14 @@ class HotspotWriter(Helper):
 
     def _single_write(self, path, hr):
         hr.out_dir = Helper.get_out_dir(join(path, hr.identifier))
-        self._write_grids(hr.out_dir, hr.super_grids, buriedness=hr.buriedness)
+
+        self._write_grids(hr)
         self._write_protein(hr.out_dir, hr.protein)
 
         relpath = f'{hr.identifier}'
         self._write_pymol_objects(relpath, hr)
 
-    def _write_grids(self, path, grid_dict, buriedness=None):
+    def _write_grids(self, hr):
         """
         Write probe grids to output directory
 
@@ -158,11 +167,19 @@ class HotspotWriter(Helper):
         :type grid_dict: hotspot.grid_extension.Grid
         :type buriedness: hotspot.grid_extension.Grid
         """
-        for p, g in grid_dict.items():
-            g.write(join(path, f"{p}{self.settings.grid_extension}"))
+        for p, g in hr.super_grids.items():
+            g.write(join(hr.out_dir, f"{p}{self.settings.grid_extension}"))
 
-        if buriedness:
-            buriedness.write(join(path, f"buriedness{self.settings.grid_extension}"))
+        if self.settings.output_buriedness and hr.buriedness:
+            hr.buriedness.write(join(hr.out_dir, f"buriedness{self.settings.grid_extension}"))
+
+        if self.settings.output_superstar and hr.superstar:
+            for p, g in hr.superstar.items():
+                g.write(join(hr.out_dir, f"superstar_{p}{self.settings.grid_extension}"))
+
+        if self.settings.output_weighted and hr.weighted_superstar:
+            for p, g in hr.weighted_superstar.items():
+                g.write(join(hr.out_dir, f"weighted_{p}{self.settings.grid_extension}"))
 
     @staticmethod
     def _write_protein(path, prot):
@@ -183,21 +200,89 @@ class HotspotWriter(Helper):
         :param hr: a hotspot result
         :type hr: `hotspots.results.Results`
         """
-        # Isosurface obj's take the name: "surface_{hotspots ID}_{probe ID}"
-        # e.g. "surface_hotspotA_apolar"
-        if isinstance(hr, list):
-            surface_dic = {h.identifier: [f"surface_{g}_{h.identifier}"
-                                          for g in h.super_grids.keys()] for h in hr}
-            surface_value_dic = {h.identifier: [g for g in h.super_grids.values()] for h in hr}
-        else:
-            surface_dic = {hr.identifier: [f"surface_{g}_{hr.identifier}"
-                                           for g in hr.super_grids.keys()]}
-            surface_value_dic = {hr.identifier: [g for g in hr.super_grids.values()]}
+        # Isosurface obj's take the name: "surface_{probe ID}_{hotpsot ID}"
+        # e.g. "surface_apolar_hotspotA"
+        if not isinstance(hr, list):
+            hr = [hr]
 
-        # surface_dict.values() = [['g0', 'g1',...], ['g0',...]]
-        max_value = max([round(g.extrema[1], 1) for lst in surface_value_dic.values() for g in lst])
+        # the hotspot grids are always output
+        surface_dic = {h.identifier: {'fhm': [f"surface_{g}_{h.identifier}" for g in h.super_grids.keys()]}
+                       for h in hr}
+
+        surface_value_dic = {h.identifier: {"fhm": max([round(g.extrema[1], 1) for g in h.super_grids.values()])}
+                             for h in hr}
+
+        for h in hr:
+            if self.settings.output_superstar and h.superstar:
+                surface_dic[h.identifier].update({'superstar': [f"surface_superstar_{g}_{h.identifier}"
+                                                                for g in h.superstar.keys()]})
+
+                surface_value_dic[h.identifier].update({'superstar': max([round(g.extrema[1], 1)
+                                                                          for g in h.superstar.values()])})
+
+            if self.settings.output_weighted and h.weighted_superstar:
+                surface_dic[h.identifier].update({'weighted': [f"surface_weighted_superstar_{g}_{h.identifier}"
+                                                                for g in h.weighted_superstar.keys()]})
+
+                surface_value_dic[h.identifier].update({'weighted': max([round(g.extrema[1], 1)
+                                                                          for g in h.weighted_superstar.values()])})
+
+            if self.settings.output_buriedness and h.buriedness:
+                surface_dic[h.identifier].update({'buriedness': [f"surface_buriedness_{h.identifier}"]})
+
+                surface_value_dic[h.identifier].update({'buriedness': 8})
+
         min_value = 0
-        self.pymol_out.commands += PyMOLCommands.isoslider(surface_dic, min_value, max_value)
+        print(surface_dic)
+        print(surface_value_dic)
+
+        self.pymol_out.commands += PyMOLCommands.isoslider(surface_dic, surface_value_dic)
+
+    def _write_pymol_isosurfaces(self, dict, relpath, identifier, dict_type):
+        """
+        Loads grids and generates isosurfaces
+
+        :param dict: interaction grid dictionary
+        :param relpath: result containing directory
+        :param identifier: hotspot identifier
+        :param dict_type: superstar, fhm or weighted_superstar
+
+        :type dict: dict
+        :type relpath: str
+        :type identifier: str
+        :type dict_type: str
+
+        :return: pymol commands
+        :rtype: str
+        """
+        cmd = ""
+        default_level = 5
+        # load grids and create isosurfaces
+        group_members = []
+        for p in dict.keys():
+            if dict_type == 'fhm':
+                objname = f'{p}_{identifier}'
+                fname = f'{relpath}/{p}{self.settings.grid_extension}'
+            else:
+                objname = f'{dict_type}_{p}_{identifier}'
+                fname = f'{relpath}/{dict_type}_{p}{self.settings.grid_extension}'
+            cmd += PyMOLCommands.load(fname=fname, objname=objname)
+
+            # surface_10_apolar_hotspotid
+            surface_objname = f'surface_{objname}'
+            cmd += PyMOLCommands.isosurface(grd_name=objname,
+                                            isosurface_name=surface_objname,
+                                            level=default_level,
+                                            color=self.settings.colour_dict[p])
+
+            cmd += PyMOLCommands.pymol_set(setting_name='transparency',
+                                           value=self.settings.transparency,
+                                           selection=surface_objname)
+
+            group_members.extend([objname, f"surface_{objname}"])
+
+        cmd += PyMOLCommands.group(group_name=identifier, members=group_members)
+        return cmd
 
     def _write_pymol_objects(self, relpath, hr, load_prot=True):
         """
@@ -210,29 +295,35 @@ class HotspotWriter(Helper):
         :type hr: `hotspots.results.Results`
 
         """
-        default_level = 5
-        # load grids and create isosurfaces
-        for p in hr.super_grids.keys():
-            objname = f'{p}_{hr.identifier}'
-            self.pymol_out.commands += PyMOLCommands.load(fname=f'{relpath}/{p}{self.settings.grid_extension}',
-                                                          objname=objname)
+        self.pymol_out.commands += self._write_pymol_isosurfaces(hr.super_grids, relpath, hr.identifier, "fhm")
+
+        if self.settings.output_superstar and hr.superstar:
+            self.pymol_out.commands += self._write_pymol_isosurfaces(hr.superstar, relpath, hr.identifier, "superstar")
+
+        if self.settings.output_weighted and hr.weighted_superstar:
+            self.pymol_out.commands += self._write_pymol_isosurfaces(hr.weighted_superstar, relpath, hr.identifier, "weighted")
+
+        if self.settings.output_buriedness and hr.buriedness:
+            default_level=3
+            objname = f'buriedness_{hr.identifier}'
+            fname = f'{relpath}/buriedness{self.settings.grid_extension}'
+
+            self.pymol_out.commands += PyMOLCommands.load(fname=fname, objname=objname)
 
             # surface_10_apolar_hotspotid
             surface_objname = f'surface_{objname}'
             self.pymol_out.commands += PyMOLCommands.isosurface(grd_name=objname,
-                                                                isosurface_name=surface_objname,
-                                                                level=default_level,
-                                                                color=self.settings.colour_dict[p])
+                                                       isosurface_name=surface_objname,
+                                                       level=default_level,
+                                                       color=self.settings.colour_dict["buriedness"])
 
             self.pymol_out.commands += PyMOLCommands.pymol_set(setting_name='transparency',
-                                                               value=self.settings.transparency,
-                                                               selection=surface_objname)
+                                                      value=self.settings.transparency,
+                                                      selection=surface_objname)
 
-        group_members = [f'{p}_{hr.identifier}' for p in hr.super_grids.keys()] + \
-                        [f'surface_{p}_{hr.identifier}' for p in hr.super_grids.keys()]
+        group_members = [f'buriedness_{hr.identifier}', f'surface_buriedness_{hr.identifier}']
 
-        self.pymol_out.commands += PyMOLCommands.group(group_name=hr.identifier,
-                                                       members=group_members)
+        self.pymol_out.commands += PyMOLCommands.group(group_name=hr.identifier, members=group_members)
 
         # generate grid labels
         labels = hr.grid_labels()
@@ -241,7 +332,7 @@ class HotspotWriter(Helper):
             i = 0
             group_me = []
             for coord, value in dic.items():
-                objname = f"PS_{p}_{i}"
+                objname = f"PS_{p}_{hr.identifier}_{i}"
                 group_me.append(objname)
                 self.pymol_out.commands += PyMOLCommands.pseudoatom(objname=objname,
                                                                     coords=coord,
@@ -250,12 +341,17 @@ class HotspotWriter(Helper):
                 i += 1
             self.pymol_out.commands += PyMOLCommands.group(f'label_{p}_{hr.identifier}', group_me)
 
-        self.pymol_out.commands += PyMOLCommands.group("labels", [f'label_{p}_{hr.identifier}'
+        self.pymol_out.commands += PyMOLCommands.group(f"labels_{hr.identifier}", [f'label_{p}_{hr.identifier}'
                                                                   for p in hr.super_grids.keys()])
 
         # load up the protein
         if load_prot:
             self.pymol_out.commands += PyMOLCommands.load(f'{relpath}/protein.pdb', f'protein_{hr.identifier}')
+            if len(self.settings.protein_color_dic) > 0:
+                self.pymol_out += PyMOLCommands.color("slate", f'protein_{hr.identifier}')
+            self.pymol_out.commands += PyMOLCommands.show("cartoon", f'protein_{hr.identifier}')
+            self.pymol_out.commands += PyMOLCommands.hide("line", f'protein_{hr.identifier}')
+            self.pymol_out.commands += PyMOLCommands.show("sticks", "organic")
 
         # find contributing residues
 
@@ -280,92 +376,89 @@ class HotspotReader(object):
 
     :param str path: path to the result directory (can be .zip directory)
     """
-
-    def __init__(self, path):
-        self._supported_interactions = ["apolar", "donor", "acceptor", "positive", "negative"]
-        self._supported_grids = [".grd", ".ccp4", ".acnt", ".dat"]
-        self._not_hs_dir = ["best_islands", "peaks", "ins"]
-        self._path = path
-
-        ext = splitext(self._path)[1]
-        if ext == ".zip":
-            self._base = self._path_from_zip()
-        else:
-            self._base = path
-
-        self._files = listdir(self._base)
-        self._extensions = set([splitext(f)[1] for f in self._files if f != "" or f != ".py"])
-
-        pfiles = [f for f in self._files if splitext(f)[1] == ".pdb"]
-
-        if len(pfiles) > 1:
-            print("WARNING! {} has been used as default protein".format(join(self._base, "protein.pdb")))
-            pfiles = [p for p in self._files if f == "protein.pdb"]
-
-        self.protein = Protein.from_file(join(self._base, pfiles[0]))
-        self.hs_dir = [d for d in self._files
-                       if isdir(join(self._base, d)) and d not in self._not_hs_dir]
+    def __init__(self, path, read_superstar=False, read_weighted=False, read_buriedness=True):
+        self.read_superstar = read_superstar
+        self.read_weighted = read_weighted
+        self.read_buriedness = read_buriedness
+        self.supported_interactions = {"apolar", "donor", "acceptor", "positive", "negative"}
+        self.supported_grid_extensions = {"grd", "ccp4", "acnt", "dat"}
+        self.supported_protein_extensions = "pdb"
+        self.path = path
 
     def __enter__(self):
+        self.top_extension = splitext(self.path)[1]
+
+        if self.top_extension == ".zip":
+            self.base = tempfile.mkdtemp()
+
+            with zipfile.ZipFile(self.path) as hs_zip:
+                hs_zip.extractall(self.base)
+
+        else:
+            self.base = self.path
+
         return self
 
     def __exit__(self, type, value, traceback):
-        try:
-            shutil.rmtree(self._base)
-        except:
-            pass
-
-    def _path_from_zip(self):
-        """
-        writes files to temp dir, returns base dir
-        :param self:
-        :return:
-        """
-        base = tempfile.mkdtemp()
-
-        with zipfile.ZipFile(self._path) as hs_zip:
-            hs_zip.extractall(base)
-        # d = splitext(basename(self._path))
-
-        return base
-
-    def _get_grids(self, sub_dir=None):
-        """
-        create a grid dic
-        :return:
-        """
-        if sub_dir:
-            base = join(self._base, sub_dir)
-            self._files = listdir(base)
-            self._extensions = set([splitext(f)[1] for f in self._files if f != '' or f != '.py'])
-        else:
-            base = self._base
-
-        if ".dat" in self._extensions:
-            grid_dic = {splitext(fname)[0]: Grid.from_array(join(base, fname))
-                        for fname in [f for f in self._files
-                                      if splitext(f)[1] == ".grd"
-                                      and splitext(f)[0] in self._supported_interactions]}
+        if self.top_extension == ".zip":
             try:
-                buriedness = Grid.from_array(join(self.base, "buriedness.dat"))
-            except RuntimeError:
+                shutil.rmtree(self.base)
+            except:
+                pass
+
+    def _generate_result(self, path):
+        with PushDir(path):
+            files = set(listdir(path))
+
+            # fetch protein - this should always be protein.pdb
+            prot_name = [f for f in files if f.split(".")[1] == self.supported_protein_extensions][0]
+            prot = Protein.from_file(prot_name)
+            files.remove(prot_name)
+
+            # there should only be one grid extension in the directory, if there are more
+            # then you can manually read in your results
+            grid_extension = {f.split(".")[1] for f in files}.intersection(self.supported_grid_extensions)
+            if len(grid_extension) > 1:
+                raise IndexError("Too many grid types, create `hotspots.result.Results` manually")
+
+            elif len(grid_extension) < 1:
+                raise IndexError("No supported grid types found")
+
+            elif list(grid_extension)[0] == "dat":
+                raise NotImplementedError("Will put this in if requested")
+
+            else:
+                grid_extension = list(grid_extension)[0]
+
+            # read hotspot grids
+            stripped_files = {f.split(".")[0] for f in files}
+            hotspot_grids = stripped_files.intersection(self.supported_interactions)
+            super_grids = {p: Grid.from_file(f"{p}.{grid_extension}") for p in hotspot_grids}
+
+            # read superstar grids
+            if len([f.startswith("superstar") for f in files]) > 0 and self.read_superstar:
+                superstar_grids = {p: Grid.from_file(f"superstar_{p}.{grid_extension}") for p in hotspot_grids}
+            else:
+                superstar_grids = None
+
+            # read weighted_superstar grids
+            if len([f.startswith("weighted") for f in files]) > 0 and self.read_weighted:
+                weighted_grids = {p: Grid.from_file(f"weighted_{p}.{grid_extension}") for p in hotspot_grids}
+            else:
+                weighted_grids = None
+
+            # fetch buriedness grid
+            buriedness_name = [f.startswith("buriedness") for f in files][0]
+            if buriedness_name and self.read_buriedness:
+                buriedness = Grid.from_file(buriedness_name)
+            else:
                 buriedness = None
 
-        else:
-            ext = list(set(self._extensions).intersection(self._supported_grids))
-            if len(ext) == 1:
-                grid_dic = {splitext(fname)[0]: Grid.from_file(join(base, fname))
-                            for fname in [f for f in self._files
-                                          if splitext(f)[1] == ext[0]
-                                          and splitext(f)[0] in self._supported_interactions]}
-                try:
-                    buriedness = Grid.from_file("buriedness{}".format(ext[0]))
-                except RuntimeError:
-                    buriedness = None
-            else:
-                raise RuntimeError("Opps, something went wrong.")
-
-        return grid_dic, buriedness
+        return Results(super_grids=super_grids,
+                       protein=prot,
+                       buriedness=buriedness,
+                       superstar=superstar_grids,
+                       weighted_superstar=weighted_grids)
 
     def read(self, identifier=None):
         """
@@ -379,30 +472,25 @@ class HotspotReader(object):
         >>> from hotspots.hs_io import HotspotReader
 
         >>> path = "<path_to_results_directory>"
-        >>> result = HotspotReader(path).read()
-
+        >>> with HotspotReader(path) as reader:
+        >>>    reader.read()
 
         """
-        if len(self.hs_dir) == 0:
-            self.grid_dic, self.buriedness = self._get_grids()
-            shutil.rmtree(self._base)
-            return Results(protein=self.protein,
-                           super_grids=self.grid_dic,
-                           buriedness=self.buriedness)
+        root, d, files = list(walk(self.base))[0]
+
+        if len(d) == 0:
+            # old style single result all files in os.listdir(self.base)
+            hr = self._generate_result(path=self.base)
+
+        elif len(d) == 1:
+            # new style single result
+            hr = self._generate_result(path=join(self.base, d))
 
         else:
-            hrs = []
+            # more than one hotspot
             if identifier:
-                self.grid_dic, self.buriedness = self._get_grids(sub_dir=str(identifier))
-                return Results(protein=self.protein,
-                               super_grids=self.grid_dic,
-                               buriedness=self.buriedness)
+                hr = self._generate_result(path=join(self.base, identifier))
             else:
-                for dir in self.hs_dir:
-                    self.grid_dic, self.buriedness = self._get_grids(sub_dir=dir)
-                    hrs.append(Results(protein=self.protein,
-                                       super_grids=self.grid_dic,
-                                       buriedness=self.buriedness))
+                hr = [self._generate_result(path=join(self.base, x)) for x in d]
 
-            shutil.rmtree(self._base)
-            return hrs
+        return hr

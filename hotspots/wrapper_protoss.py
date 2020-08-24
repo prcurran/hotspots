@@ -1,6 +1,10 @@
-import shlex, subprocess, ast, time, json, os, csv, re, urllib, tempfile
+import shlex, subprocess, ast, time, json, os, csv, re, tempfile
+
+from urllib import request, parse
+
+
 from ccdc.protein import Protein
-from ccdc.io import MoleculeReader
+from ccdc.io import MoleculeReader, MoleculeWriter
 
 
 class Result(object):
@@ -40,9 +44,9 @@ class Result(object):
         :return:
         """
         url = re.sub('/esults/', '/results/', url)              # fix url
-        a = urllib.parse.urlparse(url)
+        a = parse.urlparse(url)
         fname = os.path.basename(a.path)
-        str = urllib.request.urlopen(url).read()
+        str = request.urlopen(url).read()
         path = os.path.join(out_dir, fname)
         with open(path, "wb") as w:
             w.write(str)
@@ -121,11 +125,18 @@ class Protoss(object):
         return response
 
 
-def main():
+def main(pdb="4est", stem="/local/pcurran/superstar_comparison"):
     protoss = Protoss()
-    result = protoss.add_hydrogens(pdb_code="3cqw")
+    result = protoss.add_hydrogens(pdb_code=pdb)
 
-    print(result.protein)
+    out = os.path.join(stem, pdb)
+
+    if not os.path.exists(out):
+        os.mkdir(out)
+
+    with MoleculeWriter(os.path.join(out, f"{pdb}.pdb")) as w:
+        w.write(result.protein)
+
 
 if __name__ == "__main__":
     main()

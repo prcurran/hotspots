@@ -43,6 +43,7 @@ from hotspots.atomic_hotspot_calculation import _AtomicHotspot
 from hotspots.grid_extension import Grid
 from hotspots.hs_utilities import Helper
 from hotspots.wrapper_pdb import PDBResult
+from hotspots.wrapper_ghecom import Ghecom
 from hotspots.result import Results
 
 
@@ -54,7 +55,6 @@ class ExpBuriedness(object):
         self.max_probe = max_probe_radius
         self.probe_selem_dict = self._generate_probe_selem()
         self.protein_grid = self._from_molecule(prot)
-
 
     def _generate_probe_selem(self):
         """
@@ -68,7 +68,7 @@ class ExpBuriedness(object):
 
         probe_selem_dict[2] = ball(2)
         # r= probe radius
-        for r in range(3,self.max_probe +1):
+        for r in range(3, self.max_probe + 1):
             probe_selem_dict[r] = ball(r)
 
         return probe_selem_dict
@@ -83,7 +83,7 @@ class ExpBuriedness(object):
         """
 
         coords = [a.coordinates for a in mol.atoms]
-        g = Grid.initalise_grid(coords=coords, padding= 15, spacing=1)
+        g = Grid.initalise_grid(coords=coords, padding=15, spacing=1)
 
         for probe in sorted(self.probe_selem_dict.keys(), reverse=True):
             for a in mol.heavy_atoms:
@@ -113,10 +113,9 @@ class ExpBuriedness(object):
         closed_array = ndimage.binary_erosion(g_array, structure=self.probe_selem_dict[probe])
         return Grid.array_to_grid(closed_array.astype(int), g)
 
-    def _multiscale_closing(self,g):
+    def _multiscale_closing(self, g):
 
-
-        #probe_sizes.reverse()
+        # probe_sizes.reverse()
         all_g = None
         prot_mask = g > 90
 
@@ -124,11 +123,10 @@ class ExpBuriedness(object):
             if all_g is None:
                 all_g = prot_mask.copy()
 
-            probe_mask = ((g < probe+0.1) & (g>0)) | (prot_mask)
+            probe_mask = ((g < probe + 0.1) & (g > 0)) | (prot_mask)
 
-
-            probe_mask = self._close_grid(probe_mask,probe)
-            novel = (-all_g) * (g>0)
+            probe_mask = self._close_grid(probe_mask, probe)
+            novel = (-all_g) * (g > 0)
             all_g += (probe_mask * novel * (self.max_probe - probe))
 
         return all_g * (prot_mask < 1)
@@ -142,132 +140,15 @@ class ExpBuriedness(object):
     def buriedness_grid(self):
 
         closed_g = self._multiscale_closing(self.protein_grid)
-        out_g = self._open_grid(closed_g,2) * closed_g
+        out_g = self._open_grid(closed_g, 2) * closed_g
         out_array = out_g.get_array()
         scaled_g = Grid.initalise_grid(self.out_grid.bounding_box, padding=0, spacing=0.5)
 
-        scaled_array = resize(out_array, scaled_g.nsteps ,anti_aliasing=False)
-
-
+        scaled_array = resize(out_array, scaled_g.nsteps, anti_aliasing=False)
 
         # Future tweaking here
         final_array = scaled_array
         return Grid.array_to_grid(final_array.astype(int), scaled_g)
-
-
-class Buriedness(object):
-    """
-    A class to handle the calculation of pocket burial
-
-    This provides a python interface for the command-line tool.
-    Ghecom is available for download `here! <http://strcomp.protein.osaka-u.ac.jp/ghecom/download_src.html>`_
-
-    NB: Currently this method is only available to linux users
-
-    Please ensure you have set the following environment variable:
-
-    >>> export GHECOM_EXE=<path_to_ghecom>
-
-    :param `ccdc.protein.Protein` protein: protein to submit for calculation
-    :param `ccdc.utilities.Grid` out_grid: the output grid NB: must be initialised so that the bounding box covers the whole protein
-    :param `hotspots.hotspot_calculation.Buriedness.Settings` settings:
-
-    """
-
-    class Settings(object):
-        """
-        A class to handle the buriedness calculation settings using ghecom
-
-        :param str ghecom_executable: path to ghecom executable NB: should now be set as environment variable
-        :param float grid_spacing: spacing of the results grid. default = 0.5
-        :param float radius_min_large_sphere: radius of the smallest sphere
-        :param float radius_max_large_sphere: radius of the largest sphere
-        :param str mode: options
-
-                    - 'D'ilation 'E'rosion, 'C'losing(molecular surface), 'O'pening.
-                    - 'P'ocket(masuya_doi),'p'ocket(kawabata_go),'V':ca'V'ity, 'e'roded pocket.
-                    - 'M'ultiscale_closing/pocket,'I'nterface_pocket_bwn_two_chains.
-                    - 'G'rid_comparison_binary 'g'rid_comparison_mutiscale.
-                    - 'R'ay-based lig site PSP/visibility calculation.
-                    - 'L'igand-grid comparison (-ilg and -igA are required)[P]
-        """
-
-        def __init__(self, ghecom_executable=None, grid_spacing=0.5, radius_min_large_sphere=2.5,
-                     radius_max_large_sphere=9.5, mode="M"):
-            self.ghecom_executable = ghecom_executable
-            self.grid_spacing = grid_spacing
-            self.radius_min_large_sphere = radius_min_large_sphere
-            self.radius_max_large_sphere = radius_max_large_sphere
-            self.mode = mode
-
-            self.working_directory = tempfile.mkdtemp()
-            self.in_name = join(self.working_directory, "protein.pdb")
-            self.out_name = join(self.working_directory, "ghecom_out.pdb")
-
-    def __init__(self, protein, out_grid, settings=None):
-        if settings is None:
-            settings = self.Settings()
-        self.settings = settings
-        self.settings.protein = protein
-        self.settings.out_grid = out_grid
-
-    def calculate(self):
-        """
-        runs the buriedness calculation
-
-        :return: `hotspots.calculation._BuriednessResult`: a class with a :class:`ccdc.utilities.Grid` attribute
-        """
-
-        with PushDir(self.settings.working_directory):
-            if self.settings.protein is not None:
-                with MoleculeWriter('protein.pdb') as writer:
-                    writer.write(self.settings.protein)
-
-            cmd = "{} {} -M {} -gw {} -rli {} -rlx {} -opoc {}".format(environ['GHECOM_EXE'],
-                                                                       self.settings.in_name,
-                                                                       self.settings.mode,
-                                                                       self.settings.grid_spacing,
-                                                                       self.settings.radius_min_large_sphere,
-                                                                       self.settings.radius_max_large_sphere,
-                                                                       self.settings.out_name)
-
-            system(cmd)
-
-        return _BuriednessResult(self.settings)
-
-
-class _BuriednessResult(object):
-    """
-    private class
-
-    class to handle the buriedness calculation result
-
-    :param `hotspots.calculation.Buriedness.Settings` settings: settings from the _Buriedness class
-    """
-
-    def __init__(self, settings):
-        self.settings = settings
-        if self.settings.out_grid:
-            self.grid = self.settings.out_grid
-        else:
-            self.grid = Grid.initalise_grid([atom.coordinates for atom in self.settings.protein.atoms],
-                                            padding=2)
-        self.update_grid()
-
-    def update_grid(self):
-        """
-        reads the output file from the pocket detection and assigns values to a grid
-        :return: None
-        """
-        lines = Helper.get_lines_from_file(self.settings.out_name)
-        for line in lines:
-            if line.startswith("HETATM"):
-                coordinates = (float(line[31:38]), float(line[39:46]), float(line[47:54]))
-                rinacc = float(line[61:66])
-                i, j, k = self.grid.point_to_indices(coordinates)
-                x, y, z = self.grid.nsteps
-                if 0 < i < x and 0 < j < y and 0 < k < z:
-                    self.grid.set_value(i, j, k, 9.5 - rinacc)
 
 
 class _WeightedResult(object):
@@ -619,7 +500,7 @@ class Runner(object):
                     orig_value = pg.grid.value(i, j, k)
                     #
                     if self.settings.sphere_maps:
-                        #pg.grid.set_sphere(coords, 2, score, mode='max')
+                        # pg.grid.set_sphere(coords, 2, score, mode='max')
                         if score > orig_value:
                             pg.grid.set_sphere(coords, 1.5, score, mode='max', scaling='None')
                     else:
@@ -978,10 +859,12 @@ class Runner(object):
         if self.buriedness_method.lower() == 'ghecom' and self.buriedness is None:
             print("    method: Ghecom")
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
-            b = Buriedness(protein=self.protein,
-                           out_grid=out_grid)
-            self.buriedness = b.calculate().grid
-            shutil.rmtree(b.settings.working_directory)
+
+            ghecom = Ghecom()
+            path = ghecom.run(self.protein)
+            self.buriedness = ghecom.pdb_to_grid(path, out_grid)
+
+            shutil.rmtree(ghecom.temp) # probs not needed
 
         elif self.buriedness_method.lower() == 'ghecom_internal' and self.buriedness is None:
             print("    method: Internal version Ghecom")
@@ -1026,7 +909,7 @@ class Runner(object):
             self.protein.add_hydrogens()
 
     def from_superstar(self, protein, superstar_grids, buriedness, charged_probes=False, probe_size=7,
-                        settings=None, clear_tmp=False):
+                       settings=None, clear_tmp=False):
         """
         calculate hotspot maps from precalculated superstar maps. This enables more effective parallelisation and reuse
         of object such as the Buriedness grids
@@ -1123,7 +1006,9 @@ class Runner(object):
 
         return Results(super_grids=self.super_grids,
                        protein=self.protein,
-                       buriedness=self.buriedness)
+                       buriedness=self.buriedness,
+                       superstar={x.identifier: x.grid for x in self.superstar_grids},
+                       weighted_superstar={x.identifier: x.grid for x in self.weighted_grids})
 
     def from_pdb(self, pdb_code, charged_probes=False, probe_size=7, buriedness_method='ghecom', nprocesses=3,
                  cavities=False, settings=None, clear_tmp=False):
@@ -1186,4 +1071,6 @@ class Runner(object):
 
         return Results(super_grids=self.super_grids,
                        protein=self.protein,
-                       buriedness=self.buriedness)
+                       buriedness=self.buriedness,
+                       superstar={x.identifier: x.grid for x in self.superstar_grids},
+                       weighted_superstar={x.identifier: x.grid for x in self.weighted_grids})

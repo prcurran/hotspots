@@ -2,9 +2,10 @@ import unittest
 
 from ccdc.utilities import _csd_required
 from ccdc import io
-from ccdc.protein import Protein
+from hotspots.protein_extension import Protein
+from hotspots.grid_extension import Grid
 from hotspots.pharmacophore_extension \
-    import LigandPharmacophoreModel,  InteractionPharmacophoreModel, PharmacophoreModel
+    import LigandPharmacophoreModel,  InteractionPharmacophoreModel, PharmacophoreModel, ProteinPharmacophoreModel
 
 import os
 
@@ -18,11 +19,41 @@ def csd():
     return _csd
 
 
+class TestProteinPharmacophoreModel(unittest.TestCase):
+    def setUp(self):
+        top = os.getcwd()
+        # self.prot = Protein.from_file("testdata/6y2g_A/protein.pdb")
+        # self.mol_grid = Grid.from_file("testdata/6y2g_A/molA.grd")
+
+        self.binding_site = Protein.from_file("testdata/6y2g_A/binding_site.pdb")
+        self.protein_pharmacophore = ProteinPharmacophoreModel()
+        self.protein_pharmacophore.feature_definitions = ["acceptor_projected",
+                                                          "donor_projected",
+                                                          "donor_ch_projected"]
+
+    def test_detect_from_prot(self):
+        # create binding site
+        # bs = Protein.BindingSiteFromGrid(self.prot, self.mol_grid)
+        # self.binding_site = self.prot.copy()
+        # remove = {r.identifier for r in self.prot.residues} - {r.identifier for r in bs.residues}
+        # for r in remove:
+        #     self.binding_site.remove_residue(r)
+        # with io.MoleculeWriter("testdata/6y2g_A/binding_site.pdb") as w:
+        #     w.write(self.binding_site)
+        ###
+
+        self.protein_pharmacophore.detect_from_prot(self.binding_site)
+        donor_feats = [f for f in self.protein_pharmacophore.selected_features if f.identifier == "donor_projected"]
+        self.assertEqual(26, len(donor_feats))
+        self.protein_pharmacophore.pymol_visulisation(outdir="testdata/pharmacophore_extension/ProteinPharmacophoreModel/from_prot")
+
+
 @_csd_required
 class TestLigandPharmacophoreModel(unittest.TestCase):
     def setUp(self):
         self.csd = csd()
         self.crystal = csd().crystal('AABHTZ')
+        self.crystal.molecule.add_hydrogens()
         self.ligand_pharmacophore = LigandPharmacophoreModel()
 
     def testSetters(self):
@@ -35,11 +66,12 @@ class TestLigandPharmacophoreModel(unittest.TestCase):
         self.ligand_pharmacophore.feature_definitions = ["acceptor"]
         self.ligand_pharmacophore.detect_from_ligand(ligand=self.crystal)
         self.assertEqual(5, len(self.ligand_pharmacophore.selected_features))
-
         # test score setter
-        self.assertEqual(0, self.ligand_pharmacophore.features[0].score)
-        self.ligand_pharmacophore.features[0].score = 5
-        self.assertEqual(5, self.ligand_pharmacophore.features[0].score)
+        self.assertEqual(0, self.ligand_pharmacophore.selected_features[0].score)
+        self.ligand_pharmacophore.selected_features[0].score = 5
+        self.assertEqual(5, self.ligand_pharmacophore.selected_features[0].score)
+        self.ligand_pharmacophore.pymol_visulisation("testdata/pharmacophore_extension/LigandPharmacophoreModel/from_ligand")
+
 
     def testdetect_from_pdb(self):
         testpdb = "2vta"
