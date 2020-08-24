@@ -1,0 +1,1075 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Introduction &mdash; Hotspots API 1.0.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Hotspot Calculation API" href="calculation_api.html" />
+    <link rel="prev" title="Welcome to the Hotspot API’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Hotspots API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#installation-notes">Installation Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#install-csds-2020">1 Install CSDS 2020</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-ghecom">2 Install GHECOM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-conda-environment">3 Create conda environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-hotspots-api">4 Install Hotspots API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#cookbook-documentation">Cookbook Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#running-a-calculation">Running a Calculation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#protein-preparation">Protein Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#calculating-fragment-hotspot-maps">Calculating Fragment Hotspot Maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing">Writing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reading">Reading</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tractability-assessment">Tractability Assessment</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tractability-workflow">Tractability workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ranking-pockets">Ranking Pockets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#joyplot">JoyPlot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rank-statistics">Rank Statistics</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hotspot-guided-docking">Hotspot-Guided Docking</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-hotspot-constraint">A Hotspot Constraint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#view-the-constraints">View the Constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gold-docking">GOLD Docking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-demonstration">Performance Demonstration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pharmacophores">Pharmacophores</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="calculation_api.html">Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_io_api.html">Hotspot IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="result_api.html">Result API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_docking_api.html">Hotspot Docking API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hs_utilities_api.html">Hotspot Utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Hotspots API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Introduction</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/tutorial.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>Fragment hotspot maps predicts the location and key interaction features of small molecule binding “hotspots” and
+provides valuable insights for several stages of early drug and drug target discovery. Built upon the vast quantity of
+interaction data in the CSD, fragment hotspot maps is able to rapidly detect hotspots from a global search of a
+protein.</p>
+<p>The probability of forming common intermolecular interactions (hydrogen-bonding, charged, apolar) is estimated using
+Superstar. Superstar fragments a protein and uses interaction libraries, abstracted from the CSD, to predict the
+likelihood of finding a probe atom at a given point. The following probes are used: “apolar”: Aromatic CH Carbon,
+“acceptor”: Carbonyl oxygen, “donor”: Uncharged NH Nitrogen, “negative”: Carboxylate, “positive”: Charged NH Nitrogen.
+Although SuperStar does have some hydrophobic correction, the local protein environment is not fully considered.
+Consequently, large regions of the protein are scored highly. Hotspots arise from enclosed,
+hydrophobic pockets that can form directional, polar interactions. Therefore, this method incorporates these physical
+characteristics into the detection of hotspots. This is done in two ways; weighting the SuperStar Maps by the degree of
+burial and sampling the weighted maps using hydrophobic molecular probes. This method was validated on a set of 21
+fragment-to-lead progression. The median fragment atom scores were in the top 98% of all grid point scores.</p>
+</div>
+<div class="section" id="installation-notes">
+<h1>Installation Notes<a class="headerlink" href="#installation-notes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="install-csds-2020">
+<h2>1 Install CSDS 2020<a class="headerlink" href="#install-csds-2020" title="Permalink to this headline">¶</a></h2>
+<p>The CSDS is available from [here](<a class="reference external" href="https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/">https://www.ccdc.cam.ac.uk/support-and-resources/csdsdownloads/</a>).</p>
+<p>You will need your customer number and activation key. You must activate your license before proceeding.</p>
+</div>
+<div class="section" id="install-ghecom">
+<h2>2 Install GHECOM<a class="headerlink" href="#install-ghecom" title="Permalink to this headline">¶</a></h2>
+<p>Ghecom is available from [here](<a class="reference external" href="https://pdbj.org/ghecom/download_src.html">https://pdbj.org/ghecom/download_src.html</a>).</p>
+<p>“The source code of the GHECOM is written in C, and developed and executed on
+the linux environment (actually on the Fedora Core).  For the installation,
+you need the gcc compiler.  If you do not want to use it, please change the
+“Makefile” in the “src” directory.”</p>
+<p>Download the file <code class="docutils literal notranslate"><span class="pre">ghecom-src-[date].tar.gz</span></code> file.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tar zxvf ghecom-src-<span class="o">[</span>date<span class="o">]</span>.tar.gz
+<span class="nb">cd</span> src
+make
+</pre></div>
+</div>
+<p>NB: The executable will be located at the parent directory.</p>
+</div>
+<div class="section" id="create-conda-environment">
+<h2>3 Create conda environment<a class="headerlink" href="#create-conda-environment" title="Permalink to this headline">¶</a></h2>
+<p>Download the environment.yml file from the github repositiory.</p>
+<p>Open the file, and edit the file path to the your local ccdc conda channel
+that was installed as part of your CSDS. For example: “<a class="reference external" href="file:///home/pcurran/CCDC/Python_API_2020/ccdc_conda_channel">file:///home/pcurran/CCDC/Python_API_2020/ccdc_conda_channel</a>”</p>
+<p>Save and close environment.yml.</p>
+<p>Create conda environment using the environment.yml:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda create -n hotspots -f environment.yml
+</pre></div>
+</div>
+<p>Finally, there are a few environment variables to set:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">export</span> <span class="nv">CSDHOME</span><span class="o">=</span>/home/my_ccdc_software_dir/CCDC/CSD_2020
+$ <span class="nb">export</span> <span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$CONDA_PREFIX</span>/lib:<span class="nv">$CONDA_PREFIX</span>/lib/python3.7/site-packages/ccdc/_lib:<span class="nv">$LD_LIBRARY_PATH</span>
+$ <span class="nb">export</span> <span class="nv">GHECOM_EXE</span><span class="o">=</span><span class="nv">$PREFIX</span>/ghecom_latest/ghecom
+</pre></div>
+</div>
+<p>We recommend saving these within your conda environment. To do this, see <cite>setup_environment.sh</cite> shell script within
+the hotspots repositiory. For more details on saving environment variables, see the
+conda [documentation](<a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html">https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html</a>).</p>
+</div>
+<div class="section" id="install-hotspots-api">
+<h2>4 Install Hotspots API<a class="headerlink" href="#install-hotspots-api" title="Permalink to this headline">¶</a></h2>
+<p>Install Hotspots v1.0.3:</p>
+<ol class="loweralpha simple">
+<li><p>Latest stable release (recommended for most users):</p></li>
+</ol>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda activate hotspots
+
+pip install hotspots
+or
+pip install https://github.com/prcurran/hotspots/archive/v1.0.3.zip
+</pre></div>
+</div>
+<ol class="loweralpha simple" start="2">
+<li><p>Very latest code</p></li>
+</ol>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir ./hotspots_code
+<span class="nb">cd</span> hotspots_code
+
+git clone git@github.com:prcurran/hotspots.git
+conda activate hotspots
+pip install ./hotspots
+</pre></div>
+</div>
+<p>… and you’re ready to go!</p>
+</div>
+</div>
+<div class="section" id="cookbook-documentation">
+<h1>Cookbook Documentation<a class="headerlink" href="#cookbook-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="running-a-calculation">
+<h2>Running a Calculation<a class="headerlink" href="#running-a-calculation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="protein-preparation">
+<h3>Protein Preparation<a class="headerlink" href="#protein-preparation" title="Permalink to this headline">¶</a></h3>
+<p>The first step is to make sure your protein is correctly prepared for the calculation. The structures should be
+protonated with small molecules and waters removed. Any waters or small molecules left in the structure will be included
+in the calculation.</p>
+<p>One way to do this is to use the CSD Python API:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ccdc.protein</span> <span class="kn">import</span> <span class="n">Protein</span>
+
+<span class="n">prot</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">prot</span><span class="o">.</span><span class="n">remove_all_waters</span><span class="p">()</span>
+<span class="n">prot</span><span class="o">.</span><span class="n">add_hydrogens</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">prot</span><span class="o">.</span><span class="n">ligands</span><span class="p">:</span>
+    <span class="n">prot</span><span class="o">.</span><span class="n">remove_ligand</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For best results, manually check proteins before submitting them for calculation.</p>
+</div>
+<div class="section" id="calculating-fragment-hotspot-maps">
+<h3>Calculating Fragment Hotspot Maps<a class="headerlink" href="#calculating-fragment-hotspot-maps" title="Permalink to this headline">¶</a></h3>
+<p>Once the protein is prepared, the <a class="reference internal" href="calculation_api.html#hotspots.calculation.Runner" title="hotspots.calculation.Runner"><code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.Runner</span></code></a> object can be used to perform the calculation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="kn">import</span> <span class="n">Runner</span>
+
+<span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">Runner</span><span class="o">.</span><span class="n">from_protein</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, for a quick calculation, you can supply a PDB code and we will prepare the protein as described above:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">Runner</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;1hcl&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="writing">
+<h3>Writing<a class="headerlink" href="#writing" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="hs_io_api.html#module-hotspots.hs_io" title="hotspots.hs_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hotspots.hs_io</span></code></a> module handles the reading and writing of both <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.results</span></code>
+and <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.best_volume.Extractor</span></code> objects. The output <cite>.grd</cite> files can become quite large, but are highly
+compressible, therefore the results are written to a <cite>.zip</cite> archive by default, along with a PyMOL run script to
+visualise the output.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots</span> <span class="kn">import</span> <span class="n">hs_io</span>
+
+<span class="n">out_dir</span> <span class="o">=</span> <span class="s2">&quot;results/pdb1&quot;</span>
+
+<span class="c1"># Creates &quot;results/pdb1/out.zip&quot;</span>
+<span class="k">with</span> <span class="n">HotspotWriter</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">grid_extension</span><span class="o">=</span><span class="s2">&quot;.grd&quot;</span><span class="p">,</span> <span class="n">zip_results</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reading">
+<h3>Reading<a class="headerlink" href="#reading" title="Permalink to this headline">¶</a></h3>
+<p>If you want to revisit the results of a previous calculation, you can load the <cite>out.zip</cite> archive directly into a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.calculation.results</span></code> instance:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots</span> <span class="kn">import</span> <span class="n">hs_io</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">hs_io</span><span class="o">.</span><span class="n">HotspotReader</span><span class="p">(</span><span class="s1">&#39;results/pdb1/out.zip&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="tractability-assessment">
+<h2>Tractability Assessment<a class="headerlink" href="#tractability-assessment" title="Permalink to this headline">¶</a></h2>
+<p>Not all pockets provide a suitable environment for binding drug-like molecules. Therefore, good predictions
+of target tractability can save time and effort in early hit identification. Fragment Hotspot Maps annotates a
+set of grids which span the entire volume of pockets within proteins. The grids are scores represent the
+likelihood of making a particular intermolecular interaction and therefore they can be used to differientate
+between pockets and help researchers select a pocket with the highest chance of being tractable.</p>
+<p>This cookbook example provides a very simple workflow to generate a target tractability model.</p>
+<div class="section" id="tractability-workflow">
+<h3>Tractability workflow<a class="headerlink" href="#tractability-workflow" title="Permalink to this headline">¶</a></h3>
+<p>Firstly, the fragment hotspots calculation is performed. This is done by initialising a <cite>hotspots.calculation.Runner</cite>
+class object, and generate a <cite>hotspots.result.Result</cite> object, in this case we used the
+<cite>hotspots.calculation.Runner.from_pdb</cite> method which generates a result from a PDB code.</p>
+<p>Next, A <cite>hotspots.result.Result</cite> object is returned. Not all the points within the grids
+are relevant - the entire pocket may not be involved in binding. Therefore, a subset of the cavity grid points are
+selected. The Best Continous Volume method is used to return a sub-pocket which corresponds to a user defined volume,
+and the algorithm selects a continous area which maximises the total score of the fragment hotspot maps grid points. In
+this case an approximate drug-like volume of 500 A^3 is used. This is carried out by using the
+<cite>hotspots.Extractor.extract_volume()</cite> class method.</p>
+<p>Finally, the score distribution for the best continuous volume are used to discriminate between different pockets. For
+this simple cookbook example, we use the median value to rank the different pockets. These are returned as a dataframe.
+The code block below contains the complete workflow:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="kn">import</span> <span class="n">Runner</span>
+<span class="kn">from</span> <span class="nn">hotspots.result</span> <span class="kn">import</span> <span class="n">Extractor</span>
+
+
+<span class="k">def</span> <span class="nf">tractability_workflow</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A very simple tractability workflow.</span>
+
+<span class="sd">    :param str protein: PDB identification code</span>
+<span class="sd">    :param str tag: Tractability tag: either &#39;druggable&#39; or &#39;less-druggable&#39;</span>
+<span class="sd">    :return: `pandas.DataFrame`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 1) calculate Fragment Hotspot Result</span>
+    <span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="n">pdb_code</span><span class="o">=</span><span class="n">protein</span><span class="p">,</span>
+                             <span class="n">nprocesses</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                             <span class="n">buriedness_method</span><span class="o">=</span><span class="s1">&#39;ghecom&#39;</span><span class="p">)</span>
+
+    <span class="c1"># 2) calculate Best Continuous Volume</span>
+    <span class="n">extractor</span> <span class="o">=</span> <span class="n">Extractor</span><span class="p">(</span><span class="n">hr</span><span class="o">=</span><span class="n">result</span><span class="p">)</span>
+    <span class="n">bcv_result</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">extract_volume</span><span class="p">(</span><span class="n">volume</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+
+    <span class="c1"># 3) find the median score</span>
+    <span class="k">for</span> <span class="n">probe</span><span class="p">,</span> <span class="n">grid</span> <span class="ow">in</span> <span class="n">bcv_result</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">grid_values</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">median</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="c1"># 4) return the data</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;scores&#39;</span><span class="p">:</span> <span class="n">values</span><span class="p">,</span>
+                         <span class="s1">&#39;pdb&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">protein</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">),</span>
+                         <span class="s1">&#39;median&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">median</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">),</span>
+                         <span class="s1">&#39;tractability&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">),</span>
+                         <span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ranking-pockets">
+<h3>Ranking Pockets<a class="headerlink" href="#ranking-pockets" title="Permalink to this headline">¶</a></h3>
+<p>For this tutorial example, we simply rank the pockets by the median value of the best continuous volume score. Of course,
+for more complex ranking or classification methods could be used if desired. For this example, we take a random
+selection of 65 (43 = ‘druggable’, 22 = ‘less druggable’). More information on this dataset</p>
+<p>Krasowski, A.; Muthas, D.; Sarkar, A.; Schmitt, S.; Brenk, R. DrugPred : A Structure-Based Approach To Predict
+Protein Druggability Developed Using an Extensive Nonredundant Data Set.
+J. Chem. Inf. Model. 2011, 2829–2842. <a class="reference external" href="https://doi.org/10.1021/ci200266d">https://doi.org/10.1021/ci200266d</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">subset</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;1e9x&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1udt&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;2bxr&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1r9o&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;3d4s&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1k8q&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1xm6&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1rwq&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1yvf&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;2hiw&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1gwr&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;2g24&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1c14&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1ywn&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1hvy&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1f9g&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1ai2&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;2ivu&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;2dq7&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1m2z&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;2fb8&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1o5r&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;2gh5&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1ke6&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1k7f&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1ucn&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1hw8&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;2br1&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;2i0e&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1js3&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1yqy&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1u4d&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1sqi&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;2gsu&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1kvo&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1gpu&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1qpe&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1hvr&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1ig3&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1g7v&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1qmf&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1r58&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1v4s&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1fth&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1rsz&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1n2v&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1m17&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1kts&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1ywr&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;2gyi&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1cg0&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;5yas&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1icj&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1gkc&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1hqg&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1u30&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1nnc&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1c9y&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1j4i&#39;</span><span class="p">:</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;1qxo&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1o8b&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1nlj&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1rnt&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;1d09&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;1olq&#39;</span><span class="p">:</span> <span class="s1">&#39;n&#39;</span><span class="p">}</span>
+
+    <span class="n">pdbs</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[[</span><span class="nb">str</span><span class="p">(</span><span class="n">pdb</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">tag</span><span class="p">)]</span> <span class="k">for</span> <span class="n">pdb</span><span class="p">,</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">training_set</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+
+    <span class="k">with</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="n">dfs</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">tractability_workflow</span><span class="p">,</span> <span class="n">pdbs</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;scores.csv&#39;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>We can visualise the score distributions using the seaborn plotting library and use the <cite>ccdc.descriptors</cite> module for
+statical analysis on the ranked pockets.</p>
+<div class="section" id="joyplot">
+<h4>JoyPlot<a class="headerlink" href="#joyplot" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># adapted from the seaborn documentation.</span>
+<span class="c1">#</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">patches</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+
+<span class="k">def</span> <span class="nf">joyplot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;test.png&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Visualises the Fragment Hotspot Maps score distributions as</span>
+<span class="sd">    a series of stacked kernal density estimates ordered by</span>
+<span class="sd">    median value.</span>
+
+<span class="sd">    Adapted from the seaborn gallery:</span>
+<span class="sd">        https://seaborn.pydata.org/examples/kde_ridgeplot.html</span>
+
+<span class="sd">    :param `pandas.DataFrame` df: Fragment Hotspot scores data</span>
+<span class="sd">    :return None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
+            <span class="n">rc</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;axes.facecolor&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)},</span>
+            <span class="n">font_scale</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+
+    <span class="n">palette</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;#c75048&quot;</span><span class="p">,</span>
+               <span class="s2">&quot;#5bd9a4&quot;</span>
+               <span class="p">]</span>
+
+    <span class="c1"># Initialize the FacetGrid object</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">FacetGrid</span><span class="p">(</span><span class="n">df</span><span class="p">,</span>
+                       <span class="n">row</span><span class="o">=</span><span class="s2">&quot;pdb&quot;</span><span class="p">,</span>
+                       <span class="n">hue</span><span class="o">=</span><span class="s2">&quot;tractability&quot;</span><span class="p">,</span>
+                       <span class="n">height</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                       <span class="n">aspect</span><span class="o">=</span><span class="mi">75</span><span class="p">,</span>
+                       <span class="n">palette</span><span class="o">=</span><span class="n">palette</span><span class="p">)</span>
+
+    <span class="c1"># Draw the densities in a few steps</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">,</span> <span class="s2">&quot;scores&quot;</span><span class="p">,</span> <span class="n">clip_on</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">shade</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">7</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">bw</span><span class="o">=.</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">,</span> <span class="s2">&quot;scores&quot;</span><span class="p">,</span> <span class="n">clip_on</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">bw</span><span class="o">=.</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Format the plots</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>  <span class="c1">#</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">hspace</span><span class="o">=-.</span><span class="mi">9</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_titles</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">yticks</span><span class="o">=</span><span class="p">[])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">despine</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Create legend, and position</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;d&quot;</span><span class="p">:</span> <span class="s2">&quot;Druggable&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="s2">&quot;Less-Druggable&quot;</span><span class="p">}</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;tractability&quot;</span><span class="p">])]</span>
+    <span class="n">handles</span> <span class="o">=</span> <span class="p">[</span><span class="n">patches</span><span class="o">.</span><span class="n">Patch</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">lab</span><span class="p">)</span>
+               <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">lab</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">palette</span><span class="p">,</span> <span class="n">labels</span><span class="p">)]</span>
+
+    <span class="n">legend</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">handles</span><span class="p">,</span>
+                        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Tractability&#39;</span><span class="p">,</span>
+                        <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper right&quot;</span><span class="p">,</span>
+                        <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">))</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">legend</span><span class="o">.</span><span class="n">get_frame</span><span class="p">()</span>
+    <span class="n">frame</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+    <span class="n">frame</span><span class="o">.</span><span class="n">set_edgecolor</span><span class="p">(</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;scores.csv&#39;</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">joyplot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;druggable_joy.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/druggable_joy.png" src="_images/druggable_joy.png" />
+</div>
+<div class="section" id="rank-statistics">
+<h4>Rank Statistics<a class="headerlink" href="#rank-statistics" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+
+<span class="kn">from</span> <span class="nn">ccdc.descriptors</span> <span class="kn">import</span> <span class="n">StatisticalDescriptors</span> <span class="k">as</span> <span class="n">sd</span>
+
+
+<span class="k">def</span> <span class="nf">rocplot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;roc.png&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a ROC Curve using seaborn</span>
+
+<span class="sd">    :param lists data: supply ranked data as list of list</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rs</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">RankStatistics</span><span class="p">(</span><span class="n">scores</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">activity_column</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">tpr</span><span class="p">,</span> <span class="n">fpr</span> <span class="o">=</span> <span class="n">rs</span><span class="o">.</span><span class="n">ROC</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">lineplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">fpr</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">tpr</span><span class="p">,</span> <span class="n">estimator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#c75048&quot;</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">lineplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;grey&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;FPR&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;TPR&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ROC Curve (AUC: </span><span class="si">{</span><span class="n">rs</span><span class="o">.</span><span class="n">AUC</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;scores.csv&#39;</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">m</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">letter_to_number</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;d&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;pdb&#39;</span><span class="p">]):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;pdb&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">p</span><span class="p">]</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">letter_to_number</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;tractability&#39;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;median&#39;</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;tractability&#39;</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span>  <span class="s1">&#39;median&#39;</span><span class="p">:</span><span class="n">m</span><span class="p">})</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;median&quot;</span><span class="p">]),</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;tractability&quot;</span><span class="p">])))</span>
+
+<span class="n">rocplot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;druggable_roc.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/druggable_roc.png" src="_images/druggable_roc.png" />
+</div>
+</div>
+</div>
+<div class="section" id="hotspot-guided-docking">
+<h2>Hotspot-Guided Docking<a class="headerlink" href="#hotspot-guided-docking" title="Permalink to this headline">¶</a></h2>
+<p>Molecular docking is a staple of early-stage hit identification. When active small molecules are known,
+key interactions can be selected to steer the scoring of molecular pose to favour those molecules making the selected
+interaction. Fragment Hotspot maps can predict critical interactions in the absence of binding data. Using these
+predictions as constraints will likely improve docking enrichment. A preliminary study was conducted by (Radoux, 2018)
+and a full validation is currently underway. Protein Kinase B (AKT1) has been chosen for this tutorial example and was
+used in the prelimenary docking study.</p>
+<p>Radoux, C. J. The Automatic Detection of Small Molecule Binding Hotspots on Proteins Applying Hotspots
+to Structure-Based Drug Design. (2018). doi:10.17863/CAM.22314</p>
+<div class="section" id="a-hotspot-constraint">
+<h3>A Hotspot Constraint<a class="headerlink" href="#a-hotspot-constraint" title="Permalink to this headline">¶</a></h3>
+<p>To begin, a hotspot calculation is performed on AKT1 (PDB: 3cqw). For this example, the protein was
+protonated using X, all waters, ligands and metal centres were removed.</p>
+<p><cite>hotspots.hsdocking.DockerSettings</cite> inherits from <cite>ccdc.docking.Docker.Settings</cite> to allow smooth integration with the
+CCDC python API. The following code snippet demonstrates how a constraint is generated and added to the
+<cite>hotspots.hsdocking.DockerSettings</cite> class.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots.hs_docking</span> <span class="kn">import</span> <span class="n">DockerSettings</span>
+<span class="kn">from</span> <span class="nn">hotspots.hs_io</span> <span class="kn">import</span> <span class="n">HotspotReader</span>
+
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">HotspotReader</span><span class="p">(</span><span class="o">&lt;</span><span class="n">pathtohotspot</span><span class="o">&gt;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="n">docker</span> <span class="o">=</span> <span class="n">Docker</span><span class="p">()</span>
+<span class="n">docker</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">DockerSettings</span><span class="p">()</span>
+<span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_protein_file</span><span class="p">(</span><span class="o">&lt;</span><span class="n">pathtoprotein</span><span class="o">&gt;</span><span class="p">)</span>
+
+<span class="n">constraints</span> <span class="o">=</span>
+<span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">HotspotHBondConstraint</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">proteins</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                            <span class="n">hr</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>
+                                                            <span class="n">weight</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                                                            <span class="n">min_hbond_score</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                                                            <span class="n">max_constraints</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+    <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="view-the-constraints">
+<h3>View the Constraints<a class="headerlink" href="#view-the-constraints" title="Permalink to this headline">¶</a></h3>
+<p>The automatic hotspot constraints are designed to be used unsupervised, as part of large scale docking studies where
+it is not practical to assess every protein manually. However, if you are studying a small number of proteins, you
+may want to view the suggested hydrogen bond constraints before running GOLD docking.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hotspot</span> <span class="o">=</span> <span class="s2">&quot;&lt;path to hotspot out.zip&gt;&quot;</span>
+<span class="n">hotspot</span> <span class="o">=</span> <span class="n">HotspotReader</span><span class="p">(</span><span class="n">hotspot</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">hotspot</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">hotspot</span><span class="o">.</span><span class="n">super_grids</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">max_value_of_neighbours</span><span class="p">()</span>
+
+    <span class="c1"># grayscale dilation used for noise reduction</span>
+
+<span class="n">constraints</span> <span class="o">=</span> <span class="n">hotspot</span><span class="o">.</span><span class="n">_docking_constraint_atoms</span><span class="p">(</span><span class="n">max_constraints</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                                                <span class="n">max_distance</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                                <span class="n">threshold</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+                                                <span class="n">min_size</span><span class="o">=</span><span class="mi">8</span>
+                                                <span class="p">)</span>
+
+<span class="c1"># max_constraints: limits the number of constraints selected</span>
+<span class="c1"># max_distance: island cenrtroid must be within max_distance to be selected</span>
+<span class="c1"># threshold: hotspots contoured a threshold score</span>
+<span class="c1"># min_size: island must have &gt; min_size grid points to be selected</span>
+
+<span class="n">mol</span> <span class="o">=</span> <span class="n">constraints</span><span class="o">.</span><span class="n">to_molecule</span><span class="p">()</span>
+
+<span class="k">with</span> <span class="n">MoleculeWriter</span><span class="p">(</span><span class="s2">&quot;constraints.mol2&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The docking constraints generated from the hotspots can be converted into a <cite>ccdc.molecule.Molecule</cite> object and then
+easily visualised in a molecular visualing program. We use PyMOL. In this case, 1 hydrogen bond donor constraint is
+selected and therefore there is no selection to be made.</p>
+<img alt="_images/constraints.png" src="_images/constraints.png" />
+</div>
+<div class="section" id="gold-docking">
+<h3>GOLD Docking<a class="headerlink" href="#gold-docking" title="Permalink to this headline">¶</a></h3>
+<p>With the modified docking settings class, the rest of the docking calculation is carried out in a similar manner to
+any other GOLD API docking. A full run script is provided below, which has been adapted from the CCDC API
+documentation.</p>
+<p><a class="reference external" href="https://downloads.ccdc.cam.ac.uk/documentation/API/cookbook_examples/docking_examples.html">https://downloads.ccdc.cam.ac.uk/documentation/API/cookbook_examples/docking_examples.html</a></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">dock</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    submit a GOLD API docking calculation using</span>
+<span class="sd">    docking constraints automatically generated</span>
+<span class="sd">    from the Hotspot API</span>
+
+<span class="sd">    :param ligand_path:</span>
+<span class="sd">    :param out_path:</span>
+<span class="sd">    :param hotspot:</span>
+<span class="sd">    :param weight:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">add_ligands</span><span class="p">(</span><span class="n">docker</span><span class="p">,</span> <span class="n">ligand_path</span><span class="p">):</span>
+
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ligand_path</span><span class="p">,</span>
+                                    <span class="s2">&quot;actives_final.mol2.gz&quot;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span>
+                                    <span class="s2">&quot;actives_final.mol2&quot;</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ligand_path</span><span class="p">,</span>
+                                    <span class="s2">&quot;decoys_final.mol2.gz&quot;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span>
+                                   <span class="s2">&quot;decoys_final.mol2&quot;</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+
+        <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_ligand_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span>
+                                                     <span class="s2">&quot;actives_final.mol2&quot;</span><span class="p">),</span>
+                                        <span class="n">ndocks</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_ligand_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span>
+                                                     <span class="s2">&quot;decoys_final.mol2&quot;</span><span class="p">),</span>
+                                        <span class="n">ndocks</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_protein</span><span class="p">(</span><span class="n">docker</span><span class="p">,</span> <span class="n">hotspot</span><span class="p">,</span> <span class="n">junk</span><span class="p">):</span>
+
+        <span class="n">pfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">junk</span><span class="p">,</span> <span class="s2">&quot;protein.mol2&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">MoleculeWriter</span><span class="p">(</span><span class="n">pfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+            <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">hotspot</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+
+        <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_protein_file</span><span class="p">(</span><span class="n">pfile</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">define_binding_site</span><span class="p">(</span><span class="n">docker</span><span class="p">,</span> <span class="n">ligand_path</span><span class="p">):</span>
+
+        <span class="n">crystal_ligand</span> <span class="o">=</span> <span class="n">MoleculeReader</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ligand_path</span><span class="p">,</span>
+                                                     <span class="s2">&quot;crystal_ligand.mol2&quot;</span><span class="p">)</span>
+                                         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">binding_site</span> <span class="o">=</span>
+        <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">BindingSiteFromLigand</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">proteins</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                              <span class="n">ligand</span><span class="o">=</span><span class="n">crystal_ligand</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_hotspot_constraint</span><span class="p">(</span><span class="n">docker</span><span class="p">,</span> <span class="n">hotspot</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">constraints</span> <span class="o">=</span>
+            <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">HotspotHBondConstraint</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">protein</span><span class="o">=</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">proteins</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                          <span class="n">hr</span><span class="o">=</span><span class="n">hotspot</span><span class="p">,</span>
+                                                          <span class="n">weight</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">weight</span><span class="p">),</span>
+                                                          <span class="n">min_hbond_score</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                                                          <span class="n">max_constraints</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+                <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">docker</span><span class="p">,</span> <span class="n">out_path</span><span class="p">):</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="n">Docker</span><span class="o">.</span><span class="n">Results</span><span class="p">(</span><span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
+
+        <span class="c1"># write ligands</span>
+        <span class="k">with</span> <span class="n">MoleculeWriter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="s2">&quot;docked_ligand.mol2&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">ligands</span><span class="p">:</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">molecule</span><span class="p">)</span>
+
+        <span class="c1"># copy ranking file</span>
+        <span class="c1">#</span>
+        <span class="c1"># in this example, this is the only file we use for analysis.</span>
+        <span class="c1"># However, other output files can be useful.</span>
+
+        <span class="n">copyfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">junk</span><span class="p">,</span> <span class="s2">&quot;bestranking.lst&quot;</span><span class="p">),</span>
+                 <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="s2">&quot;bestranking.lst&quot;</span><span class="p">))</span>
+
+    <span class="c1"># GOLD docking routine</span>
+    <span class="n">ligand_path</span><span class="p">,</span> <span class="n">out_path</span><span class="p">,</span> <span class="n">hotspot</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">search_efficiency</span> <span class="o">=</span> <span class="n">inputs</span>
+    <span class="n">docker</span> <span class="o">=</span> <span class="n">Docker</span><span class="p">()</span>
+
+    <span class="c1"># GOLD settings</span>
+    <span class="n">docker</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">DockerSettings</span><span class="p">()</span>
+    <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">fitness_function</span> <span class="o">=</span> <span class="s1">&#39;plp&#39;</span>
+    <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">autoscale</span> <span class="o">=</span> <span class="n">search_efficiency</span>
+    <span class="n">junk</span><span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+    <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">output_directory</span> <span class="o">=</span> <span class="n">junk</span>
+
+    <span class="c1"># GOLD write lots of files we don&#39;t need in this example</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">junk</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">junk</span><span class="p">)</span>
+    <span class="n">docker</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">output_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">junk</span><span class="p">,</span> <span class="s2">&quot;docked_ligands.mol2&quot;</span><span class="p">)</span>
+
+    <span class="c1"># read the hotspot</span>
+    <span class="n">hotspot</span> <span class="o">=</span> <span class="n">HotspotReader</span><span class="p">(</span><span class="n">hotspot</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">hotspot</span><span class="o">.</span><span class="n">super_grids</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">hotspot</span><span class="o">.</span><span class="n">super_grids</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">max_value_of_neighbours</span><span class="p">()</span>
+        <span class="c1"># dilation to reduce noise</span>
+
+    <span class="n">add_ligands</span><span class="p">(</span><span class="n">docker</span><span class="p">,</span><span class="n">ligand_path</span><span class="p">)</span>
+    <span class="n">add_protein</span><span class="p">(</span><span class="n">docker</span><span class="p">,</span> <span class="n">hotspot</span><span class="p">,</span> <span class="n">junk</span><span class="p">)</span>
+    <span class="n">define_binding_site</span><span class="p">(</span><span class="n">docker</span><span class="p">,</span> <span class="n">ligand_path</span><span class="p">)</span>
+    <span class="n">add_hotspot_constraint</span><span class="p">(</span><span class="n">docker</span><span class="p">,</span> <span class="n">hotspot</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span>
+
+    <span class="n">docker</span><span class="o">.</span><span class="n">dock</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="s2">&quot;hs_gold.conf&quot;</span><span class="p">))</span>
+    <span class="n">write</span><span class="p">(</span><span class="n">docker</span><span class="p">,</span> <span class="n">out_path</span><span class="p">)</span>
+
+    <span class="c1"># Clean out unwanted files</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">junk</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">create_dir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">path</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+
+    <span class="n">ligand_path</span> <span class="o">=</span> <span class="s1">&#39;&lt;path to input directory&gt;&#39;</span>
+    <span class="n">output_path</span> <span class="o">=</span>  <span class="s1">&#39;&lt;path to output directory&gt;&#39;</span>
+    <span class="n">hotspot_path</span> <span class="o">=</span> <span class="s1">&#39;&lt;path to out.zip&gt;&#39;</span>
+    <span class="n">constraint_weight</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">search_efficiency</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="n">dock</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">(</span><span class="n">ligand_path</span><span class="p">,</span>
+                 <span class="n">output_path</span><span class="p">,</span>
+                 <span class="n">hotspot_path</span><span class="p">,</span>
+                 <span class="n">constraint_weight</span><span class="p">,</span>
+                 <span class="n">search_efficiency</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="performance-demonstration">
+<h3>Performance Demonstration<a class="headerlink" href="#performance-demonstration" title="Permalink to this headline">¶</a></h3>
+<p>Using the code above, the AKT1 DUD-e set was docked against AKT1 (PDB: 3cqw), using the hotspot selected constraint
+(the amide hydrogen of ALA230). The docking calculations were run varying the weight of the protein hydrogen bond
+constraint [0, 10, 100] and the search efficiency [1, 10, 100].</p>
+<p>The most significant effect is on retrieval speed. GOLD can be run using different search efficiencies which control
+the degree of sampling in the genetic algorithm.  By using automated constraints, one can outperform 100%
+search efficiency results in 1% search efficiency settings; a speed improvement of more than an order of magnitude.
+While this work showcases this use case, we will undertake further work in future to evaluate the benefit
+more generally across a wider range of targets.</p>
+<p>The code to generate the figure and statistics is given below.</p>
+<img alt="_images/GOLD_results.png" src="_images/GOLD_results.png" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">ccdc.descriptors</span> <span class="kn">import</span> <span class="n">StatisticalDescriptors</span> <span class="k">as</span> <span class="n">sd</span>
+
+<span class="k">def</span> <span class="nf">rank_stats</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create two `pandas.DataFrame` from the &quot;bestranking.lst&quot;</span>
+<span class="sd">    GOLD output</span>
+
+<span class="sd">    :param str parent: path to parent directory</span>
+<span class="sd">    :param str s: name of subdirectory</span>
+<span class="sd">    :param str w: name of subsubdirectory</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># read data and process data from output file</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span>
+                         <span class="sa">f</span><span class="s2">&quot;search_efficiency_</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                         <span class="nb">str</span><span class="p">(</span><span class="n">w</span><span class="p">),</span>
+                         <span class="s2">&quot;bestranking.lst&quot;</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span>
+              <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;  &quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">a</span> <span class="o">!=</span> <span class="s1">&#39;#&#39;</span><span class="p">]]</span>
+    <span class="nb">all</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">7</span><span class="p">:]</span>
+
+    <span class="n">cat</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+                     <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">all</span><span class="p">]))</span>
+
+    <span class="c1"># generate a dataframe and alter datatypes</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="n">h</span><span class="p">:</span> <span class="n">cat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">header</span><span class="p">)})</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;actives&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;CHEMBL&#39;</span> <span class="ow">in</span> <span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Ligand name&#39;</span><span class="p">])))</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;search_efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;weight_int&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">w</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;weight_str&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">w</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;log_time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]))</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&#39;Score&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;log_time&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;actives&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;search_efficiency&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;weight_int&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;weight_str&#39;</span><span class="p">]]</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Score&#39;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Use CCDC&#39;s descriptors API</span>
+    <span class="n">rs</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">RankStatistics</span><span class="p">(</span><span class="n">scores</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Score&#39;</span><span class="p">]),</span>
+                                           <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;actives&#39;</span><span class="p">]))),</span>
+                           <span class="n">activity_column</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="c1"># ROC</span>
+    <span class="n">tpr</span><span class="p">,</span> <span class="n">fpr</span> <span class="o">=</span> <span class="n">rs</span><span class="o">.</span><span class="n">ROC</span><span class="p">()</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;tpr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tpr</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;fpr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fpr</span>
+
+    <span class="c1"># Enrichment Metrics</span>
+    <span class="n">metric_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;search efficiency&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">s</span><span class="p">],</span>
+                             <span class="s2">&quot;weight&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">w</span><span class="p">],</span>
+                             <span class="s2">&quot;AUC&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">rs</span><span class="o">.</span><span class="n">AUC</span><span class="p">()],</span>
+                             <span class="s2">&quot;EF1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">rs</span><span class="o">.</span><span class="n">EF</span><span class="p">(</span><span class="n">fraction</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)],</span>
+                             <span class="s2">&quot;EF5&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">rs</span><span class="o">.</span><span class="n">EF</span><span class="p">(</span><span class="n">fraction</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)],</span>
+                             <span class="s2">&quot;EF10&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">rs</span><span class="o">.</span><span class="n">EF</span><span class="p">(</span><span class="n">fraction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)],</span>
+                             <span class="s2">&quot;BEDROC16&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">rs</span><span class="o">.</span><span class="n">BEDROC</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">16.1</span><span class="p">)],</span>
+                             <span class="s2">&quot;BEDROC8&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">rs</span><span class="o">.</span><span class="n">BEDROC</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">8</span><span class="p">)]</span>
+                             <span class="p">})</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">metric_df</span>
+
+
+<span class="k">def</span> <span class="nf">roc_plot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">search_efficiency</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="s1">&#39;Set2&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot a ROC plot for the docking data</span>
+
+<span class="sd">    :param `pands.DataFrame` df: data</span>
+<span class="sd">    :param int search_efficiency: data is split by search efficiency</span>
+<span class="sd">    :param `matplotlib.axes.Axes` ax: Matplotlib axis to plot data onto</span>
+<span class="sd">    :param list palette: list of RGB tuples</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">selected</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;search_efficiency&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">search_efficiency</span><span class="p">]</span>
+    <span class="c1"># random</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">lineplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;grey&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="c1"># docking rank</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="n">palette</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span><span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">},</span>
+         <span class="s2">&quot;10&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="n">palette</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>  <span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">},</span>
+         <span class="s2">&quot;100&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="n">palette</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">}}</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">grp</span><span class="o">.</span><span class="n">fpr</span><span class="p">,</span> <span class="n">grp</span><span class="o">.</span><span class="n">tpr</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">[</span><span class="n">n</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+             <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">selected</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;weight_str&quot;</span><span class="p">)]</span>
+
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Search Efficiency = </span><span class="si">{</span><span class="n">search_efficiency</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">,</span>
+                 <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">lines</span>
+
+
+<span class="k">def</span> <span class="nf">box_plot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">search_efficiency</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="s1">&#39;Set2&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot a boxplot for the docking time data</span>
+
+<span class="sd">    :param `pands.DataFrame` df: data</span>
+<span class="sd">    :param int search_efficiency: data is split by search efficiency</span>
+<span class="sd">    :param `matplotlib.axes.Axes` ax: Matplotlib axis to plot data onto</span>
+<span class="sd">    :param list palette: list of RGB tuples</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">selected</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;search_efficiency&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">search_efficiency</span><span class="p">]</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;weight_int&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;log_time&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">],</span><span class="n">data</span><span class="o">=</span><span class="n">selected</span><span class="p">,</span>
+                <span class="n">palette</span><span class="o">=</span><span class="n">palette</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">fliersize</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+
+    <span class="c1"># just for asthetics</span>
+    <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">artists</span><span class="p">:</span>
+        <span class="n">r</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">a</span> <span class="o">=</span> <span class="n">patch</span><span class="o">.</span><span class="n">get_edgecolor</span><span class="p">()</span>
+        <span class="n">patch</span><span class="o">.</span><span class="n">set_edgecolor</span><span class="p">((</span><span class="n">r</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_asthetics</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extra formatting tasks</span>
+
+<span class="sd">    :param `matplotlib.figure.Figure` fig: mpl figure</span>
+<span class="sd">    :param list axs: list of  `matplotlib.axes.Axes`</span>
+<span class="sd">    :param `matplotlib.lines.Line2D` lines: ROC lines</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># format axes</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">yticks</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">yticks</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="mi">10</span> <span class="o">**</span> <span class="nb">float</span><span class="p">(</span><span class="n">l</span><span class="p">))</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">yticks</span><span class="p">])</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;FPR&quot;</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;TPR&quot;</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Time per Molecule (s)&quot;</span><span class="p">)</span>
+    <span class="c1"># format legend</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span>
+               <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">]],</span>
+               <span class="p">(</span><span class="o">.</span><span class="mi">83</span><span class="p">,</span> <span class="o">.</span><span class="mi">42</span><span class="p">),</span>
+               <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Constraint Weight&quot;</span><span class="p">)</span>
+    <span class="c1"># format canvas</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.86</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># read and format the data</span>
+    <span class="n">search_effiencies</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="s2">&quot;/vagrant/github_pkgs/hotspots/examples/&quot;</span> \
+             <span class="s2">&quot;2_docking/virtual_screening/akt1/&quot;</span>
+
+    <span class="n">df1</span><span class="p">,</span> <span class="n">df2</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">rank_stats</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+                     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">search_effiencies</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">weights</span><span class="p">])</span>
+
+    <span class="c1"># Plotted Data (ROC and Box plots)</span>
+    <span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Table Data (Rank Stats: AUC, EF, BEDROC)</span>
+    <span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">df2</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df2</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;rankstats.csv&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Plot the ROC and box plots</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                            <span class="n">ncols</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                            <span class="n">sharey</span><span class="o">=</span><span class="s1">&#39;row&#39;</span><span class="p">,</span>
+                            <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;wspace&#39;</span><span class="p">:</span><span class="mf">0.26</span><span class="p">,</span>
+                                         <span class="s1">&#39;hspace&#39;</span><span class="p">:</span><span class="mf">0.22</span><span class="p">},</span>
+                            <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">roc_plot</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">search_effiencies</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">ax</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">box_plot</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">search_effiencies</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">ax</span><span class="p">)</span>
+
+    <span class="n">_asthetics</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">lines</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;new_grid.png&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="pharmacophores">
+<h2>Pharmacophores<a class="headerlink" href="#pharmacophores" title="Permalink to this headline">¶</a></h2>
+<p>A Pharmacophore Model can be generated directly from a <code class="xref py py-class docutils literal notranslate"><span class="pre">hotspots.result.Result</span></code> :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hotspots.calculation</span> <span class="kn">import</span> <span class="n">Runner</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;1hcl&quot;</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">get_pharmacophore_model</span><span class="p">(</span><span class="n">identifier</span><span class="o">=</span><span class="s2">&quot;MyFirstPharmacophore&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The Pharmacophore Model can be used in Pharmit or CrossMiner</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span><span class="o">.</span><span class="n">pharmacophore</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;example.cm&quot;</span><span class="p">)</span>   <span class="c1"># CrossMiner</span>
+<span class="n">result</span><span class="o">.</span><span class="n">pharmacophore</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;example.json&quot;</span><span class="p">)</span>    <span class="c1"># Pharmit</span>
+</pre></div>
+</div>
+<p>The CSD Python API’s documentation details how the output a “.cm” file can be used for Pharmacophore
+searching in CrossMiner. See the link below for details.</p>
+<p><a class="reference external" href="https://downloads.ccdc.cam.ac.uk/documentation/API/descriptive_docs/pharmacophore.html">https://downloads.ccdc.cam.ac.uk/documentation/API/descriptive_docs/pharmacophore.html</a></p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="calculation_api.html" class="btn btn-neutral float-right" title="Hotspot Calculation API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to the Hotspot API’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright Chris Radoux, Peter Curran, Mihaela D. Smilova, Richard A. Sykes, Alicia Higueruelo, Anthony Bradley, Brian D. Marsdend, David R. Spring, Tom L. Blundell, Andrew R. Leach, William R. Pitt, Jason C. Cole
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
