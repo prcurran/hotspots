@@ -2,6 +2,7 @@
 tests/testdata/
 examples/7_bcv_validation/data/
 examples/7_bcv_validation/results/
+examples/2_docking/demo/
 *.pyc
 .idea
 .idea/*
