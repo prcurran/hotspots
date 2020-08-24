@@ -1,0 +1,739 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>hotspots.atomic_hotspot_calculation &mdash; Hotspots API 1.0.0 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/logo_test.png"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Hotspots API
+          
+
+          
+            
+            <img src="../../_static/logo_test.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../atomic_hotspot_calculation_api.html">Atomic Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calculation_api.html">Hotspot Calculation API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_io_api.html">Hotspot IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../result_api.html">Result API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_pharmacophore_api.html">Hotspot Pharmacophore API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_docking_api.html">Hotspot Docking API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hs_utilities_api.html">Hotspot Utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Hotspots API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>hotspots.atomic_hotspot_calculation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for hotspots.atomic_hotspot_calculation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Atomic Hotspot detection is the first step in the Fragment Hotspot Maps algorithm and is implemented through SuperStar.</span>
+
+<span class="sd">The main class of the :mod:`hotspots.atomic_hotspot_calculation` module are:</span>
+
+<span class="sd">- :class:`hotspots.atomic_hotspot_calculation.AtomicHotspot`</span>
+
+<span class="sd">More information about the SuperStar method is available:</span>
+<span class="sd">    - SuperStar: A knowledge-based approach for identifying interaction sites in proteins M. L. Verdonk, J. C. Cole and R. Taylor, J. Mol. Biol., 289, 1093-1108, 1999 [DOI: 10.1006/jmbi.1999.2809]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">environ</span><span class="p">,</span> <span class="n">mkdir</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">isfile</span><span class="p">,</span> <span class="n">dirname</span>
+
+<span class="kn">from</span> <span class="nn">ccdc.io</span> <span class="k">import</span> <span class="n">csd_directory</span><span class="p">,</span> <span class="n">MoleculeWriter</span>
+<span class="kn">from</span> <span class="nn">ccdc.utilities</span> <span class="k">import</span> <span class="n">PushDir</span>
+<span class="kn">from</span> <span class="nn">concurrent</span> <span class="k">import</span> <span class="n">futures</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">grid_extension</span> <span class="k">import</span> <span class="n">Grid</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">ccdc.utilities</span> <span class="k">import</span> <span class="n">Grid</span>
+
+
+<span class="k">def</span> <span class="nf">_run_job</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    private method</span>
+
+<span class="sd">    Runs an Atomic Hotspot calculation using the SuperStar algorithm.</span>
+<span class="sd">    :param tup or list args: Command, Jobname, SuperStar Environment Variable and Temporary directory</span>
+<span class="sd">    :return: tup, temporary directory and jobname</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cmd</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">superstar_env</span><span class="p">,</span> <span class="n">temp_dir</span> <span class="o">=</span> <span class="n">args</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">)</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">environ</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">superstar_env</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">PushDir</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">):</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">!=</span> <span class="s1">&#39;win32&#39;</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">jobname</span>
+
+
+<div class="viewcode-block" id="AtomicHotspot"><a class="viewcode-back" href="../../atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot">[docs]</a><span class="k">class</span> <span class="nc">AtomicHotspot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for handling the calculation of Atomic Hotspots using SuperStar</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="AtomicHotspot.Settings"><a class="viewcode-back" href="../../atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings">[docs]</a>    <span class="k">class</span> <span class="nc">Settings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; handles the adjustable settings of Atomic Hotspot calculation.</span>
+
+<span class="sd">        NB: not all settings are exposed here, for other settings please look at</span>
+<span class="sd">        `hotspots.atomic_hotspot_calculation._atomic_hotspot_ins()`</span>
+
+<span class="sd">        :param database: database from which the underlying interaction libraries are extracted</span>
+<span class="sd">        :param map_background_value: the default value on the output grid</span>
+<span class="sd">        :param box_border: padding on the output grid</span>
+<span class="sd">        :param min_propensity: the minimum propensity value that can be assigned to a grid. value = 1 is random</span>
+<span class="sd">        :param superstar_sigma: the sigma value for the gaussian smoothing function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="o">=</span><span class="s1">&#39;CSD&#39;</span><span class="p">,</span> <span class="n">map_background_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">box_border</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_propensity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                     <span class="n">superstar_sigma</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">database</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mapbackgroundvalue</span> <span class="o">=</span> <span class="n">map_background_value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boxborder</span> <span class="o">=</span> <span class="n">box_border</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">minpropensity</span> <span class="o">=</span> <span class="n">min_propensity</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">superstar_sigma</span> <span class="o">=</span> <span class="n">superstar_sigma</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">superstar_executable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">superstar_env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_environment_variables</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">temp_dir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_csd_atomic_probes</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pdb_atomic_probes</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="nd">@staticmethod</span>
+        <span class="k">def</span> <span class="nf">_set_environment_variables</span><span class="p">():</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            private method</span>
+
+<span class="sd">            sets up superstar environment variables</span>
+<span class="sd">            :return: superstar executable (str), superstar env(str)</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="n">csd_directory</span><span class="p">()</span>
+            <span class="n">main_dir</span> <span class="o">=</span> <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MAINDIR&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">main_dir</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;win32&#39;</span><span class="p">:</span>
+                    <span class="n">superstar_executable</span> <span class="o">=</span> <span class="s1">&#39;superstar_app.exe&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">superstar_executable</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">join</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;MAINDIR&#39;</span><span class="p">],</span> <span class="s1">&#39;run.sh&#39;</span><span class="p">),</span> <span class="s1">&#39;superstar_app.x&#39;</span><span class="p">])</span>
+                <span class="n">superstar_env</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;win32&#39;</span><span class="p">:</span>
+                    <span class="n">base</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+                    <span class="n">merc</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s1">&#39;mercury*&#39;</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">merc</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">merc</span> <span class="o">=</span> <span class="n">merc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;No mercury path found, check API version&quot;</span><span class="p">)</span>
+
+                    <span class="n">superstar_executable</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">merc</span><span class="p">,</span> <span class="s1">&#39;superstar_app.exe&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">isfile</span><span class="p">(</span><span class="n">superstar_executable</span><span class="p">):</span>
+                        <span class="n">superstar_executable</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">merc</span><span class="p">,</span> <span class="s1">&#39;superstar.exe&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">isfile</span><span class="p">(</span><span class="n">superstar_executable</span><span class="p">):</span>
+                            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;superstar executable not found&quot;</span><span class="p">)</span>
+
+                    <span class="n">superstar_env</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">SUPERSTAR_ISODIR</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s1">&#39;isostar_files&#39;</span><span class="p">,</span> <span class="s1">&#39;istr&#39;</span><span class="p">)),</span>
+                                         <span class="n">SUPERSTAR_ROOT</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">&quot;Mercury&quot;</span><span class="p">))</span>
+                                         <span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;darwin&#39;</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;OS X not supported&quot;</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">base</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+                    <span class="n">superstar_executable</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;superstar&#39;</span><span class="p">)</span>
+                    <span class="n">superstar_env</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">SUPERSTAR_ISODIR</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s1">&#39;isostar_files&#39;</span><span class="p">,</span> <span class="s1">&#39;istr&#39;</span><span class="p">)),</span>
+                                         <span class="n">SUPERSTAR_ROOT</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+                                         <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">superstar_executable</span><span class="p">,</span> <span class="n">superstar_env</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">atomic_probes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            The probe atoms to be used by the Atomic Hotspot calculation.</span>
+
+<span class="sd">            Available atomic probes:</span>
+<span class="sd">                for the CSD:</span>
+<span class="sd">                    - &quot;Alcohol Oxygen&quot;,</span>
+<span class="sd">                    - &quot;Water Oxygen&quot;,</span>
+<span class="sd">                    - &quot;Carbonyl Oxygen&quot;,</span>
+<span class="sd">                    - &quot;Oxygen Atom&quot;,</span>
+<span class="sd">                    - &quot;Uncharged NH Nitrogen&quot;,</span>
+<span class="sd">                    - &quot;Charged NH Nitrogen&quot;,</span>
+<span class="sd">                    - &quot;RNH3 Nitrogen&quot;,</span>
+<span class="sd">                    - &quot;Methyl Carbon&quot;,</span>
+<span class="sd">                    - &quot;Aromatic CH Carbon&quot;,</span>
+<span class="sd">                    - &quot;C-Cl Chlorine&quot;</span>
+<span class="sd">                    - &quot;C-F Fluorine&quot;,</span>
+<span class="sd">                    - &quot;Cyano Nitrogen&quot;,</span>
+<span class="sd">                    - &quot;Sulphur Atom&quot;,</span>
+<span class="sd">                    - &quot;Chloride Anion&quot;,</span>
+<span class="sd">                    - &quot;Iodide Anion&quot;</span>
+
+<span class="sd">                for the PDB:</span>
+<span class="sd">                    - &quot;Alcohol Oxygen&quot;,</span>
+<span class="sd">                    - &quot;Water Oxygen&quot;,</span>
+<span class="sd">                    - &quot;Carbonyl Oxygen&quot;,</span>
+<span class="sd">                    - &quot;Amino Nitrogen&quot;,</span>
+<span class="sd">                    - &quot;Aliphatic CH Carbon&quot;</span>
+<span class="sd">                    - &quot;Aromatic CH Carbon&quot;</span>
+
+<span class="sd">            :return dict: key= &quot;identifier&quot;, value=&quot;SuperStar identifier&quot;</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">==</span> <span class="s1">&#39;CSD&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_csd_atomic_probes</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">==</span> <span class="s1">&#39;PDB&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pdb_atomic_probes</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Database must be &#39;CSD&#39; or &#39;PDB&#39;&quot;</span><span class="p">)</span>
+
+        <span class="nd">@atomic_probes</span><span class="o">.</span><span class="n">setter</span>
+        <span class="k">def</span> <span class="nf">atomic_probes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">probes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">==</span> <span class="s1">&#39;CSD&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_csd_atomic_probes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">probes</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">==</span> <span class="s1">&#39;PDB&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pdb_atomic_probes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">probes</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Database must be &#39;CSD&#39; or &#39;PDB&#39;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AtomicHotspot.InstructionFile"><a class="viewcode-back" href="../../atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile">[docs]</a>    <span class="k">class</span> <span class="nc">InstructionFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; handles the instruction files for the commandline call of the Atomic Hotspot calculation</span>
+
+<span class="sd">        :param str jobname: general format &quot;&lt;probename&gt;.ins&quot;</span>
+<span class="sd">        :param str probename: identifier for the atomic probe</span>
+<span class="sd">        :param `hotspots.AtomicHotspot.Settings` settings: supplied if settings are adjusted from default</span>
+<span class="sd">        :param tup cavity: (float(x), float(y), float(z)) describing the centre of a cavity</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">probename</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">cavity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ins_str</span> <span class="o">=</span> <span class="n">_atomic_hotspot_ins</span><span class="p">(</span><span class="n">jobname</span><span class="p">,</span> <span class="n">probename</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cavity</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ins_str</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">CAVITY_ORIGIN </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">cavity</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span>
+                                                                  <span class="nb">round</span><span class="p">(</span><span class="n">cavity</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span>
+                                                                  <span class="nb">round</span><span class="p">(</span><span class="n">cavity</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+                                                                  <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ins_str</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">SUBSTRUCTURE ALL&#39;</span>
+
+<div class="viewcode-block" id="AtomicHotspot.InstructionFile.write"><a class="viewcode-back" href="../../atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.InstructionFile.write">[docs]</a>        <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            writes out the instruction file, enables calculation to be repeated</span>
+
+<span class="sd">            :param str fname: path of the output file</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins_str</span><span class="p">)</span></div></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Settings</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
+
+    <span class="k">def</span> <span class="nf">_get_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">cavity_origin</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        private method</span>
+
+<span class="sd">        constructs the commandline str required to run atomic hotspot calculation</span>
+<span class="sd">        :param str jobname: general format (&lt;probe_type&gt;.ins)</span>
+<span class="sd">        :param str probename: probe identifier</span>
+<span class="sd">        :param str out: output directory (outputting ins maybe useful for debugging)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">out</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">temp_dir</span>
+
+        <span class="k">with</span> <span class="n">PushDir</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">MoleculeWriter</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s1">&#39;protein.pdb&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">probename</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">atomic_probes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">instruction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">InstructionFile</span><span class="p">(</span><span class="n">jobname</span><span class="o">=</span><span class="n">jobname</span><span class="p">,</span>
+                                               <span class="n">probename</span><span class="o">=</span><span class="n">probename</span><span class="p">,</span>
+                                               <span class="n">settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
+                                               <span class="n">cavity</span><span class="o">=</span><span class="n">cavity_origin</span><span class="p">)</span>
+
+            <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">superstar_executable</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="s1">&#39; &#39;</span>
+                        <span class="o">+</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.ins&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jobname</span><span class="p">)</span>
+                        <span class="p">)</span>
+
+            <span class="k">with</span> <span class="n">PushDir</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+                <span class="n">instruction</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.ins&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jobname</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">cmds</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_merge_cavities</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        private method</span>
+
+<span class="sd">        atomic hotspot results for the same atomic probe but different cavities are combined onto a single grid</span>
+<span class="sd">        :param a `hotspots.atomic_hotspot_calculation._AtomicHotspotResult` instance results: a result object</span>
+<span class="sd">        :return: list, of merged _AtomicHotspotResults</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">identifier</span> <span class="ow">in</span> <span class="n">result_dict</span><span class="p">:</span>
+                <span class="n">result_dict</span><span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">identifier</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">result</span><span class="o">.</span><span class="n">identifier</span><span class="p">:</span> <span class="p">[</span><span class="n">result</span><span class="p">]})</span>
+
+        <span class="n">merged_results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">atomic_results</span> <span class="ow">in</span> <span class="n">result_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">g_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;grid_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="n">g</span><span class="o">.</span><span class="n">grid</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">atomic_results</span><span class="p">)}</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">get_single_grid</span><span class="p">(</span><span class="n">g_dict</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="n">b_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;buriedness_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="n">g</span><span class="o">.</span><span class="n">buriedness</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">atomic_results</span><span class="p">)}</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">get_single_grid</span><span class="p">(</span><span class="n">b_dict</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="n">merged_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_AtomicHotspotResult</span><span class="p">(</span><span class="n">identifier</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span>
+                                                      <span class="n">grid</span><span class="o">=</span><span class="n">g</span><span class="p">,</span>
+                                                      <span class="n">buriedness</span><span class="o">=</span><span class="n">b</span><span class="p">,</span>
+                                                      <span class="p">)</span>
+                                  <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">merged_results</span>
+
+<div class="viewcode-block" id="AtomicHotspot.calculate"><a class="viewcode-back" href="../../atomic_hotspot_calculation_api.html#hotspots.atomic_hotspot_calculation.AtomicHotspot.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">nthreads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cavity_origins</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Calculates the Atomic Hotspot</span>
+
+<span class="sd">        This function executes the Atomic Hotspot Calculation for a given input protein.</span>
+
+
+<span class="sd">        :param `ccdc.protein.Protein` protein: The input protein for which the Atomic Hotspot is to be calculated</span>
+<span class="sd">        :param int nthreads: The number of processor to be used in the calculation. NB: do not exceed the number of available CPU&#39;s</span>
+<span class="sd">        :param list cavity_origins: The list of cavity origins, if supplied the Atomic Hotspot detection will run on a cavity mode. This increase the speed of the calculation however small cavity can be missed in some cases.</span>
+
+<span class="sd">        :return: list of :class:`hotspots._AtomicHotspotResults` instances</span>
+
+
+<span class="sd">        &gt;&gt;&gt; from pdb_python_api import PDBResult</span>
+<span class="sd">        &gt;&gt;&gt; from ccdc.protein import Protein</span>
+<span class="sd">        &gt;&gt;&gt; from hotspots.atomic_hotspot_calculation import AtomicHotspot</span>
+
+<span class="sd">        &gt;&gt;&gt; if __name__ == &quot;__main__&quot;:</span>
+<span class="sd">        &gt;&gt;&gt;     # NB: main guard required for multiprocessing on windows!</span>
+<span class="sd">        &gt;&gt;&gt;     PDBResult(&quot;1mtx&quot;).download(out_dir=&quot;./1mtx&quot;)</span>
+<span class="sd">        &gt;&gt;&gt;     protein = Protein.from_file(&quot;1mtx.pdb&quot;)</span>
+<span class="sd">        &gt;&gt;&gt;     protein.add_hydrogens()</span>
+<span class="sd">        &gt;&gt;&gt;     protein.remove_all_waters()</span>
+
+<span class="sd">        &gt;&gt;&gt;     a = AtomicHotspot()</span>
+<span class="sd">        &gt;&gt;&gt;     a.settings.atomic_probes = {&quot;apolar&quot;: &quot;AROMATIC CH CARBON&quot;,</span>
+<span class="sd">        &gt;&gt;&gt;                                 &quot;donor&quot;: &quot;UNCHARGED NH NITROGEN&quot;,</span>
+<span class="sd">        &gt;&gt;&gt;                                 &quot;acceptor&quot;: &quot;CARBONYL OXYGEN&quot;}</span>
+<span class="sd">        &gt;&gt;&gt;     results = a.calculate(protein=protein, nthreads=3)</span>
+<span class="sd">        [_AtomicHotspotResult(donor), _AtomicHotspotResult(apolar), _AtomicHotspotResult(acceptor)]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_merge</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">cavity_origins</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cavity_origins</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_merge</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">temp_dirs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">cmds</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">env_str</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">superstar_env</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">atomic_probes</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cavity_origins</span><span class="p">)</span>
+            <span class="n">jobnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">atomic_probes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cavity_origins</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cavity_origin</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cavity_origins</span><span class="p">):</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">temp_dir</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+                    <span class="n">mkdir</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+                <span class="n">t</span> <span class="o">*=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">atomic_probes</span><span class="p">)</span>
+                <span class="n">temp_dirs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                <span class="n">cmds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_cmd</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">cavity_origin</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">temp_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">temp_dir</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">atomic_probes</span><span class="p">)</span>
+            <span class="n">env_str</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">superstar_env</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">atomic_probes</span><span class="p">)</span>
+            <span class="n">jobnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">atomic_probes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="n">cmds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cmd</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">cavity_origins</span><span class="p">)</span>
+
+        <span class="n">inputs</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cmds</span><span class="p">,</span> <span class="n">jobnames</span><span class="p">,</span> <span class="n">env_str</span><span class="p">,</span> <span class="n">temp_dirs</span><span class="p">)</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">nthreads</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">nthreads</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_run_job</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_AtomicHotspotResult</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">temp_dir</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">jobname</span><span class="o">=</span><span class="n">j</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="nb">input</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
+                <span class="n">t</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">_run_job</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_AtomicHotspotResult</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">temp_dir</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">jobname</span><span class="o">=</span><span class="n">j</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge_cavities</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">_AtomicHotspotResult</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to handle the results of the Atomic Hotspot calculation</span>
+
+<span class="sd">    :param str identifier: identifier of the _AtomicHotspotResult, &lt;probe_type&gt;</span>
+<span class="sd">    :param `hotspots.grid_extension.Grid` grid: atomic propensity grid from Atomic Hotspot calculation</span>
+<span class="sd">    :param `hotspots.grid_extension.Grid` buriedness: pocket grid from Atomic Hotspot calculation</span>
+<span class="sd">    :param str ins: the input data to the Atomic Hotspot calculations (superstar ins)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">buriedness</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_identifier</span> <span class="o">=</span> <span class="n">identifier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span> <span class="o">=</span> <span class="n">grid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buriedness</span> <span class="o">=</span> <span class="n">buriedness</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">ins</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;_AtomicHotspotResult(</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
+    <span class="fm">__repr__</span> <span class="o">=</span> <span class="fm">__str__</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">identifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        identifier of the _AtomicHotspotResult, &lt;probe_type&gt;</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_identifier</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        atomic propensity grid from Atomic Hotspot calculation</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span>
+
+    <span class="nd">@grid</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        atomic propensity grid from Atomic Hotspot calculation</span>
+<span class="sd">        :param `hotspots.grid_extension.Grid` g: a grid</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">Grid</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span> <span class="o">=</span> <span class="n">g</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Must supply a hotspots.grid_extension.Grid class instance&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">buriedness</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        pocket grid from Atomic Hotspot calculation</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buriedness</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="n">jobname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        searches the calculation working directory and constructs a</span>
+<span class="sd">        `hotspots.atomic_hotspots_calculation.AtomHotspotResult` instance</span>
+<span class="sd">        :param str temp_dir: path to the temporary calculation directory</span>
+<span class="sd">        :param str jobname: name of the atomic probe used in the calculation</span>
+<span class="sd">        :return: a `hotspots.atomic_hotspots_calculation.AtomHotspotResult` instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">grid_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="n">jobname</span> <span class="o">+</span> <span class="s2">&quot;.acnt&quot;</span><span class="p">)</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">grid_path</span><span class="p">)</span>
+        <span class="n">buriedness_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="n">jobname</span> <span class="o">+</span> <span class="s2">&quot;.ligsite.acnt&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">buriedness_path</span><span class="p">):</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">Grid</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">buriedness_path</span><span class="p">)</span>
+            <span class="n">buriedness</span> <span class="o">=</span> <span class="n">_AtomicHotspotResult</span><span class="o">.</span><span class="n">_correct_ligsite</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">buriedness_path</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> ligsite grid could not be found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jobname</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">_AtomicHotspotResult</span><span class="p">(</span><span class="n">identifier</span><span class="o">=</span><span class="n">jobname</span><span class="p">,</span>
+                                   <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
+                                   <span class="n">buriedness</span><span class="o">=</span><span class="n">buriedness</span><span class="p">,</span>
+                                   <span class="n">ins</span><span class="o">=</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.ins&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jobname</span><span class="p">))</span>
+                                   <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_correct_ligsite</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        a correction applied to the pocket grid created by LIGSITE during the Atomic Hotspot calculation</span>
+<span class="sd">        grid points where ligsite has a score of 0 (i.e. a clash) and SuperStar has a favourable score, set the ligsite</span>
+<span class="sd">        grid point to its maximum neighbour</span>
+<span class="sd">        :param `ccdc.utilities.Grid` g: atomic hotspot grid</span>
+<span class="sd">        :param `ccdc.utilities.Grid` l: pocket grid</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">((</span><span class="n">l</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">g</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">lc</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">lc</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">max_value_of_neighbours</span><span class="p">()</span><span class="o">.</span><span class="n">max_value_of_neighbours</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">l</span> <span class="o">+</span> <span class="p">((</span><span class="n">mask</span> <span class="o">*</span> <span class="n">lc</span><span class="p">)</span><span class="o">.</span><span class="n">mean_value_of_neighbours</span><span class="p">()</span> <span class="o">*</span> <span class="n">mask</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_atomic_hotspot_ins</span><span class="p">(</span><span class="n">jobname</span><span class="p">,</span> <span class="n">probename</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    template for atomic hotspot input file (SuperStar ins)</span>
+<span class="sd">    :param str jobname: general format (&lt;probe_type&gt;.ins)</span>
+<span class="sd">    :param str probename: probe identifier</span>
+<span class="sd">    :param `hotspots.atomic_hotspot_calculation.AtomicHotspot.Settings`settings:</span>
+<span class="sd">    :return: str, atomic hotspot calculation input str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ss_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">JOBNAME </span><span class="si">{0}</span><span class="s1"></span>
+<span class="s1">PROBENAME </span><span class="si">{1}</span><span class="s1"></span>
+<span class="s1">GRID_SPACING 0.5</span>
+<span class="s1">CALC_CONTOUR_SURFACE 0</span>
+<span class="s1">SAVE_SUPER_SCATTERPLOT 0</span>
+<span class="s1">RUN_TYPE SUPERSTAR</span>
+<span class="s1">DATA_SOURCE CSD</span>
+<span class="s1">SHELL_VALUES 0.5 0</span>
+<span class="s1">SIGCHECK_METHOD POISSON SHELL</span>
+<span class="s1">PROPENSITY_CORRECTION LOGP DEFAULT DEFAULT</span>
+<span class="s1">MIN_CAVITY_VOLUME 10</span>
+<span class="s1">CAVITY_RADIUS 10</span>
+<span class="s1">PEAK_FITTING 0</span>
+<span class="s1">PEAK_FITTING_NCYCLES 1</span>
+<span class="s1">MIN_PEAK_HEIGHT 0</span>
+<span class="s1">PEAK_FITTING_REFINE 0</span>
+<span class="s1">MOLECULE_FILE protein.pdb</span>
+<span class="s1">CAVITY_DETECTION 1</span>
+<span class="s1">MIN_PSP 5</span>
+<span class="s1">SAVE_CAVITY MESH</span>
+<span class="s1">USE_TORSIONS 1</span>
+<span class="s1">RMS_ACCEPT 0.1</span>
+<span class="s1">NO_MAP_WHEN_INCOMPLETE 0</span>
+<span class="s1">MAP_FORMAT SYBYL_ASCII_CONTOUR</span>
+<span class="s1">FIELD_TYPE PROPENSITY</span>
+<span class="s1">MAP_DISTRIBUTE_POINTS GAUSSIAN_SMEARING</span>
+<span class="s1">MAX_PENETRATION 0.3</span>
+<span class="s1">BOX_BORDER </span><span class="si">{3}</span><span class="s1"></span>
+<span class="s1">SUPERSTAR_MAP_BACKGROUND </span><span class="si">{2}</span><span class="s1"></span>
+<span class="s1">MULTIPLY_POLAR_ONLY 0</span>
+<span class="s1">INVERSE_MAP 0</span>
+<span class="s1">AVOID_CLOSE_GRIDPOINTS 0</span>
+<span class="s1">MAX_NOISE_LEVEL 1</span>
+<span class="s1">SIGNIFICANCE_LEVEL 0.001</span>
+<span class="s1">MIN_PROPENSITY </span><span class="si">{4}</span><span class="s1"></span>
+<span class="s1">SAVE_SUPERSTAR_MAP 1</span>
+<span class="s1">SAVE_CENTRAL_GROUPS 0</span>
+<span class="s1">SAVE_EXCLUDED_VOLUME_MAP 0</span>
+<span class="s1">SAVE_ACCESSIBLE_VOLUME_MAP 0</span>
+<span class="s1">FLEXIBILITY_EXHAUSTIVE 0</span>
+<span class="s1">FLEXIBILITY_FLAG FLAG_ENSEMBLE</span>
+<span class="s1">SMEARING_SIGMA </span><span class="si">{5}</span><span class="s1"></span>
+<span class="s1">SMEARING_NSIGMAS 2</span>
+<span class="s1">POLAR_POLAR_CORRECTION 1</span>
+<span class="s1">POLAR_APOLAR_CORRECTION 1</span>
+<span class="s1">APOLAR_APOLAR_CORRECTION 9</span>
+<span class="s1">REMOVE_BACKBONE_CONTACTS 1</span>
+<span class="s1">REMOVE_SUSPICIOUS_CONTACTS 0</span>
+<span class="s1">MAX_HBOND_DISTANCE 3.1</span>
+<span class="s1">MIN_HBOND_ANGLE 100</span>
+<span class="s1">PROPER_HBOND_DISTANCE 2.9</span>
+<span class="s1">PROPER_HBOND_ANGLE 140</span>
+<span class="s1">SAVE_LIGSITE_MAP 1</span>
+<span class="s1">MIN_PEAK_DISTANCE 1</span>
+<span class="s1">SAVE_PEAKS 1</span>
+<span class="s1">SAVE_PEAK_MAP 0</span>
+<span class="s1">CALC_METAL_BONDS 1</span>
+<span class="s1">SAVE_GOLD_FITTING_POINTS 0</span>
+<span class="s1">GOLD_MIN_PROPENSITY 5</span>
+<span class="s1">MAX_SCATTER_ATOMS 5000</span>
+<span class="s1">MIN_SCATTER_DENS 1.01</span>
+<span class="s1">SURFACE_FORMAT SYBYL_MOL2</span>
+<span class="s1">CALC_CONNOLLY_SURFACE 0</span>
+<span class="s1">CONTOUR_LIST 2 CYAN 4 PURPLE 8 ORANGE</span>
+<span class="s1">COVALENT_TOLERANCE 0.4</span>
+<span class="s1">SCORE_PACKING_SHELL 0</span>
+<span class="s1">ATOM_SCORING SINGLE_POINT&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jobname</span><span class="p">,</span>
+                                    <span class="n">probename</span><span class="p">,</span>
+                                    <span class="n">settings</span><span class="o">.</span><span class="n">mapbackgroundvalue</span><span class="p">,</span>
+                                    <span class="n">settings</span><span class="o">.</span><span class="n">boxborder</span><span class="p">,</span>
+                                    <span class="n">settings</span><span class="o">.</span><span class="n">minpropensity</span><span class="p">,</span>
+                                    <span class="n">settings</span><span class="o">.</span><span class="n">superstar_sigma</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ss_str</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Chris Radoux, Peter Curran and Mihaela Smilova
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
