@@ -33,7 +33,8 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 import pickle
 from functools import reduce
-import hdbscan
+
+from skimage.morphology import remove_small_objects
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -247,6 +248,13 @@ class Grid(utilities.Grid):
         else:
             return False
 
+    def get_flat_array(self):
+        """
+
+        :return:
+        """
+        return np.array(self.to_vector())
+
     def get_array(self):
         """
         convert grid object to np.array
@@ -260,10 +268,10 @@ class Grid(utilities.Grid):
                     array[i, j, k] += self.value(i, j, k)
         return array
 
-    def dilate_by_atom(self):
+    def dilate_by_atom(self, radius=1):
 
         g_array = self.get_array()
-        selem = ball(radius=2)
+        selem = ball(radius=radius)
         print(selem)
 
         dilated = ndimage.grey_dilation(g_array, structure=selem)
@@ -367,61 +375,31 @@ class Grid(utilities.Grid):
         blank = -self.copy_and_clear()
         return reduce(operator.__and__, max_grids, blank)
 
-    def get_best_island(self, threshold, mode="count", peak=None):
+    def get_best_island(self, threshold):
         """
-        returns the best grid island. Mode: "count" or "score"
-        :param int threshold: island threshold
-        :param str mode:
-                       -"count" : returns island with most grid points above threshold
-                       -"score" : returns island with the largest sum of all grid points over threshold
-        :param tup peak: (float(x), float(y), float(z)) coordinates of peak in grid
-        :return: `ccdc.utilities.Grid`, grid containing the best island
+        For a given threshold, the island which contains the most grid points will be returned
+
+        :param threshold: island threshold
+        :type threshold: int
+
+        :return: the island with the most grid points above the threshold
+        :rtype: :class:`ccdc.utilities.Grid`
         """
         islands = self.islands(threshold)
+
         if len(islands) == 0:
             return None
 
         else:
             island_by_rank = {}
-            if mode == "count":
-                for island in islands:
-                    if peak:
-                        if island.contains_point(peak):
-                            g = (island > threshold) * island
-                            rank = g.count_grid()
-                            island_by_rank.update({rank: g})
-                        else:
-                            continue
-                    else:
-                        g = (island > threshold) * island
-                        rank = g.count_grid()
-                        island_by_rank.update({rank: g})
-
-            # elif mode == "score":
-            #     for island in islands:
-            #         if peak:
-            #             if island.contains_point(peak):
-            #                 nx, ny, nz = island.nsteps
-            #                 island_points = [island.value(i, j, k)
-            #                                  for i in range(nx) for j in range(ny) for k in range(nz)
-            #                                  if island.value(i, j, k) >= threshold]
-            #                 rank = sum(island_points)
-            #                 island_by_rank.update({rank: island})
-            #             else:
-            #                 continue
-            #         else:
-            #             nx, ny, nz = island.nsteps
-            #             island_points = [island.value(i, j, k)
-            #                              for i in range(nx) for j in range(ny) for k in range(nz)
-            #                              if island.value(i, j, k) >= threshold]
-            #             rank = sum(island_points)
-            #             island_by_rank.update({rank: island})
-
-            else:
-                raise IOError("mode not supported")
+            for island in islands:
+                g = (island > threshold) * island
+                rank = g.count_grid()
+                island_by_rank.update({rank: g})
 
             if len(island_by_rank) == 0:
                 return None
+
             else:
                 rank = sorted(island_by_rank.keys(), reverse=True)[0]
                 print("threshold:", threshold, "count:", sorted(island_by_rank.keys(), reverse=True))
@@ -436,6 +414,30 @@ class Grid(utilities.Grid):
             return Grid.super_grid(1, *self.islands(threshold=1))
         except RuntimeError:
             return self
+
+    @staticmethod
+    def shrink(small, big, reverse_padding=1):
+        """
+        shrink a big grid to the dimension of a small grid
+
+        :param big: the grid to be shrunk
+        :type big: `hotspots.grid_extension.Grid`
+        :param reverse_padding: amount of erosion within the small grid boundaries (ensures fit)
+        :type reverse_padding: int
+
+        :return: shrunk grid
+        :rtype: `hotspots.grid_extension.Grid`
+        """
+
+        origin, far_left = small.bounding_box
+        o = big.point_to_indices(origin)
+        o = [i + reverse_padding for i in o]
+
+        f = big.point_to_indices(far_left)
+        f = [i - reverse_padding for i in f]
+
+        h = big.sub_grid(o + f)
+        return small.common_boundaries(h)
 
     def limit_island_size(self, npoints, threshold=10):
         """
@@ -528,25 +530,28 @@ class Grid(utilities.Grid):
         return grid
 
     @staticmethod
-    def from_array(fname):
+    def from_array(fname, origin, spacing):
         """
         creates a grid from array
         :param fname: path to pickled numpy array
         :return: `hotspots.grid_extension.Grid`
         """
-        grid = Grid(origin=[-35.00, -42.00, 44.00],
-                    far_corner=[59.00, 53.00, 54.00],
-                    spacing=0.5,
+        array = np.load(fname)
+        shape = array.shape
+        far_corner = [origin[0]+(spacing*shape[0]), origin[1]+(spacing*shape[1]), origin[2]+(spacing*shape[2])]
+
+        grid = Grid(origin=list(origin),
+                    far_corner=list(far_corner),
+                    spacing=spacing,
                     default=0.0,
                     _grid=None)
 
-        array = np.load(fname)
         indices = np.nonzero(array)
         values = array[indices]
         as_triads = zip(*indices)
 
         for (i, j, k), v in zip(as_triads, values):
-            grid._grid.set_value(int(i), int(j), int(k), v)
+            grid._grid.set_value(int(i), int(j), int(k), float(v))
 
         return grid
 
@@ -603,12 +608,12 @@ class Grid(utilities.Grid):
                       max([coord.z for coord in f])
                       ]
 
-        blank = Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0, _grid=None)
+        blank = Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0.1, _grid=None)
 
         if mask:
-            return mask_dic, reduce(operator.add, mask_dic.values(), blank).minimal()
+            return mask_dic, reduce(operator.add, mask_dic.values(), blank)
         else:
-            return reduce(operator.add, mask_dic.values(), blank).minimal()
+            return reduce(operator.add, mask_dic.values(), blank)
 
     def _mutually_inclusive(self, other):
         """
@@ -618,6 +623,25 @@ class Grid(utilities.Grid):
         """
         g, h = Grid.common_grid(grid_list=[self, other], padding=1)
         return g & h
+
+    def score_atom(self, atom):
+        selem = ball(radius=1)
+        i,j,k = self.point_to_indices(atom.coordinates)
+        score = 0
+        len_i, len_j, len_k = np.shape(selem)
+
+        for di in range(0,len_i):
+            for dj in range(0,len_j):
+                for dk in range(0,len_k):
+                    # print(di, dj, dk)
+                    if selem[di,dj,dk] ==1:
+
+                        x = i+(di-2)
+                        y = j+(dj-2)
+                        z = k+(dj-2)
+                        # print(x,y,z)
+                        score += self.value(x,y,z)
+        return score
 
     def atomic_overlap(self, atom, return_grid=True):
 
@@ -665,7 +689,30 @@ class Grid(utilities.Grid):
         return (overlap / vol) * 100
 
     @staticmethod
-    def from_molecule(mol, scaling=1):
+    def from_molecule(mol, scaling=1, value=1, scaling_type='None'):
+        """
+        generate a molecule mask where gp within the vdw radius of the molecule heavy atoms are set to 1.0
+        :param mol: a molecule
+        :type mol: :class:`ccdc.molecule.Molecule`
+        :param scaling: scale radius by this value
+        :type scaling: float
+        :param value: value to set grid point to.
+        :type value: float
+        :param scaling_type: scalling of grid point values from centre to edge. Either 'none' or 'linear'
+        :type scaling_type: str
+        :return: a grid
+        :rtype: :class:`hotspots.grid_extension.Grid`
+        """
+        coords = [a.coordinates for a in mol.atoms]
+        g = Grid.initalise_grid(coords=coords, padding=2)
+        for a in mol.heavy_atoms:
+            g.set_sphere(point=a.coordinates,
+                         radius=a.vdw_radius * scaling,
+                         value=value,
+                         scaling=scaling_type)
+        return g
+
+    def from_coords(self, coords, scaling=1):
         """
         generate a molecule mask where gp within the vdw radius of the molecule heavy atoms are set to 1.0
         :param mol: `ccdc.molecule.Molecule`
@@ -673,14 +720,14 @@ class Grid(utilities.Grid):
         :param scaling: float
         :return: `hotspots.grid_extension.Grid`
         """
-        coords = [a.coordinates for a in mol.atoms]
-        g = Grid.initalise_grid(coords=coords, padding=2)
-        for a in mol.heavy_atoms:
-            g.set_sphere(point=a.coordinates,
-                         radius=a.vdw_radius * scaling,
+
+        g = self.copy()
+        for c in coords:
+            g.set_sphere(point=c,
+                         radius=1 * scaling,
                          value=1,
                          scaling='None')
-        return g > 0.1
+        return g
 
     @staticmethod
     def initalise_grid(coords, padding=1, spacing=0.5):
@@ -693,10 +740,16 @@ class Grid(utilities.Grid):
         x = set()
         y = set()
         z = set()
-        for c in coords:
-            x.add(c.x)
-            y.add(c.y)
-            z.add(c.z)
+        try:
+            for c in coords:
+                x.add(c.x)
+                y.add(c.y)
+                z.add(c.z)
+        except:
+            for c in coords:
+                x.add(c[0])
+                y.add(c[1])
+                z.add(c[2])
 
         origin = Coordinates(x=round(min(x) - padding),
                              y=round(min(y) - padding),
@@ -707,6 +760,16 @@ class Grid(utilities.Grid):
                                  z=round(max(z) + padding))
 
         return Grid(origin=origin, far_corner=far_corner, spacing=spacing, default=0, _grid=None)
+
+    def remove_small_objects(self, min_size = 400):
+
+        g_array = self.get_array()
+        bool_array = g_array.astype(bool)
+        no_small_obj = remove_small_objects(bool_array, min_size=min_size, connectivity=2)
+
+        out_array = g_array*no_small_obj
+
+        return self.array_to_grid(out_array,self.copy_and_clear())
 
     @staticmethod
     def grow(inner, template, percentile=80):

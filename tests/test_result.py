@@ -1,47 +1,71 @@
 import unittest
-import numpy as np
-
 from hotspots.hs_io import HotspotReader, HotspotWriter
-from hotspots.result import Results
+from hotspots.result import Extractor
 from hotspots.grid_extension import Grid
-from hotspots.protein_extension import Protein
-from hotspots.pharmacophore_extension import ProteinPharmacophoreModel
-from pprint import pprint
+from ccdc.io import MoleculeReader
+from ccdc.utilities import PushDir
+import os
 
 
-class TestStaticMethods(unittest.TestCase):
+class TestExtractor(unittest.TestCase):
     def setUp(self) -> None:
-        self.acceptor_grid = Grid.from_file("testdata/6y2g_A/acceptor_mvon_smoothed.grd")
+        with HotspotReader(path="testdata/result/data/out.zip") as r:
+            self.result = r.read()
 
-        self.binding_site = Protein.from_file("testdata/6y2g_A/binding_site.pdb")
-        self.protein_pharmacophore = ProteinPharmacophoreModel()
-        self.protein_pharmacophore.feature_definitions = ["acceptor_projected", "donor_projected", "donor_ch_projected"]
-        self.protein_pharmacophore.detect_from_prot(self.binding_site)
-        self.donor_features = [f for f in self.protein_pharmacophore.selected_features
-                               if f.identifier == "donor_projected"]
+        for p, g in self.result.super_grids.items():
+            self.result.super_grids[p] = g.dilate_by_atom()
+        # bin
+        self.bin = "testdata/result/Extractor/bin"
 
-    def test_island_to_atom(self):
-        self.acceptor_island = self.acceptor_grid.islands(5)[0]
-        self.acceptor_island.write("testdata/6y2g_A/first_acceptor_island.grd")
+        # reuse
+        self.out = "testdata/result/Extractor"
 
-        X = Results._island_to_atom(self.donor_features, self.acceptor_island, tolerance=3)
-        print(X)
+    def testconstruction(self):
+        extractor = Extractor(self.result)
+
+        # extractor.single_grid.write(os.path.join(self.out, "2vta_single_grid.grd"))
+
+        hr = extractor.extract_volume()
+
+        with HotspotWriter(self.bin) as w:
+            w.write(hr)
 
 
+class TestResult(unittest.TestCase):
+    def testscore_atoms_as_spheres(self):
+        with PushDir("testdata/result/data"):
+            mols = MoleculeReader("gold_docking_poses.sdf")
 
+            # create a grid which can contain all docking poses
+            small_blank = Grid.initalise_grid(coords={atm.coordinates for mol in mols for atm in mol.heavy_atoms},
+                                              padding=2)
 
-class TestResults(unittest.TestCase):
-    def setUp(self):
-        # single result
-        self.hotspot_reader = HotspotReader(path="testdata/6y2g_A/out.zip")
-        self.result = self.hotspot_reader.read()[0]
+            # read hotspot maps
+            with HotspotReader(path="out.zip") as r:
+                self.result = r.read()
 
-        # HotspotReader needs fixing
-        self.result.buriedness = Grid.from_file("testdata/6y2g_A/buriedness.grd")
+            # dilate the grids
+            for p, g in self.result.super_grids.items():
+                self.result.super_grids[p] = g.dilate_by_atom()
 
-    def test_map_features_to_protein(self):
-        pc = self.result._map_features_to_protein()
-        print(pc)
+            # shrink hotspot maps to save time
+            sub_grids = {p: Grid.shrink(small=small_blank, big=g)
+                         for p, g in self.result.super_grids.items()}
+
+            # create single grid
+            mask_dic, sg = Grid.get_single_grid(sub_grids)
+
+            self.result.super_grids = mask_dic
+
+            # set background to 1
+            self.result.set_background()
+            self.result.normalize_to_max()
+
+            print([g.extrema for p, g in self.result.super_grids.items()])
+
+            for m in mols[:1]:
+                s = self.result.score_atoms_as_spheres(m, small_blank)
+                print(s)
 
 
 if __name__ == '__main__':

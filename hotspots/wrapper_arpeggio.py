@@ -270,7 +270,7 @@ class Arpeggio:
                                         for j, w in enumerate(self.protein.waters)}
         self.protein_ligand_index_dic = {l.identifier.split(":")[1][3:]: k
                                         for k, l in enumerate(self.protein.ligands)}
-        self.protein_metal_index_dic = {m.identifier.split(":")[1][3:]: h
+        self.protein_metal_index_dic = {m.label: h
                                         for h, m in enumerate(self.protein.metals)}
         ##################################################################################
 
@@ -540,6 +540,7 @@ class Arpeggio:
                     con_type = "acceptor"
                 elif p_atom_obj[0].is_acceptor and not p_atom_obj[0].is_donor:
                     con_type = "donor"
+                # elif angle is good == donor
                 else:
                     con_type = "doneptor"
                     print("doneptor")

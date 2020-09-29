@@ -21,7 +21,7 @@ import shutil
 import tempfile
 import zipfile
 from os import listdir, walk
-from os.path import splitext, join, isdir, isfile
+from os.path import splitext, join, isdir, isfile, basename
 
 from ccdc import io
 from ccdc.protein import Protein
@@ -389,20 +389,22 @@ class HotspotReader(object):
         self.top_extension = splitext(self.path)[1]
 
         if self.top_extension == ".zip":
-            self.base = tempfile.mkdtemp()
+            temp = tempfile.mkdtemp()
 
             with zipfile.ZipFile(self.path) as hs_zip:
-                hs_zip.extractall(self.base)
+                hs_zip.extractall(temp)
+
+            self.path = temp
 
         else:
-            self.base = self.path
+            self.path = self.path
 
         return self
 
     def __exit__(self, type, value, traceback):
         if self.top_extension == ".zip":
             try:
-                shutil.rmtree(self.base)
+                shutil.rmtree(self.path)
             except:
                 pass
 
@@ -448,7 +450,11 @@ class HotspotReader(object):
                 weighted_grids = None
 
             # fetch buriedness grid
-            buriedness_name = [f.startswith("buriedness") for f in files][0]
+            try:
+                buriedness_name = [f for f in files if f.startswith("buriedness")][0]
+            except IndexError:
+                buriedness_name = None
+
             if buriedness_name and self.read_buriedness:
                 buriedness = Grid.from_file(buriedness_name)
             else:
@@ -458,7 +464,8 @@ class HotspotReader(object):
                        protein=prot,
                        buriedness=buriedness,
                        superstar=superstar_grids,
-                       weighted_superstar=weighted_grids)
+                       weighted_superstar=weighted_grids,
+                       identifier=basename(path))
 
     def read(self, identifier=None):
         """
@@ -476,21 +483,21 @@ class HotspotReader(object):
         >>>    reader.read()
 
         """
-        root, d, files = list(walk(self.base))[0]
+        root, d, files = list(walk(self.path))[0]
 
         if len(d) == 0:
             # old style single result all files in os.listdir(self.base)
-            hr = self._generate_result(path=self.base)
+            hr = self._generate_result(path=self.path)
 
         elif len(d) == 1:
             # new style single result
-            hr = self._generate_result(path=join(self.base, d))
+            hr = self._generate_result(path=join(self.path, d[0]))
 
         else:
             # more than one hotspot
             if identifier:
-                hr = self._generate_result(path=join(self.base, identifier))
+                hr = self._generate_result(path=join(self.path, identifier))
             else:
-                hr = [self._generate_result(path=join(self.base, x)) for x in d]
+                hr = [self._generate_result(path=join(self.path, x)) for x in d]
 
         return hr

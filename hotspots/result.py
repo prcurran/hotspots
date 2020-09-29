@@ -257,9 +257,20 @@ class _Scorer(Helper):
         if grid_type == "doneptor":
             grid_type = self._doneptor_grid(coordinates)
 
-        return self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
+        if grid_type =='no_score':
+            apolar_score = self.hotspot_result.super_grids['apolar'].value_at_coordinate(coordinates,
+                                                                                         tolerance=self.tolerance,
+                                                                                         position=False)
+            if apolar_score > 2:
+                return 1
+            else:
+                return 0
+
+        score =self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
                                                                               tolerance=self.tolerance,
                                                                               position=False)
+
+        return score
 
     def _percentage_rank(self, obj, threshold=5):
         """
@@ -316,8 +327,10 @@ class _Scorer(Helper):
             return "dummy"
 
         else:
-            return "apolar"
-
+            polar_neighbours = [a for a in atom.neighbours if a.is_donor or a.is_acceptor]
+            if len(polar_neighbours) == 0:
+                return "apolar"
+            return "no_score"
 
 class Results(Helper):
     """
@@ -330,7 +343,7 @@ class Results(Helper):
     """
 
     def __init__(self, super_grids, protein, buriedness=None, pharmacophore=None, superstar=None,
-                 weighted_superstar=None):
+                 weighted_superstar=None, identifier=None):
 
         self.super_grids = super_grids
         for probe, g in super_grids.items():
@@ -342,7 +355,7 @@ class Results(Helper):
         self.weighted_superstar = weighted_superstar
         self.pharmacophore = pharmacophore
         self._features = self._get_features(interaction_dict=super_grids)
-        self.identifier = None
+        self.identifier = identifier
 
         if pharmacophore:
             self.pharmacophore = self.get_pharmacophore_model()
@@ -674,81 +687,6 @@ class Results(Helper):
 
         return labels
 
-    @staticmethod
-    def _island_to_atom(features, island, tolerance=1):
-
-        # island
-        island_pnts = np.array(island.coordinates(threshold=5))
-
-        # projected spheres
-        projs = np.array([[f.projected[0].centre[0],
-                           f.projected[0].centre[1],
-                           f.projected[0].centre[2]] for f in features])
-
-        # distance matrix
-        l = distance.cdist(island_pnts, projs)
-
-        # create mask
-        x, y = np.nonzero(l <= tolerance)
-
-        # return features above threshold
-        return [features[i] for i in set(y)]
-
-    def _map_features_to_protein(self, b_threshold=3, min_grid_pts=4000, smooth=True):
-        # do it cavity by cavity
-        # interaction dict {probe name: pharmacophore name}
-        interaction_dict = {"donor": ["acceptor_projected"],
-                            "acceptor": ["donor_projected", "donor_ch_projected"],
-                            }
-
-        new_super_grids = {}
-        if smooth:
-            for p, g in self.super_grids.items():
-                h = g.max_value_of_neighbours()
-                h = h.gaussian()
-                new_super_grids.update({p: h})
-
-        cavities = [g for g in self.buriedness.islands(threshold=b_threshold)
-                    if len(g.grid_values(threshold=b_threshold)) > min_grid_pts]
-
-        pairs_by_cavity = {}
-        for j, cavity in enumerate([cavities[0]]):
-            cavity = (cavity > 3) * cavity
-            bs = Protein.BindingSiteFromGrid(self.protein, cavity, within=7)
-            binding_site = self.protein.copy()
-
-            for r in ({r.identifier for r in binding_site.residues} - {r.identifier for r in bs.residues}):
-                binding_site.remove_residue(r)
-
-            # cavity features
-            pm = ProteinPharmacophoreModel()
-            pm.feature_definitions = ["acceptor_projected", "donor_projected", "donor_ch_projected"]
-            pm.detect_from_prot(binding_site)
-            cavity_features = {}
-            for feature in pm.selected_features:
-                try:
-                    cavity_features[feature.identifier].append(feature)
-                except:
-                    cavity_features.update({feature.identifier: [feature]})
-
-            island_partners = {}
-            for p, g in new_super_grids.items():
-                if p != "apolar":
-                    h = (g & g.common_boundaries(cavity)) * g
-
-                    island_partners.update({f"{p}_{n}": self._island_to_atom(cavity_features[partner], island)
-                                            for n, island in enumerate(h.islands(threshold=5))
-                                            for partner in interaction_dict[p]
-                                            })
-
-                    pairs_by_cavity.update({f"cavity_{j}": island_partners})
-            pm.selected_features = [b for a in pairs_by_cavity[f"cavity_{j}"].values() for b in a]
-            new_super_grids["acceptor"].write("/home/pcurran/github_packages/hotspots/tests/testdata/result/map_features/acceptor.grd")
-            new_super_grids["donor"].write(
-                "/home/pcurran/github_packages/hotspots/tests/testdata/result/map_features/donor.grd")
-            pm.pymol_visulisation("/home/pcurran/github_packages/hotspots/tests/testdata/result/map_features")
-        return pairs_by_cavity
-
     def atomic_volume_overlap(self, mol):
         """
         for a given mol, return a dictionary of dictionaries containing the percentage overlap of each atoms
@@ -1001,6 +939,159 @@ class Results(Helper):
             feature_by_score[key]._rank = int(i + 1)
 
 
+    ############################################################################################
+
+    # TODO: Tidy up
+    def _percentile_grid(self, x):
+        return percentileofscore(self.single_array,x, kind='mean')
+
+    def normalize_to_percentile(self):
+        for probe, g in self.super_grids.items():
+            g_array = g.get_array()
+            out_array = np.vectorize(self._percentile_grid)(g_array)
+
+            self.super_grids[probe] = Grid.array_to_grid(out_array, g)
+
+    def normalize_to_max(self):
+
+        max_score = 0
+        for probe, g in self.super_grids.items():
+            g_max = g.extrema[1]
+            if g_max > max_score:
+                max_score = g_max
+
+        for probe, g in self.super_grids.items():
+            g *= 100/max_score
+            self.super_grids[probe] = g
+    # to grid_extension?
+    ############################################################################################
+
+    def set_background(self, background_value=1.0):
+
+        prot_g = Grid.from_molecule(self.protein, value=background_value, scaling_type='none', scaling=1)
+
+        for probe, g in self.super_grids.items():
+            common_prot, common_g = Grid.common_grid([prot_g, g])
+            bg_mask =  (common_prot <0.1) & (common_g <1)
+            tmp_g = common_g + bg_mask
+            new_g = tmp_g - (common_prot)
+            origin, corner = g.bounding_box
+            i,j,k = new_g.point_to_indices(origin)
+            l,m,n = new_g.point_to_indices(corner)
+            self.super_grids[probe]= new_g.sub_grid((i,j,k,l,m,n))
+
+    @staticmethod
+    def _molecule_as_grid(mol, g=None):
+        """
+        Produces a grid representation of a molecule split by interaction type
+
+        :param mol: takes any ccdc molecule
+        :type mol: `ccdc.molecule.Molecule`
+        :param g: a blank grid
+        :type g: `hotspots.grid_extension.Grid`
+
+        :return: a dictionary of grids by interaction type
+        :rtype: dict
+        """
+        if not g:
+            g = Grid.initalise_grid(coords=[a.coordinates for a in mol.atoms],
+                                    padding=3)
+
+        grid_dict = {"donor": g.copy(),
+                     "acceptor": g.copy(),
+                     "apolar": g.copy()}
+
+        for p, g in grid_dict.items():
+            if p == "acceptor":
+                atms = [a for a in mol.atoms if Helper.get_atom_type(a) == p and
+                        'H' not in [n.label for n in a.neighbours]]
+            else:
+                atms = [a for a in mol.atoms if Helper.get_atom_type(a) == p]
+
+            for atm in atms:
+                g.set_sphere(point=atm.coordinates,
+                             radius=atm.vdw_radius,
+                             value=1,
+                             scaling='None')
+
+        return grid_dict
+
+    def score_atoms_as_spheres(self, mol, grid):
+        """
+        An example of a more complex scoring scheme
+
+        :param mol: takes any ccdc molecule
+        :type mol: `ccdc.molecule.Molecule`
+        :param grid: grid with the desired output dimensions
+        :type grid: `ccdc.utilities.Grid`
+        :return:
+        """
+        mol_grids = self._molecule_as_grid(mol, grid)
+
+        # take into account atoms which 'clash' / 'don't match' with the hotspot maps
+        bad_interaction_dict = {'apolar': ['acceptor', 'donor'],
+                                'donor': ['acceptor', 'apolar'],
+                                'acceptor': ['donor', 'apolar']}
+
+        # sub_grid dimension must be the same a mol_grid
+        assert self.super_grids["apolar"].bounding_box[0] == mol_grids["apolar"].bounding_box[0] and \
+               self.super_grids["apolar"].bounding_box[1] == mol_grids["apolar"].bounding_box[1]
+
+        scores_by_type = {}
+        for probe in self.super_grids.keys():
+            # detemine clashes by atom type
+            clash_g = (self.super_grids[probe] < 0) * mol_grids[probe]
+            clash_array = clash_g.get_array()
+            scores_by_type[f"{probe}_clash"] = np.sum(clash_array)
+
+            # overlap between the maps and the molecule X 2
+            match_grid = (self.super_grids[probe] > 0) * self.super_grids[probe] * mol_grids[probe] * 2
+            # match_grid.write(f"{probe}_match.grd")
+
+            # non-match
+            non_match_grids = [self.super_grids[p] * (self.super_grids[p] > 0) * mol_grids[probe]
+                               for p in self.super_grids.keys()
+                               if p in bad_interaction_dict[probe]]
+
+            non_match_g = non_match_grids[0] + non_match_grids[1]
+            # non_match_g.write(f"{probe}_nonmatch.grd")
+
+            # the score is the difference between matches and non-matches
+            score_g = match_grid - non_match_g
+            # score_g.write(f"{probe}_overall.grd")
+
+            score_array = score_g.get_array()
+            non_zero = score_array[score_array != 0]
+
+            if len(non_zero) > 0:
+                score = np.mean(non_zero)
+            else:
+                # if the len of non-zeros is 0, there will be a runtime error
+                score = 0
+
+            scores_by_type[probe] = score
+
+        return scores_by_type
+
+    ############################################################################################
+
+
+    def common_hotspots(self, other):
+        common_hotspot_grids = {}
+        for probe, g in self.super_grids.items():
+            common_self_g, common_other_g = Grid.common_grid(g, other.super_grids[probe])
+            common_hotspot_grids[probe] = common_self_g * common_other_g
+
+        return Results(super_grids=common_hotspot_grids, protein=self.protein, buriedness=self.buriedness)
+
+    def single_grid_result(self):
+
+        _masked_dic, _single_grid = Grid.get_single_grid(self.super_grids)
+
+        grid_dict = _single_grid.inverse_single_grid(_masked_dic)
+        self.super_grids = grid_dict
+
+
 class Extractor(object):
     """
     A class to handle the extraction of molecular volumes from a Fragment Hotspot Map result
@@ -1020,11 +1111,10 @@ class Extractor(object):
 
         """
 
-        def __init__(self, volume=150, cutoff=14, spacing=0.5, mvon=True):
+        def __init__(self, volume=150, cutoff=14, spacing=0.5):
             self.volume = volume
             self.cutoff = cutoff
             self.spacing = spacing
-            self.mvon = mvon
 
         @property
         def _num_gp(self):
@@ -1045,10 +1135,6 @@ class Extractor(object):
         self.extracted_hotspots = None
         self.threshold = None
 
-        if self.settings.mvon is True:
-            hr.super_grids.update({probe: g.max_value_of_neighbours() for probe, g in hr.super_grids.items()})
-            #hr.super_grids.update({probe: g.dilate_by_atom() for probe, g in hr.super_grids.items()})
-
         try:
             hr.super_grids["negative"] = hr.super_grids["negative"].deduplicate(hr.super_grids["acceptor"],
                                                                                 threshold=10,
@@ -1058,11 +1144,6 @@ class Extractor(object):
                                                                                 threshold=10,
                                                                                 tolerance=2)
         except KeyError:
-            pass
-
-        try:
-            hr.super_grids.update({probe: g.minimal() for probe, g in hr.super_grids.items()})
-        except RuntimeError:
             pass
 
         self.hotspot_result = hr
@@ -1076,7 +1157,26 @@ class Extractor(object):
     def masked_dic(self):
         return self._masked_dic
 
-    def _grow(self, tolerance=0.2):
+    def _remove_protein_vol(self, g):
+        """
+
+
+        :param g:
+        :return:
+        """
+        prot_g = Grid.from_molecule(self.hotspot_result.protein,
+                                    value=1,
+                                    scaling_type='none',
+                                    scaling=1)
+        common_prot, common_g = Grid.common_grid([prot_g, g])
+        new_g = common_g * (common_prot < 1)
+        origin, corner = g.bounding_box
+        i, j, k = new_g.point_to_indices(origin)
+        l, m, n = new_g.point_to_indices(corner)
+
+        return new_g.sub_grid((i, j, k, l, m, n))
+
+    def _grow(self):
         """
         A single grid is iteratively inflated, and the top 20% of neighbouring grid points added until the volume
         is with the tolerance of the target volume.
@@ -1086,19 +1186,35 @@ class Extractor(object):
         """
 
         self.best_island = self._single_grid.common_boundaries(self.best_island)
+        self.second_best_island = self._single_grid.common_boundaries(self.second_best_island)
         current_num_gp = self.best_island.count_grid()
 
         f = 0
-        while f < 100 and abs(((self.settings._num_gp - current_num_gp) / self.settings._num_gp)) > tolerance and self.settings._num_gp >= current_num_gp:
-            grown = Grid.grow(self.best_island, self.single_grid)
-            self.best_island = grown
+        for f in range(0,10):
+            if self.settings._num_gp <= current_num_gp:
+                break
+            grown = Grid.grow(self.best_island, self.second_best_island)
+            self.best_island = self._remove_protein_vol(grown)
+            old_num_gp = current_num_gp
+
             current_num_gp = self.best_island.count_grid()
             print(current_num_gp, 'out of', self.settings._num_gp)
-            f += 1
+            growth = current_num_gp - old_num_gp
+            if growth == 0:
+                break
 
-        tmp_best_island = self.best_island * self.single_grid
+        tmp_best_island = (self.best_island > 0.5) * (self._single_grid )
         g_vals = tmp_best_island.grid_values()
         g_vals[::-1].sort()
+        print(len(g_vals))
+        print(self.settings._num_gp)
+
+        try:
+            threshold = g_vals[self.settings._num_gp]
+        except IndexError:
+            threshold = min(g_vals)
+
+        return threshold
 
     def _step_down(self, start_threshold):
         """
@@ -1108,11 +1224,14 @@ class Extractor(object):
         :return float: threhold
         """
         for threshold in range(int(start_threshold * 2), 0, -1):
-            threshold *= 0.5
+            threshold *= 0.1
             self.best_island = self._single_grid.get_best_island(threshold)
+            if self.best_island is not None:
+                self.best_island = self.best_island.remove_small_objects(min_size=0.5*float(self.settings._num_gp))
 
             if self.best_island is not None and self.best_island.count_grid() > self.settings._num_gp:
-                threshold += 0.5
+                self.second_best_island = self._single_grid.get_best_island(threshold)
+                threshold += 0.1
                 break
 
         self.best_island = self.single_grid.get_best_island(threshold)
@@ -1131,12 +1250,17 @@ class Extractor(object):
 
         assert self.single_grid.count_grid() >= self.settings._num_gp
 
-        threshold = self._step_down(40)
-        self._grow()
+        self.threshold = self._step_down(200)
+        self.best_island = self.best_island.remove_small_objects(min_size=0.5*float(self.settings._num_gp))
 
-        print("Final score threshold is: {} ".format(threshold))
+        try:
+            self.second_best_island = self.second_best_island.remove_small_objects(min_size=0.5*float(self.settings._num_gp))
+        except AttributeError:
+            self.second_best_island = self.single_grid.remove_small_objects(
+                min_size=0.5 * float(self.settings._num_gp))
+        self.threshold = self._grow()
+
+        print("Final score threshold is: {} ".format(self.threshold))
 
         grid_dict = self.best_island.inverse_single_grid(self._masked_dic)
-        r = Results(super_grids=grid_dict, protein=self.hotspot_result.protein)
-        r.step_threshold = threshold
-        return r
+        return Results(super_grids=grid_dict, protein=self.hotspot_result.protein)

@@ -10,22 +10,9 @@ This script wraps around the Protein Plus web services
     Journal of Chemical Information and Modeling, 55(8):1747-1756.
 
 """
-import shlex, subprocess, ast, time, json, os, csv, re, urllib2, urlparse, tempfile
-from collections import OrderedDict
-import numba
-
-
-@numba.njit()
-def tanimoto_dist(a, b):
-    """
-    calculate the tanimoto distance between two fingerprint arrays
-    :param a:
-    :param b:
-    :return:
-    """
-    dotprod = np.dot(a, b)
-    tc = dotprod / (np.sum(a) + np.sum(b) - dotprod)
-    return 1.0 - tc
+import shlex, subprocess, ast, time, json, os, csv, re
+from urllib.request import urlopen, Request
+from urllib.parse import urlparse
 
 
 class Ensemble(object):
@@ -50,7 +37,6 @@ class Ensemble(object):
         self.to_retrieve = ['result_table', 'pdb_files', 'ligands', 'alignment']
         self._ligands = None
 
-
     def _write(self, url, out_dir):
         """
         handles writing all the data
@@ -60,21 +46,14 @@ class Ensemble(object):
         """
         print(url)
         url = re.sub('/esults/', '/results/', url)              # fix url
-        a = urlparse.urlparse(url)
+        a = urlparse(url)
         fname = os.path.basename(a.path)
         ext = fname.split(".")[1]
         path = os.path.join(out_dir, fname)
 
-        with open(path, "wb") as w:
-            if ext == "csv":
-                # format csv
-                stri = [[a for a in line.split(";") if a != '\n'] for line in urllib2.urlopen(url).readlines()]
-                csv_writer = csv.writer(w, delimiter=',')
-                for s in stri:
-                    csv_writer.writerow(s)
-            else:
-                # otherwise no formatting requried
-                w.write(urllib2.urlopen(url).read())
+        with open(path, "w") as w:
+
+        w.write(urlopen(Request(url)).read().decode("utf-8"))
 
     def save(self, out_dir):
         """
@@ -92,88 +71,6 @@ class Ensemble(object):
                     self._write(url, new_out_dir)
             else:
                 self._write(urls, new_out_dir)
-
-    # @staticmethod
-    # def _cluster_ligands(ligands, t):
-    #     """
-    #
-    #     :return:
-    #     """
-    #     def fingerprint_array(ligands):
-    #         X =[]
-    #         for l in ligands:
-    #             arr = np.zeros((0,))
-    #             fp = AllChem.GetMorganFingerprintAsBitVect(l, 2)
-    #             DataStructs.ConvertToNumpyArray(fp, arr)
-    #             X.append(arr)
-    #         return X
-    #
-    #     cluster_dic = {}
-    #
-    #     # generate fingerprint array
-    #     X = fingerprint_array(ligands)
-    #     if len(X) < 2:
-    #         X = fingerprint_array(ligands)
-    #         if len(X) < 2:
-    #             raise ValueError("Fingerprint array must contain more than 1 entry")
-    #
-    #     # dimensionality reduction
-    #     tsne_X = TSNE(n_components=2, metric=tanimoto_dist).fit_transform(np.array(X, dtype=np.float32))
-    #
-    #     # clustering
-    #     cluster_tsne = hdbscan.HDBSCAN(min_cluster_size=2, gen_min_span_tree=True)
-    #     cluster_tsne.fit(tsne_X)
-    #
-    #     for i, label in enumerate(cluster_tsne.labels_):
-    #         if label == -1:
-    #             continue
-    #         else:
-    #             if label in cluster_dic:
-    #                 cluster_dic[label].append(ligands[i])
-    #             else:
-    #                 cluster_dic.update({label: [ligands[i]]})
-    #
-    #     x = [tsne_X.T[0][j] for j, l in enumerate(cluster_tsne.labels_) if l != -1]
-    #     y = [tsne_X.T[1][j] for j, l in enumerate(cluster_tsne.labels_) if l != -1]
-    #     hue = [l for j, l in enumerate(cluster_tsne.labels_) if l != -1]
-    #
-    #     plt.scatter(x, y, c=hue, cmap='RdBu')
-    #
-    #     plt.title("{} clusters".format(t))
-    #     plt.savefig("{}.png".format(t))
-    #     plt.close()
-    #     if len(cluster_dic) == 0:
-    #         print("NO CLUSTERS FOUND")
-    #         cluster_dic = {i: [ligands[i]] for i in range(0, len(ligands))}
-    #
-    #     return cluster_dic
-
-    # def select_diverse_ligands(self, target):
-    #     """
-    #
-    #
-    #     :return:
-    #     """
-    #     # download ligands
-    #     # convert to fps
-    #     # cluster on ligands
-    #     # update data to only include selected members
-    #     tmp = tempfile.mkdtemp()
-    #     ligands = self.data['ligands']
-    #     for ligand in ligands:
-    #         self._write(ligand, tmp)
-    #
-    #     files = [os.path.join(tmp, f) for f in os.listdir(tmp) if os.path.isfile(os.path.join(tmp, f))]
-    #     ligands = {os.path.basename(f).split(".")[0]: x
-    #                for f in files for x in Chem.ForwardSDMolSupplier(f) if x is not None}
-    #
-    #     for n, l in ligands.items():
-    #         l.SetProp("_Name", n)
-    #
-    #     cluster_dict = self._cluster_ligands(ligands=ligands, t=target)
-    #     reps = [l[0] for l in cluster_dict.values() if len(l) != 0]
-    #
-    #     print reps
 
 
 class Search(object):
@@ -280,7 +177,7 @@ class Search(object):
         cmd = """curl -d '{}' -H "Accept: application/json" -H "Content-Type: application/json" -X POST {}"""\
             .format(json.dumps(self.settings.data, ensure_ascii=True, indent=2, default=True),self.settings.url)
 
-        response = ast.literal_eval(self._run(cmd))
+        response = ast.literal_eval(self._run(cmd).decode("utf-8"))
         print(response)
         return response['location']
 
@@ -292,7 +189,7 @@ class Search(object):
         """
         cmd = """curl {}""".format(results_url)
 
-        response = ast.literal_eval(self._run(cmd))
+        response = ast.literal_eval(self._run(cmd).decode("utf-8"))
         if response["status_code"] == 400:
             print("status code: {}".format(response['status_code']))
             raise RuntimeError()
@@ -301,7 +198,7 @@ class Search(object):
         while status_code > 200:
             print("status code: {}".format(response['status_code']))
             time.sleep(10)
-            response = ast.literal_eval(self._run(cmd))
+            response = ast.literal_eval(self._run(cmd).decode("utf-8"))
             status_code = int(response["status_code"])
             if status_code == 400:
                 raise RuntimeError("help")
@@ -309,6 +206,7 @@ class Search(object):
         # create Ensemble
 
         print(type(response["status_code"]))
+        print(response)
         return response
 
 
