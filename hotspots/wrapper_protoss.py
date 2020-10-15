@@ -15,7 +15,10 @@ class Result(object):
         self.out_dir = out_dir
         self._write()
         self._protein = Protein.from_file(self.files['protein'][0])
-        self._ligands = [y for y in [MoleculeReader(x) for x in self.files['ligands']]]
+        try:
+            self._ligands = [y for y in [MoleculeReader(x) for x in self.files['ligands']]]
+        except:
+            self._ligands = None
 
     def _write(self):
         """
@@ -112,20 +115,20 @@ class Protoss(object):
 
         response = ast.literal_eval(self._run(cmd).decode('utf-8'))
         if response["status_code"] == 400:
-            print("status code: {}".format(response['status_code']))
+            # print("status code: {}".format(response['status_code']))
             raise RuntimeError()
 
         status_code = int(response["status_code"])
         while status_code > 200:
             print("status code: {}".format(response['status_code']))
-            time.sleep(10)
+            time.sleep(2)
             response = ast.literal_eval(self._run(cmd).decode('utf-8'))
             status_code = int(response["status_code"])
 
         return response
 
 
-def main(pdb="4est", stem="/local/pcurran/superstar_comparison"):
+def main(pdb="1hcl", stem="/home/pcurran"):
     protoss = Protoss()
     result = protoss.add_hydrogens(pdb_code=pdb)
 

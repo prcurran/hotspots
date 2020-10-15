@@ -34,7 +34,7 @@ class TestExtractor(unittest.TestCase):
 class TestResult(unittest.TestCase):
     def testscore_atoms_as_spheres(self):
         with PushDir("testdata/result/data"):
-            mols = MoleculeReader("gold_docking_poses.sdf")
+            mols = [m for m in MoleculeReader("gold_docking_poses.sdf")]
 
             # create a grid which can contain all docking poses
             small_blank = Grid.initalise_grid(coords={atm.coordinates for mol in mols for atm in mol.heavy_atoms},

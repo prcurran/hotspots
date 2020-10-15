@@ -967,8 +967,8 @@ class Results(Helper):
     ############################################################################################
 
     def set_background(self, background_value=1.0):
-
-        prot_g = Grid.from_molecule(self.protein, value=background_value, scaling_type='none', scaling=1)
+        spacing = self.super_grids["apolar"]._spacing
+        prot_g = Grid.from_molecule(self.protein, value=background_value, scaling_type='none', scaling=1, spacing=spacing)
 
         for probe, g in self.super_grids.items():
             common_prot, common_g = Grid.common_grid([prot_g, g])
@@ -1016,7 +1016,7 @@ class Results(Helper):
 
         return grid_dict
 
-    def score_atoms_as_spheres(self, mol, grid):
+    def score_atoms_as_spheres(self, mol):
         """
         An example of a more complex scoring scheme
 
@@ -1026,31 +1026,35 @@ class Results(Helper):
         :type grid: `ccdc.utilities.Grid`
         :return:
         """
-        mol_grids = self._molecule_as_grid(mol, grid)
+        mol_grids = self._molecule_as_grid(mol)
 
         # take into account atoms which 'clash' / 'don't match' with the hotspot maps
         bad_interaction_dict = {'apolar': ['acceptor', 'donor'],
                                 'donor': ['acceptor', 'apolar'],
                                 'acceptor': ['donor', 'apolar']}
 
+        # shrink again for speed
+        sub_grids = {p: g.shrink(mol_grids[p], g)
+                     for p, g in self.super_grids.items()}
+
         # sub_grid dimension must be the same a mol_grid
-        assert self.super_grids["apolar"].bounding_box[0] == mol_grids["apolar"].bounding_box[0] and \
-               self.super_grids["apolar"].bounding_box[1] == mol_grids["apolar"].bounding_box[1]
+        assert sub_grids["apolar"].bounding_box[0] == mol_grids["apolar"].bounding_box[0] and \
+               sub_grids["apolar"].bounding_box[1] == mol_grids["apolar"].bounding_box[1]
 
         scores_by_type = {}
-        for probe in self.super_grids.keys():
+        for probe in sub_grids.keys():
             # detemine clashes by atom type
-            clash_g = (self.super_grids[probe] < 0) * mol_grids[probe]
+            clash_g = (sub_grids[probe] < 0) * mol_grids[probe]
             clash_array = clash_g.get_array()
             scores_by_type[f"{probe}_clash"] = np.sum(clash_array)
 
             # overlap between the maps and the molecule X 2
-            match_grid = (self.super_grids[probe] > 0) * self.super_grids[probe] * mol_grids[probe] * 2
+            match_grid = (sub_grids[probe] > 0) * sub_grids[probe] * mol_grids[probe] * 2
             # match_grid.write(f"{probe}_match.grd")
 
             # non-match
-            non_match_grids = [self.super_grids[p] * (self.super_grids[p] > 0) * mol_grids[probe]
-                               for p in self.super_grids.keys()
+            non_match_grids = [sub_grids[p] * (sub_grids[p] > 0) * mol_grids[probe]
+                               for p in sub_grids.keys()
                                if p in bad_interaction_dict[probe]]
 
             non_match_g = non_match_grids[0] + non_match_grids[1]

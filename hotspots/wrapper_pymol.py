@@ -40,9 +40,13 @@ class PyMOLCommands():
         :rtype: str
         """
         out_str = """
+try:
+    import tkinter as tk      
+except ImportError:
+    import Tkinter as tk
 from os.path import join
 import tempfile
-import tkinter as tk
+
 import zipfile
 import math
 from pymol import cmd, finish_launching, plugins

@@ -422,7 +422,7 @@ class Grid(utilities.Grid):
 
         :param big: the grid to be shrunk
         :type big: `hotspots.grid_extension.Grid`
-        :param reverse_padding: amount of erosion within the small grid boundaries (ensures fit)
+        :param reverse_padding: amount of erosion within the small grid boundaries (ensures fit preventing a seg fault)
         :type reverse_padding: int
 
         :return: shrunk grid
@@ -437,6 +437,7 @@ class Grid(utilities.Grid):
         f = [i - reverse_padding for i in f]
 
         h = big.sub_grid(o + f)
+        # reverse padding ensure h is smaller than 'small'. Finally expand h to the dimensions of small.
         return small.common_boundaries(h)
 
     def limit_island_size(self, npoints, threshold=10):
@@ -608,7 +609,9 @@ class Grid(utilities.Grid):
                       max([coord.z for coord in f])
                       ]
 
-        blank = Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0.1, _grid=None)
+        spacing = grd_dict["apolar"]._spacing
+
+        blank = Grid(origin=origin, far_corner=far_corner, spacing=spacing, default=0.1, _grid=None)
 
         if mask:
             return mask_dic, reduce(operator.add, mask_dic.values(), blank)
@@ -689,7 +692,7 @@ class Grid(utilities.Grid):
         return (overlap / vol) * 100
 
     @staticmethod
-    def from_molecule(mol, scaling=1, value=1, scaling_type='None'):
+    def from_molecule(mol, scaling=1, value=1, scaling_type='None', spacing=0.5):
         """
         generate a molecule mask where gp within the vdw radius of the molecule heavy atoms are set to 1.0
         :param mol: a molecule
@@ -704,7 +707,7 @@ class Grid(utilities.Grid):
         :rtype: :class:`hotspots.grid_extension.Grid`
         """
         coords = [a.coordinates for a in mol.atoms]
-        g = Grid.initalise_grid(coords=coords, padding=2)
+        g = Grid.initalise_grid(coords=coords, padding=2, spacing=spacing)
         for a in mol.heavy_atoms:
             g.set_sphere(point=a.coordinates,
                          radius=a.vdw_radius * scaling,

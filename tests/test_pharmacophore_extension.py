@@ -154,6 +154,7 @@ class TestLigandPharmacophoreModel(unittest.TestCase):
         wrkdir = "testdata/pharmacophore_extension/LigandPharmacophoreModel/from_ligand"
         with PushDir(wrkdir):
             self.ligand_pharmacophore.feature_definitions = ["acceptor"]
+            print(self.ligand_pharmacophore.feature_definitions["acceptor"].point_generator_names)
             self.ligand_pharmacophore.detect_from_ligand(ligand=self.crystal)
             self.assertEqual(5, len(self.ligand_pharmacophore.detected_features))
             # test score setter

@@ -53,7 +53,7 @@ class Ensemble(object):
 
         with open(path, "w") as w:
 
-        w.write(urlopen(Request(url)).read().decode("utf-8"))
+            w.write(urlopen(Request(url)).read().decode("utf-8"))
 
     def save(self, out_dir):
         """
