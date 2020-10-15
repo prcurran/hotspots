@@ -36,6 +36,11 @@ from functools import reduce
 
 from skimage.morphology import remove_small_objects
 
+try:
+    from hdbscan import HDBSCAN
+except ImportError:
+    print('HDBSCAN module not installed. _GridEnsemble clustering not available.')
+
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
 
@@ -925,267 +930,209 @@ utilities.Grid = Grid
 
 class _GridEnsemble(object):
     """
-    Experimental feature
-    Class that handles a numpy array of tuples from Hotspot maps of a given probe type across multiple structures
+    Given a list of hotspot maps for the same probe type, compiles a 4-dimensional numpy array storing the information.
     """
 
-    def __init__(self):
-        self.prot_name = None
-        self.probe = None
-        self.path_list = None
-        self.tup_max_length = None
-        self.results_array = None
-        self.common_grid_origin = None
-        self.common_grid_far_corner = None
-        self.common_grid_nsteps = None
-        self.nonzeros = None
-        self.out_dir = None
-        self.spacing = None
-
-    ###### Functions that generate the ensemble and set attributes
-
-    def _common_grids_from_grid_list(self, grid_list, fnames=None):
+    def __init__(self, dimensions=None, shape=None, ensemble_array=None, spacing=0.5):
         """
-        Gets the coordinates of a grid that can fit all other grids (to use as basis for self.results_array)
-        :param grid_list: list of 'hotspots.grid_extension.Grid' objects
-        :return: list of 'hotspots.grid_extension.Grid' objects
+
+        :param grid_list: List of hotspot maps for a certain probe type
+        :type list:
         """
-        print("Making array grid {} {}".format(self.prot_name, self.probe))
-        common_grids = Grid.common_grid(grid_list)
+        self.dimensions = dimensions
+        self.shape = shape
+        self.ensemble_array = ensemble_array
+        self.spacing = spacing
 
-        assert (len(set([c.bounding_box for c in common_grids])) == 1), "Common grids don't have same frames"
-        self.spacing = grid_list[0].spacing
-        # assert (common_grids[0].spacing == 0.5), "Grid spacing not 0.5"
-        self.tup_max_length = len(grid_list)
-        self.common_grid_origin = common_grids[0].bounding_box[0]
-        self.common_grid_far_corner = common_grids[0].bounding_box[1]
-        self.common_grid_nsteps = common_grids[0].nsteps
-
-        if fnames:
-            self.path_list = fnames
-
-        return common_grids
-
-    def _common_grids_from_paths(self):
+    @staticmethod
+    def array_from_grid(grid):
         """
-        Gets the coordinates of a grid that can fit all other grids (to use as basis for self.results_array)
-        :return: list of 'hotspots.grid_extension.Grid' objects
-        """
-        print('Making array grid')
-        grid_list = [Grid.from_file(f) for f in self.path_list if self.probe in basename(f)]
-        common_grids = self._common_grids_from_grid_list(grid_list)
-        self.tup_max_length = len(grid_list)
-        self.common_grid_origin = common_grids[0].bounding_box[0]
-        self.common_grid_far_corner = common_grids[0].bounding_box[1]
-        self.common_grid_nsteps = common_grids[0].nsteps
+        Converts a grid into a 3D nunmpy array
 
-        return common_grids
-
-    def get_4D_results_array(self, grid_list):
-        """
-         Reads in grids, converts them to 3d numpy arrays, and stacks them into 4d numpy array, which holds the information
-         for the ensemble.
-         :return:
-         """
-        # Initialise the array
-        common_grids = self._common_grids_from_grid_list(grid_list)
-        common_arrays = [cg.get_array() for cg in common_grids]
-        ensemble_array = np.stack(common_arrays, axis=3)
-        self.results_array = ensemble_array
-
-        max_array = np.max(self.results_array, axis=-1)
-        self.nonzeros = max_array.nonzero()
-
-    #### Functions for analysing ensemble data #####
-
-    def get_gridpoint_means(self):
-        """
-        For each tuple in the GridEnsemble, calculates the means of the tuple
-        :return: list
-        """
-        means = [np.mean(val) for val in self.results_array[self.nonzeros]]
-        return means
-
-    def get_gridpoint_max(self):
-        """
-        For each tuple in the GridEnsemble, calculates the max of the tuple
-        :return: list
-        """
-        maxes = [np.max(val) for val in self.results_array[self.nonzeros]]
-        return maxes
-
-    def get_gridpoint_ranges(self):
-        """
-        For each tuple in the GridEnsemble, returns the difference between max and mean
-        :return: list
-        """
-        ranges = [np.max(val) - np.min(val) for val in self.results_array[self.nonzeros]]
-        return ranges
-
-    def get_gridpoint_means_spread(self):
-        """
-        For tuple in the GridEnsemble, calculates the difference in score between each point in the tuple and the mean of the tuple.
-        :return: Python list
-        """
-        means_spread = []
-        values = self.results_array[self.nonzeros]
-
-        for v in values:
-            num_zeros = self.tup_max_length - len(v)
-            if num_zeros != 0:
-                print('Number of zeros', num_zeros, 'out of ', self.tup_max_length)
-            hist_arr = np.array(v)
-            means_spread.extend(list(hist_arr - np.mean(hist_arr)))
-
-        return means_spread
-
-    # Functions for plotting histograms of analysed ensemble data ####
-    def plot_gridpoint_spread(self):
-        '''
-        For each point in the 3D grid, plots the difference in score between each point in the tuple and the mean of the tuple.
-        '''
-        # Get the data:
-        means_spread = self.get_gridpoint_means_spread()
-        mean_arr = np.array(means_spread)
-        (mu, sigma) = norm.fit(mean_arr)
-        n, bins, patches = plt.hist(means_spread, bins=40, normed=1)
-        # print(bins)
-        # y_fit = np.random.normal(mu, sigma, np.shape(mean_arr))
-        y = norm.pdf(bins, mu, sigma)
-        plt.plot(bins, y, 'r--', linewidth=2)
-        fit_bins = 0.5 * (bins[1:] + bins[:-1])
-        y_fit = norm.pdf(fit_bins, mu, sigma)
-        ss_res = np.sum((n - y_fit) ** 2)
-        ss_tot = np.sum((n - np.mean(n)) ** 2)
-        r2 = 1 - (ss_res / ss_tot)
-        plt.title('Mu: {}, Sigma: {}, R^2 : {} '.format(round(mu, 2), round(sigma, 2), round(r2, 2)))
-        hist_name = self.prot_name + '_{}_gridpoint_spread_fit'.format(self.probe)
-        plt.savefig(join(self.out_dir, hist_name))
-        # plt.show()
-        plt.close()
-
-    def plot_gridpoint_ranges(self):
-        '''
-        Plots the range of the tuple values for each point in the 3D grid
-        :return: ranges = list of the tuple ranges at each point
-        '''
-        ranges = self.get_gridpoint_ranges()
-        plt.hist(ranges, bins=40, normed=0)
-        plt.title('Score ranges for {} {}'.format(self.prot_name, self.probe))
-        hist_name = self.prot_name + '_{}_score_ranges'.format(self.probe)
-        plt.savefig(join(self.out_dir, hist_name))
-        # plt.show()
-        plt.close()
-
-    #### Functions that output analysed ensemble data as Grids ####
-
-    def _make_grid(self, values):
-        """
-        Makes a grid to store output of ranges, max, means, etc
-        Duplicating Grid.from_array
-        :param values:
+        :param grid:
         :return:
         """
-        grid = Grid(origin=self.common_grid_origin,
-                    far_corner=self.common_grid_far_corner,
-                    spacing=0.5,
+        nx, ny, nz = grid.nsteps
+        array = np.zeros((nx, ny, nz))
+        grid_vec = grid.to_vector()
+
+        array = np.array(grid_vec).reshape(grid.nsteps)
+        return array
+
+    def make_ensemble_array(self, grid_list):
+        """
+        Creates a 4D numpy array storing information for the ensemble
+
+        :param grid_list:
+        :return:
+        """
+        print("Making the common grids")
+        common_grids = Grid.common_grid(grid_list)
+        print("Stared making arrays")
+        as_arrays = [self.array_from_grid(cg) for cg in common_grids]
+
+        self.ensemble_array = np.stack(as_arrays, axis=-1)
+        print("GridEnsemble complete")
+        self.dimensions = np.array(common_grids[0].bounding_box)
+        self.shape = common_grids[0].nsteps
+
+    def as_grid(self, array):
+        """
+        Given an array, outputs a grid with the dimensions of the GridEnsemble
+
+        :param array: 3D numpy array, usually containing processed ensemble data
+        :return: a :class: 'ccdc.utilities.Grid' instance
+        """
+        # Initialise the Grid
+        grid = Grid(origin=tuple(self.dimensions[0]),
+                    far_corner=tuple(self.dimensions[1]),
+                    spacing=self.spacing,
                     default=0.0,
                     _grid=None)
+        # Get the nonzero indices and values of the array
+        nonz = array.nonzero()
+        values = array[nonz]
+        # Get indices per value
+        as_triads = zip(*nonz)
 
-        as_triads = zip(*self.nonzeros)
+        # Fill in the grid
         for (i, j, k), v in zip(as_triads, values):
             grid._grid.set_value(int(i), int(j), int(k), v)
 
         return grid
 
-    def output_grid(self, mode="max", save=True):
+    def make_summary_grid(self, mode='median'):
         """
-        Ouputs ensemble information as ccdc.utilites.Grid
-        :param mode: the operation to be done on each tuple in the grid. Can be "max", "mean", "ranges", or "frequency" (Length of tuple)
-        :param save: bool, whether output should be written to disk
-        :return: a class ccdc.utilities.Grid object
+        Returns a ccdc grid, containing information at each point according to the mode pamater
+
+        :param mode: one of 'mean', 'max', or 'median' (default)
+        :type str:
+
+        :return: 'hotspots.grid_extension.Grid'
         """
-        # Get the values
-        if mode == "max":
-            vals = self.get_gridpoint_max()
-        elif mode == "mean":
-            vals = self.get_gridpoint_means()
-        elif mode == "ranges":
-            vals = self.get_gridpoint_ranges()
-        elif mode == "frequency":
-            vals = [np.max(val) - np.min(val) for val in self.results_array[self.nonzeros]]
+        if mode == 'median':
+            arr = np.median(self.ensemble_array, axis=-1)
+
+        elif mode == 'mean':
+            arr = np.mean(self.ensemble_array, axis=-1)
+
+        elif mode == 'max':
+            arr = np.max(self.ensemble_array, axis=-1)
+
         else:
-            print("Unrecognised mode: {}".format(mode))
+            print('unrecognised mode of combining grids')
             return
 
-        # Fill the grid
-        out_grid = self._make_grid(vals)
+        agrid = self.as_grid(arr)
 
-        if save:
-            out_grid.write(join(self.out_dir, '{}_{}_{}.ccp4'.format(self.prot_name, mode, self.probe)))
+        return agrid
 
-        return out_grid
+    def make_nonzero_median_map(self):
+        """
+        Takes the median of only points >0 at each point in the ensemble
+        :return: numpy array
+        """
+        nan_arr = self.ensemble_array.copy()
+        nan_arr[nan_arr == 0] = np.nan
+        med_map = np.nanmedian(nan_arr, axis=-1)
+        med_map = np.nan_to_num(med_map)
+        return med_map
 
-    ###### Saving and loading ensembles #########
+    def get_frequency_map(self):
+        """
+        Calculates the percent of nonzero values at each point
+        Equivalent of len(nonzero values)/len(all_values)*100 at every point
+        :return: numpy array
+        """
+        return np.divide(np.count_nonzero(self.ensemble_array, axis=-1), float(self.ensemble_array.shape[-1])) * 100
+
+    def get_difference_frequency_map(self, other, threshold):
+        """
+
+        :param other:
+        :param threshold:
+        :return: 3d numpy array
+        """
+        freq_map = self.get_frequency_map()
+        med_diff_map = self.make_nonzero_median_map() - other.make_nonzero_median_map()
+        thresh_med_map = med_diff_map * (freq_map > threshold)
+        return thresh_med_map
+
+    def get_median_frequency_map(self, threshold):
+        """
+
+        :param threshold:
+        :return: 3d numpy array
+        """
+        freq_map = self.get_frequency_map()
+        med_map = self.make_nonzero_median_map()
+        thresh_med_map = med_map * (freq_map > threshold)
+
+        return thresh_med_map
 
     @staticmethod
-    def load_GridEnsemble(filename):
+    def get_center_of_mass(array):
         """
-        Loads a pickled _GridEnsemble
-        :param filename: str, full path to pickled grid
-        :return: MegaGrid object
-        """
-        pickle_file = open(filename, 'rb')
-        newGridEnsemble = pickle.load(pickle_file)
-        return newGridEnsemble
 
-    def pickle_GridEnsemble(self):
+        :param array:
+        :return: coordinates as 1d numpy array
         """
-        Saves _GridEnsembles as pickles.
+        indices = array.nonzero()
+        vals = array[indices]
+        result_list = []
+        for dimension in indices:
+            result_list.append(np.average(dimension, weights=vals))
+        return result_list
+
+    @staticmethod
+    def get_highest_percentile_scores(arr, percentile=90.0):
+        """
+        Returns a grid thresholded at the highest <percentile> of scores.
+        :param percentile:
         :return:
         """
-        pickle.dump(self, open(join(self.out_dir, '{}_{}_GridEnsemble.p'.format(self.prot_name, self.probe)), 'wb'))
+        vals = arr[arr.nonzero()]
+        perc = np.percentile(vals, percentile)
+        perc_arr = arr * (arr > perc)
+        return perc_arr
 
-    ###### Functions to run full ensemble calculation and output grids (to integrate into main hotspots code ######
-
-    def from_hotspot_maps(self, path_list, out_dir, prot_name, probe_name, mode="max"):
+    def get_contributing_maps(self, cluster_array):
         """
-        Creates a GridEnsemble from paths to Hotspot maps for a certain probe
-        :param path_list: list of paths for the hotspot maps
-        :param out_dir: path to where grids and histograms are saved
-        :param prot_name: str
-        :param probe_name: 'donor', 'acceptor', or 'apolar'
+        Given an array with the same first 3 dimensions of the ensemble_array, with points labelled by cluster,
+        returns a dictionary of which structures contribute to which cluster.
+        :param cluster_array: 3D array, labelled by cluster (eg output of self.HDBSCAN_cluster())
         :return:
         """
-        print('In from_hotspot_maps')
-        self.path_list = path_list
-        self.out_dir = out_dir
-        self.prot_name = prot_name
-        self.probe = probe_name
+        clust_dic = {}
+        clusters = list(set(cluster_array[cluster_array.nonzero()]))
 
-        grid_list = [Grid.from_file(p) for p in self.path_list]
-        # self.get_alternative_results_array(grid_list)
-        self.get_4D_results_array(grid_list)
+        for c in clusters:
+            cluster_mask = (cluster_array == c)
+            ensemble_cluster = self.ensemble_array[cluster_mask]  # should result in 2D array
+            grid_indices = list(ensemble_cluster.nonzero()[1])
+            clust_structs = list(set(grid_indices))
+            clust_dic[c] = [(val, grid_indices.count(val)) for val in clust_structs]
+        return clust_dic
 
-        return self.output_grid(mode, save=False)
-
-    def from_grid_list(self, grid_list, out_dir, prot_name, probe_name, mode="max"):
+    @staticmethod
+    def HDBSCAN_cluster(d_array, **kwargs):
         """
-        Creates a GridEnsemble from Hotspot maps for a certain probe
-        :param grid_list:
-        :param out_dir:
-        :param prot_name:
-        :param probe_name:
-        :return:
+        Performs density-based clustering on input 3d map.
+        :param d_array: input numpy array (usually 3d map)
+        :param min_members:
+        :return: numpy array
         """
-        print(mode)
-        self.out_dir = out_dir
-        self.prot_name = prot_name
-        self.probe = probe_name
-        print("Making ensemble {} {}".format(self.prot_name, self.probe))
+        clusterer = HDBSCAN(**kwargs)
+        in_arr = np.array(d_array.nonzero()).T
 
-        # common_grids = self._common_grids_from_grid_list(grid_list)
-        self.get_4D_results_array(grid_list)
-        print(self.common_grid_origin, self.common_grid_far_corner)
+        clusterer.fit(in_arr)
+        labels = clusterer.labels_
 
-        return self.output_grid(mode, save=False)
+        a = np.zeros(d_array.shape)
+        for clust, tup in zip(labels, in_arr):
+            if clust >= 0:
+                a[tuple(tup)] = clust + 1
+            else:
+                a[tuple(tup)] = clust
+        return a
+
