@@ -982,7 +982,10 @@ class Results(Helper):
 
     @staticmethod
     def _molecule_as_grid(mol, g=None):
+        # TODO: merge with Grid.from_molecule
         """
+
+
         Produces a grid representation of a molecule split by interaction type
 
         :param mol: takes any ccdc molecule

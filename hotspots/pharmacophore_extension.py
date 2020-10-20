@@ -106,13 +106,22 @@ def select_projections(features, peak, tolerance=1):
                        f.point[0].centre[1],
                        f.point[0].centre[2]] for f in features])
 
-    # distance matrix
-    l = distance.cdist(peak, projs)
-    # create mask
-    x, y = np.nonzero(l <= tolerance)
+    #  KEEP HERE FOR NOW
+    # # distance matrix
+    #     # l = distance.cdist(peak, projs)
+    #     # # create mask
+    #     # x, y = np.nonzero(l <= tolerance)
+    #     #
+    #     # # return features above threshold
+    #     # return [features[i] for i in set(y)]
 
-    # return features above threshold
-    return [features[i] for i in set(y)]
+    d = distance.cdist(peak, projs)
+    index = np.argmin(d)
+
+    if d[0][index] < tolerance:
+        return features[index]
+    else:
+        return None
 
 
 def closest_peak_index(peaks_array, feature, max_distance):
@@ -576,7 +585,7 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
     def __init__(self):
         super().__init__()
 
-    def from_hotspot(self, hr, projections=True):
+    def from_hotspot(self, hr, projections=True, min_distance=1):
         interaction_dict = {"donor": ["acceptor_projected"],
                             "acceptor": ["donor_projected",
                                          "donor_ch_projected"]
@@ -595,7 +604,8 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
         features = []
         for p, g in hr.super_grids.items():
             # peak as a sphere
-            all_peaks = g.get_peaks(min_distance=1, cutoff=5)
+            h = g.gaussian(sigma=0.4)
+            all_peaks = h.get_peaks(min_distance=min_distance, cutoff=5)
             for peak in all_peaks:
                 point = GeometricDescriptors.Sphere(centre=peak, radius=1)
                 score = g.value_at_point(peak)
@@ -618,12 +628,10 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
                     # This returns multiple: ATM the user will then select which one (semi-automated)
                     # TODO: implement method to pick the best projection
                     projs = select_projections(feats, np.array([peak]), tolerance=4)
-
-                    n_projs = len(projs)
                 else:
-                    n_projs = 0
+                    projs = None
 
-                if n_projs == 0:
+                if projs is None:
                     # no projections
                     if p == "donor":
                         print("Need to implement new CM feature def here, skipping for now")
@@ -635,19 +643,20 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
                         features.append(f)
 
                 else:
-                    for proj in projs:
-                        centre = (proj.spheres[0].centre[0],
-                                  proj.spheres[0].centre[1],
-                                  proj.spheres[0].centre[2])
+                    # for proj in projs:
+                    # just picking the closest now
+                    centre = (projs.spheres[0].centre[0],
+                              projs.spheres[0].centre[1],
+                              projs.spheres[0].centre[2])
 
-                        s = GeometricDescriptors.Sphere(centre=centre, radius=1)
-                        f = Pharmacophore.Feature(self.feature_definitions[hotspot_to_cm["projected"][p]],
-                                                  point,
-                                                  s)
-                        f.point = point
-                        f.projected = s
-                        f.score = score
-                        features.append(f)
+                    s = GeometricDescriptors.Sphere(centre=centre, radius=1)
+                    f = Pharmacophore.Feature(self.feature_definitions[hotspot_to_cm["projected"][p]],
+                                              point,
+                                              s)
+                    f.point = point
+                    f.projected = s
+                    f.score = score
+                    features.append(f)
 
         self.detected_features = features
 
