@@ -1,6 +1,6 @@
 # Minimal Environment
 channels:
-- file://local/pcurran/CCDC/Python_API_2020/ccdc_conda_channel   # edit as needed
+- file:///Applications/CCDC/Python_API_2020/ccdc_conda_channel   # edit as needed
 - rdkit
 - bioconda
 - conda-forge
