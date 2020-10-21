@@ -266,11 +266,8 @@ class Grid(utilities.Grid):
         :return: `numpy.array`, array with shape (nsteps) and each element corresponding to value at that indice
         """
         nx, ny, nz = self.nsteps
-        array = np.zeros((nx, ny, nz))
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    array[i, j, k] += self.value(i, j, k)
+        flat = np.array(self.to_vector())
+        array = flat.reshape((nx,ny,nz))
         return array
 
     def dilate_by_atom(self, radius=1):

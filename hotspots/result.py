@@ -993,9 +993,10 @@ class Results(Helper):
         :return: a dictionary of grids by interaction type
         :rtype: dict
         """
-        if not g:
+
+        if g is None:
             g = Grid.initalise_grid(coords=[a.coordinates for a in mol.atoms],
-                                    padding=3)
+                                    padding=1)
 
         grid_dict = {"donor": g.copy(),
                      "acceptor": g.copy(),
@@ -1016,6 +1017,13 @@ class Results(Helper):
 
         return grid_dict
 
+    def _shrink_to_common(self, g1,g2):
+        origin, corner = g1.bounding_box
+        i, j, k = g2.point_to_indices(origin)
+        l, m, n = g2.point_to_indices(corner)
+        return g2.sub_grid((i, j, k, l, m, n))
+
+
     def score_atoms_as_spheres(self, mol):
         """
         An example of a more complex scoring scheme
@@ -1033,6 +1041,7 @@ class Results(Helper):
                                 'donor': ['acceptor', 'apolar'],
                                 'acceptor': ['donor', 'apolar']}
 
+
         # shrink again for speed
         sub_grids = {p: g.shrink(mol_grids[p], g)
                      for p, g in self.super_grids.items()}
@@ -1040,6 +1049,7 @@ class Results(Helper):
         # sub_grid dimension must be the same a mol_grid
         assert sub_grids["apolar"].bounding_box[0] == mol_grids["apolar"].bounding_box[0] and \
                sub_grids["apolar"].bounding_box[1] == mol_grids["apolar"].bounding_box[1]
+
 
         scores_by_type = {}
         for probe in sub_grids.keys():
