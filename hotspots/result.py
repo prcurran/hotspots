@@ -998,7 +998,7 @@ class Results(Helper):
         """
         if not g:
             g = Grid.initalise_grid(coords=[a.coordinates for a in mol.atoms],
-                                    padding=3)
+                                    padding=1)
 
         grid_dict = {"donor": g.copy(),
                      "acceptor": g.copy(),
@@ -1019,6 +1019,20 @@ class Results(Helper):
 
         return grid_dict
 
+    def _shrink_to_common(self, g1,g2):
+        """Shrinks g2 so it is the same size as g1"""
+        origin, corner = g1.bounding_box
+        i, j, k = g2.point_to_indices(origin)
+        l, m, n = g2.point_to_indices(corner)
+        return g2.sub_grid((i, j, k, l, m, n))
+
+    def shrink_to_mols(self,mols):
+        """Reduces the grid size to be just large enough to contain all mol objects in mol"""
+
+        blank_grd = Grid.initalise_grid([a.coordinates for l in mols for a in l.atoms])
+        for probe, g in self.super_grids.items():
+            self.super_grids[probe] = Grid.shrink(blank_grd, g)
+
     def score_atoms_as_spheres(self, mol):
         """
         An example of a more complex scoring scheme
@@ -1036,9 +1050,8 @@ class Results(Helper):
                                 'donor': ['acceptor', 'apolar'],
                                 'acceptor': ['donor', 'apolar']}
 
-        # shrink again for speed
-        sub_grids = {p: g.shrink(mol_grids[p], g)
-                     for p, g in self.super_grids.items()}
+
+        sub_grids = {p: self._shrink_to_common(mol_grids[p], self.super_grids[p]) for p in mol_grids.keys()}
 
         # sub_grid dimension must be the same a mol_grid
         assert sub_grids["apolar"].bounding_box[0] == mol_grids["apolar"].bounding_box[0] and \
