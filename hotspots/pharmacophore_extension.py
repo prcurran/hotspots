@@ -6,6 +6,7 @@ from collections import OrderedDict
 from pprint import pprint
 from scipy.spatial import distance
 import numpy as np
+import pandas as pd
 
 from ccdc.pharmacophore import Pharmacophore
 from ccdc.io import csd_directory, CrystalReader, MoleculeWriter, MoleculeReader
@@ -170,6 +171,7 @@ def create_consensus(pharmacophores, cutoff=2, max_distance=2.0):
         # projections
         if len(peaks_array) > 0:
             if len(all_features[0].spheres) > 1:
+                # if a peak has features with projections try for a concensus projection
                 # assign features to closest peak
                 for feature in all_features:
                     index = closest_peak_index(peaks_array, feature, max_distance)
@@ -181,7 +183,10 @@ def create_consensus(pharmacophores, cutoff=2, max_distance=2.0):
                     peak.create_projection_grid()
                     peak.find_projection_peaks()
                     feats = peak.create_new_features()
-                    new_features.extend(feats)
+                    for f in feats:
+                        # for a projected feat, if no projection found, scrap
+                        if len(f.spheres) > 1:
+                            new_features.append(f)
             else:
                 for j, peak in enumerate(peak_objs):
                     point = GeometricDescriptors.Sphere(centre=peak.point, radius=1)
@@ -381,6 +386,28 @@ class PharmacophoreModel(Pharmacophore.Query):
 
         return list(OrderedDict(sorted(feature_by_score.items(), key=lambda item: item[1], reverse=True)).keys())[:num]
 
+    def to_csv(self, fname):
+        vars = {}
+        feat_def, point_scores, projected_scores = zip(*[[feat.identifier,
+                                                          feat.score,
+                                                          feat.projected_value]
+                                                         for feat in self.detected_features])
+        vars.update({"feat_def": feat_def,
+                     "point_scores": point_scores,
+                     "projected_scores": projected_scores})
+
+        if self.ligands:
+            total_ligs = len(self.ligands)
+            point_perc, projected_perc = zip(*[[(feat.score / total_ligs) * 100,
+                                                (feat.projected_value / total_ligs) * 100]
+                                               for feat in self.detected_features])
+            vars.update({"point_perc": point_perc,
+                         "projected_perc": projected_perc})
+
+        df = pd.DataFrame(vars)
+
+        df.to_csv(fname)
+
     def features_to_pymol_strings(self, features):
         """
         creates the code to visualise `ccdc.pharmacophore.Pharmacophore.Features` in PyMOL
@@ -397,6 +424,7 @@ class PharmacophoreModel(Pharmacophore.Query):
 
             if feat.projected_identifier and self.protein:
                 resnum = feat.projected_identifier.split("/")[1]
+                # TODO: clean up
                 pymol_out += f'\ncmd.select("sele", "resi {resnum}")\ncmd.show("sticks", "sele")'
 
         for fd in self.feature_definitions.keys():
@@ -585,7 +613,10 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
     def __init__(self):
         super().__init__()
 
-    def from_hotspot(self, hr, projections=True, min_distance=1):
+    def from_hotspot(self, hr, projections=True, min_distance=2, radius_dict={"apolar": 2.5}, sigma=1):
+
+        print(min_distance)
+        print(sigma)
         interaction_dict = {"donor": ["acceptor_projected"],
                             "acceptor": ["donor_projected",
                                          "donor_ch_projected"]
@@ -604,10 +635,17 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
         features = []
         for p, g in hr.super_grids.items():
             # peak as a sphere
-            h = g.gaussian(sigma=0.4)
+            h = g.gaussian(sigma=sigma)
             all_peaks = h.get_peaks(min_distance=min_distance, cutoff=5)
+
+            if p in radius_dict:
+                radius = radius_dict[p]
+            else:
+                radius = 1.5
+
             for peak in all_peaks:
-                point = GeometricDescriptors.Sphere(centre=peak, radius=1)
+
+                point = GeometricDescriptors.Sphere(centre=peak, radius=radius)
                 score = g.value_at_point(peak)
 
                 if p != "apolar" and projections:
@@ -649,7 +687,7 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
                               projs.spheres[0].centre[1],
                               projs.spheres[0].centre[2])
 
-                    s = GeometricDescriptors.Sphere(centre=centre, radius=1)
+                    s = GeometricDescriptors.Sphere(centre=centre, radius=radius)
                     f = Pharmacophore.Feature(self.feature_definitions[hotspot_to_cm["projected"][p]],
                                               point,
                                               s)
