@@ -34,7 +34,7 @@ def tractability_workflow(protein, tag):
     bcv_result = extractor.extract_volume(volume=500)
 
     # 3) find the median score
-    grid = Grid.single_grid(bcv_result.super_grids)
+    grid = Grid.get_single_grid(bcv_result.super_grids, mask=False)
     values = grid.grid_values(threshold=5)
     median = np.median(values)
 

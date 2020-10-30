@@ -45,7 +45,7 @@ from scipy.spatial import distance
 from hotspots.grid_extension import Grid, _GridEnsemble
 
 from hotspots.hs_pharmacophore import PharmacophoreModel
-from hotspots.pharmacophore_extension import ProteinPharmacophoreModel
+from hotspots.pharmacophore_extension import HotspotPharmacophoreModel
 
 from hotspots.hs_utilities import Helper
 from hotspots.protein_extension import Protein
@@ -367,7 +367,7 @@ class Results(Helper):
         """
 
         def __init__(self, score_by_index, prot=None):
-            self.score_by_index = OrderedDict(score_by_index)
+            self.index_by_score = OrderedDict(score_by_index)
             self.protein = prot
 
         def to_molecule(self, protein=None):
@@ -375,7 +375,7 @@ class Results(Helper):
                 if protein is None:
                     raise AttributeError("Give me a protein")
             mol = Molecule(identifier="constraints")
-            for score, index in self.score_by_index.items():
+            for score, index in self.index_by_score.items():
                 atm = self.protein.atoms[index]
                 atm.label = str(score)
                 mol.add_atom(atm)
@@ -383,7 +383,7 @@ class Results(Helper):
 
         def write(self, path):
             f = open(path, "wb")
-            pickle.dump(self.score_by_index, f)
+            pickle.dump(self.index_by_score, f)
             f.close()
 
         @staticmethod
@@ -658,17 +658,16 @@ class Results(Helper):
         hr = Results(grid_dic, protein=res_list[0].protein)
         return hr
 
-    def get_pharmacophore_model(self, identifier="id_01", threshold=5):
+    def get_pharmacophore_model(self, projections=True, min_distance=2, radius_dict={"apolar": 2.5}, sigma=1):
         """
-        Generates a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance from peaks in the hotspot maps
 
-        TODO: investigate using feature recognition to go from grids to features.
-
-        :param str identifier: Identifier for displaying multiple models at once
-        :param float cutoff: The score cutoff used to identify islands in the maps. One peak will be identified per island
-        :return: a :class:`hotspots.hotspot_pharmacophore.PharmacophoreModel` instance
         """
-        return PharmacophoreModel.from_hotspot(self, identifier=identifier, threshold=threshold)
+        hspm = HotspotPharmacophoreModel()
+        return hspm.from_hotspot(hr=self,
+                                 projections=projections,
+                                 min_distance=min_distance,
+                                 radius_dict=radius_dict,
+                                 sigma=sigma)
 
     def grid_labels(self):
         """
@@ -805,88 +804,32 @@ class Results(Helper):
         with io.MoleculeWriter("cenroid.mol2") as w:
             w.write(mol)
 
-    def _docking_constraint_atoms(self, p=None, max_constraints=10, accessible_cutoff=0.001, max_distance=4, threshold=14, min_size = 15):
+    def _docking_constraint_atoms(self, p=None, max_constraints=10):
         """
         creates a dictionary of constraints
 
         :param int max_constraints: max number of constraints
         :return dic: score by atom
         """
+        hspm = HotspotPharmacophoreModel()
+        hspm.from_hotspot(hr=self, projections=True)
 
-        from scipy.spatial import distance
+        index_by_score = {}
+        for feat in hspm.detected_features:
+            if feat.identifier not in ["donor_projected", "acceptor_projected"]:
+                continue
 
-        def check_hydrogens(protein):
-            """check hydrogens have neighbours"""
-            if 0 in set([len(a.neighbours) for a in protein.atoms if a.atomic_number == 1]):
-                print("WARNING HYDROGENS READDED THIS MAY CAUSE ISSUES")
-                protein.add_hydrogens()
+            if len(index_by_score) < max_constraints:
+                index_by_score.update({feat.score: feat.projected_atom.index})
 
-        print(len(self.protein.atoms))
+        index_by_score = OrderedDict(reversed(list(index_by_score.items())))
 
-        if p is None:
-            check_hydrogens(self.protein)
-            protein = self.protein.copy()
-        else:
-            check_hydrogens(p)
-            protein = p.copy()
-
-        point = self.super_grids['apolar'].centroid()
-        bs = protein.BindingSiteFromPoint(protein=protein, origin=point, distance=12.)
-
-        for a in protein.atoms:
-            a.label = str(a.index)
-
-        remove = set(protein.residues) - set(bs.residues)
-
-        for r in remove:
-            protein.remove_residue(r.identifier)
-
-        print(len(self.protein.atoms))
-
-        donors = {x.coordinates: x.label for x in [a for a in protein.atoms if a.atomic_number == 1]
-                  if x.neighbours[0].is_donor 
-                  # and x.solvent_accessible_surface() > accessible_cutoff
-                  }
-
-        acceptors = {a.coordinates: a.label for a in protein.atoms
-                     if a.is_acceptor
-                     # and a.solvent_accessible_surface() > accessible_cutoff
-                     }
-
-        pairs = {"acceptor": donors,
-                 "donor": acceptors}
-
-        constraint_dic = {}
-
-        for feature in self.features:
-            if (feature.grid > threshold).count_grid() > min_size:
-                centoid = [feature.grid.centroid()]
-                coords = list(pairs[feature.feature_type].keys())
-                all_distances = distance.cdist(coords, centoid, 'euclidean')
-                ind = int(np.argmin(all_distances))
-                min_coord = coords[ind]
-
-                atm_index = int(pairs[feature.feature_type][min_coord])
-
-                if all_distances[ind] < max_distance:
-                    constraint_dic.update({feature.score_value: atm_index})
-
-        if len(constraint_dic) > max_constraints:
-            scores = sorted([f[0] for f in constraint_dic.items()], reverse=True)[:max_constraints]
-        else:
-            scores = sorted([f[0] for f in constraint_dic.items()], reverse=True)
-
-        bin_keys = set(constraint_dic.keys()) - set(scores)
-        for b in bin_keys:
-            del constraint_dic[b]
-
-        constraint_dic = OrderedDict(reversed(list(constraint_dic.items())))
-
-        return self._ConstraintData(constraint_dic, self.protein)
+        return self._ConstraintData(index_by_score, self.protein)
 
     def _usr_moment(self, threshold=14):
         """
         PRIVATE
+
         This is some experimental code and requires seperate installation of USR
         generates USR moments for shape analysis
         :return:

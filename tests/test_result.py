@@ -67,6 +67,16 @@ class TestResult(unittest.TestCase):
                 s = self.result.score_atoms_as_spheres(m, small_blank)
                 print(s)
 
+    def test_docking_constraint_atoms(self):
+        with PushDir("testdata/result/data"):
+            # read hotspot maps
+            with HotspotReader(path="out.zip") as r:
+                self.result = r.read()
+
+            print(self.result.protein.atoms[0].index)
+            print(self.result._docking_constraint_atoms())
+
+
 
 if __name__ == '__main__':
     unittest.main()

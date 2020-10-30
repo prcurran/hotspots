@@ -693,6 +693,7 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
                                               s)
                     f.point = point
                     f.projected = s
+                    f.projected_atom = projs.point_atom
                     f.score = score
                     features.append(f)
 
@@ -855,60 +856,64 @@ class Feature(Pharmacophore.Feature):
         self.__label = 0
         self.__point = None
         self.__projected = None
+        self.__point_atom = None
+        self.__projected_atom = None
         self.__projected_identifier = None
         if crystal:
             self.crystal = crystal
             self.coordinate_atm_dict = {_coordinate_str(a.coordinates): a for a in self.crystal.molecule.atoms}
             self.__point = self.get_point()
             self.__projected = self.get_projected()
+            if _coordinate_str(self.point[0].centre) in self.coordinate_atm_dict:
+                self.__point_atom = self.coordinate_atm_dict[_coordinate_str(self.point[0].centre)]
 
     @property
-    def score(self):
-        return self.__score
+    def score(self): return self.__score
 
     @score.setter
-    def score(self, value):
-        self.__score = value
+    def score(self, value): self.__score = value
 
     @property
-    def projected_value(self):
-        return self.__projected_value
+    def projected_value(self): return self.__projected_value
 
     @projected_value.setter
-    def projected_value(self, value):
-        self.__projected_value = value
+    def projected_value(self, value): self.__projected_value = value
 
     @property
-    def label(self):
-        return self.__label
+    def label(self): return self.__label
 
     @label.setter
-    def label(self, value):
-        self.__label = value
+    def label(self, value): self.__label = value
 
     @property
-    def point(self):
-        return self.__point
+    def point(self): return self.__point
 
     @point.setter
-    def point(self, sphere):
-        self.__point = [sphere]
+    def point(self, sphere): self.__point = [sphere]
 
     @property
-    def projected(self):
-        return self.__projected
+    def point_atom(self): return self.__point_atom
+
+    @point_atom.setter
+    def point_atom(self, atm):  self.__point_atom = atm
+
+    @property
+    def projected(self): return self.__projected
 
     @projected.setter
-    def projected(self, sphere):
-        self.__projected = [sphere]
+    def projected(self, sphere): self.__projected = [sphere]
 
     @property
-    def projected_identifier(self):
-        return self.__projected_identifier
+    def projected_atom(self): return self.__projected_atom
+
+    @projected_atom.setter
+    def projected_atom(self, atm): self.__projected_atom = atm
+
+    @property
+    def projected_identifier(self): return self.__projected_identifier
 
     @projected_identifier.setter
-    def projected_identifier(self, ident):
-        self.__projected_identifier = ident
+    def projected_identifier(self, ident): self.__projected_identifier = ident
 
     # CLASS METHODS
 
@@ -932,7 +937,7 @@ class Feature(Pharmacophore.Feature):
                 return [sphere for sphere in self.spheres
                         if not _coordinate_str(sphere.centre) in self.coordinate_atm_dict]
 
-    def to_pymol_str(self, i=0, label=True, transparency=0.8):
+    def to_pymol_str(self, i=0, label=True, transparency=0.6):
         pymol_out = ""
         point_colour = rgb_to_decimal(self.colour)
         point_colour = utilities.Colour(point_colour[0], point_colour[1], point_colour[2], transparency)
@@ -956,6 +961,12 @@ class Feature(Pharmacophore.Feature):
                                                   coords=coords,
                                                   label=f'{round(self.score, 1)}')
             group.append(score_name)
+
+            rank_name = f"{self.identifier}_rank_{i}"
+            pymol_out += PyMOLCommands.pseudoatom(objname=rank_name,
+                                                  coords=coords,
+                                                  label=str(i + 1))
+            group.append(rank_name)
 
         if self.projected:
             proj_coords = (self.projected[0].centre[0],

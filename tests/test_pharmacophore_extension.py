@@ -3,6 +3,7 @@ import unittest
 from hotspots.hs_io import HotspotReader
 from ccdc.utilities import _csd_required, PushDir
 from ccdc import io
+from ccdc.molecule import Atom
 from ccdc.pharmacophore import Pharmacophore, GeometricDescriptors
 from hotspots.protein_extension import Protein
 from hotspots.grid_extension import Grid
@@ -131,6 +132,10 @@ class TestHotspotPharmacophoreModel(unittest.TestCase):
     def test_projections(self):
         p = HotspotPharmacophoreModel()
         p.from_hotspot(self.hr, projections=True)
+
+        feat_0 = [f for f in p.detected_features if f.identifier == "acceptor_projected"][0]
+
+        self.assertIsInstance(feat_0.projected_atom, Atom)
 
         p.pymol_visulisation("testdata/pharmacophore_extension/HotspotPharmacophoreModel/projections")
 
