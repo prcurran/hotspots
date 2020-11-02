@@ -6,6 +6,7 @@ from collections import OrderedDict
 from pprint import pprint
 from scipy.spatial import distance
 import numpy as np
+import pandas as pd
 
 from ccdc.pharmacophore import Pharmacophore
 from ccdc.io import csd_directory, CrystalReader, MoleculeWriter, MoleculeReader
@@ -170,6 +171,7 @@ def create_consensus(pharmacophores, cutoff=2, max_distance=2.0):
         # projections
         if len(peaks_array) > 0:
             if len(all_features[0].spheres) > 1:
+                # if a peak has features with projections try for a concensus projection
                 # assign features to closest peak
                 for feature in all_features:
                     index = closest_peak_index(peaks_array, feature, max_distance)
@@ -181,7 +183,10 @@ def create_consensus(pharmacophores, cutoff=2, max_distance=2.0):
                     peak.create_projection_grid()
                     peak.find_projection_peaks()
                     feats = peak.create_new_features()
-                    new_features.extend(feats)
+                    for f in feats:
+                        # for a projected feat, if no projection found, scrap
+                        if len(f.spheres) > 1:
+                            new_features.append(f)
             else:
                 for j, peak in enumerate(peak_objs):
                     point = GeometricDescriptors.Sphere(centre=peak.point, radius=1)
@@ -381,6 +386,28 @@ class PharmacophoreModel(Pharmacophore.Query):
 
         return list(OrderedDict(sorted(feature_by_score.items(), key=lambda item: item[1], reverse=True)).keys())[:num]
 
+    def to_csv(self, fname):
+        vars = {}
+        feat_def, point_scores, projected_scores = zip(*[[feat.identifier,
+                                                          feat.score,
+                                                          feat.projected_value]
+                                                         for feat in self.detected_features])
+        vars.update({"feat_def": feat_def,
+                     "point_scores": point_scores,
+                     "projected_scores": projected_scores})
+
+        if self.ligands:
+            total_ligs = len(self.ligands)
+            point_perc, projected_perc = zip(*[[(feat.score / total_ligs) * 100,
+                                                (feat.projected_value / total_ligs) * 100]
+                                               for feat in self.detected_features])
+            vars.update({"point_perc": point_perc,
+                         "projected_perc": projected_perc})
+
+        df = pd.DataFrame(vars)
+
+        df.to_csv(fname)
+
     def features_to_pymol_strings(self, features):
         """
         creates the code to visualise `ccdc.pharmacophore.Pharmacophore.Features` in PyMOL
@@ -397,6 +424,7 @@ class PharmacophoreModel(Pharmacophore.Query):
 
             if feat.projected_identifier and self.protein:
                 resnum = feat.projected_identifier.split("/")[1]
+                # TODO: clean up
                 pymol_out += f'\ncmd.select("sele", "resi {resnum}")\ncmd.show("sticks", "sele")'
 
         for fd in self.feature_definitions.keys():
@@ -585,7 +613,10 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
     def __init__(self):
         super().__init__()
 
-    def from_hotspot(self, hr, projections=True, min_distance=1):
+    def from_hotspot(self, hr, projections=True, min_distance=2, radius_dict={"apolar": 2.5}, sigma=1):
+
+        print(min_distance)
+        print(sigma)
         interaction_dict = {"donor": ["acceptor_projected"],
                             "acceptor": ["donor_projected",
                                          "donor_ch_projected"]
@@ -604,10 +635,17 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
         features = []
         for p, g in hr.super_grids.items():
             # peak as a sphere
-            h = g.gaussian(sigma=0.4)
+            h = g.gaussian(sigma=sigma)
             all_peaks = h.get_peaks(min_distance=min_distance, cutoff=5)
+
+            if p in radius_dict:
+                radius = radius_dict[p]
+            else:
+                radius = 1.5
+
             for peak in all_peaks:
-                point = GeometricDescriptors.Sphere(centre=peak, radius=1)
+
+                point = GeometricDescriptors.Sphere(centre=peak, radius=radius)
                 score = g.value_at_point(peak)
 
                 if p != "apolar" and projections:
@@ -649,12 +687,13 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
                               projs.spheres[0].centre[1],
                               projs.spheres[0].centre[2])
 
-                    s = GeometricDescriptors.Sphere(centre=centre, radius=1)
+                    s = GeometricDescriptors.Sphere(centre=centre, radius=radius)
                     f = Pharmacophore.Feature(self.feature_definitions[hotspot_to_cm["projected"][p]],
                                               point,
                                               s)
                     f.point = point
                     f.projected = s
+                    f.projected_atom = projs.point_atom
                     f.score = score
                     features.append(f)
 
@@ -817,60 +856,64 @@ class Feature(Pharmacophore.Feature):
         self.__label = 0
         self.__point = None
         self.__projected = None
+        self.__point_atom = None
+        self.__projected_atom = None
         self.__projected_identifier = None
         if crystal:
             self.crystal = crystal
             self.coordinate_atm_dict = {_coordinate_str(a.coordinates): a for a in self.crystal.molecule.atoms}
             self.__point = self.get_point()
             self.__projected = self.get_projected()
+            if _coordinate_str(self.point[0].centre) in self.coordinate_atm_dict:
+                self.__point_atom = self.coordinate_atm_dict[_coordinate_str(self.point[0].centre)]
 
     @property
-    def score(self):
-        return self.__score
+    def score(self): return self.__score
 
     @score.setter
-    def score(self, value):
-        self.__score = value
+    def score(self, value): self.__score = value
 
     @property
-    def projected_value(self):
-        return self.__projected_value
+    def projected_value(self): return self.__projected_value
 
     @projected_value.setter
-    def projected_value(self, value):
-        self.__projected_value = value
+    def projected_value(self, value): self.__projected_value = value
 
     @property
-    def label(self):
-        return self.__label
+    def label(self): return self.__label
 
     @label.setter
-    def label(self, value):
-        self.__label = value
+    def label(self, value): self.__label = value
 
     @property
-    def point(self):
-        return self.__point
+    def point(self): return self.__point
 
     @point.setter
-    def point(self, sphere):
-        self.__point = [sphere]
+    def point(self, sphere): self.__point = [sphere]
 
     @property
-    def projected(self):
-        return self.__projected
+    def point_atom(self): return self.__point_atom
+
+    @point_atom.setter
+    def point_atom(self, atm):  self.__point_atom = atm
+
+    @property
+    def projected(self): return self.__projected
 
     @projected.setter
-    def projected(self, sphere):
-        self.__projected = [sphere]
+    def projected(self, sphere): self.__projected = [sphere]
 
     @property
-    def projected_identifier(self):
-        return self.__projected_identifier
+    def projected_atom(self): return self.__projected_atom
+
+    @projected_atom.setter
+    def projected_atom(self, atm): self.__projected_atom = atm
+
+    @property
+    def projected_identifier(self): return self.__projected_identifier
 
     @projected_identifier.setter
-    def projected_identifier(self, ident):
-        self.__projected_identifier = ident
+    def projected_identifier(self, ident): self.__projected_identifier = ident
 
     # CLASS METHODS
 
@@ -894,7 +937,7 @@ class Feature(Pharmacophore.Feature):
                 return [sphere for sphere in self.spheres
                         if not _coordinate_str(sphere.centre) in self.coordinate_atm_dict]
 
-    def to_pymol_str(self, i=0, label=True, transparency=0.8):
+    def to_pymol_str(self, i=0, label=True, transparency=0.6):
         pymol_out = ""
         point_colour = rgb_to_decimal(self.colour)
         point_colour = utilities.Colour(point_colour[0], point_colour[1], point_colour[2], transparency)
@@ -918,6 +961,12 @@ class Feature(Pharmacophore.Feature):
                                                   coords=coords,
                                                   label=f'{round(self.score, 1)}')
             group.append(score_name)
+
+            rank_name = f"{self.identifier}_rank_{i}"
+            pymol_out += PyMOLCommands.pseudoatom(objname=rank_name,
+                                                  coords=coords,
+                                                  label=str(i + 1))
+            group.append(rank_name)
 
         if self.projected:
             proj_coords = (self.projected[0].centre[0],
