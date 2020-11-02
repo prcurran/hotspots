@@ -909,7 +909,7 @@ class Results(Helper):
 
         :return: dict of str(probe type) by a :class:`numpy.array` (non-zero grid point scores)
         """
-        return {p: g.get_array() for p, g in self.super_grids.items()}
+        return {p: g.grid_values() for p, g in self.super_grids.items()}
 
     @staticmethod
     def _get_features(interaction_dict, threshold=5, min_feature_gp=6, excluded=("apolar")):
@@ -1060,7 +1060,8 @@ class Results(Helper):
         scores_by_type = {}
         for probe in sub_grids.keys():
             # detemine clashes by atom type
-            clash_g = (sub_grids[probe] < 0) * mol_grids[probe]
+            clash_g = (sub_grids[probe] < -0.5) * mol_grids[probe]
+            # clash_g.write("clash_{}.grd".format(probe))
             clash_array = clash_g.get_array()
             scores_by_type[f"{probe}_clash"] = np.sum(clash_array)
 
@@ -1283,4 +1284,5 @@ class Extractor(object):
         print("Final score threshold is: {} ".format(self.threshold))
 
         grid_dict = self.best_island.inverse_single_grid(self._masked_dic)
+        print("Split to grid types")
         return Results(super_grids=grid_dict, protein=self.hotspot_result.protein)

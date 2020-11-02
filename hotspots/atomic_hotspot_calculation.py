@@ -110,7 +110,15 @@ class _AtomicHotspot(object):
                                          )
 
                 elif sys.platform == 'darwin':
-                    print("OS X not supported")
+                    base = dirname(base)
+                    print(base)
+                    superstar_executable = join('/Applications', 'CCDC', 'CSD_2020', 'mercury.app', 'Contents', 'MacOS',
+                                                'superstar.x')
+                    superstar_env = dict(SUPERSTAR_ISODIR=str(
+                        join('/Applications', 'CCDC', 'CSD_2020', 'DATA', 'isostar_files', 'istr')),
+                                         SUPERSTAR_ROOT=join('/Applications', 'CCDC', 'Discovery_2020', 'SuperStar',
+                                                             'Resources')
+                                         )
 
                 else:
                     base = dirname(base)

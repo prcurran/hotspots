@@ -690,6 +690,16 @@ class Grid(utilities.Grid):
         g, h = Grid.common_grid(grid_list=[self, other], padding=1)
         return g & h
 
+    def remove_small_objects(self, min_size = 400):
+
+        g_array = self.get_array()
+        bool_array = g_array.astype(bool)
+        no_small_obj = remove_small_objects(bool_array, min_size=min_size, connectivity=2)
+
+        out_array = g_array*no_small_obj
+
+        return self.array_to_grid(out_array,self.copy_and_clear())
+
     ##################################################################################################################
     def score_atom(self, atom):
         selem = ball(radius=1)
