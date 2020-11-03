@@ -266,12 +266,12 @@ class SelectivityResult(Helper):
             except KeyError:
                 continue
 
-            if gr.check_same_size_and_coords(off_gr):
-                c_gr = gr
-                c_off = off_gr
-            else:
-                print("Input grids of different size. Converting to same coordinates.")
-                c_gr, c_off = Grid.common_grid([gr, off_gr])
+            # if gr.check_same_size_and_coords(off_gr):
+            #     c_gr = gr
+            #     c_off = off_gr
+            # else:
+            #     print("Input grids of different size. Converting to same coordinates.")
+            c_gr, c_off = Grid.common_grid([gr, off_gr])
 
             diff_maps[probe] = _GridEnsemble.array_from_grid(c_gr - c_off)
 
