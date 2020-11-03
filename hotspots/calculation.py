@@ -55,6 +55,10 @@ class ExpBuriedness(object):
         self.max_probe = max_probe_radius
         self.probe_selem_dict = self._generate_probe_selem()
         self.protein_grid = self._from_molecule(prot)
+        if self.out_grid is None:
+            self.out_grid = self.protein_grid.copy_and_clear()
+        print("buriedness init")
+
 
     def _generate_probe_selem(self):
         """
@@ -68,9 +72,9 @@ class ExpBuriedness(object):
 
         probe_selem_dict[2] = ball(2)
         # r= probe radius
-        for r in range(3, self.max_probe + 1):
+        for r in range(3,self.max_probe +1):
             probe_selem_dict[r] = ball(r)
-
+        print("generating probes")
         return probe_selem_dict
 
     def _from_molecule(self, mol, scaling=1):
@@ -83,7 +87,7 @@ class ExpBuriedness(object):
         """
 
         coords = [a.coordinates for a in mol.atoms]
-        g = Grid.initalise_grid(coords=coords, padding=15, spacing=1)
+        g = Grid.initalise_grid(coords=coords, padding= 10, spacing=1)
 
         for probe in sorted(self.probe_selem_dict.keys(), reverse=True):
             for a in mol.heavy_atoms:
@@ -100,12 +104,16 @@ class ExpBuriedness(object):
                          mode='replace',
                          scaling='None')
 
-        out_bound_box = self.out_grid.bounding_box
-        origin_indices = g.point_to_indices(out_bound_box[0])
-        far_indices = g.point_to_indices(out_bound_box[1])
-        region = origin_indices + far_indices
-        print(region)
-        return g.sub_grid(region)
+        try:
+            out_bound_box = self.out_grid.bounding_box
+            print(out_bound_box)
+            origin_indices = g.point_to_indices(out_bound_box[0])
+            far_indices = g.point_to_indices(out_bound_box[1])
+            region = origin_indices + far_indices
+            print(region)
+            return g.sub_grid(region)
+        except AttributeError:
+            return g
 
     def _close_grid(self, g, probe):
 
@@ -113,9 +121,10 @@ class ExpBuriedness(object):
         closed_array = ndimage.binary_erosion(g_array, structure=self.probe_selem_dict[probe])
         return Grid.array_to_grid(closed_array.astype(int), g)
 
-    def _multiscale_closing(self, g):
+    def _multiscale_closing(self,g):
 
-        # probe_sizes.reverse()
+
+        #probe_sizes.reverse()
         all_g = None
         prot_mask = g > 90
 
@@ -123,10 +132,11 @@ class ExpBuriedness(object):
             if all_g is None:
                 all_g = prot_mask.copy()
 
-            probe_mask = ((g < probe + 0.1) & (g > 0)) | (prot_mask)
+            probe_mask = ((g < probe+0.1) & (g>0)) | (prot_mask)
 
-            probe_mask = self._close_grid(probe_mask, probe)
-            novel = (-all_g) * (g > 0)
+
+            probe_mask = self._close_grid(probe_mask,probe)
+            novel = (-all_g) * (g>0)
             all_g += (probe_mask * novel * (self.max_probe - probe))
 
         return all_g * (prot_mask < 1)
@@ -140,14 +150,20 @@ class ExpBuriedness(object):
     def buriedness_grid(self):
 
         closed_g = self._multiscale_closing(self.protein_grid)
-        out_g = self._open_grid(closed_g, 2) * closed_g
+        print("close_g")
+        out_g = self._open_grid(closed_g,2) * closed_g
+        print("out_g")
         out_array = out_g.get_array()
+        print("out array")
         scaled_g = Grid.initalise_grid(self.out_grid.bounding_box, padding=0, spacing=0.5)
+        print("scaled_g")
+        scaled_array = resize(out_array, scaled_g.nsteps ,anti_aliasing=False)
+        print(scaled_array)
 
-        scaled_array = resize(out_array, scaled_g.nsteps, anti_aliasing=False)
 
         # Future tweaking here
         final_array = scaled_array
+        print("array to grid")
         return Grid.array_to_grid(final_array.astype(int), scaled_g)
 
 
@@ -869,7 +885,7 @@ class Runner(object):
         elif self.buriedness_method.lower() == 'ghecom_internal' and self.buriedness is None:
             print("    method: Internal version Ghecom")
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
-            b = ExpBuriedness(prot=self.protein, out_grid=out_grid)
+            b = ExpBuriedness(prot=self.protein, out_grid=None)
             self.buriedness = b.buriedness_grid()
 
         elif self.buriedness_method.lower() == 'ligsite' and self.buriedness is None:
