@@ -993,7 +993,6 @@ class Results(Helper):
                                 'donor': ['acceptor', 'apolar'],
                                 'acceptor': ['donor', 'apolar']}
 
-
         sub_grids = {p: self._shrink_to_common(mol_grids[p], self.super_grids[p]) for p in mol_grids.keys()}
 
         # sub_grid dimension must be the same a mol_grid

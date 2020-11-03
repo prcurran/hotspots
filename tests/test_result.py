@@ -73,7 +73,6 @@ class TestResult(unittest.TestCase):
             with HotspotReader(path="out.zip") as r:
                 self.result = r.read()
 
-            print(self.result.protein.atoms[0].index)
             print(self.result._docking_constraint_atoms())
 
 
