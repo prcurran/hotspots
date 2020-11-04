@@ -614,9 +614,6 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
         super().__init__()
 
     def from_hotspot(self, hr, projections=True, min_distance=2, radius_dict={"apolar": 2.5}, sigma=1):
-
-        print(min_distance)
-        print(sigma)
         interaction_dict = {"donor": ["acceptor_projected"],
                             "acceptor": ["donor_projected",
                                          "donor_ch_projected"]
@@ -650,14 +647,12 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
 
                 if p != "apolar" and projections:
                     # binding site from point (within 4/5 angstrom of peak)
-                    print("get binding site from point")
                     binding_site = hr.protein.copy()
                     bs = Protein.BindingSiteFromPoint(hr.protein, peak, distance=6)
                     for r in ({r.identifier for r in binding_site.residues} - {r.identifier for r in bs.residues}):
                         binding_site.remove_residue(r)
 
                     # detect projected features
-                    print("detect cavity features")
                     pm = ProteinPharmacophoreModel()
                     pm.feature_definitions = interaction_dict[p]
                     pm.detect_from_prot(binding_site)

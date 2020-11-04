@@ -227,7 +227,7 @@ class _Scorer(Helper):
 
     @staticmethod
     def _score_feature(f):
-        ideal_coord = (f.coordinates[n] + 1.8 * (f.protein_vector[n]) for n in xrange(0, 2))
+        ideal_coord = (f.coordinates[n] + 1.8 * (f.protein_vector[n]) for n in range(0, 2))
 
     def score_cavity(self):
         # TODO: return scored cavity _features, the score protein function should be enough tbh
@@ -366,8 +366,8 @@ class Results(Helper):
 
         """
 
-        def __init__(self, score_by_index, prot=None):
-            self.index_by_score = OrderedDict(score_by_index)
+        def __init__(self, index_by_score, prot=None):
+            self.index_by_score = index_by_score
             self.protein = prot
 
         def to_molecule(self, protein=None):
@@ -375,7 +375,7 @@ class Results(Helper):
                 if protein is None:
                     raise AttributeError("Give me a protein")
             mol = Molecule(identifier="constraints")
-            for score, index in self.index_by_score.items():
+            for index, score in self.index_by_score.items():
                 atm = self.protein.atoms[index]
                 atm.label = str(score)
                 mol.add_atom(atm)
@@ -811,19 +811,37 @@ class Results(Helper):
         :param int max_constraints: max number of constraints
         :return dic: score by atom
         """
+        def coord_array(atm_list):
+            return np.array([[atm.coordinates[0], atm.coordinates[1], atm.coordinates[2]] for atm in atm_list])
+
         hspm = HotspotPharmacophoreModel()
+        self.protein = p
+        prot_coords = coord_array(self.protein.atoms)
+
         hspm.from_hotspot(hr=self, projections=True)
 
-        index_by_score = {}
+        constraint_dic = {}
         for feat in hspm.detected_features:
-            if feat.identifier not in ["donor_projected", "acceptor_projected"]:
-                continue
+            if feat.identifier in ["donor_projected", "acceptor_projected"]:
+                bs_atm = feat.projected_atom
+                bs_coords = np.array([[bs_atm.coordinates[0], bs_atm.coordinates[1], bs_atm.coordinates[2]]])
+                constraint_index = np.argmin(distance.cdist(prot_coords, bs_coords))
+                if feat.identifier == "acceptor_projected":
+                    hydrogens = [atm for atm in self.protein.atoms[constraint_index].neighbours
+                                 if atm.atomic_symbol == 'H']
+                    h_coords = coord_array(hydrogens)
+                    feat_coord = [feat.spheres[0].centre[0], feat.spheres[0].centre[1], feat.spheres[0].centre[2]]
+                    print(h_coords)
+                    h_index = np.argmin(distance.cdist(h_coords, np.array([feat_coord])))
+                    constraint_index = hydrogens[h_index].index
+                constraint_dic.update({constraint_index: feat.score})
 
-            if len(index_by_score) < max_constraints:
-                index_by_score.update({feat.score: feat.projected_atom.index})
+        index_by_score = OrderedDict(sorted(constraint_dic.items(), key=lambda item: item[1], reverse=True))
+        discard = list(index_by_score.keys())[max_constraints:]
+        for d in discard:
+            index_by_score.pop(d)
 
-        index_by_score = OrderedDict(reversed(list(index_by_score.items())))
-
+        print(index_by_score)
         return self._ConstraintData(index_by_score, self.protein)
 
     def _usr_moment(self, threshold=14):

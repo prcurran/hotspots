@@ -110,8 +110,8 @@ def dock(inputs):
 
     # read the hotspot
     hotspot = HotspotReader(hotspot).read()
-    for p, g in hotspot.super_grids.items():
-        hotspot.super_grids[p] = g.max_value_of_neighbours()  # dilation to reduce noise
+    # for p, g in hotspot.super_grids.items():
+    #     hotspot.super_grids[p] = g.max_value_of_neighbours()  # dilation to reduce noise
 
     add_ligands(docker, ligand_path)
     add_protein(docker, hotspot, junk)

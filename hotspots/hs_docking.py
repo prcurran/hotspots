@@ -68,12 +68,15 @@ class DockerSettings(docking.Docker.Settings):
         def __init__(self, atoms, weight=5.0, min_hbond_score=0.001, _constraint=None):
             self.atoms = atoms[:]
             for a in self.atoms:
+                print(a.label)
+                print(a.index)
                 if not self._is_protein_atom(a):
                     raise RuntimeError('One of the atoms is not in the protein')
                 if (
                         not (a.atomic_number == 1 and a.neighbours[0].is_donor) and
                         not (a.is_acceptor)
                 ):
+
                     raise RuntimeError('One of the atoms does not form an HBond')
             self._add_to_protein = atoms[0]._molecule
             self.weight = weight
@@ -98,7 +101,7 @@ class DockerSettings(docking.Docker.Settings):
                     for i, index in enumerate(constraints.score_by_index.values()) if i < max]
 
         @staticmethod
-        def create(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001, cutoff=10):
+        def create(protein, hr, max_constraints=2, weight=5.0, min_hbond_score=0.001, cutoff=8):
             """
             creates a :class:`hotspots.hs_docking.HotspotHBondConstraint`
 
@@ -110,30 +113,15 @@ class DockerSettings(docking.Docker.Settings):
             :param cutoff: minimum score required to assign the constraint
             :return list: list of :class:`hotspots.hs_docking.HotspotHBondConstraint`
             """
-            # for atm in protein.atoms:
-            #     atm.partial_charge = int(0)
-            # prot = hr.score(protein)
-            #
-            # coords = np.array([a.coordinates for a in prot.atoms])
-            # atm_dic = {atm.partial_charge: atm for atm in prot.atoms
-            #            if type(atm.partial_charge) is float
-            #            and ((atm.atomic_number == 1 and atm.neighbours[0].is_donor) or atm.is_acceptor)
-            #            and _is_solvent_accessible(coords, atm, min_distance=2)
-            #            }
-            #
-            # print(atm_dic)
-            #
-            # if len(atm_dic) > max_constraints:
-            #     scores = sorted([f[0] for f in atm_dic.items()], reverse=True)[:max_constraints]
-            # else:
-            #     scores = sorted([f[0] for f in atm_dic.items()], reverse=True)
-
             constraints = hr._docking_constraint_atoms(p=protein, max_constraints=max_constraints)
 
-            return [DockerSettings.HotspotHBondConstraint(atoms=[protein.atoms[constraints.score_by_index[a]]],
+            with io.MoleculeWriter("/home/pcurran/github_packages/GOLD/akt1/check.mol2") as w:
+                w.write(constraints.to_molecule())
+
+            return [DockerSettings.HotspotHBondConstraint(atoms=[protein.atoms[i]],
                                                           weight=weight,
                                                           min_hbond_score=min_hbond_score)
-                    for a in constraints.score_by_index.keys() if a > cutoff]
+                    for i, s in constraints.index_by_score.items() if s > cutoff]
 
         def _to_string(self):
             s = '%.4f %.4f %s' % (
@@ -189,6 +177,12 @@ class DockerSettings(docking.Docker.Settings):
             w.write(mol)
 
         self.fitting_points_file = fname
+
+
+def pharmacophore_constraints(gold_conf):
+
+    x = 1
+
 
 
 # def _is_solvent_accessible(protein_coords, atm, min_distance=2):
