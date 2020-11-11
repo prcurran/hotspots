@@ -390,7 +390,7 @@ class HotspotReader(object):
 
         if self.top_extension == ".zip":
             temp = tempfile.mkdtemp(prefix=getenv('TMPDIR_PREFIX', None))
-
+            print("extract to ", temp)
             with zipfile.ZipFile(self.path) as hs_zip:
                 hs_zip.extractall(temp)
 

@@ -1020,17 +1020,17 @@ class Results(Helper):
         scores_by_type = {}
         for probe in sub_grids.keys():
             # detemine clashes by atom type
-            clash_g = (sub_grids[probe] < -0.5) * mol_grids[probe]
+            clash_g = (sub_grids[probe] < 0) * (mol_grids[probe]>0)
             # clash_g.write("clash_{}.grd".format(probe))
             clash_array = clash_g.get_array()
             scores_by_type[f"{probe}_clash"] = np.sum(clash_array)
 
             # overlap between the maps and the molecule X 2
-            match_grid = (sub_grids[probe] > 0) * sub_grids[probe] * mol_grids[probe] * 2
+            match_grid = (sub_grids[probe] > 0) * sub_grids[probe].copy()  * (mol_grids[probe] > 0) * 2
             # match_grid.write(f"{probe}_match.grd")
 
             # non-match
-            non_match_grids = [sub_grids[p] * (sub_grids[p] > 0) * mol_grids[probe]
+            non_match_grids = [sub_grids[p].copy() * (sub_grids[p] > 0) * (mol_grids[probe]>0)
                                for p in sub_grids.keys()
                                if p in bad_interaction_dict[probe]]
 
