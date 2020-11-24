@@ -72,7 +72,9 @@ class Grid(utilities.Grid):
             g.set_sphere(point=a.coordinates,
                          radius=a.vdw_radius * scaling,
                          value=value,
-                         scaling=scaling_type)
+                         scaling=scaling_type,
+                         mode='max')
+
         return g
 
     def from_coords(self, coords, scaling=1):
@@ -403,7 +405,7 @@ class Grid(utilities.Grid):
             else:
                 continue
 
-    def value_at_coordinate(self, coordinates, tolerance=1, position=True):
+    def value_at_coordinate(self, coordinates, tolerance=1, position=True, return_list = False):
         """
         Uses Grid.value() rather than Grid.value_at_point(). Chris Radoux reported speed issues.
         :param coordinates:
@@ -420,6 +422,8 @@ class Grid(utilities.Grid):
                     if 0 < (i + di) < nx and 0 < (j + dj) < ny and 0 < (k + dk) < nz:
                         scores.update({self.value(i + di, j + dj, k + dk): (i + di, j + dj, k + dk)})
 
+        if return_list:
+            return scores.keys()
         if len(scores) > 0:
             score = sorted(scores.keys(), reverse=True)[0]
 

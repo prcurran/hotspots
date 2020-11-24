@@ -64,6 +64,9 @@ class _Scorer(Helper):
         self.hotspot_result = hotspot_result
         self.object = obj
         self.tolerance = tolerance
+        self.score_dict = {'apolar': [],
+                           'donor': [],
+                           'acceptor': []}
 
         if isinstance(obj, Protein):
             self._scored_object = self.score_protein()
@@ -217,12 +220,23 @@ class _Scorer(Helper):
         :return:
         """
         # TODO: score has been placed in partial charge field. This score will persist during read and write
+        bad_interaction_dict = {'apolar': ['acceptor', 'donor'],
+                                'donor': ['acceptor', 'apolar'],
+                                'acceptor': ['donor', 'apolar']}
         mol = copy.copy(self.object)
         for atom in mol.heavy_atoms:
             atom_type = self._atom_type(atom=atom)
+            if atom_type == 'no_score':
+                continue
             score = self._score_atom_type(atom_type, atom.coordinates)
-            atom.partial_charge = score
+            self.score_dict[atom_type] += score
+            for probe in bad_interaction_dict[atom_type]:
+                bad_score = self._score_atom_type(probe, atom.coordinates)
+                self.score_dict[probe] +=  [-1*s for s in  bad_score]
+            # atom.partial_charge = score
 
+        for probe, score_li in self.score_dict.items():
+            self.score_dict[probe] = np.mean(np.array(score_li))
         return mol
 
     @staticmethod
@@ -261,14 +275,17 @@ class _Scorer(Helper):
             apolar_score = self.hotspot_result.super_grids['apolar'].value_at_coordinate(coordinates,
                                                                                          tolerance=self.tolerance,
                                                                                          position=False)
-            if apolar_score > 2:
-                return 1
-            else:
-                return 0
+            return [0]
+            # if apolar_score > 2:
+            #     return 1
+            # else:
+            #     return 0
+
+
 
         score =self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
                                                                               tolerance=self.tolerance,
-                                                                              position=False)
+                                                                              position=False, return_list=True)
 
         return score
 
@@ -315,7 +332,7 @@ class _Scorer(Helper):
         :return:
         """
         if atom.is_donor and atom.is_acceptor:
-            return "doneptor"
+            return "donor"
 
         elif atom.is_acceptor:
             return "acceptor"
@@ -523,7 +540,7 @@ class Results(Helper):
     #
     #     return extracted
 
-    def score(self, obj=None, tolerance=2):
+    def score(self, obj=None, tolerance=2, as_dict = False):
         """
         annotate protein, molecule or self with Fragment Hotspot scores
 
@@ -539,6 +556,8 @@ class Results(Helper):
         >>> np.median([a.partial_charge for a in p.atoms if a.partial_charge > 0])
         8.852499961853027
         """
+        if as_dict:
+            return _Scorer(self, obj, tolerance).score_dict
         return _Scorer(self, obj, tolerance).scored_object
 
     def _filter_map(self, g1, g2, tol):
@@ -917,12 +936,14 @@ class Results(Helper):
 
         max_score = 0
         for probe, g in self.super_grids.items():
+            g *= g
+            self.super_grids[probe] = g
             g_max = g.extrema[1]
             if g_max > max_score:
                 max_score = g_max
 
         for probe, g in self.super_grids.items():
-            g *= 100/max_score
+            g *= (100/max_score)
             self.super_grids[probe] = g
     # to grid_extension?
     ############################################################################################
@@ -930,12 +951,11 @@ class Results(Helper):
     def set_background(self, background_value=1.0):
         spacing = self.super_grids["apolar"]._spacing
         prot_g = Grid.from_molecule(self.protein, value=background_value, scaling_type='none', scaling=1, spacing=spacing)
-
         for probe, g in self.super_grids.items():
-            common_prot, common_g = Grid.common_grid([prot_g, g])
+            common_prot, common_g = Grid.common_grid([prot_g.copy(), g.copy()])
             bg_mask =  (common_prot <0.1) & (common_g <1)
-            tmp_g = common_g + bg_mask
-            new_g = tmp_g - (common_prot)
+            tmp_g = common_g.copy() + bg_mask.copy()
+            new_g = tmp_g.copy() - (common_prot.copy())
             origin, corner = g.bounding_box
             i,j,k = new_g.point_to_indices(origin)
             l,m,n = new_g.point_to_indices(corner)
@@ -958,8 +978,8 @@ class Results(Helper):
         :rtype: dict
         """
         if not g:
-            g = Grid.initalise_grid(coords=[a.coordinates for a in mol.atoms],
-                                    padding=1)
+            g = Grid.initalise_grid(coords=[a.coordinates for a in mol.heavy_atoms],
+                                    padding=4)
 
         grid_dict = {"donor": g.copy(),
                      "acceptor": g.copy(),
@@ -967,16 +987,17 @@ class Results(Helper):
 
         for p, g in grid_dict.items():
             if p == "acceptor":
-                atms = [a for a in mol.atoms if Helper.get_atom_type(a) == p and
-                        'H' not in [n.label for n in a.neighbours]]
+                atms = [a for a in mol.heavy_atoms if Helper.get_atom_type(a) == p and
+                        'H' not in [n.atomic_symbol for n in a.neighbours]]
             else:
-                atms = [a for a in mol.atoms if Helper.get_atom_type(a) == p]
+                atms = [a for a in mol.heavy_atoms if Helper.get_atom_type(a) == p]
 
             for atm in atms:
                 g.set_sphere(point=atm.coordinates,
                              radius=atm.vdw_radius,
                              value=1,
-                             scaling='None')
+                             scaling='None',
+                             mode='max')
 
         return grid_dict
 
@@ -990,7 +1011,7 @@ class Results(Helper):
     def shrink_to_mols(self,mols):
         """Reduces the grid size to be just large enough to contain all mol objects in mol"""
 
-        blank_grd = Grid.initalise_grid([a.coordinates for l in mols for a in l.atoms])
+        blank_grd = Grid.initalise_grid([a.coordinates for l in mols for a in l.atoms], padding=4)
         for probe, g in self.super_grids.items():
             self.super_grids[probe] = Grid.shrink(blank_grd, g)
 
@@ -1011,6 +1032,9 @@ class Results(Helper):
                                 'donor': ['acceptor', 'apolar'],
                                 'acceptor': ['donor', 'apolar']}
 
+        # for p,g in mol_grids.items():
+        #     g.write('{}_g.grd'.format(p))
+
         sub_grids = {p: self._shrink_to_common(mol_grids[p], self.super_grids[p]) for p in mol_grids.keys()}
 
         # sub_grid dimension must be the same a mol_grid
@@ -1026,22 +1050,26 @@ class Results(Helper):
             scores_by_type[f"{probe}_clash"] = np.sum(clash_array)
 
             # overlap between the maps and the molecule X 2
-            match_grid = (sub_grids[probe] > 0) * sub_grids[probe].copy()  * (mol_grids[probe] > 0) * 2
-            # match_grid.write(f"{probe}_match.grd")
+            match_grid = sub_grids[probe].copy() * (mol_grids[probe].copy()) * 2
+            # match_grid.write(f"{probe}_match2.grd")
 
             # non-match
-            non_match_grids = [sub_grids[p].copy() * (sub_grids[p] > 0) * (mol_grids[probe]>0)
+            non_match_grids = [(sub_grids[p].copy() * mol_grids[probe].copy())
                                for p in sub_grids.keys()
                                if p in bad_interaction_dict[probe]]
 
+
             non_match_g = non_match_grids[0] + non_match_grids[1]
-            # non_match_g.write(f"{probe}_nonmatch.grd")
+
+            # non_match_g.write(f"{probe}_nonmatch2.grd")
 
             # the score is the difference between matches and non-matches
             score_g = match_grid - non_match_g
-            # score_g.write(f"{probe}_overall.grd")
 
-            score_array = score_g.get_array()
+            # score_g.write(f"{probe}_overall2.grd")
+
+            score_array = np.around(score_g.get_array(),2)
+
             non_zero = score_array[score_array != 0]
 
             if len(non_zero) > 0:

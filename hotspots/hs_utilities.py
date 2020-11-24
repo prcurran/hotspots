@@ -213,16 +213,16 @@ class Helper(object):
         :param atom:
         :return:
         """
-        if atom.is_donor and \
-                atom.atomic_symbol == 'N' and \
-                len([a for a in atom.neighbours if a.atomic_symbol == 'H']) >= 2:
+        # if atom.is_donor and \
+        #         atom.atomic_symbol == 'N' and \
+        #         len([a for a in atom.neighbours if a.atomic_symbol == 'H']) >= 2:
+        #     return "donor"
+        # if atom.is_donor and atom.is_acceptor:
+        #     return "doneptor"
+        if atom.is_donor:
             return "donor"
-        elif atom.is_donor and atom.is_acceptor:
-            return "doneptor"
-        elif atom.is_acceptor:
+        if atom.is_acceptor:
             return "acceptor"
-        elif atom.is_donor:
-            return "donor"
         else:
             return "apolar"
 
