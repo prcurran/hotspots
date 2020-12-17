@@ -36,16 +36,6 @@ import tempfile
 from os.path import basename, splitext, join, dirname
 
 import numpy as np
-from ccdc import io
-from ccdc.descriptors import GeometricDescriptors
-from ccdc.molecule import Atom, Molecule, Coordinates
-from ccdc.pharmacophore import Pharmacophore
-from ccdc.protein import Protein
-
-from hotspots.grid_extension import Grid, Coordinates
-from hotspots.hs_utilities import Helper
-from hotspots.template_strings import pymol_arrow, pymol_imports, pymol_protein, crossminer_features, pymol_labels
-from hotspots.wrapper_pdb import Query, PDB, PDBResult
 
 from rdkit import Chem, DataStructs
 from rdkit.Chem import MACCSkeys, AllChem
@@ -57,6 +47,23 @@ import pandas as pd
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 import hdbscan
+
+# Development note. We import the CCDC modules after 3rd part modules where possible as
+# we generally find that the ccdc package is less fussy about the underlying compiled
+# libraries used.
+#  
+
+from ccdc import io
+from ccdc.descriptors import GeometricDescriptors
+from ccdc.molecule import Atom, Molecule, Coordinates
+from ccdc.pharmacophore import Pharmacophore
+from ccdc.protein import Protein
+
+from hotspots.grid_extension import Grid, Coordinates
+from hotspots.hs_utilities import Helper
+from hotspots.template_strings import pymol_arrow, pymol_imports, pymol_protein, crossminer_features, pymol_labels
+from hotspots.wrapper_pdb import Query, PDB, PDBResult
+
 
 
 def tanimoto_dist(a, b):
