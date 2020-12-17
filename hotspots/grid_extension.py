@@ -22,7 +22,7 @@ from __future__ import print_function, division
 import collections
 import operator
 import numpy as np
-from ccdc import utilities
+
 from hotspots.hs_utilities import Helper
 from scipy import ndimage
 from scipy.spatial import distance
@@ -30,7 +30,7 @@ from skimage import feature
 from skimage.morphology import ball
 from os.path import join, basename
 from scipy.stats import norm
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import pickle
 from functools import reduce
 
@@ -40,6 +40,8 @@ try:
     from hdbscan import HDBSCAN
 except ImportError:
     print('HDBSCAN module not installed. _GridEnsemble clustering not available.')
+
+from ccdc import utilities
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 

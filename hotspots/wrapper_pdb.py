@@ -19,6 +19,7 @@ from tqdm import tqdm
 if sys.version_info.major == 2:
     from urllib2 import Request as request
     from urllib2 import urlopen as urlopen
+    
 
 else:
     from urllib.request import Request as request
@@ -382,19 +383,21 @@ class PDBResult(object):
         :param identifier:
         """
         self.identifier = identifier
-
-        self._ligands = self.get_ligands()
+        self._ligands = None 
 
     def _raw_properties(self, info_type='ligand'):
         """
 
         :return:
         """
+        raise NotImplementedError("TODO: The PDB wrapper code needs updating to use the modern RESTful API") 
+
         info_type_dict = {'describe_pdb': '/describePDB?structureId=',
                           'describe_mol': '/describeMol?structureId=',
                           'ligand': '/ligandInfo?structureId=',
                           'pfam': '/hmmer?structureId=',
                           'general': '/getEntityInfo?structureId='}
+
 
         url = request(base_url + info_type_dict[info_type] + self.identifier)
         return urlopen(url)
@@ -408,6 +411,9 @@ class PDBResult(object):
         :param field:
         :return:
         """
+        
+        raise NotImplementedError("TODO: The PDB wrapper code needs updating to use the modern RESTful API")
+        
         extension = "/customReport.xml?pdbids={}&customReportColumns={}&service=wsfile&format=xml".format(self.identifier, field)
         url = request(base_url + extension)
 
@@ -447,6 +453,9 @@ class PDBResult(object):
     @property
     def ligands(self):
         """"""
+        if self._ligands == None:
+            self._ligands = self.get_ligands()
+        
         return self._ligands
 
     def get_ligands(self):

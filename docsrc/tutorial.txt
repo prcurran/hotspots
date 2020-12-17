@@ -71,7 +71,7 @@ Create conda environment using the environment.yml:
 
 .. code-block:: shell
 
-    conda create -n hotspots -f environment.yml
+    conda env create -n hotspots --file environment.yml
 
 Finally, there are a few environment variables to set:
 
