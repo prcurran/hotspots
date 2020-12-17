@@ -17,7 +17,14 @@ from os.path import exists, join, abspath
 
 # import matplotlib as mpl
 # mpl.use('TkAgg')
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    import sys
+    sys.stderr.write("Matplotlib import failed: probably due to incompatibilities. Plotting utilities will not work")
+    plt = None
+
 
 import numpy as np
 
