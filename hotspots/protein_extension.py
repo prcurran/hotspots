@@ -1,7 +1,7 @@
-from ccdc import protein
 import numpy as np
 from scipy.spatial import distance
 
+from ccdc import protein
 
 def centroid(arr):
     length = arr.shape[0]
