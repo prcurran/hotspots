@@ -28,16 +28,23 @@ from os.path import join
 
 import numpy as np
 import pkg_resources
-from ccdc.cavity import Cavity
-from ccdc.io import MoleculeWriter, MoleculeReader
-from ccdc.molecule import Molecule, Coordinates
-from ccdc.protein import Protein
-from ccdc.utilities import PushDir
+
 from scipy import ndimage
 from skimage.morphology import ball
 from skimage.transform import resize
 # from hotspots.protoss import Protoss
 from tqdm import tqdm
+
+# Development note. We import the CCDC modules after 3rd part modules where possible as
+# we generally find that the ccdc package is less fussy about the underlying compiled
+# libraries used.
+#  
+
+from ccdc.cavity import Cavity
+from ccdc.io import MoleculeWriter, MoleculeReader
+from ccdc.molecule import Molecule, Coordinates
+from ccdc.protein import Protein
+from ccdc.utilities import PushDir
 
 from hotspots.atomic_hotspot_calculation import _AtomicHotspot
 from hotspots.grid_extension import Grid
