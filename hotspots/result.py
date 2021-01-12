@@ -45,7 +45,7 @@ from scipy.spatial import distance
 from hotspots.grid_extension import Grid, _GridEnsemble
 
 from hotspots.hs_pharmacophore import PharmacophoreModel
-from hotspots.pharmacophore_extension import HotspotPharmacophoreModel
+from hotspots.pharmacophore_extension import HotspotPharmacophoreModel, ProteinPharmacophoreModel
 
 from hotspots.hs_utilities import Helper
 from hotspots.protein_extension import Protein
@@ -67,6 +67,7 @@ class _Scorer(Helper):
         self.score_dict = {'apolar': [],
                            'donor': [],
                            'acceptor': []}
+        self.protein_score_dict = {}
 
         if isinstance(obj, Protein):
             self._scored_object = self.score_protein()
@@ -86,6 +87,79 @@ class _Scorer(Helper):
     @property
     def scored_object(self):
         return self._scored_object
+
+    def _is_within_tol_of_grid(self, mol, grid):
+        a_scores = [grid.value_at_coordinate(a.coordinates, tolerance=3, position=False) for a in mol.atoms]
+        if max(a_scores) > 5:
+            return True
+        return False
+
+    def _score_protein_features(self, prot):
+
+        # Interactions to be used
+        feature_partner_grid = {"acceptor_projected": ("donor", True),
+                                "donor_projected": ("acceptor", True),
+                                "donor_ch_projected": ("acceptor", True),
+                                "hydrophobe": ("apolar", False)}
+
+        # Make a single grid
+        masked_dic, single_grid = Grid.get_single_grid(self.hotspot_result.super_grids)
+        print("Single grid generated")
+        # Get binding site
+        # bs_residues = Protein.BindingSiteFromGrid._detect_from_grid(prot, single_grid, 3)
+        bs_residues = [res for res in prot.residues if self._is_within_tol_of_grid(res,single_grid)]
+        bs_residue_ids = [res.identifier for res in bs_residues]
+        # bs = Protein.BindingSiteFromListOfResidues(prot, bs_residues)
+        bs = prot.copy()
+        for residue in bs.residues:
+            if residue.identifier not in bs_residue_ids:
+                bs.remove_residue(residue.identifier)
+        print("extracted binding site")
+        # Loop over binding site residues and get features
+
+
+        # Each prot is a Molecule object, so use ligand pharmacophore detection on the binding site
+        ppm = ProteinPharmacophoreModel()
+        ppm.detect_from_binding_site(bs)
+
+        atom_coordinate_dict = {}
+
+        for feat in ppm.detected_features:
+            probe, projected = feature_partner_grid[feat.description]
+            if projected:
+                s = feat.get_projected()[0]
+                coords = (s.centre[0], s.centre[1], s.centre[2])
+                print(coords)
+                score = self.hotspot_result.super_grids[probe].value_at_coordinate(coords, tolerance=1, position=False)
+            else:
+                s = feat.get_point()[0]
+                coords = (s.centre[0], s.centre[1], s.centre[2])
+                print(coords)
+                score = self.hotspot_result.super_grids[probe].value_at_coordinate(coords, tolerance=3, position=False)
+            print(feat.label, feat.point_atom, feat.get_point(), feat.get_projected())
+
+            feat_info = {'feature_type': feat.description,
+                         'point_atom': feat.point_atom,
+                         'scoring_grid': probe,
+                         'score': score}
+
+            s = feat.get_point()[0]
+            atom_coords = (s.centre[0], s.centre[1], s.centre[2])
+
+            try:
+                atom_coordinate_dict[atom_coords].append(feat_info)
+            except KeyError:
+                atom_coordinate_dict[atom_coords] = [feat_info]
+
+        for atom in prot.atoms:
+            try:
+                atom_coords = (atom.coordinates[0], atom.coordinates[1], atom.coordinates[2])
+                feat_info = atom_coordinate_dict[atom_coords]
+                max_score = max([f['score'] for f in feat_info])
+                self.protein_score_dict[atom.index] = max_score
+            except KeyError:
+                continue
+
 
     def _score_protein_cavity(self, prot):
         """
@@ -120,6 +194,8 @@ class _Scorer(Helper):
                         else:
                             score = max(score)
                         prot.atoms[atm.index].partial_charge = score
+                        self.protein_score_dict[atm.index] = score
+                        print(score)
 
                 # polar cavity residues
                 if feature.type == "acceptor" or feature.type == "donor" or feature.type == "doneptor":
@@ -138,6 +214,7 @@ class _Scorer(Helper):
                             print(score)
 
                         prot.atoms[feature.atom.index].partial_charge = score
+                        self.protein_score_dict[feature.atom.index] = score
 
                         # score hydrogen atoms (important for GOLD)
                         a = [a.index for a in prot.atoms[feature.atom.index].neighbours
@@ -145,6 +222,8 @@ class _Scorer(Helper):
                         if len(a) > 0:
                             for atm in a:
                                 prot.atoms[atm].partial_charge = score
+                                self.protein_score_dict[atm.index] = score
+                                print("H atom score", score)
 
         return prot
 
@@ -204,13 +283,14 @@ class _Scorer(Helper):
         # TODO: enable cavities to be generated from Protein objects
 
         prot = self.object
-        try:
-            prot = self._score_protein_cavity(prot=prot)
-            print("a")
-
-        except IndexError:
-            prot = self._score_protein_backup(prot=prot)
-            print("b")
+        prot = self._score_protein_features(prot)
+        # try:
+        #     prot = self._score_protein_cavity(prot=prot)
+        #     print("a")
+        #
+        # except IndexError:
+        #     prot = self._score_protein_backup(prot=prot)
+        #     print("b")
 
         return prot
 
@@ -228,15 +308,15 @@ class _Scorer(Helper):
             atom_type = self._atom_type(atom=atom)
             if atom_type == 'no_score':
                 continue
-            score = self._score_atom_type(atom_type, atom.coordinates)
+            score = [self._score_atom_type(atom_type, atom.coordinates)]
             self.score_dict[atom_type] += score
             for probe in bad_interaction_dict[atom_type]:
-                bad_score = self._score_atom_type(probe, atom.coordinates)
+                bad_score = [self._score_atom_type(probe, atom.coordinates)]
                 self.score_dict[probe] +=  [-1*s for s in  bad_score]
             # atom.partial_charge = score
 
         for probe, score_li in self.score_dict.items():
-            self.score_dict[probe] = np.mean(np.array(score_li))
+            self.score_dict[probe] = score_li
         return mol
 
     @staticmethod
@@ -275,7 +355,7 @@ class _Scorer(Helper):
             apolar_score = self.hotspot_result.super_grids['apolar'].value_at_coordinate(coordinates,
                                                                                          tolerance=self.tolerance,
                                                                                          position=False)
-            return [0]
+            return apolar_score
             # if apolar_score > 2:
             #     return 1
             # else:
@@ -285,7 +365,7 @@ class _Scorer(Helper):
 
         score =self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
                                                                               tolerance=self.tolerance,
-                                                                              position=False, return_list=True)
+                                                                              position=False)
 
         return score
 
@@ -344,10 +424,10 @@ class _Scorer(Helper):
             return "dummy"
 
         else:
-            polar_neighbours = [a for a in atom.neighbours if a.is_donor or a.is_acceptor]
-            if len(polar_neighbours) == 0:
-                return "apolar"
-            return "no_score"
+            # polar_neighbours = [a for a in atom.neighbours if a.is_donor or a.is_acceptor]
+            # if len(polar_neighbours) == 0:
+            return "apolar"
+            # return "no_score"
 
 class Results(Helper):
     """
@@ -557,7 +637,10 @@ class Results(Helper):
         8.852499961853027
         """
         if as_dict:
-            return _Scorer(self, obj, tolerance).score_dict
+            if isinstance(obj, Protein):
+                return _Scorer(self, obj, tolerance).protein_score_dict
+            elif isinstance(obj, Molecule):
+                return _Scorer(self, obj, tolerance).score_dict
         return _Scorer(self, obj, tolerance).scored_object
 
     def _filter_map(self, g1, g2, tol):
@@ -950,12 +1033,12 @@ class Results(Helper):
 
     def set_background(self, background_value=1.0):
         spacing = self.super_grids["apolar"]._spacing
-        prot_g = Grid.from_molecule(self.protein, value=background_value, scaling_type='none', scaling=1, spacing=spacing)
+        prot_g = Grid.from_molecule(self.protein, value=1, scaling_type='none', scaling=1, spacing=spacing)
         for probe, g in self.super_grids.items():
             common_prot, common_g = Grid.common_grid([prot_g.copy(), g.copy()])
-            bg_mask =  (common_prot <0.1) & (common_g <1)
+            bg_mask =  ((common_prot <0.1) & (common_g <1))*background_value
             tmp_g = common_g.copy() + bg_mask.copy()
-            new_g = tmp_g.copy() - (common_prot.copy())
+            new_g = tmp_g.copy() - (common_prot.copy()*(common_g.copy() < 1))
             origin, corner = g.bounding_box
             i,j,k = new_g.point_to_indices(origin)
             l,m,n = new_g.point_to_indices(corner)
@@ -1081,6 +1164,19 @@ class Results(Helper):
             scores_by_type[probe] = score
 
         return scores_by_type
+
+    @staticmethod
+    def max_potential_score(max_g, mol, tolerance =2):
+        score_li = []
+
+        for atom in mol.heavy_atoms:
+            score = max_g.value_at_coordinate(atom.coordinates,
+                                             tolerance=tolerance,
+                                             position=False,
+                                             )
+            score_li.append(score)
+
+        return score_li
 
     ############################################################################################
 

@@ -305,7 +305,7 @@ class PharmacophoreModel(Pharmacophore.Query):
         super().__init__()
         self.cm_dir = os.path.dirname(os.path.dirname(csd_directory()))
         Pharmacophore.read_feature_definitions(directory=os.path.join(self.cm_dir,
-                                                                      "CSD_CrossMiner/feature_definitions"))
+                                                                      "../CSD_CrossMiner/feature_definitions"))
         self.__feature_options = {k: v for k, v in Pharmacophore.feature_definitions.items()}
         assert len(self.__feature_options) > 1
 
@@ -532,6 +532,32 @@ class ProteinPharmacophoreModel(PharmacophoreModel):
                 for f in detected_feats:
                     self.detected_features.append(f)
 
+    def detect_from_binding_site(self, bs):
+        """
+        Add features to pharmacophore model from a binding site
+
+        :param `ccdc.crystal.Crystal` or `ccdc.molecule.Molecule` ligand: a ligand
+        :return:
+        """
+
+        prot = self._get_crystal(bs)
+        with MoleculeWriter('binding_site.pdb') as w:
+            w.write(bs)
+
+        self.protein = prot
+        self.detected_features = []
+
+        bs_features = ["acceptor_projected", "donor_projected", "donor_ch_projected",
+                       "hydrophobe"]
+        for fd in self.feature_definitions.values():
+            if fd.identifier not in bs_features:
+                continue
+
+            detected_feats = fd.detect_features(prot)
+            if len(detected_feats) != 0:
+                for f in detected_feats:
+                    self.detected_features.append(f)
+
 
 class LigandPharmacophoreModel(PharmacophoreModel):
     """
@@ -571,6 +597,7 @@ class LigandPharmacophoreModel(PharmacophoreModel):
         """
         if isinstance(ligand, Molecule):
             ligand = self._get_crystal(ligand)
+
 
         self.ligands = [ligand]
 
