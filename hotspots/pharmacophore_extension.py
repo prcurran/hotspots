@@ -304,8 +304,11 @@ class PharmacophoreModel(Pharmacophore.Query):
     def __init__(self):
         super().__init__()
         self.cm_dir = os.path.dirname(os.path.dirname(csd_directory()))
-        Pharmacophore.read_feature_definitions(directory=os.path.join(self.cm_dir,
+
+        feat_db = os.environ.get("CCDC_CROSSMINER_FEATURE_DEFINITIONS", os.path.join(self.cm_dir,
                                                                       "../CSD_CrossMiner/feature_definitions"))
+
+        Pharmacophore.read_feature_definitions(directory=feat_db)
         self.__feature_options = {k: v for k, v in Pharmacophore.feature_definitions.items()}
         assert len(self.__feature_options) > 1
 
