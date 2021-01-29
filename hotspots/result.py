@@ -1298,7 +1298,10 @@ class Extractor(object):
         for f in range(0,10):
             if self.settings._num_gp <= current_num_gp:
                 break
-            grown = Grid.grow(self.best_island, self.second_best_island)
+            try:
+                grown = Grid.grow(self.best_island, self.second_best_island)
+            except IndexError:
+                break
             self.best_island = self._remove_protein_vol(grown)
             old_num_gp = current_num_gp
 
@@ -1328,7 +1331,7 @@ class Extractor(object):
         :param float start_threshold: island threshold
         :return float: threhold
         """
-        for threshold in range(int(start_threshold * 2), 0, -1):
+        for threshold in range(int(start_threshold * 2), 10, -1):
             threshold *= 0.1
             self.best_island = self._single_grid.get_best_island(threshold)
             if self.best_island is not None:
