@@ -402,9 +402,9 @@ class Runner(object):
             pa_type = None
             if priority_atom.formal_charge != 0:
                 if priority_atom.formal_charge < 0:
-                    pa_type = "negative"
+                    pa_type = "acceptor"
                 elif priority_atom.formal_charge > 0:
-                    pa_type = "positive"
+                    pa_type = "donor"
             else:
                 if priority_atom.is_acceptor:
                     pa_type = "acceptor"
@@ -476,6 +476,7 @@ class Runner(object):
             """
 
             return reduce(operator.__mul__, values, 1.0) ** (1. / len(values))
+            # return sum(values)
 
         def sample_pose(self, trans, active_atoms_dic, probe):
             """
@@ -542,7 +543,7 @@ class Runner(object):
 
             return active_coords_dic
 
-        def sample(self, molecule, probe):
+        def sample(self, molecule, probe, update_grids = True):
             """
             Sample the grids according to the settings
 
@@ -574,14 +575,17 @@ class Runner(object):
                                    for i in range(0, len(priority_atom_coordinates))]
 
                     score = self.sample_pose(translation, active_coordinates_dic, probe)
-                    if score < 1:
+
+                    try:
+                        if score < 1:
+                            continue
+                    except TypeError:
                         continue
-                    self.update_out_grids(score, active_coordinates_dic, translation)
+                    if update_grids:
+                        self.update_out_grids(score, active_coordinates_dic, translation)
 
                     if self.settings.return_probes is True:
-                        if score < 5:
-                            continue
-                        if score > 14:
+                        if score > 10:
                             m = molecule.copy()
                             m.translate(translation)
                             m.identifier = "{}".format(score)
@@ -593,13 +597,15 @@ class Runner(object):
 
             if self.settings.return_probes is True:
                 sampled_probes = []
-                for key in sorted(high_scoring_probes.iterkeys(), reverse=True):
+                for key in sorted(high_scoring_probes.keys(), reverse=True)[:100]:
                     sampled_probes.extend(high_scoring_probes[key])
                 print('Returned probes = ', len(sampled_probes))
-                if len(sampled_probes) > 10000:
-                    return sampled_probes[:10000]
-                else:
-                    return sampled_probes
+                return sampled_probes
+
+                # if len(sampled_probes) > 100:
+                #     return sampled_probes[:100]
+                # else:
+                #     return sampled_probes
 
     def __init__(self, settings=None):
         self.out_grids = {}
@@ -808,6 +814,18 @@ class Runner(object):
 
         return results
 
+    def _dock_probe(self,mol, grid_dict):
+
+        donor_grid = _SampleGrid('donor', grid_dict['donor'], _SampleGrid.is_donor)
+        acceptor_grid = _SampleGrid('acceptor', grid_dict['acceptor'], _SampleGrid.is_acceptor)
+        apolar_grid = _SampleGrid('apolar', grid_dict['apolar'], _SampleGrid.is_apolar)
+
+        kw = {'settings': self.sampler_settings}
+        self.sampler = self._Sampler(apolar_grid, donor_grid, acceptor_grid, **kw)
+
+        probes = self.sampler.sample(mol, probe='probe', update_grids=False)
+        return probes
+
     def _get_out_maps(self, probe, grid_dict, return_probes=False):
         """
         private method
@@ -979,6 +997,7 @@ class Runner(object):
                        protein=self.protein,
                        buriedness=self.buriedness)
 
+
     def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method='ghecom',
                      cavities=None, nprocesses=1, settings=None, buriedness_grid=None, clear_tmp=False):
         """
@@ -1097,3 +1116,30 @@ class Runner(object):
                        buriedness=self.buriedness,
                        superstar={x.identifier: x.grid for x in self.superstar_grids},
                        weighted_superstar={x.identifier: x.grid for x in self.weighted_grids})
+
+    def global_dock(self, hr:Results, mol, settings = None):
+        self.super_grids = hr.super_grids
+        self.buriedness = hr.buriedness
+        self.protein = hr.protein
+        self.charged_probes = False
+        self.probe_size = 7
+        self.buriedness_method = 'ligsite'
+        self.cavities = None
+        self.clear_tmp = True
+
+        if settings is None:
+            self.sampler_settings = self.Settings()
+
+        self.sampler_settings.return_probes = True
+        self.sampler_settings.nrotations = 2000
+        self.apolar_translation_threshold = 17
+        self.polar_translation_threshold = 17
+
+        print(hr.weighted_superstar)
+
+        grid_dict = hr.weighted_superstar
+
+
+        ps = self._dock_probe(mol, grid_dict)
+        return ps
+

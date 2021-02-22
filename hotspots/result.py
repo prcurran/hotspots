@@ -1196,6 +1196,16 @@ class Results(Helper):
         grid_dict = _single_grid.inverse_single_grid(_masked_dic)
         self.super_grids = grid_dict
 
+    def minimise_result_grids(self):
+
+        probes = ['apolar', 'donor', 'acceptor']
+        small_grids = [self.super_grids[p].minimal() for p in probes]
+        common_g = Grid.common_grid(small_grids, padding=1)
+        self.super_grids = {'apolar': common_g[0],
+                            'donor': common_g[1],
+                            'acceptor': common_g[2]}
+
+
 
 class Extractor(object):
     """
@@ -1324,7 +1334,7 @@ class Extractor(object):
 
         return threshold
 
-    def _step_down(self, start_threshold):
+    def _step_down(self, start_threshold, cav_rank =0):
         """
         Returns the maximum threshold for which the "best island" volume is smaller than the target volume
 
@@ -1333,7 +1343,7 @@ class Extractor(object):
         """
         for threshold in range(int(start_threshold * 2), 10, -1):
             threshold *= 0.1
-            self.best_island = self._single_grid.get_best_island(threshold)
+            self.best_island = self._single_grid.get_best_island(threshold, island_rank=cav_rank)
             if self.best_island is not None:
                 self.best_island = self.best_island.remove_small_objects(min_size=0.5*float(self.settings._num_gp))
 
@@ -1342,7 +1352,7 @@ class Extractor(object):
                 threshold += 0.1
                 break
 
-        self.best_island = self.single_grid.get_best_island(threshold)
+        self.best_island = self.single_grid.get_best_island(threshold, island_rank=cav_rank)
 
         return threshold
 
@@ -1373,3 +1383,41 @@ class Extractor(object):
         grid_dict = self.best_island.inverse_single_grid(self._masked_dic)
         print("Split to grid types")
         return Results(super_grids=grid_dict, protein=self.hotspot_result.protein)
+
+    def extract_all_volumes(self, volume="125", max_cavities=3):
+        """
+        Returns a HotspotResult with a restricted volume
+
+
+        :param int volume: target map volume
+        :return `hotspots.result.Results`: A fresh result object
+        """
+        self.settings.volume = volume
+        cavities = {}
+        self._single_grid = self.single_grid.minimal()
+
+        assert self.single_grid.count_grid() >= self.settings._num_gp
+        self.threshold = 40
+
+        for r in range(0,max_cavities):
+            print(r)
+            self.threshold = self._step_down(self.threshold*5, r)
+            self.best_island = self.best_island.remove_small_objects(min_size=0.5*float(self.settings._num_gp))
+
+            # try:
+            #     self.second_best_island = self.second_best_island.remove_small_objects(min_size=0.5*float(self.settings._num_gp))
+            # except AttributeError:
+            #     self.second_best_island = self.single_grid.remove_small_objects(
+            #         min_size=0.5 * float(self.settings._num_gp))
+            # self.threshold = self._grow()
+
+            print("Final score for cavity {} threshold is: {} ".format(r, self.threshold))
+            grid_dict = {p:g.minimal() for p,g in self.best_island.inverse_single_grid(self._masked_dic).items()}
+            print("Split to grid types")
+            if self.threshold <1:
+                break
+
+            hr = Results(super_grids=grid_dict, protein=self.hotspot_result.protein)
+            hr.minimise_result_grids()
+            cavities[r] = hr
+        return cavities

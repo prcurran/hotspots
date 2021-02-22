@@ -646,7 +646,7 @@ class Grid(utilities.Grid):
 
         return self.array_to_grid(dilated, self)
 
-    def get_best_island(self, threshold):
+    def get_best_island(self, threshold, island_rank = 0):
         """
         For a given threshold, the island which contains the most grid points will be returned
 
@@ -672,7 +672,10 @@ class Grid(utilities.Grid):
                 return None
 
             else:
-                rank = sorted(island_by_rank.keys(), reverse=True)[0]
+                try:
+                    rank = sorted(island_by_rank.keys(), reverse=True)[island_rank]
+                except IndexError:
+                    return None
                 print("threshold:", threshold, "count:", sorted(island_by_rank.keys(), reverse=True))
                 return island_by_rank[rank]
 
