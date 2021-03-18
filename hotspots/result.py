@@ -1400,21 +1400,22 @@ class Extractor(object):
         self.threshold = 40
 
         for r in range(0,max_cavities):
+            self.threshold +=1
             print(r)
             self.threshold = self._step_down(self.threshold*5, r)
             self.best_island = self.best_island.remove_small_objects(min_size=0.5*float(self.settings._num_gp))
 
-            # try:
-            #     self.second_best_island = self.second_best_island.remove_small_objects(min_size=0.5*float(self.settings._num_gp))
-            # except AttributeError:
-            #     self.second_best_island = self.single_grid.remove_small_objects(
-            #         min_size=0.5 * float(self.settings._num_gp))
-            # self.threshold = self._grow()
+            try:
+                self.second_best_island = self.second_best_island.remove_small_objects(min_size=0.5*float(self.settings._num_gp))
+            except AttributeError:
+                self.second_best_island = self.single_grid.remove_small_objects(
+                    min_size=0.5 * float(self.settings._num_gp))
+            self.threshold = self._grow()
 
             print("Final score for cavity {} threshold is: {} ".format(r, self.threshold))
-            grid_dict = {p:g.minimal() for p,g in self.best_island.inverse_single_grid(self._masked_dic).items()}
+            grid_dict = {p:g for p,g in self.best_island.inverse_single_grid(self._masked_dic).items()}
             print("Split to grid types")
-            if self.threshold <1:
+            if self.threshold <=5:
                 break
 
             hr = Results(super_grids=grid_dict, protein=self.hotspot_result.protein)
