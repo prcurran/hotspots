@@ -1410,13 +1410,18 @@ class Extractor(object):
             except AttributeError:
                 self.second_best_island = self.single_grid.remove_small_objects(
                     min_size=0.5 * float(self.settings._num_gp))
-            self.threshold = self._grow()
+            if self.threshold <=5:
+                break
+                
+            try:
+                self.threshold = self._grow()
+            except ValueError:
+                break
 
             print("Final score for cavity {} threshold is: {} ".format(r, self.threshold))
             grid_dict = {p:g for p,g in self.best_island.inverse_single_grid(self._masked_dic).items()}
             print("Split to grid types")
-            if self.threshold <=5:
-                break
+
 
             hr = Results(super_grids=grid_dict, protein=self.hotspot_result.protein)
             hr.minimise_result_grids()
