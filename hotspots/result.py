@@ -1394,7 +1394,7 @@ class Extractor(object):
         """
         self.settings.volume = volume
         cavities = {}
-        self._single_grid = self.single_grid.minimal()
+        # self._single_grid = self.single_grid.minimal()
 
         assert self.single_grid.count_grid() >= self.settings._num_gp
         self.threshold = 40
@@ -1412,7 +1412,7 @@ class Extractor(object):
                     min_size=0.5 * float(self.settings._num_gp))
             if self.threshold <=5:
                 break
-                
+
             try:
                 self.threshold = self._grow()
             except ValueError:

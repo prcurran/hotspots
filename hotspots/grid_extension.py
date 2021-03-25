@@ -283,11 +283,13 @@ class Grid(utilities.Grid):
 
     def minimal(self):
         """
+        TODO: Investigate why this changes values
         reduces grid size to the minimal dimensions
         :return: `ccdc.utilities.Grid`
         """
         try:
-            return Grid.super_grid(1, *self.islands(threshold=1))
+            small_g =  Grid.super_grid(1, *(self >2 ).islands(threshold=1))
+            return self.shrink(small_g,self,reverse_padding=0)
         except RuntimeError:
             return self
 
