@@ -308,10 +308,10 @@ class _Scorer(Helper):
             atom_type = self._atom_type(atom=atom)
             if atom_type == 'no_score':
                 continue
-            score = [self._score_atom_type(atom_type, atom.coordinates)]
+            score = self._score_atom_type(atom_type, atom.coordinates)
             self.score_dict[atom_type] += score
             for probe in bad_interaction_dict[atom_type]:
-                bad_score = [self._score_atom_type(probe, atom.coordinates)]
+                bad_score = self._score_atom_type(probe, atom.coordinates)
                 self.score_dict[probe] +=  [-1*s for s in  bad_score]
             # atom.partial_charge = score
 
@@ -354,7 +354,8 @@ class _Scorer(Helper):
         if grid_type =='no_score':
             apolar_score = self.hotspot_result.super_grids['apolar'].value_at_coordinate(coordinates,
                                                                                          tolerance=self.tolerance,
-                                                                                         position=False)
+                                                                                         position=False,
+                                                                                         return_list=True)
             return apolar_score
             # if apolar_score > 2:
             #     return 1
@@ -365,7 +366,8 @@ class _Scorer(Helper):
 
         score =self.hotspot_result.super_grids[grid_type].value_at_coordinate(coordinates,
                                                                               tolerance=self.tolerance,
-                                                                              position=False)
+                                                                              position=False,
+                                                                              return_list=True)
 
         return score
 
@@ -1173,9 +1175,9 @@ class Results(Helper):
             score = max_g.value_at_coordinate(atom.coordinates,
                                              tolerance=tolerance,
                                              position=False,
+                                             return_list=True
                                              )
-            score_li.append(score)
-
+            score_li += score
         return score_li
 
     ############################################################################################

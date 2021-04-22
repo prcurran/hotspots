@@ -221,6 +221,7 @@ class SelectivityResult(Helper):
         self.selectivity_result = None
         self.common_grid_dimensions = None
         self.common_grid_nsteps = None
+        self.common_grid_apolar = None
 
 
     @staticmethod
@@ -275,8 +276,11 @@ class SelectivityResult(Helper):
             #     print("Input grids of different size. Converting to same coordinates.")
             c_gr, c_off = Grid.common_grid([gr, off_gr])
 
-            diff_maps[probe] = _GridEnsemble.array_from_grid(c_gr - c_off)
+            # diff_maps[probe] = _GridEnsemble.array_from_grid(c_gr - c_off)
+            diff_g = c_gr - c_off
+            diff_maps[probe] = diff_g.get_array()
 
+        self.common_grid_apolar = diff_g
         self.common_grid_dimensions = np.array(c_gr.bounding_box)
         self.common_grid_nsteps = c_gr.nsteps
 
@@ -295,8 +299,8 @@ class SelectivityResult(Helper):
 
         for probe in probes_list:
             try:
+                print(probe)
                 dmap = diff_maps[probe]
-
                 if probe in polar_probes:
                     # Find the percentile threshold, if specified
                     perc = np.percentile(dmap[dmap>0], self.settings.polar_percentile_threshold)
@@ -308,13 +312,16 @@ class SelectivityResult(Helper):
                 elif probe in apolar_probes:
                     # Find the percentile threshold, if specified
                     perc = np.percentile(dmap[dmap > 0], self.settings.apolar_percentile_threshold)
+                    print(perc)
 
                     # Find clusters in the target and off-target maps
-                    clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap > perc),
-                                                                 min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
-                    clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap < -perc),
-                                                                  min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
-
+                    try:
+                        clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap >= perc),
+                                                                     min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
+                        clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap <= -perc),
+                                                                      min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
+                    except ValueError:
+                        continue
                 else:
                     print("Probe type {} not recognised as polar or apolar".format(probe))
                     continue
@@ -348,7 +355,9 @@ class SelectivityResult(Helper):
                 ge = _GridEnsemble(dimensions=self.common_grid_dimensions,
                                    shape=self.common_grid_nsteps)
 
-                self.selectivity_maps[probe] = ge.as_grid((clust_map_on>0)*dmap)
+                # self.selectivity_maps[probe] = ge.as_grid((clust_map_on>0)*dmap)
+                print("array_to_grid")
+                self.selectivity_maps[probe] = Grid.array_to_grid((clust_map_on>0)*dmap, self.common_grid_apolar)
 
             except KeyError:
                 continue

@@ -420,14 +420,21 @@ class Grid(utilities.Grid):
         nx, ny, nz = self.nsteps
         scores = {}
 
+        sphere = ball(tolerance)
+
+        if return_list:
+            shape = (2 * tolerance + 1)
+            sub_g = self.sub_grid((i - tolerance, j - tolerance, k - tolerance,i + tolerance, j + tolerance, k + tolerance))
+            vec = np.array(sub_g.to_vector(),dtype=float).reshape((shape,shape,shape))
+            test_scores = sphere*vec
+            return list(set(test_scores[test_scores.nonzero()].tolist()))
+        #     print("new", test_scores[test_scores.nonzero()].tolist())
         for di in range(-tolerance, +tolerance + 1):
             for dj in range(-tolerance, +tolerance + 1):
                 for dk in range(-tolerance, +tolerance + 1):
-                    if 0 < (i + di) < nx and 0 < (j + dj) < ny and 0 < (k + dk) < nz:
+                    if sphere[tolerance + di][tolerance + dj][tolerance + dk] ==1 and 0 < (i + di) < nx and 0 < (j + dj) < ny and 0 < (k + dk) < nz:
                         scores.update({self.value(i + di, j + dj, k + dk): (i + di, j + dj, k + dk)})
 
-        if return_list:
-            return scores.keys()
         if len(scores) > 0:
             score = sorted(scores.keys(), reverse=True)[0]
 
@@ -991,10 +998,12 @@ class _GridEnsemble(object):
         values = array[nonz]
         # Get indices per value
         as_triads = zip(*nonz)
+        steps = grid.nsteps
 
         # Fill in the grid
         for (i, j, k), v in zip(as_triads, values):
-            grid._grid.set_value(int(i), int(j), int(k), v)
+            if i < steps[0] and j < steps[1] and k < steps[2]:
+                grid._grid.set_value(int(i), int(j), int(k), v)
 
         return grid
 
