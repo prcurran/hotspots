@@ -28,6 +28,7 @@ from scipy import ndimage
 from scipy.spatial import distance
 from skimage import feature
 from skimage.morphology import ball
+from skimage.transform import resize
 from os.path import join, basename
 from scipy.stats import norm
 import matplotlib.pyplot as plt
@@ -52,7 +53,7 @@ class Grid(utilities.Grid):
     # creating new grids
     ##################################################################################################################
     @staticmethod
-    def from_molecule(mol, scaling=1, value=1, scaling_type='None', spacing=0.5):
+    def from_molecule(mol, scaling=1, value=1, scaling_type='None', spacing=0.5, mode='add', padding=2):
         """
         generate a molecule mask where gp within the vdw radius of the molecule heavy atoms are set to 1.0
         :param mol: a molecule
@@ -67,12 +68,13 @@ class Grid(utilities.Grid):
         :rtype: :class:`hotspots.grid_extension.Grid`
         """
         coords = [a.coordinates for a in mol.atoms]
-        g = Grid.initalise_grid(coords=coords, padding=2, spacing=spacing)
+        g = Grid.initalise_grid(coords=coords, padding=padding, spacing=spacing)
         for a in mol.heavy_atoms:
             g.set_sphere(point=a.coordinates,
                          radius=a.vdw_radius * scaling,
                          value=value,
-                         scaling=scaling_type)
+                         scaling=scaling_type,
+                         mode=mode)
         return g
 
     def from_coords(self, coords, scaling=1):
@@ -277,13 +279,13 @@ class Grid(utilities.Grid):
         out = [Grid.super_grid(padding, g, out_g) for g in grid_list]
         return out
 
-    def minimal(self):
+    def minimal(self, padding=1):
         """
         reduces grid size to the minimal dimensions
         :return: `ccdc.utilities.Grid`
         """
         try:
-            return Grid.super_grid(1, *self.islands(threshold=1))
+            return Grid.super_grid(padding, *self.islands(threshold=1))
         except RuntimeError:
             return self
 
@@ -312,7 +314,21 @@ class Grid(utilities.Grid):
         # reverse padding ensure h is smaller than 'small'. Finally expand h to the dimensions of small.
         return small.common_boundaries(h)
 
+    def respace_grid(self, spacing=0.25):
+        """
+        Change the grid spacing of a grid and interpolate missing values (if spacing is decreased)
 
+        :param spacing:
+        :return:
+        """
+        g_min = self.minimal()
+        origin, far_corner = g_min.bounding_box
+        g_arr = g_min.get_array()
+        scaled_g = Grid(origin=origin,
+                        far_corner=far_corner,
+                        spacing=spacing)
+        scaled_array = resize(g_arr, scaled_g.nsteps, anti_aliasing=False)
+        return Grid.array_to_grid(scaled_array.astype(int), scaled_g)
 
 
     ##################################################################################################################
@@ -788,6 +804,7 @@ class Grid(utilities.Grid):
                 for k in range(nz):
                     if a[i][j][k] > 0:
                         neighbourhood = self.neighbourhood(i, j, k, self.nsteps)
+                        print({a[n[0]][n[1]][n[2]] for n in neighbourhood})
                         if min({a[n[0]][n[1]][n[2]] for n in neighbourhood}) == 0:
                             edge.append(self.indices_to_point(i, j, k))
 

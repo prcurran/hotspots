@@ -75,6 +75,17 @@ class TestResult(unittest.TestCase):
 
             print(self.result._docking_constraint_atoms())
 
+    def test_docking_fitting_pts(self):
+        with PushDir("testdata/2vta"):
+            # read hotspot maps
+            with HotspotReader(path="out.zip") as r:
+                self.result = r.read()
+
+            mol = [m for m in MoleculeReader("crystal_ligand.sdf")
+                   if "LZ1" in m.identifier.split("_")][0]
+            print(mol.identifier)
+            m = self.result._docking_fitting_pts(mol)
+
 
 
 if __name__ == '__main__':

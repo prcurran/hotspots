@@ -1,6 +1,6 @@
 # Minimal Environment
 channels:
-- file://local/pcurran/CCDC/Python_API_2020/ccdc_conda_channel   # edit as needed
+- file://local/pcurran/CCDC/Python_API_2021/ccdc_conda_channel   # edit as needed
 - rdkit
 - bioconda
 - conda-forge
@@ -28,6 +28,6 @@ dependencies:
 - conda-forge::tqdm
 - conda-forge::xmltodict
 - conda-forge::hdbscan
-- schrodinger:: pymol
+- schrodinger::pymol
 - anaconda::biopython       # only for arpeggio related things
 

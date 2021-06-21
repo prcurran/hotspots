@@ -43,12 +43,10 @@ from scipy.stats import percentileofscore
 from scipy.spatial import distance
 
 from hotspots.grid_extension import Grid, _GridEnsemble
-
-from hotspots.hs_pharmacophore import PharmacophoreModel
 from hotspots.pharmacophore_extension import HotspotPharmacophoreModel
-
 from hotspots.hs_utilities import Helper
 from hotspots.protein_extension import Protein
+from hotspots.template_strings import pharmacophore_fitting_pt, apolar_fitting_pnt, fitting_pts_header
 
 
 class _Scorer(Helper):
@@ -767,27 +765,112 @@ class Results(Helper):
         else:
             return True
 
-    def _docking_fitting_pts(self, _best_island=None, threshold=17):
+    @staticmethod
+    def scale_value(low, high, grid_high, val):
+        # Apply fitting point score
+        score_range = high - low
+        value_position = ((val) / (grid_high))
+        return (score_range * value_position) + low
+
+    def _all_fitting_pts(self, identifier="test", low=1.0, high=2.0, return_grid=True):
+
+        # GOLD default fitting points are 0.25 spacing
+        resize_dict = {p: g.respace_grid() for p, g in self.super_grids.items()}
+
+        # take care of very high polar vals
+        smoothed_dict = {p: g.gaussian(1) for p, g in resize_dict.items()}
+
+        # scale to sensible weights
+        grid_high  = max([g.extrema[1] for p, g in smoothed_dict.items()])
+        print(grid_high)
+
+
+        # setup fitting point outputs
+        polar_fit_pts = ""
+        tail = ""
+        count = 1
+
+        h = smoothed_dict["apolar"].copy_and_clear()
+
+        for p, g in smoothed_dict.items():
+            nx, ny, nz = g.nsteps
+            for i in range(nx):
+                for j in range(ny):
+                    for k in range(nz):
+                        val = g.value(i, j, k)
+                        if val > 5:
+                            x, y, z = g.indices_to_point(i, j, k)
+                            if p == "apolar":
+                                tail += apolar_fitting_pnt(count, x, y, z, self.scale_value(low, high, grid_high, val))
+                                count +=1
+                            else:
+                                pnt = pharmacophore_fitting_pt(p, x, y, z, self.scale_value(low, high, grid_high, val))
+                                polar_fit_pts += pnt
+
+                            h.set_value(i, j, k, self.scale_value(low, high, grid_high, val))
+
+        apolar_fit_pts = fitting_pts_header(low, high, identifier, count) + tail
+        if return_grid:
+            return polar_fit_pts, apolar_fit_pts, h
+        else:
+            return polar_fit_pts, apolar_fit_pts
+
+
+    def _docking_fitting_pts(self, percentile=95, low = 0.1, high = 0.9, grid=None, return_grid=False, threshold=5):
         """
 
         :return:
         """
-        if _best_island:
-            single_grid = _best_island
+        if grid != None:
+            g = grid
         else:
-            single_grid = Grid.get_single_grid(self.super_grids, mask=False)
-        dic = single_grid.grid_value_by_coordinates(threshold=threshold)
+            g = self.super_grids["apolar"]
 
-        mol = Molecule(identifier="constraints")
-        for score, v in dic.items():
-            for pts in v:
-                atm = Atom(atomic_symbol='C',
-                           atomic_number=14,
-                           label='{:.2f}'.format(score),
-                           coordinates=pts)
-                atm.partial_charge = score
-                mol.add_atom(atom=atm)
-        return mol
+        count = 1
+        grid_low, grid_high = g.extrema
+        nx, ny, nz = g.nsteps
+
+        percentile_val = np.percentile(g.grid_values(threshold=threshold), percentile)
+        print(percentile_val)
+
+        tail = ""
+        h = g.copy_and_clear()
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    val = g.value(i, j, k)
+
+                    if val > threshold and val >= percentile_val:
+
+                        x, y, z = g.indices_to_point(i, j, k)
+                        # Apply fitting point score
+                        score_range = high - low
+                        value_position = ((val) / (grid_high))
+                        scaled_val = (score_range * value_position) + low
+
+                        h.set_value(i, j, k, scaled_val)
+                        #
+                        tail += f"""      {count} ****        {x:.4f}   {y:.4f}  {z:.4f} Du {scaled_val:.3f}  \n"""
+                        count += 1
+
+        num_pts = count - 1
+        head = f"""
+@<TRIPOS>MOLECULE
+GA Fitting Points percentile:{percentile}, range: {low} - {high}
+  {num_pts}    0    0
+SMALL
+NO_CHARGES
+
+
+@<TRIPOS>ATOM
+"""
+
+        out_str = head + tail
+
+        if return_grid:
+            return out_str, h
+        else:
+            return out_str
 
     def _output_feature_centroid(self):
         dic = {"apolar": "C",

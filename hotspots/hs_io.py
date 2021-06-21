@@ -287,7 +287,6 @@ class HotspotWriter(Helper):
     def _write_pymol_objects(self, relpath, hr, load_prot=True):
         """
         generates pymol commands associated with an indivdual hotspot
-
         :param relpath: path to the directory holding associated files
         :param hr: hotspot result
 
