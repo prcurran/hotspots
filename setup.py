@@ -23,15 +23,15 @@ setup(
     long_description_content_type='text/markdown',
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
-    install_requires=['numpy',
+    install_requires=['numpy', # Custom install with CSD Python API
                       'csd-python-api>=2.0.0',
-                      'matplotlib',
-                      'scipy',
-                      'sklearn',
-                      'scikit-image',
-                      'hdbscan',
-                      'pandas',
-                      'futures',
+                      'matplotlib', # Custom install with CSD Python API
+                      'scipy', # Custom install with CSD Python API
+                      'sklearn>=0',
+                      'scikit-image>=0.17.2',
+                      'hdbscan>=0.8.26',
+                      'pandas', # Custom install with CSD Python API
+                      'futures >=3.1.1',
                       'tqdm==4.31.1',
                       'xmltodict==0.12.0'],
     package_data={

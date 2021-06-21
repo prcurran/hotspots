@@ -22,7 +22,7 @@ from __future__ import print_function, division
 import collections
 import operator
 import numpy as np
-from ccdc import utilities
+
 from hotspots.hs_utilities import Helper
 from scipy import ndimage
 from scipy.spatial import distance
@@ -31,7 +31,7 @@ from skimage.morphology import ball
 from skimage.transform import resize
 from os.path import join, basename
 from scipy.stats import norm
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import pickle
 from functools import reduce
 
@@ -41,6 +41,8 @@ try:
     from hdbscan import HDBSCAN
 except ImportError:
     print('HDBSCAN module not installed. _GridEnsemble clustering not available.')
+
+from ccdc import utilities
 
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
@@ -75,6 +77,7 @@ class Grid(utilities.Grid):
                          value=value,
                          scaling=scaling_type,
                          mode=mode)
+
         return g
 
     def from_coords(self, coords, scaling=1):
@@ -281,11 +284,14 @@ class Grid(utilities.Grid):
 
     def minimal(self, padding=1):
         """
+        TODO: Investigate why this changes values
         reduces grid size to the minimal dimensions
         :return: `ccdc.utilities.Grid`
         """
         try:
-            return Grid.super_grid(padding, *self.islands(threshold=1))
+            small_g =  Grid.super_grid(1, *(self >2 ).islands(threshold=1))
+            return self.shrink(small_g,self,reverse_padding=0)
+
         except RuntimeError:
             return self
 
@@ -419,7 +425,7 @@ class Grid(utilities.Grid):
             else:
                 continue
 
-    def value_at_coordinate(self, coordinates, tolerance=1, position=True):
+    def value_at_coordinate(self, coordinates, tolerance=1, position=True, return_list = False):
         """
         Uses Grid.value() rather than Grid.value_at_point(). Chris Radoux reported speed issues.
         :param coordinates:
@@ -430,10 +436,19 @@ class Grid(utilities.Grid):
         nx, ny, nz = self.nsteps
         scores = {}
 
+        sphere = ball(tolerance)
+
+        if return_list:
+            shape = (2 * tolerance + 1)
+            sub_g = self.sub_grid((i - tolerance, j - tolerance, k - tolerance,i + tolerance, j + tolerance, k + tolerance))
+            vec = np.array(sub_g.to_vector(),dtype=float).reshape((shape,shape,shape))
+            test_scores = sphere*vec
+            return list(set(test_scores[test_scores.nonzero()].tolist()))
+        #     print("new", test_scores[test_scores.nonzero()].tolist())
         for di in range(-tolerance, +tolerance + 1):
             for dj in range(-tolerance, +tolerance + 1):
                 for dk in range(-tolerance, +tolerance + 1):
-                    if 0 < (i + di) < nx and 0 < (j + dj) < ny and 0 < (k + dk) < nz:
+                    if sphere[tolerance + di][tolerance + dj][tolerance + dk] ==1 and 0 < (i + di) < nx and 0 < (j + dj) < ny and 0 < (k + dk) < nz:
                         scores.update({self.value(i + di, j + dj, k + dk): (i + di, j + dj, k + dk)})
 
         if len(scores) > 0:
@@ -656,7 +671,7 @@ class Grid(utilities.Grid):
 
         return self.array_to_grid(dilated, self)
 
-    def get_best_island(self, threshold):
+    def get_best_island(self, threshold, island_rank = 0):
         """
         For a given threshold, the island which contains the most grid points will be returned
 
@@ -682,7 +697,10 @@ class Grid(utilities.Grid):
                 return None
 
             else:
-                rank = sorted(island_by_rank.keys(), reverse=True)[0]
+                try:
+                    rank = sorted(island_by_rank.keys(), reverse=True)[island_rank]
+                except IndexError:
+                    return None
                 print("threshold:", threshold, "count:", sorted(island_by_rank.keys(), reverse=True))
                 return island_by_rank[rank]
 
@@ -997,10 +1015,12 @@ class _GridEnsemble(object):
         values = array[nonz]
         # Get indices per value
         as_triads = zip(*nonz)
+        steps = grid.nsteps
 
         # Fill in the grid
         for (i, j, k), v in zip(as_triads, values):
-            grid._grid.set_value(int(i), int(j), int(k), v)
+            if i < steps[0] and j < steps[1] and k < steps[2]:
+                grid._grid.set_value(int(i), int(j), int(k), v)
 
         return grid
 

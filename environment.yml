@@ -1,6 +1,8 @@
 # Minimal Environment
 channels:
-- file://local/pcurran/CCDC/Python_API_2021/ccdc_conda_channel   # edit as needed
+
+## For example, with a standard CCDC 2020 install on Windows 10 this might be as below for the CCDC miniconda installation
+## - file://\Program Files\CCDC\Python_API_2020\ccdc_conda_channel # edit as needed
 - rdkit
 - bioconda
 - conda-forge
@@ -28,6 +30,7 @@ dependencies:
 - conda-forge::tqdm
 - conda-forge::xmltodict
 - conda-forge::hdbscan
-- schrodinger::pymol
+# If you want pymol extensions to work you will need this 
+# - schrodinger:: pymol
 - anaconda::biopython       # only for arpeggio related things
 
