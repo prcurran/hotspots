@@ -110,8 +110,8 @@ def dock(inputs):
 
     # read the hotspot
     hotspot = HotspotReader(hotspot).read()
-    for p, g in hotspot.super_grids.items():
-        hotspot.super_grids[p] = g.max_value_of_neighbours()  # dilation to reduce noise
+    # for p, g in hotspot.super_grids.items():
+    #     hotspot.super_grids[p] = g.max_value_of_neighbours()  # dilation to reduce noise
 
     add_ligands(docker, ligand_path)
     add_protein(docker, hotspot, junk)
@@ -149,10 +149,10 @@ def rank_stats(parent, s, w):
     header = lines[5]
     header = [b.strip() for b in
               [a for a in header.split("  ") if a != '' and a != '#']]
-    all = lines[7:]
+    data = lines[7:]
 
     cat = list(zip(*[[a for a in entry.split(" ") if a != '']
-                     for entry in all]))
+                     for entry in data]))
 
     # generate a dataframe and alter datatypes
     df = pd.DataFrame({h: cat[i] for i, h in enumerate(header)})

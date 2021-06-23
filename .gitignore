@@ -1,4 +1,4 @@
-*.DS_Store
+.DS_Store
 tests/testdata/
 examples/7_bcv_validation/data/
 examples/7_bcv_validation/results/
@@ -14,6 +14,7 @@ dist
 hotspots.egg-info
 hotspots.egg-info/*
 _build
-
+setup_environment.sh
+setup_environment.sh.swp
 _templates
 *.mol2

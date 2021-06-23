@@ -34,7 +34,7 @@ class TestExtractor(unittest.TestCase):
 class TestResult(unittest.TestCase):
     def testscore_atoms_as_spheres(self):
         with PushDir("testdata/result/data"):
-            mols = MoleculeReader("gold_docking_poses.sdf")
+            mols = [m for m in MoleculeReader("gold_docking_poses.sdf")]
 
             # create a grid which can contain all docking poses
             small_blank = Grid.initalise_grid(coords={atm.coordinates for mol in mols for atm in mol.heavy_atoms},
@@ -66,6 +66,26 @@ class TestResult(unittest.TestCase):
             for m in mols[:1]:
                 s = self.result.score_atoms_as_spheres(m, small_blank)
                 print(s)
+
+    def test_docking_constraint_atoms(self):
+        with PushDir("testdata/result/data"):
+            # read hotspot maps
+            with HotspotReader(path="out.zip") as r:
+                self.result = r.read()
+
+            print(self.result._docking_constraint_atoms())
+
+    def test_docking_fitting_pts(self):
+        with PushDir("testdata/2vta"):
+            # read hotspot maps
+            with HotspotReader(path="out.zip") as r:
+                self.result = r.read()
+
+            mol = [m for m in MoleculeReader("crystal_ligand.sdf")
+                   if "LZ1" in m.identifier.split("_")][0]
+            print(mol.identifier)
+            m = self.result._docking_fitting_pts(mol)
+
 
 
 if __name__ == '__main__':

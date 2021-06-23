@@ -20,7 +20,7 @@ from __future__ import print_function
 import shutil
 import tempfile
 import zipfile
-from os import listdir, walk
+from os import listdir, walk, getenv
 from os.path import splitext, join, isdir, isfile, basename
 
 from ccdc import io
@@ -290,7 +290,6 @@ class HotspotWriter(Helper):
     def _write_pymol_objects(self, relpath, hr, load_prot=True):
         """
         generates pymol commands associated with an indivdual hotspot
-
         :param relpath: path to the directory holding associated files
         :param hr: hotspot result
 
@@ -392,8 +391,8 @@ class HotspotReader(object):
         self.top_extension = splitext(self.path)[1]
 
         if self.top_extension == ".zip":
-            temp = tempfile.mkdtemp()
-
+            temp = tempfile.mkdtemp(prefix=getenv('TMPDIR_PREFIX', None))
+            print("extract to ", temp)
             with zipfile.ZipFile(self.path) as hs_zip:
                 hs_zip.extractall(temp)
 

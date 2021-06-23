@@ -28,16 +28,23 @@ from os.path import join
 
 import numpy as np
 import pkg_resources
-from ccdc.cavity import Cavity
-from ccdc.io import MoleculeWriter, MoleculeReader
-from ccdc.molecule import Molecule, Coordinates
-from ccdc.protein import Protein
-from ccdc.utilities import PushDir
+
 from scipy import ndimage
 from skimage.morphology import ball
 from skimage.transform import resize
 # from hotspots.protoss import Protoss
 from tqdm import tqdm
+
+# Development note. We import the CCDC modules after 3rd part modules where possible as
+# we generally find that the ccdc package is less fussy about the underlying compiled
+# libraries used.
+#  
+
+from ccdc.cavity import Cavity
+from ccdc.io import MoleculeWriter, MoleculeReader
+from ccdc.molecule import Molecule, Coordinates
+from ccdc.protein import Protein
+from ccdc.utilities import PushDir
 
 from hotspots.atomic_hotspot_calculation import _AtomicHotspot
 from hotspots.grid_extension import Grid
@@ -55,6 +62,10 @@ class ExpBuriedness(object):
         self.max_probe = max_probe_radius
         self.probe_selem_dict = self._generate_probe_selem()
         self.protein_grid = self._from_molecule(prot)
+        if self.out_grid is None:
+            self.out_grid = self.protein_grid.copy_and_clear()
+        print("buriedness init")
+
 
     def _generate_probe_selem(self):
         """
@@ -68,9 +79,9 @@ class ExpBuriedness(object):
 
         probe_selem_dict[2] = ball(2)
         # r= probe radius
-        for r in range(3, self.max_probe + 1):
+        for r in range(3,self.max_probe +1):
             probe_selem_dict[r] = ball(r)
-
+        print("generating probes")
         return probe_selem_dict
 
     def _from_molecule(self, mol, scaling=1):
@@ -83,7 +94,7 @@ class ExpBuriedness(object):
         """
 
         coords = [a.coordinates for a in mol.atoms]
-        g = Grid.initalise_grid(coords=coords, padding=15, spacing=1)
+        g = Grid.initalise_grid(coords=coords, padding= 10, spacing=1)
 
         for probe in sorted(self.probe_selem_dict.keys(), reverse=True):
             for a in mol.heavy_atoms:
@@ -100,12 +111,16 @@ class ExpBuriedness(object):
                          mode='replace',
                          scaling='None')
 
-        out_bound_box = self.out_grid.bounding_box
-        origin_indices = g.point_to_indices(out_bound_box[0])
-        far_indices = g.point_to_indices(out_bound_box[1])
-        region = origin_indices + far_indices
-        print(region)
-        return g.sub_grid(region)
+        try:
+            out_bound_box = self.out_grid.bounding_box
+            print(out_bound_box)
+            origin_indices = g.point_to_indices(out_bound_box[0])
+            far_indices = g.point_to_indices(out_bound_box[1])
+            region = origin_indices + far_indices
+            print(region)
+            return g.sub_grid(region)
+        except AttributeError:
+            return g
 
     def _close_grid(self, g, probe):
 
@@ -113,9 +128,10 @@ class ExpBuriedness(object):
         closed_array = ndimage.binary_erosion(g_array, structure=self.probe_selem_dict[probe])
         return Grid.array_to_grid(closed_array.astype(int), g)
 
-    def _multiscale_closing(self, g):
+    def _multiscale_closing(self,g):
 
-        # probe_sizes.reverse()
+
+        #probe_sizes.reverse()
         all_g = None
         prot_mask = g > 90
 
@@ -123,10 +139,11 @@ class ExpBuriedness(object):
             if all_g is None:
                 all_g = prot_mask.copy()
 
-            probe_mask = ((g < probe + 0.1) & (g > 0)) | (prot_mask)
+            probe_mask = ((g < probe+0.1) & (g>0)) | (prot_mask)
 
-            probe_mask = self._close_grid(probe_mask, probe)
-            novel = (-all_g) * (g > 0)
+
+            probe_mask = self._close_grid(probe_mask,probe)
+            novel = (-all_g) * (g>0)
             all_g += (probe_mask * novel * (self.max_probe - probe))
 
         return all_g * (prot_mask < 1)
@@ -140,14 +157,20 @@ class ExpBuriedness(object):
     def buriedness_grid(self):
 
         closed_g = self._multiscale_closing(self.protein_grid)
-        out_g = self._open_grid(closed_g, 2) * closed_g
+        print("close_g")
+        out_g = self._open_grid(closed_g,2) * closed_g
+        print("out_g")
         out_array = out_g.get_array()
+        print("out array")
         scaled_g = Grid.initalise_grid(self.out_grid.bounding_box, padding=0, spacing=0.5)
+        print("scaled_g")
+        scaled_array = resize(out_array, scaled_g.nsteps ,anti_aliasing=False)
+        print(scaled_array)
 
-        scaled_array = resize(out_array, scaled_g.nsteps, anti_aliasing=False)
 
         # Future tweaking here
         final_array = scaled_array
+        print("array to grid")
         return Grid.array_to_grid(final_array.astype(int), scaled_g)
 
 
@@ -379,9 +402,9 @@ class Runner(object):
             pa_type = None
             if priority_atom.formal_charge != 0:
                 if priority_atom.formal_charge < 0:
-                    pa_type = "negative"
+                    pa_type = "acceptor"
                 elif priority_atom.formal_charge > 0:
-                    pa_type = "positive"
+                    pa_type = "donor"
             else:
                 if priority_atom.is_acceptor:
                     pa_type = "acceptor"
@@ -453,6 +476,7 @@ class Runner(object):
             """
 
             return reduce(operator.__mul__, values, 1.0) ** (1. / len(values))
+            # return sum(values)
 
         def sample_pose(self, trans, active_atoms_dic, probe):
             """
@@ -519,7 +543,7 @@ class Runner(object):
 
             return active_coords_dic
 
-        def sample(self, molecule, probe):
+        def sample(self, molecule, probe, update_grids = True):
             """
             Sample the grids according to the settings
 
@@ -551,14 +575,17 @@ class Runner(object):
                                    for i in range(0, len(priority_atom_coordinates))]
 
                     score = self.sample_pose(translation, active_coordinates_dic, probe)
-                    if score < 1:
+
+                    try:
+                        if score < 1:
+                            continue
+                    except TypeError:
                         continue
-                    self.update_out_grids(score, active_coordinates_dic, translation)
+                    if update_grids:
+                        self.update_out_grids(score, active_coordinates_dic, translation)
 
                     if self.settings.return_probes is True:
-                        if score < 5:
-                            continue
-                        if score > 14:
+                        if score > 10:
                             m = molecule.copy()
                             m.translate(translation)
                             m.identifier = "{}".format(score)
@@ -570,13 +597,15 @@ class Runner(object):
 
             if self.settings.return_probes is True:
                 sampled_probes = []
-                for key in sorted(high_scoring_probes.iterkeys(), reverse=True):
+                for key in sorted(high_scoring_probes.keys(), reverse=True)[:100]:
                     sampled_probes.extend(high_scoring_probes[key])
                 print('Returned probes = ', len(sampled_probes))
-                if len(sampled_probes) > 10000:
-                    return sampled_probes[:10000]
-                else:
-                    return sampled_probes
+                return sampled_probes
+
+                # if len(sampled_probes) > 100:
+                #     return sampled_probes[:100]
+                # else:
+                #     return sampled_probes
 
     def __init__(self, settings=None):
         self.out_grids = {}
@@ -785,6 +814,18 @@ class Runner(object):
 
         return results
 
+    def _dock_probe(self,mol, grid_dict):
+
+        donor_grid = _SampleGrid('donor', grid_dict['donor'], _SampleGrid.is_donor)
+        acceptor_grid = _SampleGrid('acceptor', grid_dict['acceptor'], _SampleGrid.is_acceptor)
+        apolar_grid = _SampleGrid('apolar', grid_dict['apolar'], _SampleGrid.is_apolar)
+
+        kw = {'settings': self.sampler_settings}
+        self.sampler = self._Sampler(apolar_grid, donor_grid, acceptor_grid, **kw)
+
+        probes = self.sampler.sample(mol, probe='probe', update_grids=False)
+        return probes
+
     def _get_out_maps(self, probe, grid_dict, return_probes=False):
         """
         private method
@@ -869,7 +910,7 @@ class Runner(object):
         elif self.buriedness_method.lower() == 'ghecom_internal' and self.buriedness is None:
             print("    method: Internal version Ghecom")
             out_grid = self.superstar_grids[0].buriedness.copy_and_clear()
-            b = ExpBuriedness(prot=self.protein, out_grid=out_grid)
+            b = ExpBuriedness(prot=self.protein, out_grid=None)
             self.buriedness = b.buriedness_grid()
 
         elif self.buriedness_method.lower() == 'ligsite' and self.buriedness is None:
@@ -955,6 +996,7 @@ class Runner(object):
         return Results(super_grids=self.super_grids,
                        protein=self.protein,
                        buriedness=self.buriedness)
+
 
     def from_protein(self, protein, charged_probes=False, probe_size=7, buriedness_method='ghecom',
                      cavities=None, nprocesses=1, settings=None, buriedness_grid=None, clear_tmp=False):
@@ -1074,3 +1116,30 @@ class Runner(object):
                        buriedness=self.buriedness,
                        superstar={x.identifier: x.grid for x in self.superstar_grids},
                        weighted_superstar={x.identifier: x.grid for x in self.weighted_grids})
+
+    def global_dock(self, hr:Results, mol, settings = None):
+        self.super_grids = hr.super_grids
+        self.buriedness = hr.buriedness
+        self.protein = hr.protein
+        self.charged_probes = False
+        self.probe_size = 7
+        self.buriedness_method = 'ligsite'
+        self.cavities = None
+        self.clear_tmp = True
+
+        if settings is None:
+            self.sampler_settings = self.Settings()
+
+        self.sampler_settings.return_probes = True
+        self.sampler_settings.nrotations = 2000
+        self.apolar_translation_threshold = 17
+        self.polar_translation_threshold = 17
+
+        print(hr.weighted_superstar)
+
+        grid_dict = hr.weighted_superstar
+
+
+        ps = self._dock_probe(mol, grid_dict)
+        return ps
+

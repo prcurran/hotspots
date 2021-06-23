@@ -11,9 +11,11 @@ def random_grid(num_of_spheres, return_coords=False, radius=1, value=8, scaling=
     # something in around the 6Y2G binging site (might be needed later)
     mol = MoleculeReader("testdata/6y2g_A/A_mol.mol2")[0]
     g = Grid.initalise_grid([a.coordinates for a in mol.atoms])
+    pnts = []
 
     for i in range(num_of_spheres):
         pnt = [np.random.randint(low=2, high=ax - 2, size=1) for ax in g.nsteps]
+        pnts.append(pnt)
         g.set_sphere(point=g.indices_to_point(pnt[0],
                                               pnt[1],
                                               pnt[2]),
@@ -29,8 +31,18 @@ def random_grid(num_of_spheres, return_coords=False, radius=1, value=8, scaling=
 class TestGrid(unittest.TestCase):
     def setUp(self):
         # A buriedness grid
-        self.buriedness = Grid.from_file("testdata/result/buriedness.grd")
+        # self.buriedness = Grid.from_file("testdata/result/buriedness.grd")
         self.single_peak = random_grid(1)
+
+    def test__gt__(self):
+        g = self.single_peak.copy()
+        g.write("g.grd")
+        g.set_sphere(point=g.indices_to_point(i=2,j=2,k=2),
+                     radius=1, value=3, scaling="None", mode="add")
+
+        g = g > 4
+
+        g.write("h.grd")
 
     def test_neighbourhood(self):
         # check the catchment critera

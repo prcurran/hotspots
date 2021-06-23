@@ -22,15 +22,16 @@ from __future__ import print_function, division
 import collections
 import operator
 import numpy as np
-from ccdc import utilities
+
 from hotspots.hs_utilities import Helper
 from scipy import ndimage
 from scipy.spatial import distance
 from skimage import feature
 from skimage.morphology import ball
+from skimage.transform import resize
 from os.path import join, basename
 from scipy.stats import norm
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import pickle
 from functools import reduce
 
@@ -41,6 +42,8 @@ try:
 except ImportError:
     print('HDBSCAN module not installed. _GridEnsemble clustering not available.')
 
+from ccdc import utilities
+
 Coordinates = collections.namedtuple('Coordinates', ['x', 'y', 'z'])
 
 
@@ -49,652 +52,10 @@ class Grid(utilities.Grid):
     A class to extend a `ccdc.utilities.Grid` this provides grid methods required in the Fragment Hotspot Maps algorithm
     """
 
-    def coordinates(self, threshold=1):
-        nx, ny, nz = self.nsteps
-        return [self.indices_to_point(i, j, k)
-                for i in range(nx)
-                for j in range(ny)
-                for k in range(nz)
-                if self.value(i, j, k) >= threshold]
-
-    def grid_value_by_coordinates(self, threshold=1):
-        """
-        returns a dictionary of grid point values by coordinates
-        :param int threshold: the island threshold of the grid, only points over this value will be returned
-        :return: dict, grid point values by coordinates
-        """
-        dic = {}
-        nx, ny, nz = self.nsteps
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    if self.value(i, j, k) > threshold:
-                        try:
-                            dic[self.value(i, j, k)].append(self.indices_to_point(i, j, k))
-                        except KeyError:
-                            dic.update({self.value(i, j, k): [self.indices_to_point(i, j, k)]})
-
-        return dic
-
+    # creating new grids
+    ##################################################################################################################
     @staticmethod
-    def _tolerance_range(value, tolerance, min, max):
-        """
-        private method
-
-        for a given value and tolerance, the method checks that the tolerance range for that value is within the grid
-        boundaries
-        :param int value: an "indice" value either (i or j or k)
-        :param int min: the minimum grid boundary (always = 0)
-        :param int max: the maximum grid boundary (always = n step)
-        :return: range,
-        """
-        low = value - tolerance
-        if low < 0:
-            low = 0
-
-        high = value + tolerance
-        if high > max:
-            high = max
-        return range(low, high)
-
-    def get_near_scores(self, coordinate, tolerance=3):
-        """
-        for a given grid point, return a list of values within a search tolerance
-        :param tup coordinate: coordinate of a point within the grid
-        :param int tolerance: search distance, in grid steps
-        :return:
-        """
-        i, j, k = self.point_to_indices(coordinate)
-        ri = self._tolerance_range(i, tolerance, 0, self.nsteps[0])
-        rj = self._tolerance_range(j, tolerance, 0, self.nsteps[1])
-        rk = self._tolerance_range(k, tolerance, 0, self.nsteps[2])
-        return [self.value(a, b, c) for a in ri for b in rj for c in rk if self.value(a, b, c) > 0]
-
-    def grid_values(self, threshold=0):
-        """
-        generates a numpy array with all values over a given threshold (default = 0)
-        :param int threshold: values over this value
-        :return:
-        """
-        array = self.get_array()
-        masked_array = np.ma.masked_less_equal(array, threshold)
-        return masked_array.compressed()
-
-    def grid_score(self, threshold=0, percentile=75):
-        """
-        for a given grid, the xth percentile of values above a given threshold is returned
-        :param int threshold: values over this value
-        :param int percentile: value at this percentile
-
-        :return:
-        """
-        array = self.get_array()
-        masked_array = np.ma.masked_less_equal(array, threshold)
-        values = masked_array.compressed()
-
-        if len(values) == 0:
-            return 0
-        else:
-            return np.percentile(values, percentile)
-
-    def indices_to_point(self, i, j, k):
-        """
-        return x,y,z coordinate for a given grid index
-        :param int i: indice (x-axis)
-        :param int j: indice (y-axis)
-        :param int k: indice (z-axis)
-        :return: tup, float(x), float(y), float(z)
-        """
-        ox, oy, oz, = self.bounding_box[0]
-        gs = self.spacing
-        return ox + float(i) * gs, oy + float(j) * gs, oz + gs * float(k)
-
-    def point_to_indices(self, p):
-        """
-        return the nearest grid index for a given point
-        :param tup p: (float(x), float(y), float(z)), a coordinate on a 3D grid
-        :return: int(x), int(y), int(z)
-        """
-
-        gs = self.spacing
-        rx, ry, rz = [round(i / gs) for i in p]
-        ox, oy, oz = [round(i / gs) for i in self.bounding_box[0]]
-        return int(rx - ox), int(ry - oy), int(rz - oz)
-
-    def gaussian(self, sigma=0.2):
-        """
-        gaussian smoothing function, method of reducing noise in output
-        :param float sigma: degree of smoothing
-        :return:
-        """
-        s = (sigma, sigma, sigma, 0)
-        nx, ny, nz = self.nsteps
-        scores = np.zeros((nx, ny, nz, 1))
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    scores[i, j, k, 0] += self.value(i, j, k)
-        smoothed = ndimage.filters.gaussian_filter(scores, sigma=s)
-        grid = self.copy_and_clear()
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    grid.set_value(i, j, k, smoothed[i, j, k, 0])
-        return grid
-
-    @staticmethod
-    def neighbourhood(i, j, k, high, catchment=1):
-        """
-        find the neighbourhood of a given indice. Neighbourhood is defined by all points within 1 step of the
-        specified indice. This includes the cubic diagonals.
-
-        :param i: i indice
-        :param j: j indice
-        :param k: k indice
-        :param catchment: number of steps from the centre
-
-        :type i: int
-        :type j: int
-        :type k: int
-        :type catchment: int
-
-        :return: indices of the neighbourhood
-        :rtype: list
-        """
-        low = (0, 0, 0)
-
-        i_values = [a for a in range(i-catchment, i+catchment+1) if low[0] <= a < high[0]]
-        j_values = [b for b in range(j-catchment, j+catchment+1) if low[1] <= b < high[1]]
-        k_values = [c for c in range(k-catchment, k+catchment+1) if low[2] <= c < high[2]]
-
-        return [[a, b, c] for a in i_values for b in j_values for c in k_values
-                if Helper.get_distance([a, b, c], [i, j, k]) == 1]
-
-    def edge_detection(self, edge_definition=0):
-        """
-        A simplified method to detect surface edge. An edge is defined as a grid point has a value 1 but is adjacent
-        to a grid point with value 0. Only points distance = 1 are considered adjacent (i.e. not diagonals)
-
-        :param edge_definition: values above which are considered part of the body
-        :type edge_definition: float
-
-        :return: the bodies surface as a list of indices
-        :rtype: list
-        """
-        edge = []
-        # generate a mask.
-        self = self > edge_definition
-        a = self.get_array()
-        nx, ny, nz = self.nsteps
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    if a[i][j][k] > 0:
-                        neighbourhood = self.neighbourhood(i, j, k, self.nsteps)
-                        if min({a[n[0]][n[1]][n[2]] for n in neighbourhood}) == 0:
-                            edge.append(self.indices_to_point(i, j, k))
-
-        return edge
-
-    def contains_point(self, point, threshold=0, tolerance=0):
-        """
-        determines whether a set of coordinates are within a grids boundary
-        :param tup point: (float(x), float(y), float(z))
-        :param int threshold: values above this value
-        :param float tolerance: radius of search
-        :return:
-        """
-        mini = self.bounding_box[0]
-        maxi = self.bounding_box[1]
-        if self.value_at_point(point) >= threshold:
-            return all([mini.x - tolerance < point[0] < maxi.x + tolerance,
-                        mini.y - tolerance < point[1] < maxi.y + tolerance,
-                        mini.z - tolerance < point[2] < maxi.z + tolerance])
-        else:
-            return False
-
-    def get_flat_array(self):
-        """
-
-        :return:
-        """
-        return np.array(self.to_vector())
-
-    def get_array(self):
-        """
-        convert grid object to np.array
-        :return: `numpy.array`, array with shape (nsteps) and each element corresponding to value at that indice
-        """
-        nx, ny, nz = self.nsteps
-        array = np.zeros((nx, ny, nz))
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    array[i, j, k] += self.value(i, j, k)
-        return array
-
-    def dilate_by_atom(self, radius=1):
-
-        g_array = self.get_array()
-        selem = ball(radius=radius)
-        print(selem)
-
-        dilated = ndimage.grey_dilation(g_array, structure=selem)
-
-        return self.array_to_grid(dilated, self)
-
-    def restricted_volume(self, volume=75):
-        """
-        returns a grid with of a defined volume
-        :param float volume: desired volume in Angstroms ^ 3
-        :return: `hotspots.grid_extension.Grid`
-        """
-        grid = self.copy_and_clear()
-        max_points = int(float(volume) / 0.125)
-        nx, ny, nz = self.nsteps
-        rank_dict = {}
-
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    value = float(self.value(i, j, k))
-                    if value in rank_dict:
-                        rank_dict[value].append((i, j, k))
-                    else:
-                        rank_dict.update({value: [(i, j, k)]})
-
-        top_points = sorted((float(x) for x, y in rank_dict.iteritems()), reverse=True)
-        indices = [pts for key in top_points for pts in rank_dict[key]]
-
-        for i in indices[:max_points]:
-            grid.set_value(i[0], i[1], i[2], self.value(i[0], i[1], i[2]))
-
-        return Grid.super_grid(1, *grid.islands(threshold=1))
-
-    def centroid(self):
-        """
-        returns centre of the grid's bounding box
-        :param self:
-        :return:
-        """
-        return ((self.bounding_box[0][0] + self.bounding_box[1][0]) / 2,
-                (self.bounding_box[0][1] + self.bounding_box[1][1]) / 2,
-                (self.bounding_box[0][2] + self.bounding_box[1][2]) / 2
-                )
-
-    def deduplicate(self, major, threshold=12, tolerance=2):
-        """
-        method to deduplicate two grids, used for charged-polar deduplication
-        :param `ccdc.utilities.Grid` major: overriding grid
-        :param int threshold: values above this value
-        :param int tolerance: search radius for determining feature overlap
-        :return:
-        """
-        if self.bounding_box[0] != major.bounding_box[0] or self.bounding_box[1] != major.bounding_box[1]:
-            self = major.common_boundaries(self)
-
-        all_islands = set([jsland for jsland in self.islands(threshold=threshold)])
-        bin_islands = set([jsland for jsland in all_islands
-                           for island in major.islands(threshold=threshold)
-                           if jsland.contains_point(island.centroid(), tolerance=tolerance)
-                           or jsland.count_grid() <= 8
-                           or Helper.get_distance(jsland.centroid(), island.centroid()) < 4])
-
-        retained_jslands = list(all_islands - bin_islands)
-
-        if len(retained_jslands) == 0:
-            blank = major.copy_and_clear()
-            return blank
-        else:
-            temp = Grid.super_grid(0, *retained_jslands)
-            blank = self.copy_and_clear()
-            return blank.common_boundaries(temp)
-
-    def copy_and_clear(self):
-        """
-        make a new empty grid, with the same dimensions as the old
-        :return: `hotspots.grid_extension.Grid`
-        """
-        g = self.copy()
-        g *= 0
-        return g
-
-    def common_boundaries(self, grid):
-        """
-        expands supplied grid to the size of self (supplied grid should be smaller than self)
-        :param grid:
-        :return:
-        """
-        reference = Grid.super_grid(0, self, grid)
-        blank = reference.copy_and_clear()
-        return Grid.super_grid(0, blank, grid)
-
-    def multi_max_mask(self, grids):
-        """
-        for a self grid and collection of grids supplied, for each grid point, if the maximum grid value across all the
-        grids belongs to the self grid, the value is assigned to a fresh grid.
-        :param list grids: grids to be compared to self
-        :return: `ccdc.utilities.Grid`
-        """
-        max_grids = [self > g for g in grids]
-        blank = -self.copy_and_clear()
-        return reduce(operator.__and__, max_grids, blank)
-
-    def get_best_island(self, threshold):
-        """
-        For a given threshold, the island which contains the most grid points will be returned
-
-        :param threshold: island threshold
-        :type threshold: int
-
-        :return: the island with the most grid points above the threshold
-        :rtype: :class:`ccdc.utilities.Grid`
-        """
-        islands = self.islands(threshold)
-
-        if len(islands) == 0:
-            return None
-
-        else:
-            island_by_rank = {}
-            for island in islands:
-                g = (island > threshold) * island
-                rank = g.count_grid()
-                island_by_rank.update({rank: g})
-
-            if len(island_by_rank) == 0:
-                return None
-
-            else:
-                rank = sorted(island_by_rank.keys(), reverse=True)[0]
-                print("threshold:", threshold, "count:", sorted(island_by_rank.keys(), reverse=True))
-                return island_by_rank[rank]
-
-    def minimal(self):
-        """
-        reduces grid size to the minimal dimensions
-        :return: `ccdc.utilities.Grid`
-        """
-        try:
-            return Grid.super_grid(1, *self.islands(threshold=1))
-        except RuntimeError:
-            return self
-
-    @staticmethod
-    def shrink(small, big, reverse_padding=1):
-        """
-        shrink a big grid to the dimension of a small grid
-
-        :param big: the grid to be shrunk
-        :type big: `hotspots.grid_extension.Grid`
-        :param reverse_padding: amount of erosion within the small grid boundaries (ensures fit)
-        :type reverse_padding: int
-
-        :return: shrunk grid
-        :rtype: `hotspots.grid_extension.Grid`
-        """
-
-        origin, far_left = small.bounding_box
-        o = big.point_to_indices(origin)
-        o = [i + reverse_padding for i in o]
-
-        f = big.point_to_indices(far_left)
-        f = [i - reverse_padding for i in f]
-
-        h = big.sub_grid(o + f)
-        return small.common_boundaries(h)
-
-    def limit_island_size(self, npoints, threshold=10):
-        """
-        for a given grid, the number of points contained within the islands (threshold = x) is limited to npoints
-        :param int npoints: maximum number of points in each island feature
-        :param float threshold: values above this value
-        :return:
-        """
-        g = (self > 10) * self
-        all_islands = []
-        for island in g.islands(threshold):
-            if island.count_grid() > npoints:
-                all_islands.append(island.top_points(npoints=npoints))
-            else:
-                all_islands.append(island)
-        return Grid.super_grid(0, *all_islands)
-
-    def top_points(self, npoints):
-        """
-        for a given grid, the top scoring n points are returned
-        :param int npoints: number of points to be returned
-        :return: `ccdc.ulilities.Grid`
-        """
-        pts = {}
-        nx, ny, nz = self.nsteps
-
-        for i in range(nx):
-            for j in range(ny):
-                for k in range(nz):
-                    val = self.value(i, j, k)
-
-                    if val in pts:
-                        pts[val].append((i, j, k))
-                    else:
-                        pts.update({self.value(i, j, k): [(i, j, k)]})
-
-        sorted_pts = sorted(pts.items(), key=lambda x: x[0], reverse=True)
-
-        thres = self._get_threshold(sorted_pts, npoints=npoints)
-        return (self > thres) * self
-
-    def step_out_mask(self, nsteps=2):
-        """
-        add n step in all directions to Grid boundary, returns blank grid
-        :param nsteps: the number of steps the grid is expanded
-        :return: `hotspots.grid_extension.Grid`
-        """
-        origin = (self.bounding_box[0].x - (self.spacing * nsteps),
-                  self.bounding_box[0].y - (self.spacing * nsteps),
-                  self.bounding_box[0].z - (self.spacing * nsteps))
-
-        far_corner = (self.bounding_box[1].x + (self.spacing * nsteps),
-                      self.bounding_box[1].y + (self.spacing * nsteps),
-                      self.bounding_box[1].z + (self.spacing * nsteps))
-
-        return Grid(origin=origin,
-                    far_corner=far_corner,
-                    spacing=0.5,
-                    default=0,
-                    _grid=None)
-
-    @staticmethod
-    def _get_threshold(sorted_points, npoints):
-        """
-        private method
-        returns the lower limit of the top n number of points in a grid
-        :param dict sorted_points: {grid_value, (float(x), float(y), float(z))
-        :param int npoints: number of grid points
-        :return:
-        """
-        count = []
-        for value, pts in sorted_points:
-            count.extend(pts)
-            if len(count) >= npoints:
-                return value
-            else:
-                continue
-
-    @staticmethod
-    def array_to_grid(array, blank):
-        """"""
-        grid = blank.copy_and_clear()
-        indices = np.nonzero(array)
-        values = array[indices]
-        as_triads = zip(*indices)
-
-        for (i, j, k), v in zip(as_triads, values):
-            grid._grid.set_value(int(i), int(j), int(k), float(v))
-
-        return grid
-
-    @staticmethod
-    def from_array(fname, origin, spacing):
-        """
-        creates a grid from array
-        :param fname: path to pickled numpy array
-        :return: `hotspots.grid_extension.Grid`
-        """
-        array = np.load(fname)
-        shape = array.shape
-        far_corner = [origin[0]+(spacing*shape[0]), origin[1]+(spacing*shape[1]), origin[2]+(spacing*shape[2])]
-
-        grid = Grid(origin=list(origin),
-                    far_corner=list(far_corner),
-                    spacing=spacing,
-                    default=0.0,
-                    _grid=None)
-
-        indices = np.nonzero(array)
-        values = array[indices]
-        as_triads = zip(*indices)
-
-        for (i, j, k), v in zip(as_triads, values):
-            grid._grid.set_value(int(i), int(j), int(k), float(v))
-
-        return grid
-
-    @staticmethod
-    def common_grid(grid_list, padding=1):
-        """
-        returns two grid with common boundaries
-        :param list grid_list: list of `ccdc.utilities.Grid` instances
-        :param padding: number of steps to add to the grid boundary
-        :return:
-        """
-        sg = Grid.super_grid(padding, *grid_list)
-        out_g = sg.copy()
-        out_g *= 0
-        out = [Grid.super_grid(padding, g, out_g) for g in grid_list]
-        return out
-
-    def inverse_single_grid(self, mask_dic):
-        """
-        from a single grid, uses mask_dic to return separated grids divide by interaction type
-        :param mask_dic: dict
-        :return: dict
-        """
-        sg = mask_dic["apolar"].common_boundaries(self)
-        return {probe: grid * (grid & sg) for probe, grid in mask_dic.items()}
-
-    @staticmethod
-    def get_single_grid(grd_dict, mask=True):
-        """
-        Combines a dictionary of identifier (str): Grid (ccdc.utilties.Grid) to a single grid.
-        Grid points of the single_grid are set to the maximum value at each point across all the input grids
-        :param grd_dict:
-        :param mask:
-        :return:
-        """
-        mask_dic = {}
-
-        if len(set([g.bounding_box for g in grd_dict.values()])) > 1:
-            grd_dict = dict(zip(grd_dict.keys(), Grid.common_grid(grd_dict.values())))
-
-        for probe, grid in grd_dict.items():
-            other_grids = [grd_dict[p] for p in grd_dict.keys() if p != probe]
-            mask_dic.update({probe: grid * grid.multi_max_mask(other_grids)})
-
-        o = [g.bounding_box[0] for g in grd_dict.values()]
-        origin = [min([coord.x for coord in o]),
-                  min([coord.y for coord in o]),
-                  min([coord.z for coord in o])
-                  ]
-
-        f = [g.bounding_box[1] for g in grd_dict.values()]
-        far_corner = [max([coord.x for coord in f]),
-                      max([coord.y for coord in f]),
-                      max([coord.z for coord in f])
-                      ]
-
-        blank = Grid(origin=origin, far_corner=far_corner, spacing=0.5, default=0.1, _grid=None)
-
-        if mask:
-            return mask_dic, reduce(operator.add, mask_dic.values(), blank)
-        else:
-            return reduce(operator.add, mask_dic.values(), blank)
-
-    def _mutually_inclusive(self, other):
-        """
-
-        :param other:
-        :return:
-        """
-        g, h = Grid.common_grid(grid_list=[self, other], padding=1)
-        return g & h
-
-    def score_atom(self, atom):
-        selem = ball(radius=1)
-        i,j,k = self.point_to_indices(atom.coordinates)
-        score = 0
-        len_i, len_j, len_k = np.shape(selem)
-
-        for di in range(0,len_i):
-            for dj in range(0,len_j):
-                for dk in range(0,len_k):
-                    # print(di, dj, dk)
-                    if selem[di,dj,dk] ==1:
-
-                        x = i+(di-2)
-                        y = j+(dj-2)
-                        z = k+(dj-2)
-                        # print(x,y,z)
-                        score += self.value(x,y,z)
-        return score
-
-    def atomic_overlap(self, atom, return_grid=True):
-
-        g = Grid.initalise_grid(coords=[atom.coordinates])
-
-        h = g.copy_and_clear()
-        h.set_sphere(point=atom.coordinates, radius=atom.vdw_radius, value=1, scaling='None')
-        overlap = self._mutually_inclusive(other=h)
-        perc_overlap = (overlap.count_grid() / (h > 0).count_grid()) * 100
-
-        if return_grid is True:
-            return perc_overlap, overlap
-
-        else:
-            return perc_overlap
-
-    def matched_atoms(self, atoms, threshold=30):
-        """
-        for a given atom, the percentage overlap with the grid is calculated. If the overlap
-        is over a threshold the atom identifier is returned in a list
-
-        :param list atoms: list of `ccdc.molecule.Atoms`
-        :param int threshold: percentage overlap threshold
-        :return list: list of str
-        """
-        passed_atoms = {}
-
-        for a in atoms:
-            perc_overlap, overlap = self.atomic_overlap(atom=a, return_grid=True)
-
-            if perc_overlap > threshold:
-                common_a, common_b = Grid.common_grid([self, overlap])
-                passed_atoms[a.label] = (common_a * common_b).extrema[1]
-
-        return passed_atoms
-
-    def percentage_overlap(self, other):
-        """
-        find the percentage overlap of this grid with other.
-        :param other: `hotspots.grid_extension.Grid`
-        :return:`hotspots.grid_extension.Grid`
-        """
-        overlap = self._mutually_inclusive(other=other).count_grid()
-        vol = (self > 0).count_grid()
-        return (overlap / vol) * 100
-
-    @staticmethod
-    def from_molecule(mol, scaling=1, value=1, scaling_type='None'):
+    def from_molecule(mol, scaling=1, value=1, scaling_type='None', spacing=0.5, mode='add', padding=2):
         """
         generate a molecule mask where gp within the vdw radius of the molecule heavy atoms are set to 1.0
         :param mol: a molecule
@@ -709,12 +70,14 @@ class Grid(utilities.Grid):
         :rtype: :class:`hotspots.grid_extension.Grid`
         """
         coords = [a.coordinates for a in mol.atoms]
-        g = Grid.initalise_grid(coords=coords, padding=2)
+        g = Grid.initalise_grid(coords=coords, padding=padding, spacing=spacing)
         for a in mol.heavy_atoms:
             g.set_sphere(point=a.coordinates,
                          radius=a.vdw_radius * scaling,
                          value=value,
-                         scaling=scaling_type)
+                         scaling=scaling_type,
+                         mode=mode)
+
         return g
 
     def from_coords(self, coords, scaling=1):
@@ -766,16 +129,392 @@ class Grid(utilities.Grid):
 
         return Grid(origin=origin, far_corner=far_corner, spacing=spacing, default=0, _grid=None)
 
-    def remove_small_objects(self, min_size = 400):
+    def step_out_mask(self, nsteps=2):
+        """
+        add n step in all directions to Grid boundary, returns blank grid
+        :param nsteps: the number of steps the grid is expanded
+        :return: `hotspots.grid_extension.Grid`
+        """
+        origin = (self.bounding_box[0].x - (self.spacing * nsteps),
+                  self.bounding_box[0].y - (self.spacing * nsteps),
+                  self.bounding_box[0].z - (self.spacing * nsteps))
 
-        g_array = self.get_array()
-        bool_array = g_array.astype(bool)
-        no_small_obj = remove_small_objects(bool_array, min_size=min_size, connectivity=2)
+        far_corner = (self.bounding_box[1].x + (self.spacing * nsteps),
+                      self.bounding_box[1].y + (self.spacing * nsteps),
+                      self.bounding_box[1].z + (self.spacing * nsteps))
 
-        out_array = g_array*no_small_obj
+        return Grid(origin=origin,
+                    far_corner=far_corner,
+                    spacing=0.5,
+                    default=0,
+                    _grid=None)
 
-        return self.array_to_grid(out_array,self.copy_and_clear())
 
+
+
+    ##################################################################################################################
+    # reformat grid data: methods which restructure grid data i.e. grid to numpy array
+    def coordinates(self, threshold=1):
+        nx, ny, nz = self.nsteps
+        return [self.indices_to_point(i, j, k)
+                for i in range(nx)
+                for j in range(ny)
+                for k in range(nz)
+                if self.value(i, j, k) >= threshold]
+
+    def grid_value_by_coordinates(self, threshold=1):
+        """
+        returns a dictionary of grid point values by coordinates
+        :param int threshold: the island threshold of the grid, only points over this value will be returned
+        :return: dict, grid point values by coordinates
+        """
+        dic = {}
+        nx, ny, nz = self.nsteps
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    if self.value(i, j, k) > threshold:
+                        try:
+                            dic[self.value(i, j, k)].append(self.indices_to_point(i, j, k))
+                        except KeyError:
+                            dic.update({self.value(i, j, k): [self.indices_to_point(i, j, k)]})
+
+        return dic
+
+    def grid_values(self, threshold=0):
+        """
+        generates a numpy array with all values over a given threshold (default = 0)
+        :param int threshold: values over this value
+        :return:
+        """
+        array = self.get_array()
+        masked_array = np.ma.masked_less_equal(array, threshold)
+        return masked_array.compressed()
+
+    def get_flat_array(self):
+        """
+
+        :return:
+        """
+        return np.array(self.to_vector())
+
+    def get_array(self):
+        """
+        convert grid object to np.array
+        :return: `numpy.array`, array with shape (nsteps) and each element corresponding to value at that indice
+        """
+        nx, ny, nz = self.nsteps
+        flat = np.array(self.to_vector())
+        array = flat.reshape((nx,ny,nz))
+        return array
+
+    @staticmethod
+    def array_to_grid(array, blank):
+        """"""
+        grid = blank.copy_and_clear()
+        indices = np.nonzero(array)
+        values = array[indices]
+        as_triads = zip(*indices)
+
+        for (i, j, k), v in zip(as_triads, values):
+            grid._grid.set_value(int(i), int(j), int(k), float(v))
+
+        return grid
+
+    @staticmethod
+    def from_array(fname, origin, spacing):
+        """
+        creates a grid from array
+        :param fname: path to pickled numpy array
+        :return: `hotspots.grid_extension.Grid`
+        """
+        array = np.load(fname)
+        shape = array.shape
+        far_corner = [origin[0]+(spacing*shape[0]), origin[1]+(spacing*shape[1]), origin[2]+(spacing*shape[2])]
+
+        grid = Grid(origin=list(origin),
+                    far_corner=list(far_corner),
+                    spacing=spacing,
+                    default=0.0,
+                    _grid=None)
+
+        indices = np.nonzero(array)
+        values = array[indices]
+        as_triads = zip(*indices)
+
+        for (i, j, k), v in zip(as_triads, values):
+            grid._grid.set_value(int(i), int(j), int(k), float(v))
+
+        return grid
+
+    ##################################################################################################################
+    # manipulate grid dimension: everything concerned with altering dimensions of a grid
+    def copy_and_clear(self):
+        """
+        make a new empty grid, with the same dimensions as the old
+        :return: `hotspots.grid_extension.Grid`
+        """
+        g = self.copy()
+        g *= 0
+        return g
+
+    def common_boundaries(self, grid):
+        """
+        expands supplied grid to the size of self (supplied grid should be smaller than self)
+        :param grid:
+        :return:
+        """
+        reference = Grid.super_grid(0, self, grid)
+        blank = reference.copy_and_clear()
+        return Grid.super_grid(0, blank, grid)
+
+    @staticmethod
+    def common_grid(grid_list, padding=1):
+        """
+        returns two grid with common boundaries
+        :param list grid_list: list of `ccdc.utilities.Grid` instances
+        :param padding: number of steps to add to the grid boundary
+        :return:
+        """
+        sg = Grid.super_grid(padding, *grid_list)
+        out_g = sg.copy()
+        out_g *= 0
+        out = [Grid.super_grid(padding, g, out_g) for g in grid_list]
+        return out
+
+    def minimal(self, padding=1):
+        """
+        TODO: Investigate why this changes values
+        reduces grid size to the minimal dimensions
+        :return: `ccdc.utilities.Grid`
+        """
+        try:
+            small_g =  Grid.super_grid(1, *(self >2 ).islands(threshold=1))
+            return self.shrink(small_g,self,reverse_padding=0)
+
+        except RuntimeError:
+            return self
+
+    @staticmethod
+    def shrink(small, big, reverse_padding=1):
+        """
+        shrink a big grid to the dimension of a small grid
+
+        :param big: the grid to be shrunk
+        :type big: `hotspots.grid_extension.Grid`
+        :param reverse_padding: amount of erosion within the small grid boundaries (ensures fit preventing a seg fault)
+        :type reverse_padding: int
+
+        :return: shrunk grid
+        :rtype: `hotspots.grid_extension.Grid`
+        """
+
+        origin, far_left = small.bounding_box
+        o = big.point_to_indices(origin)
+        o = [i + reverse_padding for i in o]
+
+        f = big.point_to_indices(far_left)
+        f = [i - reverse_padding for i in f]
+
+        h = big.sub_grid(o + f)
+        # reverse padding ensure h is smaller than 'small'. Finally expand h to the dimensions of small.
+        return small.common_boundaries(h)
+
+    def respace_grid(self, spacing=0.25):
+        """
+        Change the grid spacing of a grid and interpolate missing values (if spacing is decreased)
+
+        :param spacing:
+        :return:
+        """
+        g_min = self.minimal()
+        origin, far_corner = g_min.bounding_box
+        g_arr = g_min.get_array()
+        scaled_g = Grid(origin=origin,
+                        far_corner=far_corner,
+                        spacing=spacing)
+        scaled_array = resize(g_arr, scaled_g.nsteps, anti_aliasing=False)
+        return Grid.array_to_grid(scaled_array.astype(int), scaled_g)
+
+
+    ##################################################################################################################
+    # grid data calls: methods which access a part of grid data
+    def centroid(self):
+        """
+        returns centre of the grid's bounding box
+        :param self:
+        :return:
+        """
+        return ((self.bounding_box[0][0] + self.bounding_box[1][0]) / 2,
+                (self.bounding_box[0][1] + self.bounding_box[1][1]) / 2,
+                (self.bounding_box[0][2] + self.bounding_box[1][2]) / 2
+                )
+
+    def get_near_scores(self, coordinate, tolerance=3):
+        """
+        for a given grid point, return a list of values within a search tolerance
+        :param tup coordinate: coordinate of a point within the grid
+        :param int tolerance: search distance, in grid steps
+        :return:
+        """
+        i, j, k = self.point_to_indices(coordinate)
+        ri = self._tolerance_range(i, tolerance, 0, self.nsteps[0])
+        rj = self._tolerance_range(j, tolerance, 0, self.nsteps[1])
+        rk = self._tolerance_range(k, tolerance, 0, self.nsteps[2])
+        return [self.value(a, b, c) for a in ri for b in rj for c in rk if self.value(a, b, c) > 0]
+
+    @staticmethod
+    def neighbourhood(i, j, k, high, catchment=1):
+        """
+        find the neighbourhood of a given indice. Neighbourhood is defined by all points within 1 step of the
+        specified indice. This includes the cubic diagonals.
+
+        :param i: i indice
+        :param j: j indice
+        :param k: k indice
+        :param catchment: number of steps from the centre
+
+        :type i: int
+        :type j: int
+        :type k: int
+        :type catchment: int
+
+        :return: indices of the neighbourhood
+        :rtype: list
+        """
+        low = (0, 0, 0)
+
+        i_values = [a for a in range(i-catchment, i+catchment+1) if low[0] <= a < high[0]]
+        j_values = [b for b in range(j-catchment, j+catchment+1) if low[1] <= b < high[1]]
+        k_values = [c for c in range(k-catchment, k+catchment+1) if low[2] <= c < high[2]]
+
+        return [[a, b, c] for a in i_values for b in j_values for c in k_values
+                if Helper.get_distance([a, b, c], [i, j, k]) == 1]
+
+    def grid_score(self, threshold=0, percentile=75):
+        """
+        for a given grid, the xth percentile of values above a given threshold is returned
+        :param int threshold: values over this value
+        :param int percentile: value at this percentile
+
+        :return:
+        """
+        array = self.get_array()
+        masked_array = np.ma.masked_less_equal(array, threshold)
+        values = masked_array.compressed()
+
+        if len(values) == 0:
+            return 0
+        else:
+            return np.percentile(values, percentile)
+
+    @staticmethod
+    def _get_threshold(sorted_points, npoints):
+        """
+        private method
+        returns the lower limit of the top n number of points in a grid
+        :param dict sorted_points: {grid_value, (float(x), float(y), float(z))
+        :param int npoints: number of grid points
+        :return:
+        """
+        count = []
+        for value, pts in sorted_points:
+            count.extend(pts)
+            if len(count) >= npoints:
+                return value
+            else:
+                continue
+
+    def value_at_coordinate(self, coordinates, tolerance=1, position=True, return_list = False):
+        """
+        Uses Grid.value() rather than Grid.value_at_point(). Chris Radoux reported speed issues.
+        :param coordinates:
+        :param tolerance:
+        :return:
+        """
+        i, j, k = self.point_to_indices(coordinates)
+        nx, ny, nz = self.nsteps
+        scores = {}
+
+        sphere = ball(tolerance)
+
+        if return_list:
+            shape = (2 * tolerance + 1)
+            sub_g = self.sub_grid((i - tolerance, j - tolerance, k - tolerance,i + tolerance, j + tolerance, k + tolerance))
+            vec = np.array(sub_g.to_vector(),dtype=float).reshape((shape,shape,shape))
+            test_scores = sphere*vec
+            return list(set(test_scores[test_scores.nonzero()].tolist()))
+        #     print("new", test_scores[test_scores.nonzero()].tolist())
+        for di in range(-tolerance, +tolerance + 1):
+            for dj in range(-tolerance, +tolerance + 1):
+                for dk in range(-tolerance, +tolerance + 1):
+                    if sphere[tolerance + di][tolerance + dj][tolerance + dk] ==1 and 0 < (i + di) < nx and 0 < (j + dj) < ny and 0 < (k + dk) < nz:
+                        scores.update({self.value(i + di, j + dj, k + dk): (i + di, j + dj, k + dk)})
+
+        if len(scores) > 0:
+            score = sorted(scores.keys(), reverse=True)[0]
+
+            if score < 0.1:
+                score = 0
+                point = (0, 0, 0)
+
+            else:
+                a, b, c = scores[score]
+                point = self.indices_to_point(a, b, c)
+
+        else:
+            score = 0
+            point = (0, 0, 0)
+
+        if position:
+            return score, point
+
+        else:
+            return score
+
+    def contains_point(self, point, threshold=0, tolerance=0):
+        """
+        determines whether a set of coordinates are within a grids boundary
+        :param tup point: (float(x), float(y), float(z))
+        :param int threshold: values above this value
+        :param float tolerance: radius of search
+        :return:
+        """
+        mini = self.bounding_box[0]
+        maxi = self.bounding_box[1]
+        if self.value_at_point(point) >= threshold:
+            return all([mini.x - tolerance < point[0] < maxi.x + tolerance,
+                        mini.y - tolerance < point[1] < maxi.y + tolerance,
+                        mini.z - tolerance < point[2] < maxi.z + tolerance])
+        else:
+            return False
+
+    def indices_to_point(self, i, j, k):
+        """
+        return x,y,z coordinate for a given grid index
+        :param int i: indice (x-axis)
+        :param int j: indice (y-axis)
+        :param int k: indice (z-axis)
+        :return: tup, float(x), float(y), float(z)
+        """
+        ox, oy, oz, = self.bounding_box[0]
+        gs = self.spacing
+        return ox + float(i) * gs, oy + float(j) * gs, oz + gs * float(k)
+
+    def point_to_indices(self, p):
+        """
+        return the nearest grid index for a given point
+        :param tup p: (float(x), float(y), float(z)), a coordinate on a 3D grid
+        :return: int(x), int(y), int(z)
+        """
+
+        gs = self.spacing
+        rx, ry, rz = [round(i / gs) for i in p]
+        ox, oy, oz = [round(i / gs) for i in self.bounding_box[0]]
+        return int(rx - ox), int(ry - oy), int(rz - oz)
+
+    ##################################################################################################################
+    # grid data manipulation
     @staticmethod
     def grow(inner, template, percentile=80):
         """
@@ -852,74 +591,359 @@ class Grid(utilities.Grid):
             average_peaks.append(coords)
 
         return average_peaks
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        # peak_by_value = {}
-        # for peak in peaks:
-        #     val = self.value(int(peak[0]), int(peak[1]), int(peak[2]))
-        #     if val > cutoff:
-        #         if val in peak_by_value:
-        #             peak_by_value[val].append((peak[0], peak[1], peak[2]))
-        #         else:
-        #             peak_by_value.update({val: [(peak[0], peak[1], peak[2])]})
-        #
-        # print(peak_by_value)
-        #
-        # average_peaks = []
-        # for key in peak_by_value.keys():
-        #     x = [point[0] for point in peak_by_value[key]]
-        #     y = [point[1] for point in peak_by_value[key]]
-        #     z = [point[2] for point in peak_by_value[key]]
-        #
-        #     centroid = (int(sum(x) / len(x)), int(sum(y) / len(y)), int(sum(z) / len(z)))
-        #     print(centroid)
-        #     average_peaks.append(self.indices_to_point(centroid[0], centroid[1], centroid[2]
-        #                                                )
-        #                          )
-        # return average_peaks
 
-    def value_at_coordinate(self, coordinates, tolerance=1, position=True):
+    def inverse_single_grid(self, mask_dic):
         """
-        Uses Grid.value() rather than Grid.value_at_point(). Chris Radoux reported speed issues.
-        :param coordinates:
-        :param tolerance:
+        from a single grid, uses mask_dic to return separated grids divide by interaction type
+        :param mask_dic: dict
+        :return: dict
+        """
+        sg = mask_dic["apolar"].common_boundaries(self)
+        return {probe: grid * (grid & sg) for probe, grid in mask_dic.items()}
+
+    @staticmethod
+    def get_single_grid(grd_dict, mask=True):
+        """
+        Combines a dictionary of identifier (str): Grid (ccdc.utilties.Grid) to a single grid.
+        Grid points of the single_grid are set to the maximum value at each point across all the input grids
+        :param grd_dict:
+        :param mask:
         :return:
         """
-        i, j, k = self.point_to_indices(coordinates)
+        mask_dic = {}
+
+        if len(set([g.bounding_box for g in grd_dict.values()])) > 1:
+            grd_dict = dict(zip(grd_dict.keys(), Grid.common_grid(grd_dict.values())))
+
+        for probe, grid in grd_dict.items():
+            other_grids = [grd_dict[p] for p in grd_dict.keys() if p != probe]
+            mask_dic.update({probe: grid * grid.multi_max_mask(other_grids)})
+
+        o = [g.bounding_box[0] for g in grd_dict.values()]
+        origin = [min([coord.x for coord in o]),
+                  min([coord.y for coord in o]),
+                  min([coord.z for coord in o])
+                  ]
+
+        f = [g.bounding_box[1] for g in grd_dict.values()]
+        far_corner = [max([coord.x for coord in f]),
+                      max([coord.y for coord in f]),
+                      max([coord.z for coord in f])
+                      ]
+
+        spacing = grd_dict["apolar"]._spacing
+
+        blank = Grid(origin=origin, far_corner=far_corner, spacing=spacing, default=0.1, _grid=None)
+
+        if mask:
+            return mask_dic, reduce(operator.add, mask_dic.values(), blank)
+        else:
+            return reduce(operator.add, mask_dic.values(), blank)
+
+    def gaussian(self, sigma=0.2):
+        """
+        gaussian smoothing function, method of reducing noise in output
+        :param float sigma: degree of smoothing
+        :return:
+        """
+        s = (sigma, sigma, sigma, 0)
         nx, ny, nz = self.nsteps
-        scores = {}
+        scores = np.zeros((nx, ny, nz, 1))
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    scores[i, j, k, 0] += self.value(i, j, k)
+        smoothed = ndimage.filters.gaussian_filter(scores, sigma=s)
+        grid = self.copy_and_clear()
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    grid.set_value(i, j, k, smoothed[i, j, k, 0])
+        return grid
 
-        for di in range(-tolerance, +tolerance + 1):
-            for dj in range(-tolerance, +tolerance + 1):
-                for dk in range(-tolerance, +tolerance + 1):
-                    if 0 < (i + di) < nx and 0 < (j + dj) < ny and 0 < (k + dk) < nz:
-                        scores.update({self.value(i + di, j + dj, k + dk): (i + di, j + dj, k + dk)})
+    def dilate_by_atom(self, radius=1):
 
-        if len(scores) > 0:
-            score = sorted(scores.keys(), reverse=True)[0]
+        g_array = self.get_array()
+        selem = ball(radius=radius)
+        print(selem)
 
-            if score < 0.1:
-                score = 0
-                point = (0, 0, 0)
+        dilated = ndimage.grey_dilation(g_array, structure=selem)
+
+        return self.array_to_grid(dilated, self)
+
+    def get_best_island(self, threshold, island_rank = 0):
+        """
+        For a given threshold, the island which contains the most grid points will be returned
+
+        :param threshold: island threshold
+        :type threshold: int
+
+        :return: the island with the most grid points above the threshold
+        :rtype: :class:`ccdc.utilities.Grid`
+        """
+        islands = self.islands(threshold)
+
+        if len(islands) == 0:
+            return None
+
+        else:
+            island_by_rank = {}
+            for island in islands:
+                g = (island > threshold) * island
+                rank = g.count_grid()
+                island_by_rank.update({rank: g})
+
+            if len(island_by_rank) == 0:
+                return None
 
             else:
-                a, b, c = scores[score]
-                point = self.indices_to_point(a, b, c)
+                try:
+                    rank = sorted(island_by_rank.keys(), reverse=True)[island_rank]
+                except IndexError:
+                    return None
+                print("threshold:", threshold, "count:", sorted(island_by_rank.keys(), reverse=True))
+                return island_by_rank[rank]
+
+    def multi_max_mask(self, grids):
+        """
+        for a self grid and collection of grids supplied, for each grid point, if the maximum grid value across all the
+        grids belongs to the self grid, the value is assigned to a fresh grid.
+        :param list grids: grids to be compared to self
+        :return: `ccdc.utilities.Grid`
+        """
+        max_grids = [self > g for g in grids]
+        blank = -self.copy_and_clear()
+        return reduce(operator.__and__, max_grids, blank)
+
+    def _mutually_inclusive(self, other):
+        """
+
+        :param other:
+        :return:
+        """
+        g, h = Grid.common_grid(grid_list=[self, other], padding=1)
+        return g & h
+
+    def remove_small_objects(self, min_size = 400):
+
+        g_array = self.get_array()
+        bool_array = g_array.astype(bool)
+        no_small_obj = remove_small_objects(bool_array, min_size=min_size, connectivity=2)
+
+        out_array = g_array*no_small_obj
+
+        return self.array_to_grid(out_array,self.copy_and_clear())
+
+    ##################################################################################################################
+    def score_atom(self, atom):
+        selem = ball(radius=1)
+        i,j,k = self.point_to_indices(atom.coordinates)
+        score = 0
+        len_i, len_j, len_k = np.shape(selem)
+
+        for di in range(0,len_i):
+            for dj in range(0,len_j):
+                for dk in range(0,len_k):
+                    # print(di, dj, dk)
+                    if selem[di,dj,dk] ==1:
+
+                        x = i+(di-2)
+                        y = j+(dj-2)
+                        z = k+(dj-2)
+                        # print(x,y,z)
+                        score += self.value(x,y,z)
+        return score
+
+    def atomic_overlap(self, atom, return_grid=True):
+
+        g = Grid.initalise_grid(coords=[atom.coordinates])
+
+        h = g.copy_and_clear()
+        h.set_sphere(point=atom.coordinates, radius=atom.vdw_radius, value=1, scaling='None')
+        overlap = self._mutually_inclusive(other=h)
+        perc_overlap = (overlap.count_grid() / (h > 0).count_grid()) * 100
+
+        if return_grid is True:
+            return perc_overlap, overlap
 
         else:
-            score = 0
-            point = (0, 0, 0)
+            return perc_overlap
 
-        if position:
-            return score, point
+    def matched_atoms(self, atoms, threshold=30):
+        """
+        for a given atom, the percentage overlap with the grid is calculated. If the overlap
+        is over a threshold the atom identifier is returned in a list
 
+        :param list atoms: list of `ccdc.molecule.Atoms`
+        :param int threshold: percentage overlap threshold
+        :return list: list of str
+        """
+        passed_atoms = {}
+
+        for a in atoms:
+            perc_overlap, overlap = self.atomic_overlap(atom=a, return_grid=True)
+
+            if perc_overlap > threshold:
+                common_a, common_b = Grid.common_grid([self, overlap])
+                passed_atoms[a.label] = (common_a * common_b).extrema[1]
+
+        return passed_atoms
+
+    def percentage_overlap(self, other):
+        """
+        find the percentage overlap of this grid with other.
+        :param other: `hotspots.grid_extension.Grid`
+        :return:`hotspots.grid_extension.Grid`
+        """
+        overlap = self._mutually_inclusive(other=other).count_grid()
+        vol = (self > 0).count_grid()
+        return (overlap / vol) * 100
+
+    ##################################################################################################################
+    # other grid
+    def edge_detection(self, edge_definition=0):
+        """
+        A simplified method to detect surface edge. An edge is defined as a grid point has a value 1 but is adjacent
+        to a grid point with value 0. Only points distance = 1 are considered adjacent (i.e. not diagonals)
+
+        :param edge_definition: values above which are considered part of the body
+        :type edge_definition: float
+
+        :return: the bodies surface as a list of indices
+        :rtype: list
+        """
+        edge = []
+        # generate a mask.
+        self = self > edge_definition
+        a = self.get_array()
+        nx, ny, nz = self.nsteps
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    if a[i][j][k] > 0:
+                        neighbourhood = self.neighbourhood(i, j, k, self.nsteps)
+                        print({a[n[0]][n[1]][n[2]] for n in neighbourhood})
+                        if min({a[n[0]][n[1]][n[2]] for n in neighbourhood}) == 0:
+                            edge.append(self.indices_to_point(i, j, k))
+
+        return edge
+
+    @staticmethod
+    def _tolerance_range(value, tolerance, min, max):
+        """
+        private method
+
+        for a given value and tolerance, the method checks that the tolerance range for that value is within the grid
+        boundaries
+        :param int value: an "indice" value either (i or j or k)
+        :param int min: the minimum grid boundary (always = 0)
+        :param int max: the maximum grid boundary (always = n step)
+        :return: range,
+        """
+        low = value - tolerance
+        if low < 0:
+            low = 0
+
+        high = value + tolerance
+        if high > max:
+            high = max
+        return range(low, high)
+
+    def deduplicate(self, major, threshold=12, tolerance=2):
+        """
+        method to deduplicate two grids, used for charged-polar deduplication
+        :param `ccdc.utilities.Grid` major: overriding grid
+        :param int threshold: values above this value
+        :param int tolerance: search radius for determining feature overlap
+        :return:
+        """
+        if self.bounding_box[0] != major.bounding_box[0] or self.bounding_box[1] != major.bounding_box[1]:
+            self = major.common_boundaries(self)
+
+        all_islands = set([jsland for jsland in self.islands(threshold=threshold)])
+        bin_islands = set([jsland for jsland in all_islands
+                           for island in major.islands(threshold=threshold)
+                           if jsland.contains_point(island.centroid(), tolerance=tolerance)
+                           or jsland.count_grid() <= 8
+                           or Helper.get_distance(jsland.centroid(), island.centroid()) < 4])
+
+        retained_jslands = list(all_islands - bin_islands)
+
+        if len(retained_jslands) == 0:
+            blank = major.copy_and_clear()
+            return blank
         else:
-            return score
+            temp = Grid.super_grid(0, *retained_jslands)
+            blank = self.copy_and_clear()
+            return blank.common_boundaries(temp)
+
+    def top_points(self, npoints):
+        """
+        for a given grid, the top scoring n points are returned
+        :param int npoints: number of points to be returned
+        :return: `ccdc.ulilities.Grid`
+        """
+        pts = {}
+        nx, ny, nz = self.nsteps
+
+        for i in range(nx):
+            for j in range(ny):
+                for k in range(nz):
+                    val = self.value(i, j, k)
+
+                    if val in pts:
+                        pts[val].append((i, j, k))
+                    else:
+                        pts.update({self.value(i, j, k): [(i, j, k)]})
+
+        sorted_pts = sorted(pts.items(), key=lambda x: x[0], reverse=True)
+
+        thres = self._get_threshold(sorted_pts, npoints=npoints)
+        return (self > thres) * self
+
+    # def restricted_volume(self, volume=75):
+    #     """
+    #     returns a grid with of a defined volume
+    #     :param float volume: desired volume in Angstroms ^ 3
+    #     :return: `hotspots.grid_extension.Grid`
+    #     """
+    #     grid = self.copy_and_clear()
+    #     max_points = int(float(volume) / 0.125)
+    #     nx, ny, nz = self.nsteps
+    #     rank_dict = {}
+    #
+    #     for i in range(nx):
+    #         for j in range(ny):
+    #             for k in range(nz):
+    #                 value = float(self.value(i, j, k))
+    #                 if value in rank_dict:
+    #                     rank_dict[value].append((i, j, k))
+    #                 else:
+    #                     rank_dict.update({value: [(i, j, k)]})
+    #
+    #     top_points = sorted((float(x) for x, y in rank_dict.iteritems()), reverse=True)
+    #     indices = [pts for key in top_points for pts in rank_dict[key]]
+    #
+    #     for i in indices[:max_points]:
+    #         grid.set_value(i[0], i[1], i[2], self.value(i[0], i[1], i[2]))
+    #
+    #     return Grid.super_grid(1, *grid.islands(threshold=1))
+
+    # def limit_island_size(self, npoints, threshold=10):
+    #     """
+    #     for a given grid, the number of points contained within the islands (threshold = x) is limited to npoints
+    #     :param int npoints: maximum number of points in each island feature
+    #     :param float threshold: values above this value
+    #     :return:
+    #     """
+    #     g = (self > 10) * self
+    #     all_islands = []
+    #     for island in g.islands(threshold):
+    #         if island.count_grid() > npoints:
+    #             all_islands.append(island.top_points(npoints=npoints))
+    #         else:
+    #             all_islands.append(island)
+    #     return Grid.super_grid(0, *all_islands)
 
     def check_same_size_and_coords(self, other):
         """
@@ -1007,10 +1031,12 @@ class _GridEnsemble(object):
         values = array[nonz]
         # Get indices per value
         as_triads = zip(*nonz)
+        steps = grid.nsteps
 
         # Fill in the grid
         for (i, j, k), v in zip(as_triads, values):
-            grid._grid.set_value(int(i), int(j), int(k), v)
+            if i < steps[0] and j < steps[1] and k < steps[2]:
+                grid._grid.set_value(int(i), int(j), int(k), v)
 
         return grid
 

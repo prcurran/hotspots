@@ -1,6 +1,29 @@
 from os.path import join
 
 
+def pharmacophore_fitting_pt(p, x, y, z, weight, radius=2.0, score=0.001):
+    int_dict = {"donor": "DON",
+                "acceptor": "ACC"}
+    return f"""constraint pharmacophore {int_dict[p]} BLOCK {x} {y} {z} 1 {radius} {score} {weight}\n"""
+
+
+def apolar_fitting_pnt(idx, x, y, z, weight):
+    return f"""      {idx} ****        {x:.4f}   {y:.4f}  {z:.4f} Du {weight:.3f}  \n"""
+
+
+def fitting_pts_header(low, high, identifier, count):
+    return f"""
+@<TRIPOS>MOLECULE
+GA Fitting Points FHM_scheme: {identifier} range: {low} - {high}
+  {count}    0    0
+SMALL
+NO_CHARGES
+
+
+@<TRIPOS>ATOM
+    """
+
+
 def crossminer_features():
     """"""
     return {"ring": "apolar",

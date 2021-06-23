@@ -14,7 +14,7 @@ import glob
 import subprocess
 import sys
 import tempfile
-from os import environ, mkdir
+from os import environ, mkdir, getenv
 from os.path import join, exists, isfile, dirname
 
 from ccdc.io import csd_directory, MoleculeWriter
@@ -69,9 +69,9 @@ class _AtomicHotspot(object):
             self.minpropensity = min_propensity
             self.superstar_sigma = superstar_sigma
             self.superstar_executable, self.superstar_env = self._set_environment_variables()
-            self.temp_dir = tempfile.mkdtemp()
             self._csd_atomic_probes = {}
             self._pdb_atomic_probes = {}
+            self.temp_dir = tempfile.mkdtemp(prefix=getenv('TMPDIR_PREFIX', None))
 
         @staticmethod
         def _set_environment_variables():
@@ -110,7 +110,15 @@ class _AtomicHotspot(object):
                                          )
 
                 elif sys.platform == 'darwin':
-                    print("OS X not supported")
+                    base = dirname(base)
+                    print(base)
+                    superstar_executable = join('/Applications', 'CCDC', 'CSD_2021', 'mercury.app', 'Contents', 'MacOS',
+                                                'superstar.x')
+                    superstar_env = dict(SUPERSTAR_ISODIR=str(
+                        join('/Applications', 'CCDC', 'CSD_2021', 'DATA', 'isostar_files', 'istr')),
+                                         SUPERSTAR_ROOT=join('/Applications', 'CCDC', 'Discovery_2021', 'SuperStar',
+                                                             'Resources')
+                                         )
 
                 else:
                     base = dirname(base)

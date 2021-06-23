@@ -3,6 +3,7 @@ import unittest
 from hotspots.hs_io import HotspotReader
 from ccdc.utilities import _csd_required, PushDir
 from ccdc import io
+from ccdc.molecule import Atom
 from ccdc.pharmacophore import Pharmacophore, GeometricDescriptors
 from hotspots.protein_extension import Protein
 from hotspots.grid_extension import Grid
@@ -132,6 +133,10 @@ class TestHotspotPharmacophoreModel(unittest.TestCase):
         p = HotspotPharmacophoreModel()
         p.from_hotspot(self.hr, projections=True)
 
+        feat_0 = [f for f in p.detected_features if f.identifier == "acceptor_projected"][0]
+
+        self.assertIsInstance(feat_0.projected_atom, Atom)
+
         p.pymol_visulisation("testdata/pharmacophore_extension/HotspotPharmacophoreModel/projections")
 
 
@@ -154,6 +159,7 @@ class TestLigandPharmacophoreModel(unittest.TestCase):
         wrkdir = "testdata/pharmacophore_extension/LigandPharmacophoreModel/from_ligand"
         with PushDir(wrkdir):
             self.ligand_pharmacophore.feature_definitions = ["acceptor"]
+            print(self.ligand_pharmacophore.feature_definitions["acceptor"].point_generator_names)
             self.ligand_pharmacophore.detect_from_ligand(ligand=self.crystal)
             self.assertEqual(5, len(self.ligand_pharmacophore.detected_features))
             # test score setter

@@ -1,11 +1,14 @@
 # Minimal Environment
-prefix: /home/jin76872/Desktop/Mih/conda_envirs/hots_2021
 channels:
-- file://home/jin76872/Desktop/Mih/CSD_2021/ccdc_conda_channel # edit as needed
+
+## For example, with a standard CCDC 2020 install on Windows 10 this might be as below for the CCDC miniconda installation
+## - file://\Program Files\CCDC\Python_API_2020\ccdc_conda_channel # edit as needed
 - rdkit
 - bioconda
-#- conda-forge
+- conda-forge
 - defaults
+- schrodinger
+- anaconda
 dependencies:
 - defaults::python=3.7 # new unreleased CSD python API installation is hard-coded for python 3.7
 - defaults::pandas
@@ -23,8 +26,11 @@ dependencies:
 - defaults::scikit-image
 - defaults::pandas
 - defaults::cython
-#- conda-forge::hdbscan
-#- conda-forge::tqdm
-#- conda-forge::xmltodict
-#- conda-forge::hdbscan
+- conda-forge::hdbscan
+- conda-forge::tqdm
+- conda-forge::xmltodict
+- conda-forge::hdbscan
+# If you want pymol extensions to work you will need this 
+# - schrodinger:: pymol
+- anaconda::biopython       # only for arpeggio related things
 

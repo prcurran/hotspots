@@ -6,6 +6,7 @@ from collections import OrderedDict
 from pprint import pprint
 from scipy.spatial import distance
 import numpy as np
+import pandas as pd
 
 from ccdc.pharmacophore import Pharmacophore
 from ccdc.io import csd_directory, CrystalReader, MoleculeWriter, MoleculeReader
@@ -73,7 +74,7 @@ def adjust_lightness(colour, percentage):
 
 def _create_grids(pharmacophores):
     g = Grid.initalise_grid(coords=[s.centre for p in pharmacophores for f in p.features for s in f.spheres],
-                            spacing=0.25)
+                            spacing=0.5)
     fds = {f.identifier for p in pharmacophores for f in p.features}
     return {fd: g.copy() for fd in fds}
 
@@ -106,14 +107,22 @@ def select_projections(features, peak, tolerance=1):
                        f.point[0].centre[1],
                        f.point[0].centre[2]] for f in features])
 
-    # distance matrix
-    l = distance.cdist(peak, projs)
-    print(l)
-    # create mask
-    x, y = np.nonzero(l <= tolerance)
+    #  KEEP HERE FOR NOW
+    # # distance matrix
+    #     # l = distance.cdist(peak, projs)
+    #     # # create mask
+    #     # x, y = np.nonzero(l <= tolerance)
+    #     #
+    #     # # return features above threshold
+    #     # return [features[i] for i in set(y)]
 
-    # return features above threshold
-    return [features[i] for i in set(y)]
+    d = distance.cdist(peak, projs)
+    index = np.argmin(d)
+
+    if d[0][index] < tolerance:
+        return features[index]
+    else:
+        return None
 
 
 def closest_peak_index(peaks_array, feature, max_distance):
@@ -130,10 +139,17 @@ def closest_peak_index(peaks_array, feature, max_distance):
         return None
 
 
-def create_consensus(pharmacophores, cutoff=2, max_distance=2.5):
+def create_consensus(pharmacophores, cutoff=2, max_distance=2.0, projections=True):
     """
 
     """
+    def create_feature(peak):
+        point = GeometricDescriptors.Sphere(centre=peak.point, radius=1)
+        feat = Pharmacophore.Feature(peak.feature_def, point)
+        feat.point = point
+        feat.score = peak.value
+        return feat
+
     new_features = []
 
     # initialise grids from all pharmacophores
@@ -141,9 +157,7 @@ def create_consensus(pharmacophores, cutoff=2, max_distance=2.5):
 
     # add point spheres to corresponding grids
     features_by_type = {k: [f for p in pharmacophores for f in p.features if f.identifier == k]
-                             for k in feature_point_grids.keys()}
-
-    pprint(features_by_type)
+                        for k in feature_point_grids.keys()}
 
     for identifier, all_features in features_by_type.items():
         # add spheres to grid
@@ -160,14 +174,13 @@ def create_consensus(pharmacophores, cutoff=2, max_distance=2.5):
                                           value=value,
                                           feature_def=Pharmacophore.feature_definitions[identifier]))
 
-        print(identifier, peak_objs)
         peaks_array = np.array([p.point for p in peak_objs])
-
-        if len(peaks_array) > 0:
+        # projections
+        if projections and len(peaks_array) > 0 and len(all_features[0].spheres) > 1:
+            # if a peak has features with projections try for a concensus projection
             # assign features to closest peak
             for feature in all_features:
                 index = closest_peak_index(peaks_array, feature, max_distance)
-                print(index)
                 if index is not None:
                     peak_objs[int(index)].features.append(feature)
 
@@ -175,7 +188,14 @@ def create_consensus(pharmacophores, cutoff=2, max_distance=2.5):
             for j, peak in enumerate(peak_objs):
                 peak.create_projection_grid()
                 peak.find_projection_peaks()
-                new_features.extend(peak.create_new_features())
+                feats = peak.create_new_features()
+                for f in feats:
+                    # for a projected feat, if no projection found, scrap
+                    if len(f.spheres) > 1:
+                        new_features.append(f)
+        else:
+            for j, peak in enumerate(peak_objs):
+                new_features.append(create_feature(peak))
 
     return new_features, feature_point_grids
 
@@ -225,8 +245,14 @@ class GridPeak:
             return g
 
     def find_projection_peaks(self):
-        self.projection_peaks = [GridPeak.ProjectionPeak(point=peak, value=self.projection_grid.value_at_point(peak))
-                                 for peak in self.projection_grid.get_peaks(min_distance=2, cutoff=1)]
+        try:
+            # the projection score has to be > 50 % of the point scire
+            self.projection_peaks = [
+                GridPeak.ProjectionPeak(point=peak, value=self.projection_grid.value_at_point(peak))
+                for peak in self.projection_grid.get_peaks(min_distance=2, cutoff=1)
+                if self.projection_grid.value_at_point(peak) > (0.5 * self.value)]
+        except AttributeError:
+            self.projection_peaks = []
 
     def create_new_features(self):
         """
@@ -239,7 +265,7 @@ class GridPeak:
             feat = Pharmacophore.Feature(self.feature_def, point)
             feat.point = point
             feat.score = self.value
-            new_feats.append(new_feats)
+            new_feats.append(feat)
 
         else:
             for projection in self.projection_peaks:
@@ -254,7 +280,7 @@ class GridPeak:
 
     def to_pymol_str(self):
         pymol_out = ""
-        pymol_out += PyMOLCommands.sphere("peak_obj", (1,1,1,1), coords=self.point, radius=1)
+        pymol_out += PyMOLCommands.sphere("peak_obj", (1, 1, 1, 1), coords=self.point, radius=1)
         pymol_out += PyMOLCommands.load_cgo("peak_obj", "peak")
 
         ligand_peak_features = []
@@ -272,15 +298,19 @@ class PharmacophoreModel(Pharmacophore.Query):
     Base Class for the representing a CrossMiner pharmacophore query. Used to
     generate more specific PharmacophoreModels
     """
+
     class Settings:
         def __init__(self):
             self.x = 1
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, features=None, _motif_pharmacophore=None):
+        super().__init__(features=features, _motif_pharmacophore=_motif_pharmacophore)
         self.cm_dir = os.path.dirname(os.path.dirname(csd_directory()))
-        Pharmacophore.read_feature_definitions(directory=os.path.join(self.cm_dir,
-                                                                      "CSD_CrossMiner/feature_definitions"))
+
+        feat_db = os.environ.get("CCDC_CROSSMINER_FEATURE_DEFINITIONS", os.path.join(self.cm_dir,
+                                                                      "../CSD_CrossMiner/feature_definitions"))
+
+        Pharmacophore.read_feature_definitions(directory=feat_db)
         self.__feature_options = {k: v for k, v in Pharmacophore.feature_definitions.items()}
         assert len(self.__feature_options) > 1
 
@@ -297,10 +327,12 @@ class PharmacophoreModel(Pharmacophore.Query):
         return len(self.__features)
 
     @property
-    def identifier(self): return self.__identifier
+    def identifier(self):
+        return self.__identifier
 
     @identifier.setter
-    def identifier(self, ident): self.__identifier = ident
+    def identifier(self, ident):
+        self.__identifier = ident
 
     @property
     def ligands(self):
@@ -311,10 +343,12 @@ class PharmacophoreModel(Pharmacophore.Query):
         self.__ligands = ligands
 
     @property
-    def protein(self): return self.__protein
+    def protein(self):
+        return self.__protein
 
     @protein.setter
-    def protein(self, protein): self.__protein = protein
+    def protein(self, protein):
+        self.__protein = protein
 
     @property
     def feature_point_grids(self):
@@ -333,13 +367,44 @@ class PharmacophoreModel(Pharmacophore.Query):
         self.__detected_features = features
 
     @property
-    def feature_definitions(self): return self.__feature_definitions
+    def feature_definitions(self):
+        return self.__feature_definitions
 
     @feature_definitions.setter
     def feature_definitions(self, feature_types):
         # reset before choosing
         self.__feature_definitions = {k: v for k, v in self.__feature_options.items()
                                       if any([k == ft for ft in feature_types])}
+
+    @staticmethod
+    def from_file(file_name):
+        '''Read a pharmacophore query from a file.'''
+        reader = MotifPharmacophoreLib.MotifPharmacophoreReader(file_name)
+        q = __class__(_motif_pharmacophore=reader.pharmacophore())
+        q._features_from_pharmacophore()
+        for f in q.features:
+            f._query = q
+        return q
+
+    def to_gold_conf(self, scaling="BLOCK", fitting_points=0, score=10):
+        crossminer_to_gold = {"acceptor_projected": "ACC",
+                              "acceptor": "ACC",
+                              "donor_projected": "DON",
+                              "ring": "RING_CNT",
+                              "ring_projected": "RING_CNT"}
+
+        body = ""
+        for feat in self.features:
+            ident = crossminer_to_gold[feat.identifier]
+            x = feat.spheres[0].centre[0]
+            y = feat.spheres[0].centre[1]
+            z = feat.spheres[0].centre[2]
+            body += f"constraint pharmacophore {ident} {scaling} {x} {y} {z} {fitting_points} {feat.spheres[0].radius} {score}"
+            if fitting_points == 1:
+                body += " 1.0\n"
+            else:
+                body += "\n"
+        return body
 
     def top_features(self, num, point=True, projection=True):
         feature_by_score = {}
@@ -355,6 +420,35 @@ class PharmacophoreModel(Pharmacophore.Query):
         print(feature_by_score)
 
         return list(OrderedDict(sorted(feature_by_score.items(), key=lambda item: item[1], reverse=True)).keys())[:num]
+
+    def to_csv(self, fname):
+        vars = {}
+        feat_def, point_scores, projected_scores, xs, ys, zs = zip(*[[feat.identifier,
+                                                                     feat.score,
+                                                                     feat.projected_value,
+                                                                     feat.spheres[0].centre[0],
+                                                                     feat.spheres[0].centre[1],
+                                                                     feat.spheres[0].centre[2]
+                                                                     ]
+                                                                     for feat in self.detected_features])
+        vars.update({"feat_def": feat_def,
+                     "point_scores": point_scores,
+                     "projected_scores": projected_scores,
+                     "x": xs,
+                     "y": ys,
+                     "z": zs})
+
+        if self.ligands:
+            total_ligs = len(self.ligands)
+            point_perc, projected_perc = zip(*[[(feat.score / total_ligs) * 100,
+                                                (feat.projected_value / total_ligs) * 100]
+                                               for feat in self.detected_features])
+            vars.update({"point_perc": point_perc,
+                         "projected_perc": projected_perc})
+
+        df = pd.DataFrame(vars)
+
+        df.to_csv(fname)
 
     def features_to_pymol_strings(self, features):
         """
@@ -372,6 +466,7 @@ class PharmacophoreModel(Pharmacophore.Query):
 
             if feat.projected_identifier and self.protein:
                 resnum = feat.projected_identifier.split("/")[1]
+                # TODO: clean up
                 pymol_out += f'\ncmd.select("sele", "resi {resnum}")\ncmd.show("sticks", "sele")'
 
         for fd in self.feature_definitions.keys():
@@ -390,7 +485,10 @@ class PharmacophoreModel(Pharmacophore.Query):
         if self.ligands:
             with MoleculeWriter(os.path.join(outdir, "ligands.mol2")) as w:
                 for ligand in self.ligands:
-                    w.write(ligand.molecule)
+                    try:
+                        w.write(ligand.molecule)
+                    except AttributeError:
+                        w.write(ligand)
 
         if self.protein:
             with MoleculeWriter(os.path.join(outdir, "protein.mol2")) as w:
@@ -420,10 +518,12 @@ class PharmacophoreModel(Pharmacophore.Query):
                                                                     color=f"{identifier}_color")
 
             self.pymol_out.commands += PyMOLCommands.group("feature_grids", self.feature_point_grids.keys())
-            self.pymol_out.commands += PyMOLCommands.group("feature_grids", [f"surface_{a}" for a in self.feature_point_grids])
+            self.pymol_out.commands += PyMOLCommands.group("feature_grids",
+                                                           [f"surface_{a}" for a in self.feature_point_grids])
 
             min_value = 0
-            surface_dic = {self.identifier: {'feature_grids': [f"surface_{g}" for g in self.feature_point_grids.keys()]}}
+            surface_dic = {
+                self.identifier: {'feature_grids': [f"surface_{g}" for g in self.feature_point_grids.keys()]}}
 
             surface_value_dic = {self.identifier: {"feature_grids": max([round(g.extrema[1], 1)
                                                                          for g in self.feature_point_grids.values()])}}
@@ -452,6 +552,7 @@ class ProteinPharmacophoreModel(PharmacophoreModel):
     """
     Very simple derived class. Just takes advantage of some of the visualisation code
     """
+
     def __init__(self):
         super().__init__()
 
@@ -473,6 +574,32 @@ class ProteinPharmacophoreModel(PharmacophoreModel):
                 for f in detected_feats:
                     self.detected_features.append(f)
 
+    def detect_from_binding_site(self, bs):
+        """
+        Add features to pharmacophore model from a binding site
+
+        :param `ccdc.crystal.Crystal` or `ccdc.molecule.Molecule` ligand: a ligand
+        :return:
+        """
+
+        prot = self._get_crystal(bs)
+        with MoleculeWriter('binding_site.pdb') as w:
+            w.write(bs)
+
+        self.protein = prot
+        self.detected_features = []
+
+        bs_features = ["acceptor_projected", "donor_projected", "donor_ch_projected",
+                       "hydrophobe"]
+        for fd in self.feature_definitions.values():
+            if fd.identifier not in bs_features:
+                continue
+
+            detected_feats = fd.detect_features(prot)
+            if len(detected_feats) != 0:
+                for f in detected_feats:
+                    self.detected_features.append(f)
+
 
 class LigandPharmacophoreModel(PharmacophoreModel):
     """
@@ -485,6 +612,7 @@ class LigandPharmacophoreModel(PharmacophoreModel):
         - Ligand ensembles points are generated by collecting points on a grid and peak picking
 
     """
+
     def __init__(self):
         super().__init__()
 
@@ -511,6 +639,7 @@ class LigandPharmacophoreModel(PharmacophoreModel):
         """
         if isinstance(ligand, Molecule):
             ligand = self._get_crystal(ligand)
+
 
         self.ligands = [ligand]
 
@@ -549,10 +678,11 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
     """
     Derived Class for representing pharmacophores generated from Fragment Hotspot Maps.
     """
+
     def __init__(self):
         super().__init__()
 
-    def from_hotspot(self, hr, projections=True):
+    def from_hotspot(self, hr, projections=True, min_distance=2, radius_dict={"apolar": 2.5}, sigma=1, override=True):
         interaction_dict = {"donor": ["acceptor_projected"],
                             "acceptor": ["donor_projected",
                                          "donor_ch_projected"]
@@ -563,7 +693,7 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
                                        "donor": "donor_projected",
                                        "acceptor": "acceptor_projected"},
                          "non-projected": {"apolar": "ring",
-                                           "donor": "None",
+                                           "donor": "donor_projected",
                                            "acceptor": "acceptor"},
                          }
 
@@ -571,21 +701,36 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
         features = []
         for p, g in hr.super_grids.items():
             # peak as a sphere
-            all_peaks = g.get_peaks(min_distance=1, cutoff=5)
+            # Keep consistent with vis
+            if p == "apolar":
+                h = g.max_value_of_neighbours()
+                h = h.gaussian(sigma=sigma + 0.5)
+                #
+                all_peaks = h.get_peaks(min_distance=min_distance + 2, cutoff=5)
+            else:
+                h = g.max_value_of_neighbours()
+                h = h.gaussian(sigma=sigma)
+                #
+                all_peaks = h.get_peaks(min_distance=min_distance, cutoff=5)
+
+            if p in radius_dict:
+                radius = radius_dict[p]
+            else:
+                radius = 1.5
+
             for peak in all_peaks:
-                point = GeometricDescriptors.Sphere(centre=peak, radius=1)
-                score = g.value_at_point(peak)
+
+                point = GeometricDescriptors.Sphere(centre=peak, radius=radius)
+                score = h.value_at_point(peak)
 
                 if p != "apolar" and projections:
                     # binding site from point (within 4/5 angstrom of peak)
-                    print("get binding site from point")
                     binding_site = hr.protein.copy()
                     bs = Protein.BindingSiteFromPoint(hr.protein, peak, distance=6)
                     for r in ({r.identifier for r in binding_site.residues} - {r.identifier for r in bs.residues}):
                         binding_site.remove_residue(r)
 
                     # detect projected features
-                    print("detect cavity features")
                     pm = ProteinPharmacophoreModel()
                     pm.feature_definitions = interaction_dict[p]
                     pm.detect_from_prot(binding_site)
@@ -594,15 +739,21 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
                     # This returns multiple: ATM the user will then select which one (semi-automated)
                     # TODO: implement method to pick the best projection
                     projs = select_projections(feats, np.array([peak]), tolerance=4)
-
-                    n_projs = len(projs)
                 else:
-                    n_projs = 0
+                    projs = None
 
-                if n_projs == 0:
+                if projs is None:
                     # no projections
                     if p == "donor":
-                        print("Need to implement new CM feature def here, skipping for now")
+                        print("warning! feature: donor projection used without projection. Will not work in CrossMiner")
+                        if override:
+                            print("here")
+                            f = Pharmacophore.Feature(self.feature_definitions[hotspot_to_cm["non-projected"][p]],
+                                                      point)
+                            f.point = point
+                            f.score = score
+                            features.append(f)
+
                     else:
                         f = Pharmacophore.Feature(self.feature_definitions[hotspot_to_cm["non-projected"][p]],
                                                   point)
@@ -611,19 +762,21 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
                         features.append(f)
 
                 else:
-                    for proj in projs:
-                        centre = (proj.spheres[0].centre[0],
-                                  proj.spheres[0].centre[1],
-                                  proj.spheres[0].centre[2])
+                    # for proj in projs:
+                    # just picking the closest now
+                    centre = (projs.spheres[0].centre[0],
+                              projs.spheres[0].centre[1],
+                              projs.spheres[0].centre[2])
 
-                        s = GeometricDescriptors.Sphere(centre=centre, radius=1)
-                        f = Pharmacophore.Feature(self.feature_definitions[hotspot_to_cm["projected"][p]],
-                                                  point,
-                                                  s)
-                        f.point = point
-                        f.projected = s
-                        f.score = score
-                        features.append(f)
+                    s = GeometricDescriptors.Sphere(centre=centre, radius=radius)
+                    f = Pharmacophore.Feature(self.feature_definitions[hotspot_to_cm["projected"][p]],
+                                              point,
+                                              s)
+                    f.point = point
+                    f.projected = s
+                    f.projected_atom = projs.point_atom
+                    f.score = score
+                    features.append(f)
 
         self.detected_features = features
 
@@ -634,16 +787,17 @@ class InteractionPharmacophoreModel(PharmacophoreModel):
 
     This approach uses detected protein-ligand interactions to generate pharmacophore features
     """
+
     def __init__(self):
         super().__init__()
 
     def detect_interactions(self, bs, ligand):
 
         interaction_partners = {"donor_projected": ["acceptor_projected", "ring"],
-                                 "donor_ch_projected": ["acceptor_projected", "ring"],
-                                 "acceptor_projected": ["donor_projected", "donor_ch_projected"],
-                                 "ring": ["ring", "donor_projected", "donor_ch_projected", "hydrophobe"],
-                                 "hydrophobe": ["ring"]}
+                                "donor_ch_projected": ["acceptor_projected", "ring"],
+                                "acceptor_projected": ["donor_projected", "donor_ch_projected"],
+                                "ring": ["ring", "donor_projected", "donor_ch_projected", "hydrophobe"],
+                                "hydrophobe": ["ring"]}
 
         self.feature_definitions = ["acceptor_projected",
                                     "donor_projected",
@@ -657,7 +811,6 @@ class InteractionPharmacophoreModel(PharmacophoreModel):
         for fd in self.feature_definitions.values():
             detected_feats = fd.detect_features(ligand)
             print(fd.identifier, len(detected_feats))
-
 
         return 1
 
@@ -684,11 +837,11 @@ class InteractionPharmacophoreModel(PharmacophoreModel):
         # assert("H" in {atom.atomic_symbol for atom in protein.atoms[:50]})
 
         # assertion 2: protein must contain the ligand of interest
-        assert(len([l for l in protein.ligands if l.identifier.split(":")[0] == chain and
-                                                  l.identifier.split(":")[1][:3] == hetid]) == 1)
+        assert (len([l for l in protein.ligands if l.identifier.split(":")[0] == chain and
+                     l.identifier.split(":")[1][:3] == hetid]) == 1)
 
         lig = [l for l in protein.ligands if l.identifier.split(":")[0] == chain and
-                                             l.identifier.split(":")[1][:3] == hetid][0]
+               l.identifier.split(":")[1][:3] == hetid][0]
 
         # CrossMiner needs a `ccdc.crystal.Crystal`
         crystal_ligand = self._get_crystal(lig)
@@ -784,13 +937,16 @@ class Feature(Pharmacophore.Feature):
         self.__label = 0
         self.__point = None
         self.__projected = None
+        self.__point_atom = None
+        self.__projected_atom = None
         self.__projected_identifier = None
         if crystal:
             self.crystal = crystal
             self.coordinate_atm_dict = {_coordinate_str(a.coordinates): a for a in self.crystal.molecule.atoms}
             self.__point = self.get_point()
             self.__projected = self.get_projected()
-
+            if _coordinate_str(self.point[0].centre) in self.coordinate_atm_dict:
+                self.__point_atom = self.coordinate_atm_dict[_coordinate_str(self.point[0].centre)]
 
     @property
     def score(self): return self.__score
@@ -811,20 +967,28 @@ class Feature(Pharmacophore.Feature):
     def label(self, value): self.__label = value
 
     @property
-    def point(self):
-        return self.__point
+    def point(self): return self.__point
 
     @point.setter
-    def point(self, sphere):
-        self.__point = [sphere]
+    def point(self, sphere): self.__point = [sphere]
 
     @property
-    def projected(self):
-        return self.__projected
+    def point_atom(self): return self.__point_atom
+
+    @point_atom.setter
+    def point_atom(self, atm):  self.__point_atom = atm
+
+    @property
+    def projected(self): return self.__projected
 
     @projected.setter
-    def projected(self, sphere):
-        self.__projected = [sphere]
+    def projected(self, sphere): self.__projected = [sphere]
+
+    @property
+    def projected_atom(self): return self.__projected_atom
+
+    @projected_atom.setter
+    def projected_atom(self, atm): self.__projected_atom = atm
 
     @property
     def projected_identifier(self): return self.__projected_identifier
@@ -854,9 +1018,10 @@ class Feature(Pharmacophore.Feature):
                 return [sphere for sphere in self.spheres
                         if not _coordinate_str(sphere.centre) in self.coordinate_atm_dict]
 
-    def to_pymol_str(self, i=0, label=True):
+    def to_pymol_str(self, i=0, label=True, transparency=0.6):
         pymol_out = ""
         point_colour = rgb_to_decimal(self.colour)
+        point_colour = utilities.Colour(point_colour[0], point_colour[1], point_colour[2], transparency)
         feat_ID = f"{self.identifier}_{i}"
         group = []
 
@@ -864,8 +1029,10 @@ class Feature(Pharmacophore.Feature):
                   self.point[0].centre[1],
                   self.point[0].centre[2])
 
+        radius = self.point[0].radius
+
         point_objname = f"{self.identifier}_point_{i}"
-        pymol_out += PyMOLCommands.sphere(point_objname, point_colour, coords, radius=0.5)
+        pymol_out += PyMOLCommands.sphere(point_objname, point_colour, coords, radius=radius)
         pymol_out += PyMOLCommands.load_cgo(point_objname, f"{point_objname}_obj")
         group.append(f"{point_objname}_obj")
 
@@ -875,6 +1042,12 @@ class Feature(Pharmacophore.Feature):
                                                   coords=coords,
                                                   label=f'{round(self.score, 1)}')
             group.append(score_name)
+
+            rank_name = f"{self.identifier}_rank_{i}"
+            pymol_out += PyMOLCommands.pseudoatom(objname=rank_name,
+                                                  coords=coords,
+                                                  label=str(i + 1))
+            group.append(rank_name)
 
         if self.projected:
             proj_coords = (self.projected[0].centre[0],
@@ -892,8 +1065,14 @@ class Feature(Pharmacophore.Feature):
                                                       label=f'{round(self.projected_value, 1)}')
                 group.append(proj_score_name)
             projected_colour = adjust_lightness(self.colour, percentage=30)
+            projected_colour = utilities.Colour(projected_colour[0],
+                                                projected_colour[1],
+                                                projected_colour[2],
+                                                transparency)
+            projected_radius = self.projected[0].radius
 
-            pymol_out += PyMOLCommands.sphere(projection_objname, projected_colour, proj_coords, radius=0.5)
+            pymol_out += PyMOLCommands.sphere(projection_objname, projected_colour, proj_coords,
+                                              radius=projected_radius)
             pymol_out += PyMOLCommands.load_cgo(projection_objname, f"{projection_objname}_obj")
             pymol_out += PyMOLCommands.line(line_objname, coords, proj_coords, rgb=projected_colour)
 
@@ -902,7 +1081,6 @@ class Feature(Pharmacophore.Feature):
 
 
 Pharmacophore.Feature = Feature
-
 
 if __name__ == "__main__":
     print("hi")
