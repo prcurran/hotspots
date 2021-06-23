@@ -124,6 +124,7 @@ class HotspotWriter(Helper):
 
         """
         container = Helper.get_out_dir(join(self.path, self.settings.container))
+        self.pymol_out.commands += PyMOLCommands.set_ccp4_maps(0)
 
         if isinstance(hr, list):
             print(hr)
@@ -153,8 +154,10 @@ class HotspotWriter(Helper):
 
         self._write_grids(hr)
         self._write_protein(hr.out_dir, hr.protein)
-
-        relpath = f'{hr.identifier}'
+        if basename(path) == 'out' and self.zip_results==False:
+            relpath = join(basename(path), f'{hr.identifier}')
+        else:
+            relpath = f'{hr.identifier}'
         self._write_pymol_objects(relpath, hr)
 
     def _write_grids(self, hr):
@@ -483,6 +486,8 @@ class HotspotReader(object):
         >>>    reader.read()
 
         """
+        print(self.path)
+        print(list(walk(self.path)))
         root, d, files = list(walk(self.path))[0]
 
         if len(d) == 0:

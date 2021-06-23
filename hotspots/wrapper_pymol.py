@@ -48,6 +48,7 @@ import math
 from pymol import cmd, finish_launching, plugins
 from pymol.cgo import *
 
+wd = None
 finish_launching()
 """
         return out_str
@@ -352,6 +353,10 @@ finish_launching()
     @staticmethod
     def push_to_wd():
         return f'\nif wd:\n    os.chdir(wd)'
+
+    @staticmethod
+    def set_ccp4_maps(val=0):
+        return f'\ncmd.set("normalize_ccp4_maps", "{val}")'
 
     @staticmethod
     def background_color(color):

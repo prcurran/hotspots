@@ -921,6 +921,22 @@ class Grid(utilities.Grid):
         else:
             return score
 
+    def check_same_size_and_coords(self, other):
+        """
+        Checks if two grids have the same size and coordinate frame. Useful when checking if grids can be stacked together
+        :param other:
+        :return: bool
+        """
+        if self.spacing != other.spacing:
+            return False
+
+        if len(set([c.bounding_box for c in [self, other]])) != 1:
+            return False
+
+        else:
+            return True
+
+
 
 utilities.Grid = Grid
 

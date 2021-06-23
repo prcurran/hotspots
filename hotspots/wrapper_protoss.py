@@ -11,11 +11,15 @@ class Result(object):
 
     def __init__(self, data, out_dir):
         self.data = data
-        self.files = {'protein':[], 'ligands':[]}
+        self.files = {'protein':[], 'ligands':[], 'log':[]}
         self.out_dir = out_dir
         self._write()
         self._protein = Protein.from_file(self.files['protein'][0])
-        self._ligands = [y for y in [MoleculeReader(x) for x in self.files['ligands']]]
+        try:
+            self._ligands = [y for y in [MoleculeReader(x) for x in self.files['ligands']]]
+        except Exception as e:
+            print(e)
+            self._ligands = None
 
     def _write(self):
         """

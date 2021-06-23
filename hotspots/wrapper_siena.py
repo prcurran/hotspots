@@ -53,7 +53,7 @@ class Ensemble(object):
 
         with open(path, "w") as w:
 
-        w.write(urlopen(Request(url)).read().decode("utf-8"))
+            w.write(urlopen(Request(url)).read().decode("utf-8"))
 
     def save(self, out_dir):
         """
@@ -94,39 +94,39 @@ class Search(object):
         """
         def __init__(self):
             self.url = 'https://proteins.plus/api/siena_rest'
-            self.data = {"siena": {
-                            "pdbCode":"",
-                            "pocket":"",
-                            "ligand":"",
-                            "mode":""}
-                         }
-            # self.data = {"reduction_procedure":"",
-            #              "siena": {"bb_clustering":"",
-            #                        "all_atom_clustering":"",
-            #                        "ligand_driven_selection":"",
-            #                        "ligand": "",
-            #                        "pocket":"",
-            #                        "pdbCode": "",
-            #                        "siteRadius":"6.5",
-            #                        "fragment_length": "10",
-            #                        "flexibility_sensitivity": "0.6",
-            #                        "fragment_distance": "4",
-            #                        "minimalSiteIdentity": "0.7",
-            #                        "minimalSiteCoverage":"",
-            #                        "maximum_mutations":"",
-            #                        "resolution":"",
-            #                        "maximumBackbone":"",
-            #                        "depositionYear":"",
-            #                        "ecNumber":"",
-            #                        "electronDensityAvailable": "",
-            #                        "identicalGlobalSequence": "",
-            #                        "noGlobalMutations": "true",
-            #                        "unique_sequence":"",
-            #                        "holo_only": "true",
-            #                        "unique_ligands": "",
-            #                        "complete_residues_only": ""
-            #                        }
+            # self.data = {"siena": {
+            #                 "pdbCode":"",
+            #                 "pocket":"",
+            #                 "ligand":"",
+            #                 "mode":""}
             #              }
+            self.data = {"reduction_procedure":"",
+                         "siena": {"bb_clustering":"",
+                                   "all_atom_clustering":"",
+                                   "ligand_driven_selection":"",
+                                   "ligand": "",
+                                   "pocket":"",
+                                   "pdbCode": "",
+                                   "siteRadius":"6.5",
+                                   "fragment_length": "10",
+                                   "flexibility_sensitivity": "0.6",
+                                   "fragment_distance": "4",
+                                   "minimalSiteIdentity": "1.0",
+                                   "minimalSiteCoverage":"",
+                                   "maximum_mutations":"",
+                                   "resolution":"2.5",
+                                   "maximumBackbone":"",
+                                   "depositionYear":"",
+                                   "ecNumber":"",
+                                   "electronDensityAvailable": "",
+                                   "identicalGlobalSequence": "",
+                                   "noGlobalMutations": "",
+                                   "unique_sequence":"",
+                                   "holo_only": "",
+                                   "unique_ligands": "",
+                                   "complete_residues_only": "true"
+                                   }
+                         }
 
     def __init__(self, settings=None):
         """

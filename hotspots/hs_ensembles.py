@@ -1,9 +1,9 @@
 #from __future__ import print_function, division
+import numpy as np
 from hotspots.result import Results
 from hotspots.hs_utilities import Helper
 from hotspots.grid_extension import Grid, _GridEnsemble
 from ccdc.protein import Protein
-import numpy as np
 
 
 class EnsembleResult(Helper):
@@ -54,8 +54,6 @@ class EnsembleResult(Helper):
         :param hs_results_list: list of  hotspots results. The protein models used to calculate the maps should be aligned 
                                 prior to the hotspots calculation
         :type list
-        
-        
         """
         # Use default settings if no settings have been provided.
         if settings is None:
@@ -126,7 +124,11 @@ class EnsembleResult(Helper):
 
                 if probe in polar_probes:
                     if self.settings.combine_mode == 'median':
-                        ens_grid = ge.as_grid(ge.get_median_frequency_map(threshold=self.settings.polar_frequency_threshold))
+                        if self.settings.polar_frequency_threshold is not None:
+                            ens_grid = ge.as_grid(ge.get_median_frequency_map(threshold=self.settings.polar_frequency_threshold))
+                        else:
+                            print('entered polar else')
+                            ens_grid = ge.make_summary_grid(mode=self.settings.combine_mode)
 
                     # The mean and max modes don't currently take into account the frequency
                     elif self.settings.combine_mode in ['mean', 'max']:
@@ -137,7 +139,12 @@ class EnsembleResult(Helper):
                         continue
 
                 elif probe in apolar_probes:
-                    ens_grid = ge.make_summary_grid(mode=self.settings.combine_mode)
+                    if self.settings.apolar_frequency_threshold is not None:
+                        ens_grid = ge.as_grid(
+                            ge.get_median_frequency_map(threshold=self.settings.apolar_frequency_threshold))
+                    else:
+                        print('entered apolar else')
+                        ens_grid = ge.make_summary_grid(mode=self.settings.combine_mode)
 
                 else:
                     print("Probe type {} in ensemble {} not recognised as polar or apolar".format(probe, self.ensemble_id))
@@ -294,14 +301,16 @@ class SelectivityResult(Helper):
         for probe in probes_list:
             try:
                 dmap = diff_maps[probe]
+                print(probe)
+                print(dmap.nonzero())
 
                 if probe in polar_probes:
                     # Find the percentile threshold, if specified
                     perc = np.percentile(dmap[dmap>0], self.settings.polar_percentile_threshold)
 
                     # Find clusters in the target and off-target maps
-                    clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap > perc), min_cluster_size=self.settings.min_points_cluster_polar)
-                    clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap < - perc), min_cluster_size=self.settings.min_points_cluster_polar)
+                    clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap > perc), min_cluster_size=self.settings.min_points_cluster_polar, allow_single_cluster=True)
+                    clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap < - perc), min_cluster_size=self.settings.min_points_cluster_polar, allow_single_cluster=True)
 
                 elif probe in apolar_probes:
                     # Find the percentile threshold, if specified
@@ -330,9 +339,10 @@ class SelectivityResult(Helper):
                             self.remove_cluster(clust_map_on, k)
                             self.remove_cluster(clust_map_off, i)
 
-                # Remove any clusters that don't make the medmian cutoff
+                # Remove any clusters that don't make the median cutoff
                 for c in set(clust_map_on[clust_map_on > 0]):
                     med = np.median(dmap[clust_map_on == c])
+                    print(med)
 
                     if med < self.settings.minimal_cluster_score:
                         self.remove_cluster(clust_map_on, c)
