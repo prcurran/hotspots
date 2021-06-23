@@ -1,5 +1,4 @@
 #from __future__ import print_function, division
-import numpy as np
 from hotspots.result import Results
 from hotspots.hs_utilities import Helper
 from hotspots.grid_extension import Grid, _GridEnsemble
@@ -143,7 +142,7 @@ class EnsembleResult(Helper):
                         ens_grid = ge.as_grid(
                             ge.get_median_frequency_map(threshold=self.settings.apolar_frequency_threshold))
                     else:
-                        print('entered apolar else')
+
                         ens_grid = ge.make_summary_grid(mode=self.settings.combine_mode)
 
                 else:
@@ -301,8 +300,6 @@ class SelectivityResult(Helper):
         for probe in probes_list:
             try:
                 dmap = diff_maps[probe]
-                print(probe)
-                print(dmap.nonzero())
 
                 if probe in polar_probes:
                     # Find the percentile threshold, if specified
@@ -342,7 +339,6 @@ class SelectivityResult(Helper):
                 # Remove any clusters that don't make the median cutoff
                 for c in set(clust_map_on[clust_map_on > 0]):
                     med = np.median(dmap[clust_map_on == c])
-                    print(med)
 
                     if med < self.settings.minimal_cluster_score:
                         self.remove_cluster(clust_map_on, c)

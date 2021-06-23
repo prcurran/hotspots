@@ -94,12 +94,6 @@ class Search(object):
         """
         def __init__(self):
             self.url = 'https://proteins.plus/api/siena_rest'
-            # self.data = {"siena": {
-            #                 "pdbCode":"",
-            #                 "pocket":"",
-            #                 "ligand":"",
-            #                 "mode":""}
-            #              }
             self.data = {"reduction_procedure":"",
                          "siena": {"bb_clustering":"",
                                    "all_atom_clustering":"",
