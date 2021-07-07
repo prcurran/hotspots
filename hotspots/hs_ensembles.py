@@ -1,11 +1,8 @@
 #from __future__ import print_function, division
-import numpy as np
-
 from hotspots.result import Results
 from hotspots.hs_utilities import Helper
 from hotspots.grid_extension import Grid, _GridEnsemble
 from ccdc.protein import Protein
-
 
 
 class EnsembleResult(Helper):
@@ -56,8 +53,6 @@ class EnsembleResult(Helper):
         :param hs_results_list: list of  hotspots results. The protein models used to calculate the maps should be aligned 
                                 prior to the hotspots calculation
         :type list
-        
-        
         """
         # Use default settings if no settings have been provided.
         if settings is None:
@@ -128,7 +123,11 @@ class EnsembleResult(Helper):
 
                 if probe in polar_probes:
                     if self.settings.combine_mode == 'median':
-                        ens_grid = ge.as_grid(ge.get_median_frequency_map(threshold=self.settings.polar_frequency_threshold))
+                        if self.settings.polar_frequency_threshold is not None:
+                            ens_grid = ge.as_grid(ge.get_median_frequency_map(threshold=self.settings.polar_frequency_threshold))
+                        else:
+                            print('entered polar else')
+                            ens_grid = ge.make_summary_grid(mode=self.settings.combine_mode)
 
                     # The mean and max modes don't currently take into account the frequency
                     elif self.settings.combine_mode in ['mean', 'max']:
@@ -139,7 +138,12 @@ class EnsembleResult(Helper):
                         continue
 
                 elif probe in apolar_probes:
-                    ens_grid = ge.make_summary_grid(mode=self.settings.combine_mode)
+                    if self.settings.apolar_frequency_threshold is not None:
+                        ens_grid = ge.as_grid(
+                            ge.get_median_frequency_map(threshold=self.settings.apolar_frequency_threshold))
+                    else:
+
+                        ens_grid = ge.make_summary_grid(mode=self.settings.combine_mode)
 
                 else:
                     print("Probe type {} in ensemble {} not recognised as polar or apolar".format(probe, self.ensemble_id))
@@ -221,7 +225,6 @@ class SelectivityResult(Helper):
         self.selectivity_result = None
         self.common_grid_dimensions = None
         self.common_grid_nsteps = None
-        self.common_grid_apolar = None
 
 
     @staticmethod
@@ -269,18 +272,15 @@ class SelectivityResult(Helper):
             except KeyError:
                 continue
 
-            # if gr.check_same_size_and_coords(off_gr):
-            #     c_gr = gr
-            #     c_off = off_gr
-            # else:
-            #     print("Input grids of different size. Converting to same coordinates.")
-            c_gr, c_off = Grid.common_grid([gr, off_gr])
+            if gr.check_same_size_and_coords(off_gr):
+                c_gr = gr
+                c_off = off_gr
+            else:
+                print("Input grids of different size. Converting to same coordinates.")
+                c_gr, c_off = Grid.common_grid([gr, off_gr])
 
-            # diff_maps[probe] = _GridEnsemble.array_from_grid(c_gr - c_off)
-            diff_g = c_gr - c_off
-            diff_maps[probe] = diff_g.get_array()
+            diff_maps[probe] = _GridEnsemble.array_from_grid(c_gr - c_off)
 
-        self.common_grid_apolar = diff_g
         self.common_grid_dimensions = np.array(c_gr.bounding_box)
         self.common_grid_nsteps = c_gr.nsteps
 
@@ -299,29 +299,26 @@ class SelectivityResult(Helper):
 
         for probe in probes_list:
             try:
-                print(probe)
                 dmap = diff_maps[probe]
+
                 if probe in polar_probes:
                     # Find the percentile threshold, if specified
                     perc = np.percentile(dmap[dmap>0], self.settings.polar_percentile_threshold)
 
                     # Find clusters in the target and off-target maps
-                    clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap > perc), min_cluster_size=self.settings.min_points_cluster_polar)
-                    clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap < - perc), min_cluster_size=self.settings.min_points_cluster_polar)
+                    clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap > perc), min_cluster_size=self.settings.min_points_cluster_polar, allow_single_cluster=True)
+                    clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap < - perc), min_cluster_size=self.settings.min_points_cluster_polar, allow_single_cluster=True)
 
                 elif probe in apolar_probes:
                     # Find the percentile threshold, if specified
                     perc = np.percentile(dmap[dmap > 0], self.settings.apolar_percentile_threshold)
-                    print(perc)
 
                     # Find clusters in the target and off-target maps
-                    try:
-                        clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap >= perc),
-                                                                     min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
-                        clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap <= -perc),
-                                                                      min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
-                    except ValueError:
-                        continue
+                    clust_map_on = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap > perc),
+                                                                 min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
+                    clust_map_off = _GridEnsemble.HDBSCAN_cluster(dmap * (dmap < -perc),
+                                                                  min_cluster_size=self.settings.min_points_cluster_apolar, allow_single_cluster=True)
+
                 else:
                     print("Probe type {} not recognised as polar or apolar".format(probe))
                     continue
@@ -339,7 +336,7 @@ class SelectivityResult(Helper):
                             self.remove_cluster(clust_map_on, k)
                             self.remove_cluster(clust_map_off, i)
 
-                # Remove any clusters that don't make the medmian cutoff
+                # Remove any clusters that don't make the median cutoff
                 for c in set(clust_map_on[clust_map_on > 0]):
                     med = np.median(dmap[clust_map_on == c])
 
@@ -355,9 +352,7 @@ class SelectivityResult(Helper):
                 ge = _GridEnsemble(dimensions=self.common_grid_dimensions,
                                    shape=self.common_grid_nsteps)
 
-                # self.selectivity_maps[probe] = ge.as_grid((clust_map_on>0)*dmap)
-                print("array_to_grid")
-                self.selectivity_maps[probe] = Grid.array_to_grid((clust_map_on>0)*dmap, self.common_grid_apolar)
+                self.selectivity_maps[probe] = ge.as_grid((clust_map_on>0)*dmap)
 
             except KeyError:
                 continue

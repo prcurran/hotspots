@@ -52,6 +52,7 @@ import math
 from pymol import cmd, finish_launching, plugins
 from pymol.cgo import *
 
+wd = None
 finish_launching()
 """
         return out_str
@@ -257,6 +258,24 @@ finish_launching()
         return pymol_out
 
     @staticmethod
+    def volume(name, map, ramp="rainbow2"):
+        """
+        Loads a grid creates a contoured surface.
+
+        :param grd_name: name of grid object
+        :param isosurface_name: name of isosurface object
+        :param ramp: colour ramp identifier (it is possible to define custom ramps)
+
+        :type grd_name: str
+        :type isosurface_name: str
+        :type ramp: str
+
+        :return: PyMOL command
+        :rtype: str
+        """
+        return f'\ncmd.volume(name="{name}", map="{map}", ramp="{ramp}")\n'
+
+    @staticmethod
     def load(fname, objname=None):
         """
         Loads any PyMOL object
@@ -304,9 +323,11 @@ finish_launching()
     f'\ncmd.show("{representation}", "{selection}")'
 
     @staticmethod
-    def hide(representation, selection):
-        return \
-    f'\ncmd.hide("{representation}", "{selection}")'
+    def hide(representation, selection=None):
+        if not selection:
+            return f'\ncmd.hide("{representation}")'
+        else:
+            return f'\ncmd.hide("{representation}", "{selection}")'
 
     @staticmethod
     def set_color(objname, rgb):
@@ -341,8 +362,12 @@ finish_launching()
         return f'\ncmd.color("{pymol_color}", "{objname}")'
 
     @staticmethod
-    def pymol_set(setting_name, value, selection):
-        return f'\ncmd.set("{setting_name}", {value}, "{selection}")'
+    def pymol_set(setting_name, value, selection=None):
+        if selection:
+            return f'\ncmd.set("{setting_name}", {value}, "{selection}")'
+        else:
+            return f'\ncmd.set("{setting_name}", {value})'
+
 
     @staticmethod
     def unzip_dir(container):
@@ -358,8 +383,16 @@ finish_launching()
         return f'\nif wd:\n    os.chdir(wd)'
 
     @staticmethod
+    def set_ccp4_maps(val=0):
+        return f'\ncmd.set("normalize_ccp4_maps", "{val}")'
+
+    @staticmethod
     def background_color(color):
-        return f'cmd.bg_color("{color}")'
+        return f'\ncmd.bg_color("{color}")'
+
+    @staticmethod
+    def set_view(view):
+        return f'\ncmd.set_view({view})'
 
     @staticmethod
     def isoslider(surface_dic, surface_value_dic, min_value=0):

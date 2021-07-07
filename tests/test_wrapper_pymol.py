@@ -10,7 +10,6 @@ import unittest
 from hotspots.wrapper_pymol import PyMOLFile, PyMOLCommands
 
 
-
 class TestPyMOLWrapper(unittest.TestCase):
     def setUp(self):
         self.pymol_file = PyMOLFile()

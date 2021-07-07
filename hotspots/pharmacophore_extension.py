@@ -139,10 +139,17 @@ def closest_peak_index(peaks_array, feature, max_distance):
         return None
 
 
-def create_consensus(pharmacophores, cutoff=2, max_distance=2.0):
+def create_consensus(pharmacophores, cutoff=2, max_distance=2.0, projections=True):
     """
 
     """
+    def create_feature(peak):
+        point = GeometricDescriptors.Sphere(centre=peak.point, radius=1)
+        feat = Pharmacophore.Feature(peak.feature_def, point)
+        feat.point = point
+        feat.score = peak.value
+        return feat
+
     new_features = []
 
     # initialise grids from all pharmacophores
@@ -169,31 +176,26 @@ def create_consensus(pharmacophores, cutoff=2, max_distance=2.0):
 
         peaks_array = np.array([p.point for p in peak_objs])
         # projections
-        if len(peaks_array) > 0:
-            if len(all_features[0].spheres) > 1:
-                # if a peak has features with projections try for a concensus projection
-                # assign features to closest peak
-                for feature in all_features:
-                    index = closest_peak_index(peaks_array, feature, max_distance)
-                    if index is not None:
-                        peak_objs[int(index)].features.append(feature)
+        if projections and len(peaks_array) > 0 and len(all_features[0].spheres) > 1:
+            # if a peak has features with projections try for a concensus projection
+            # assign features to closest peak
+            for feature in all_features:
+                index = closest_peak_index(peaks_array, feature, max_distance)
+                if index is not None:
+                    peak_objs[int(index)].features.append(feature)
 
-                # create projections
-                for j, peak in enumerate(peak_objs):
-                    peak.create_projection_grid()
-                    peak.find_projection_peaks()
-                    feats = peak.create_new_features()
-                    for f in feats:
-                        # for a projected feat, if no projection found, scrap
-                        if len(f.spheres) > 1:
-                            new_features.append(f)
-            else:
-                for j, peak in enumerate(peak_objs):
-                    point = GeometricDescriptors.Sphere(centre=peak.point, radius=1)
-                    feat = Pharmacophore.Feature(peak.feature_def, point)
-                    feat.point = point
-                    feat.score = peak.value
-                    new_features.append(feat)
+            # create projections
+            for j, peak in enumerate(peak_objs):
+                peak.create_projection_grid()
+                peak.find_projection_peaks()
+                feats = peak.create_new_features()
+                for f in feats:
+                    # for a projected feat, if no projection found, scrap
+                    if len(f.spheres) > 1:
+                        new_features.append(f)
+        else:
+            for j, peak in enumerate(peak_objs):
+                new_features.append(create_feature(peak))
 
     return new_features, feature_point_grids
 
@@ -301,8 +303,8 @@ class PharmacophoreModel(Pharmacophore.Query):
         def __init__(self):
             self.x = 1
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, features=None, _motif_pharmacophore=None):
+        super().__init__(features=features, _motif_pharmacophore=_motif_pharmacophore)
         self.cm_dir = os.path.dirname(os.path.dirname(csd_directory()))
 
         feat_db = os.environ.get("CCDC_CROSSMINER_FEATURE_DEFINITIONS", os.path.join(self.cm_dir,
@@ -374,6 +376,36 @@ class PharmacophoreModel(Pharmacophore.Query):
         self.__feature_definitions = {k: v for k, v in self.__feature_options.items()
                                       if any([k == ft for ft in feature_types])}
 
+    @staticmethod
+    def from_file(file_name):
+        '''Read a pharmacophore query from a file.'''
+        reader = MotifPharmacophoreLib.MotifPharmacophoreReader(file_name)
+        q = __class__(_motif_pharmacophore=reader.pharmacophore())
+        q._features_from_pharmacophore()
+        for f in q.features:
+            f._query = q
+        return q
+
+    def to_gold_conf(self, scaling="BLOCK", fitting_points=0, score=10):
+        crossminer_to_gold = {"acceptor_projected": "ACC",
+                              "acceptor": "ACC",
+                              "donor_projected": "DON",
+                              "ring": "RING_CNT",
+                              "ring_projected": "RING_CNT"}
+
+        body = ""
+        for feat in self.features:
+            ident = crossminer_to_gold[feat.identifier]
+            x = feat.spheres[0].centre[0]
+            y = feat.spheres[0].centre[1]
+            z = feat.spheres[0].centre[2]
+            body += f"constraint pharmacophore {ident} {scaling} {x} {y} {z} {fitting_points} {feat.spheres[0].radius} {score}"
+            if fitting_points == 1:
+                body += " 1.0\n"
+            else:
+                body += "\n"
+        return body
+
     def top_features(self, num, point=True, projection=True):
         feature_by_score = {}
         for feature in self.detected_features:
@@ -391,13 +423,20 @@ class PharmacophoreModel(Pharmacophore.Query):
 
     def to_csv(self, fname):
         vars = {}
-        feat_def, point_scores, projected_scores = zip(*[[feat.identifier,
-                                                          feat.score,
-                                                          feat.projected_value]
-                                                         for feat in self.detected_features])
+        feat_def, point_scores, projected_scores, xs, ys, zs = zip(*[[feat.identifier,
+                                                                     feat.score,
+                                                                     feat.projected_value,
+                                                                     feat.spheres[0].centre[0],
+                                                                     feat.spheres[0].centre[1],
+                                                                     feat.spheres[0].centre[2]
+                                                                     ]
+                                                                     for feat in self.detected_features])
         vars.update({"feat_def": feat_def,
                      "point_scores": point_scores,
-                     "projected_scores": projected_scores})
+                     "projected_scores": projected_scores,
+                     "x": xs,
+                     "y": ys,
+                     "z": zs})
 
         if self.ligands:
             total_ligs = len(self.ligands)
@@ -643,7 +682,7 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
     def __init__(self):
         super().__init__()
 
-    def from_hotspot(self, hr, projections=True, min_distance=2, radius_dict={"apolar": 2.5}, sigma=1):
+    def from_hotspot(self, hr, projections=True, min_distance=2, radius_dict={"apolar": 2.5}, sigma=1, override=True):
         interaction_dict = {"donor": ["acceptor_projected"],
                             "acceptor": ["donor_projected",
                                          "donor_ch_projected"]
@@ -654,7 +693,7 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
                                        "donor": "donor_projected",
                                        "acceptor": "acceptor_projected"},
                          "non-projected": {"apolar": "ring",
-                                           "donor": "None",
+                                           "donor": "donor_projected",
                                            "acceptor": "acceptor"},
                          }
 
@@ -662,8 +701,17 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
         features = []
         for p, g in hr.super_grids.items():
             # peak as a sphere
-            h = g.gaussian(sigma=sigma)
-            all_peaks = h.get_peaks(min_distance=min_distance, cutoff=5)
+            # Keep consistent with vis
+            if p == "apolar":
+                h = g.max_value_of_neighbours()
+                h = h.gaussian(sigma=sigma + 0.5)
+                #
+                all_peaks = h.get_peaks(min_distance=min_distance + 2, cutoff=5)
+            else:
+                h = g.max_value_of_neighbours()
+                h = h.gaussian(sigma=sigma)
+                #
+                all_peaks = h.get_peaks(min_distance=min_distance, cutoff=5)
 
             if p in radius_dict:
                 radius = radius_dict[p]
@@ -673,7 +721,7 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
             for peak in all_peaks:
 
                 point = GeometricDescriptors.Sphere(centre=peak, radius=radius)
-                score = g.value_at_point(peak)
+                score = h.value_at_point(peak)
 
                 if p != "apolar" and projections:
                     # binding site from point (within 4/5 angstrom of peak)
@@ -697,7 +745,15 @@ class HotspotPharmacophoreModel(PharmacophoreModel):
                 if projs is None:
                     # no projections
                     if p == "donor":
-                        print("Need to implement new CM feature def here, skipping for now")
+                        print("warning! feature: donor projection used without projection. Will not work in CrossMiner")
+                        if override:
+                            print("here")
+                            f = Pharmacophore.Feature(self.feature_definitions[hotspot_to_cm["non-projected"][p]],
+                                                      point)
+                            f.point = point
+                            f.score = score
+                            features.append(f)
+
                     else:
                         f = Pharmacophore.Feature(self.feature_definitions[hotspot_to_cm["non-projected"][p]],
                                                   point)
