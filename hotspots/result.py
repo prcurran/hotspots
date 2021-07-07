@@ -60,7 +60,7 @@ class _Scorer(Helper):
     :param int tolerance: search distance
     """
 
-    def __init__(self, hotspot_result, obj, tolerance):
+    def __init__(self, hotspot_result, obj, tolerance, backup_protein_score = False):
         self.hotspot_result = hotspot_result
         self.object = obj
         self.tolerance = tolerance
@@ -70,7 +70,10 @@ class _Scorer(Helper):
         self.protein_score_dict = {}
 
         if isinstance(obj, Protein):
-            self._scored_object = self.score_protein()
+            if backup_protein_score:
+                self._scored_object = self._score_protein_backup(obj)
+            else:
+                self._scored_object = self.score_protein()
 
         elif isinstance(obj, Molecule):
             self._scored_object = self.score_molecule()
@@ -251,26 +254,37 @@ class _Scorer(Helper):
                     continue
 
                 atom_type = self.get_atom_type(atom)
-
+                max_score = 0
                 # score donor hydrogens
                 if atom_type == 'donor':
                     for n in atom.neighbours:
                         if n.atomic_number == 1:
-                            n.partial_charge = fetch_scores(atom, 'acceptor', tolerance=5)
+                            score = fetch_scores(n, 'acceptor', tolerance=5)
+                            n.partial_charge = score
+                            if score > max_score:
+                                max_score = score
 
                 # score donor/acceptors atoms
-                elif atom_type == 'doneptor':
-                    atom.partial_charge = fetch_scores(atom, 'donor', tolerance=5)
-                    for n in atom.neighbours:
-                        if n.atomic_number == 1:
-                            n.partial_charge = fetch_scores(atom, 'acceptor', tolerance=5)
+                # elif atom_type == 'doneptor':
+                #     atom.partial_charge = fetch_scores(atom, 'donor', tolerance=5)
+                #     for n in atom.neighbours:
+                #         if n.atomic_number == 1:
+                #             n.partial_charge = fetch_scores(atom, 'acceptor', tolerance=5)
 
                 # score remaining atoms
                 elif atom_type == 'acceptor':
-                    atom.partial_charge = fetch_scores(atom, 'donor', tolerance=5)
+                    score = fetch_scores(atom, 'donor', tolerance=5)
+                    atom.partial_charge = score
+                    if score > max_score:
+                        max_score = score
 
                 else:
-                    atom.partial_charge = fetch_scores(atom, 'donor', tolerance=4)
+                    score = fetch_scores(atom, 'apolar', tolerance=4)
+                    atom.partial_charge = score
+                    if score > max_score:
+                        max_score = score
+
+                self.protein_score_dict[atom.index] = max_score
 
         return prot
 
@@ -622,7 +636,7 @@ class Results(Helper):
     #
     #     return extracted
 
-    def score(self, obj=None, tolerance=2, as_dict = False):
+    def score(self, obj=None, tolerance=2, as_dict = False, binding_site_mode = False):
         """
         annotate protein, molecule or self with Fragment Hotspot scores
 
@@ -640,7 +654,10 @@ class Results(Helper):
         """
         if as_dict:
             if isinstance(obj, Protein):
-                return _Scorer(self, obj, tolerance).protein_score_dict
+                if binding_site_mode:
+                    return _Scorer(self, obj, tolerance, backup_protein_score=True).protein_score_dict
+                else:
+                    return _Scorer(self, obj, tolerance).protein_score_dict
             elif isinstance(obj, Molecule):
                 return _Scorer(self, obj, tolerance).score_dict
         return _Scorer(self, obj, tolerance).scored_object
