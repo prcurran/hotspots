@@ -1,4 +1,5 @@
 #from __future__ import print_function, division
+import numpy as np
 from hotspots.result import Results
 from hotspots.hs_utilities import Helper
 from hotspots.grid_extension import Grid, _GridEnsemble
