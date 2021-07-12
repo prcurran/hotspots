@@ -744,8 +744,11 @@ class Runner(object):
                 elif isinstance(obj[0], Cavity):
                     self._cavities = [Helper.cavity_centroid(c) for c in obj]
                 else:
-                    print("WARNING! Failed to detected cavity, Atomic Hotspot detection to run on whole protein")
-                    self._cavities = None
+                    try:
+                        self._cavities = [Coordinates(x=obj[0], y=obj[1], z=obj[2])]
+                    except RuntimeError:
+                        print("WARNING! Failed to detected cavity, Atomic Hotspot detection to run on whole protein")
+                        self._cavities = None
 
             elif isinstance(obj, Molecule):
                 self._cavities = [obj.centre_of_geometry()]
