@@ -32,7 +32,7 @@ setup(
                       'hdbscan>=0.8.26',
                       'pandas', # Custom install with CSD Python API
                       'futures >=3.1.1',
-                      'tqdm==4.31.1',
+                      'tqdm==4.66.3',
                       'xmltodict==0.12.0'],
     package_data={
         # If any package contains *.txt or *.rst files, include them:
